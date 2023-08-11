@@ -16,7 +16,7 @@ import jetbrains.exodus.database.TransientEntityStore
 /**
  *
  */
-class GetEvaluationInfoHandler(store: TransientEntityStore) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiEvaluationInfo> {
+class GetEvaluationInfoHandler : AbstractEvaluationViewerHandler(), GetRestHandler<ApiEvaluationInfo> {
 
     override val route = "evaluation/{evaluationId}/info"
 
@@ -34,11 +34,11 @@ class GetEvaluationInfoHandler(store: TransientEntityStore) : AbstractEvaluation
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiEvaluationInfo = this.store.transactional (true) {
+    override fun doGet(ctx: Context): ApiEvaluationInfo {
         val manager = ctx.eligibleManagerForId<RunManager>()
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access Denied", ctx)
         }
-        ApiEvaluationInfo(manager)
+        return ApiEvaluationInfo(manager)
     }
 }

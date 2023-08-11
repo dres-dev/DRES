@@ -18,7 +18,7 @@ import kotlinx.dnq.query.toList
 /**
  *
  */
-class TeamGroupScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(store), GetRestHandler<List<ApiTeamGroupValue>> {
+class TeamGroupScoreHandler : AbstractScoreHandler(), GetRestHandler<List<ApiTeamGroupValue>> {
     override val route = "score/evaluation/{evaluationId}/teamGroup/list"
 
     @OpenApi(
@@ -43,13 +43,13 @@ class TeamGroupScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        return this.store.transactional(true) {
+
             val rac = ctx.runActionContext()
             /* TODO: Not suite sure where the teamGroupAggregator got lost.*/
             //val aggregators = manager.currentTask(rac)?.teamGroupAggregators ?: throw ErrorStatusException(404, "No active task in evaluation ${ctx.evaluationId()}.", ctx)
             //val teamGroups = manager.template.teamsGroups.toList()
             //teamGroups.map { ApiTeamGroupValue(it.name, aggregators[it.teamGroupId]?.lastValue ?: 0.0) }
-            emptyList()
-        }
+            return emptyList()
+
     }
 }

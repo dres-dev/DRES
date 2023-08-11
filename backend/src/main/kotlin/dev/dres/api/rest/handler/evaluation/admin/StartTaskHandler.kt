@@ -24,7 +24,8 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
+class StartTaskHandler : AbstractEvaluationAdminHandler(),
+    PostRestHandler<SuccessStatus> {
 
     override val route: String = "evaluation/admin/{evaluationId}/task/start"
 
@@ -36,7 +37,13 @@ class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHand
         path = "/api/v2/evaluation/admin/{evaluationId}/task/start",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
-        pathParams = [OpenApiParam("evaluationId", String::class, "The evalation ID.", required = true, allowEmptyValue = false)],
+        pathParams = [OpenApiParam(
+            "evaluationId",
+            String::class,
+            "The evalation ID.",
+            required = true,
+            allowEmptyValue = false
+        )],
         tags = ["Evaluation Administrator"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -46,22 +53,28 @@ class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHand
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val evaluationId = ctx.evaluationId()
-        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+        val evaluationManager =
+            getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
 
         /* Important: Check that user can actually change this manager. */
         synchronousAdminCheck(evaluationManager, ctx)
 
-        return this.store.transactional {
-            val rac = ctx.runActionContext()
-            try {
-                val taskId = evaluationManager.startTask(rac)
-                AuditLogger.taskStart(evaluationManager.id, taskId, evaluationManager.currentTaskTemplate(rac).toApi(), AuditLogSource.REST, ctx.sessionToken())
-                SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully started.")
-            } catch (e: IllegalStateException) {
-                throw ErrorStatusException(400, e.message ?: "", ctx)
-            } catch (e: IllegalAccessError) {
-                throw ErrorStatusException(403, e.message!!, ctx)
-            }
+        val rac = ctx.runActionContext()
+        return try {
+            val taskId = evaluationManager.startTask(rac)
+            AuditLogger.taskStart(
+                evaluationManager.id,
+                taskId,
+                evaluationManager.currentTaskTemplate(rac),
+                AuditLogSource.REST,
+                ctx.sessionToken()
+            )
+            SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully started.")
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(400, e.message ?: "", ctx)
+        } catch (e: IllegalAccessError) {
+            throw ErrorStatusException(403, e.message!!, ctx)
         }
+
     }
 }

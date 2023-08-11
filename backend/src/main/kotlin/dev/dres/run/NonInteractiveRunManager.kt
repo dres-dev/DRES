@@ -40,7 +40,7 @@ class NonInteractiveRunManager(
         get() = this.evaluation.name
 
     /** The [ApiEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
-    override val template = this.evaluation.template.toApi()
+    override val template = this.evaluation.template
 
     /** The [List] of [Scoreboard]s maintained by this [NonInteractiveRunManager]. */
     override val scoreboards: List<Scoreboard>

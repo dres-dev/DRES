@@ -21,7 +21,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class AdjustPropertiesHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PatchRestHandler<SuccessStatus> {
+class AdjustPropertiesHandler : AbstractEvaluationAdminHandler(), PatchRestHandler<SuccessStatus> {
     override val route = "evaluation/admin/{evaluationId}/properties"
 
     @OpenApi(
@@ -48,11 +48,12 @@ class AdjustPropertiesHandler(store: TransientEntityStore): AbstractEvaluationAd
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
         val evaluationId = ctx.evaluationId()
-        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
-        return this.store.transactional {
-            evaluationManager.updateProperties(properties)
-            SuccessStatus("Properties updated successfully!")
-        }
+        val evaluationManager =
+            getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+
+        evaluationManager.updateProperties(properties)
+        return SuccessStatus("Properties updated successfully!")
+
     }
 }
 

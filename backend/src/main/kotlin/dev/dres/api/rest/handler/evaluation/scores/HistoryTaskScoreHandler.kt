@@ -27,7 +27,7 @@ import kotlinx.dnq.query.asSequence
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class HistoryTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(store), GetRestHandler<ApiScoreOverview> {
+class HistoryTaskScoreHandler : AbstractScoreHandler(), GetRestHandler<ApiScoreOverview> {
 
     override val route = "score/evaluation/{evaluationId}/history/{taskId}"
 
@@ -49,20 +49,26 @@ class HistoryTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiScoreOverview {
-        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' is missing!'", ctx)
+        val taskId =
+            ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' is missing!'", ctx)
         if (!ctx.isAdmin()) throw ErrorStatusException(403, "Access denied.", ctx)
 
-        return this.store.transactional(true) {
-            val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
 
-            val rac = ctx.runActionContext()
-            val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No task run with ID $taskId in run ${manager.id}.", ctx)
-            val scores =  scorer.scoreMap()
-            ApiScoreOverview("task",
-                manager.currentTaskTemplate(rac).taskGroup.name,
-                manager.template.teams.asSequence().map { ApiScore(it.teamId, scores[it.teamId] ?: 0.0) }.toList()
-            )
-        }
+        val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
+
+        val rac = ctx.runActionContext()
+        val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(
+            404,
+            "No task run with ID $taskId in run ${manager.id}.",
+            ctx
+        )
+        val scores = scorer.scoreMap()
+        return ApiScoreOverview(
+            "task",
+            manager.currentTaskTemplate(rac).taskGroup,
+            manager.template.teams.asSequence().map { ApiScore(it.teamId, scores[it.teamId] ?: 0.0) }.toList()
+        )
+
     }
 }
 

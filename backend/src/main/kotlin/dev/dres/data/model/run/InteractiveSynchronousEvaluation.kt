@@ -1,5 +1,6 @@
 package dev.dres.data.model.run
 
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.interfaces.Run
@@ -23,6 +24,7 @@ import dev.dres.run.transformer.MapToSegmentTransformer
 import dev.dres.run.transformer.SubmissionTaskMatchTransformer
 import dev.dres.run.transformer.basics.SubmissionTransformer
 import dev.dres.run.transformer.basics.CombiningSubmissionTransformer
+import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import java.lang.IndexOutOfBoundsException
 import java.util.LinkedList
@@ -35,26 +37,27 @@ import java.util.LinkedList
  * @author Ralph Gasser
  * @param 2.0.0
  */
-class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(evaluation) {
+class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: DbEvaluation) :
+    AbstractEvaluation(store, evaluation) {
 
     init {
-        require(this.evaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
-        require(this.template.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
-        require(this.template.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
+        store.transactional(true) { require(this.evaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" } }
+        require(this.template.tasks.isNotEmpty()) { "Cannot create a run from a competition that doesn't have any tasks." }
+        require(this.template.teams.isNotEmpty()) { "Cannot create a run from a competition that doesn't have any teams." }
     }
 
     /** List of [TaskRun]s registered for this [InteractiveSynchronousEvaluation]. */
     override val tasks = LinkedList<ISTaskRun>()
 
-    /** Reference to the currently active [DbTaskTemplate]. This is part of the task navigation. */
-    private val templates = this.template.tasks.sortedBy(DbTaskTemplate::idx).asSequence().map { it.templateId }.toList()
+
+    private val templates = this.template.tasks
 
     /** Returns the last [TaskRun]. */
     val currentTask: AbstractInteractiveTask?
-        get() = this.tasks.lastOrNull { it.templateId == this.templates[this.templateIndex] }
+        get() = this.tasks.lastOrNull { it.templateId == this.templates[this.templateIndex].id }
 
     /** The index of the task template this [InteractiveSynchronousEvaluation] is pointing to. */
-    var templateIndex: Int = this.currentTask?.templateId?.let { this.templates.indexOf(it) } ?: 0
+    var templateIndex: Int = this.currentTask?.templateId?.let { id -> this.templates.indexOfFirst { template -> template.id == id } } ?: 0
         private set
 
     /** List of [Scoreboard]s maintained by this [NonInteractiveEvaluation]. */
@@ -67,7 +70,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         /* Prepare the evaluation scoreboards. */
         val teams = this.template.teams.asSequence().map { it.teamId }.toList()
         this.scoreboards = this.template.taskGroups.asSequence().map { group ->
-            MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
+            MaxNormalizingScoreBoard(group.name, this, teams, { task -> task.taskGroup == group.name }, group.name)
         }.toList()
     }
 
@@ -76,7 +79,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
      *
      * @return [TemplateId]
      */
-    fun getCurrentTemplateId(): TemplateId = this.templates[this.templateIndex]
+    fun getCurrentTemplateId(): TemplateId = this.currentTask?.templateId!!
 
     /**
      * Returns the [DbTaskTemplate] this [InteractiveSynchronousEvaluation] is currently pointing to.
@@ -85,9 +88,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
      *
      * @return [DbTaskTemplate]
      */
-    fun getCurrentTemplate(): DbTaskTemplate = this.evaluation.template.tasks.filter {
-        it.id eq this@InteractiveSynchronousEvaluation.getCurrentTemplateId()
-    }.first()
+    fun getCurrentTemplate(): ApiTaskTemplate = this.currentTask?.template!!
 
     /**
      * Moves this [InteractiveSynchronousEvaluation] to the given task index.
@@ -106,7 +107,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
      * Represents a concrete [Run] of a [DbTaskTemplate]. [DbTask]s always exist within a [InteractiveSynchronousEvaluation].
      * As a [InteractiveSynchronousEvaluation], [DbTask]s can be started and ended, and they can be used to register [DbSubmission]s.
      */
-    inner class ISTaskRun(task: DbTask): AbstractInteractiveTask(task) {
+    inner class ISTaskRun(task: DbTask) : AbstractInteractiveTask(store, task) {
 
         /**
          * Constructor used to generate an [ISTaskRun] from a [DbTaskTemplate].
@@ -120,7 +121,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         })
 
         /** The [InteractiveSynchronousEvaluation] this [DbTask] belongs to.*/
-        override val competition: InteractiveSynchronousEvaluation
+        override val evaluationRun: InteractiveSynchronousEvaluation
             get() = this@InteractiveSynchronousEvaluation
 
         /** The position of this [DbTask] within the [InteractiveSynchronousEvaluation]. */
@@ -139,50 +140,62 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         override var duration: Long = this.template.duration
 
         /** */
-        override val teams: List<TeamId> = this@InteractiveSynchronousEvaluation.template.teams.asSequence().map { it.teamId }.toList()
+        override val teams: List<TeamId> =
+            this@InteractiveSynchronousEvaluation.template.teams.asSequence().map { it.teamId }.toList()
 
         init {
+
             check(this@InteractiveSynchronousEvaluation.tasks.isEmpty() || this@InteractiveSynchronousEvaluation.tasks.last().hasEnded) {
                 "Cannot create a new task. Another task is currently running."
             }
             (this@InteractiveSynchronousEvaluation.tasks).add(this)
 
             /* Initialize submission filter. */
-            if (this.template.taskGroup.type.submission.isEmpty) {
-                this.filter = AcceptAllSubmissionFilter
-            } else {
-                this.filter = CombiningSubmissionFilter(
-                    this.template.taskGroup.type.submission.asSequence().map { option ->
-                        val parameters = this.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq option.description)
-                            .asSequence().map { it.key to it.value }.toMap()
-                        option.newFilter(parameters)
-                    }.toList()
-                )
-            }
-            val mapToSegment = this.template.taskGroup.type.options.contains(DbTaskOption.MAP_TO_SEGMENT)
-            this.transformer = if (mapToSegment) {
-                CombiningSubmissionTransformer(
-                    listOf(
-                        SubmissionTaskMatchTransformer(this.taskId),
-                        MapToSegmentTransformer()
+            this.filter = store.transactional {
+                if (task.template.taskGroup.type.submission.isEmpty) {
+                    AcceptAllSubmissionFilter
+                } else {
+                    CombiningSubmissionFilter(
+                        task.template.taskGroup.type.submission.asSequence().map { option ->
+                            val parameters =
+                                task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq option.description)
+                                    .asSequence().map { it.key to it.value }.toMap()
+                            option.newFilter(parameters)
+                        }.toList()
                     )
-                )
-            } else {
-                SubmissionTaskMatchTransformer(this.taskId)
+                }
+            }
+
+            this.transformer = store.transactional {
+                val mapToSegment = task.template.taskGroup.type.options.contains(DbTaskOption.MAP_TO_SEGMENT)
+                if (mapToSegment) {
+                    CombiningSubmissionTransformer(
+                        listOf(
+                            SubmissionTaskMatchTransformer(this.taskId),
+                            MapToSegmentTransformer()
+                        )
+                    )
+                } else {
+                    SubmissionTaskMatchTransformer(this.taskId)
+                }
             }
 
             /* Initialize task scorer. */
-            this.scorer = CachingTaskScorer(
-                when(val scoreOption = this.template.taskGroup.type.score) {
-                    DbScoreOption.KIS -> KisTaskScorer(
-                        this,
-                        this.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description).asSequence().map { it.key to it.value }.toMap()
-                    )
-                    DbScoreOption.AVS -> AvsTaskScorer(this)
-                    DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this)
-                    else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
-                }
-            )
+            this.scorer = store.transactional {
+                CachingTaskScorer(
+                    when (val scoreOption = task.template.taskGroup.type.score) {
+                        DbScoreOption.KIS -> KisTaskScorer(
+                            this,
+                            task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description)
+                                .asSequence().map { it.key to it.value }.toMap()
+                        )
+
+                        DbScoreOption.AVS -> AvsTaskScorer(this)
+                        DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this)
+                        else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
+                    }
+                )
+            }
         }
     }
 }

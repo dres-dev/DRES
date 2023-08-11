@@ -1,6 +1,7 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbAnswerSet
@@ -12,6 +13,7 @@ import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.filter.basics.SubmissionFilter
 import dev.dres.run.transformer.basics.SubmissionTransformer
 import dev.dres.run.validation.interfaces.AnswerSetValidator
+import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.mapDistinct
@@ -23,18 +25,18 @@ import kotlinx.dnq.util.findById
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractTask(task: DbTask): TaskRun {
+abstract class AbstractTask(protected val store: TransientEntityStore, task: DbTask) : TaskRun {
 
     /** The internal [xdId] of this [AbstractEvaluation].
      *
      * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
      */
-    private val xdId = task.xdId
+    private val xdId: String = this.store.transactional(true) { task.xdId }
 
     /**
      * Accessor for the [DbTask] underpinning this [AbstractTask]
      */
-    protected val task: DbTask
+    protected val dbTask: DbTask
         get() = DbTask.findById(this.xdId)
 
     /**
@@ -42,20 +44,27 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      *
      * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
      */
-    final override val taskId: TaskId = this.task.id
+    final override val taskId: TaskId = this.store.transactional(true) { task.taskId }
 
     /**
      * The [TemplateId] of this [AbstractTask].
      *
      * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
      */
-    final override val templateId: TemplateId = this.task.template.templateId
+    final override val templateId: TemplateId = this.store.transactional(true) { task.template.templateId }
+
+    /**
+     * Reference to the [ApiTaskTemplate] describing this [AbstractTask].
+     *
+     * Requires active database transaction!
+     */
+    final override val template: ApiTaskTemplate = this.store.transactional(true) { this.dbTask.template.toApi() }
 
     /** The current [DbTaskStatus] of this [AbstractTask]. This is a transient property. */
-    final override var status: DbTaskStatus
-        get() = this.task.status
+    final override var status: ApiTaskStatus
+        get() = this.store.transactional(true) { this.dbTask.status.toApi() }
         protected set(value) {
-            this.task.status = value  /* Update backing database field. */
+            this.dbTask.status = value.toDb()  /* Update backing database field. */
         }
 
     /**
@@ -64,9 +73,9 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      * Setter requires active database transaction!
      */
     final override var started: Long?
-        get() = this.task.started
+        get() = this.store.transactional(true) { this.dbTask.started }
         protected set(value) {
-            this.task.started = value  /* Update backing database field. */
+            this.dbTask.started = value  /* Update backing database field. */
         }
 
     /**
@@ -75,18 +84,11 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      * Setter requires active database transaction!
      */
     final override var ended: Long?
-        get() = this.task.ended
+        get() = this.store.transactional(true) { this.dbTask.ended }
         protected set(value) {
-            this.task.ended = value /* Update backing database field. */
+            this.dbTask.ended = value /* Update backing database field. */
         }
 
-    /**
-     * Reference to the [DbTaskTemplate] describing this [AbstractTask].
-     *
-     * Requires active database transaction!
-     */
-    final override val template: DbTaskTemplate
-        get() = this.task.template
 
     /** The [SubmissionFilter] used to filter [DbSubmission]s. */
     abstract val filter: SubmissionFilter
@@ -107,52 +109,60 @@ abstract class AbstractTask(task: DbTask): TaskRun {
         if (this.hasStarted) {
             throw IllegalStateException("Run has already been started.")
         }
-        this.status = DbTaskStatus.PREPARING
+        this.store.transactional {
+            this.status = ApiTaskStatus.PREPARING
+        }
     }
 
     /**
      * Starts this [AbstractTask].
      */
     override fun start() {
-        if (this.started != null || this.status == DbTaskStatus.RUNNING) {
+        if (this.started != null || this.status == ApiTaskStatus.RUNNING) {
             throw IllegalStateException("Run has already been started.")
         }
-        this.started = System.currentTimeMillis()
-        this.status = DbTaskStatus.RUNNING
+        this.store.transactional {
+            this.started = System.currentTimeMillis()
+            this.status = ApiTaskStatus.RUNNING
+        }
     }
 
     /**
      * Ends this [AbstractTask].
      */
     override fun end() {
-        if (this.started == null) {
-            this.started = System.currentTimeMillis()
+        this.store.transactional {
+            if (this.started == null) {
+                this.started = System.currentTimeMillis()
+            }
+            this.ended = System.currentTimeMillis()
+            this.status = ApiTaskStatus.ENDED
         }
-        this.ended = System.currentTimeMillis()
-        this.status = DbTaskStatus.ENDED
     }
 
     /**
      * Reactivates this [AbstractTask].
      */
     override fun reactivate() {
-        if (this.ended == null){
-            throw IllegalStateException("Run has not yet ended.")
+        this.store.transactional {
+            if (this.ended == null) {
+                throw IllegalStateException("Run has not yet ended.")
+            }
+            this.ended = null
+            this.status = ApiTaskStatus.RUNNING
         }
-        this.ended = null
-        this.status = DbTaskStatus.RUNNING
     }
 
     /** Returns a [Sequence] of all [DbSubmission]s connected to this [AbstractTask]. */
-    override fun getSubmissions() = DbAnswerSet.filter {
-        a -> a.task.id eq this@AbstractTask.taskId
+    override fun getDbSubmissions() = DbAnswerSet.filter { a ->
+        a.task.id eq this@AbstractTask.taskId
     }.mapDistinct {
         it.submission
     }.asSequence()
 
     /** Map of [TeamGroupId] to [TeamAggregatorImpl]. */
     val teamGroupAggregators: Map<TeamGroupId, TeamAggregatorImpl> by lazy {
-        this.competition.template.teamGroups.asSequence().associate { it.id to it.newAggregator() }
+        this.evaluationRun.template.teamGroups.associate { it.id!! to it.newAggregator() }
     }
 
     /**

@@ -2,6 +2,7 @@ package dev.dres.run.updatables
 
 import dev.dres.api.rest.types.evaluation.ApiEvaluationState
 import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.api.rest.types.template.tasks.options.ApiSubmissionOption
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.template.task.options.DbSubmissionOption
@@ -34,16 +35,15 @@ class EndOnSubmitUpdatable(private val manager: InteractiveRunManager, private v
             val currentTask = this.manager.currentTask(this.context) ?: return
 
             /* Determine of endOnSubmit is true for given task. */
-            val endOnSubmit = currentTask.template.taskGroup.type.submission.filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
+            val taskType = this.manager.template.taskTypes.firstOrNull { it.name == currentTask.template.taskType }!!
+            val endOnSubmit = taskType.submissionOptions.contains(ApiSubmissionOption.LIMIT_CORRECT_PER_TEAM)
             if (endOnSubmit) {
                 val teams = currentTask.teams.associateWith { 0 }.toMutableMap()
-                val submissions = currentTask.getSubmissions().toList()
+                val submissions = currentTask.getDbSubmissions().toList()
 
                 /* If there is no submission, we can abort here. */
                 if (submissions.isNotEmpty()) {
-                    val limit = currentTask.template.taskGroup.type.configurations.filter {
-                        it.key eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description
-                    }.firstOrNull()?.value?.toIntOrNull() ?: 1
+                    val limit = taskType.configuration["LIMIT_CORRECT_PER_TEAM"]?.toIntOrNull() ?: 1
 
                     /* Count number of correct submissions per team. */
                     if (this.manager.timeLeft(this.context) > 0) {

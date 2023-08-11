@@ -18,7 +18,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ListEvaluationScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(store), GetRestHandler<List<ApiScoreOverview>> {
+class ListEvaluationScoreHandler : AbstractScoreHandler(), GetRestHandler<List<ApiScoreOverview>> {
 
     override val route = "score/evaluation/{evaluationId}"
 
@@ -35,8 +35,8 @@ class ListEvaluationScoreHandler(store: TransientEntityStore) : AbstractScoreHan
             ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiScoreOverview> = this.store.transactional (true) {
+    override fun doGet(ctx: Context): List<ApiScoreOverview> {
         val manager = ctx.eligibleManagerForId<RunManager>()
-        manager.scoreboards.map { it.overview().toApi() }
+        return manager.scoreboards.map { it.overview().toApi() }
     }
 }

@@ -6,6 +6,7 @@ import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.template.tasks.options.ApiTaskOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.template.task.options.DbTaskOption
@@ -18,7 +19,7 @@ import kotlinx.dnq.query.contains
 /**
  *
  */
-class GetSubmissionInfoHandler(store: TransientEntityStore): AbstractEvaluationViewerHandler(store), GetRestHandler<List<ApiSubmission>> {
+class GetSubmissionInfoHandler(private val store: TransientEntityStore): AbstractEvaluationViewerHandler(), GetRestHandler<List<ApiSubmission>> {
     override val route = "evaluation/{evaluationId}/submission/list"
 
     @OpenApi(
@@ -37,7 +38,7 @@ class GetSubmissionInfoHandler(store: TransientEntityStore): AbstractEvaluationV
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiSubmission> = this.store.transactional (true) {
+    override fun doGet(ctx: Context): List<ApiSubmission>  {
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
         val rac = ctx.runActionContext()
 
@@ -47,13 +48,17 @@ class GetSubmissionInfoHandler(store: TransientEntityStore): AbstractEvaluationV
 
         val limit = manager.runProperties.limitSubmissionPreviews
         val currentTask = manager.currentTask(rac) ?: throw ErrorStatusException(404, "No active task.", ctx)
-        val blind = currentTask.template.taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS) && currentTask.isRunning
+        val blind = currentTask.isRunning && manager.template.taskTypes.find { it.name == currentTask.template.taskType }?.taskOptions?.contains(
+            ApiTaskOption.HIDDEN_RESULTS
+        ) == true
 
         /* Obtain current task run and check status. */
-        if (limit > 0) {
-            limitSubmissions(manager.currentSubmissions(rac), limit, blind)
-        } else {
-            manager.currentSubmissions(rac).map { it.toApi(blind) }
+        return this.store.transactional (true) {
+            if (limit > 0) {
+                limitSubmissions(manager.currentSubmissions(rac), limit, blind)
+            } else {
+                manager.currentSubmissions(rac).map { it.toApi(blind) }
+            }
         }
     }
 

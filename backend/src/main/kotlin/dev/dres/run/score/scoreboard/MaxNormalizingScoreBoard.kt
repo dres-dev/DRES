@@ -1,5 +1,6 @@
 package dev.dres.run.score.scoreboard
 
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.interfaces.EvaluationRun
@@ -18,7 +19,7 @@ import kotlin.math.max
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class MaxNormalizingScoreBoard(override val name: String, override val run: EvaluationRun, private val teamIds: List<TeamId>, private val taskFilter: (DbTaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
+class MaxNormalizingScoreBoard(override val name: String, override val run: EvaluationRun, private val teamIds: List<TeamId>, private val taskFilter: (ApiTaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
 
     /** A [StampedLock] to synchronise access to this [MaxNormalizingScoreBoard]. */
     private val lock = StampedLock()

@@ -2,13 +2,12 @@ package dev.dres.run
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.ViewerInfo
+import dev.dres.api.rest.types.evaluation.ApiTaskStatus
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
-import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
-import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
-import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
-import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.api.rest.types.template.ApiEvaluationTemplate
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
+import dev.dres.api.rest.types.template.tasks.options.ApiSubmissionOption
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
@@ -94,10 +93,8 @@ class InteractiveAsynchronousRunManager(
         get() = this.evaluation.name
 
     /** The [ApiEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
-    override val template = this.evaluation.template.toApi()
+    override val template = this.evaluation.template
 
-    private val dbTemplate
-        get() = this.evaluation.template //TODO is there a nicer way to handle this?
 
     /** The global [RunManagerStatus] of this [InteractiveAsynchronousRunManager]. */
     @Volatile
@@ -136,7 +133,7 @@ class InteractiveAsynchronousRunManager(
 
         /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
         this.evaluation.tasks.forEach { task ->
-            task.getSubmissions().forEach { sub ->
+            task.getDbSubmissions().forEach { sub ->
                 for (answerSet in sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }) {
                     task.validator.validate(answerSet)
                 }
@@ -212,8 +209,8 @@ class InteractiveAsynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @return The [DbTaskTemplate] for the given team.
      */
-    override fun currentTaskTemplate(context: RunActionContext): DbTaskTemplate {
-        return this.evaluation.currentTaskDescription(context.teamId())
+    override fun currentTaskTemplate(context: RunActionContext): ApiTaskTemplate {
+        return this.evaluation.currentTaskTemplate(context.teamId())
     }
 
     /**
@@ -229,7 +226,7 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
-        val newIndex = this.dbTemplate.tasks.sortedBy(DbTaskTemplate::idx).indexOf(this.currentTaskTemplate(context)) - 1
+        val newIndex = this.template.tasks.indexOf(this.currentTaskTemplate(context)) - 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -250,7 +247,7 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun next(context: RunActionContext): Boolean = this.stateLock.write {
-        val newIndex = this.dbTemplate.tasks.sortedBy(DbTaskTemplate::idx).indexOf(this.currentTaskTemplate(context)) + 1
+        val newIndex = this.template.tasks.indexOf(this.currentTaskTemplate(context)) + 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -313,7 +310,7 @@ class InteractiveAsynchronousRunManager(
         checkTeamStatus(teamId, RunManagerStatus.ACTIVE)
 
         /* Create task and update status. */
-        val currentTaskTemplate = this.evaluation.currentTaskDescription(teamId)
+        val currentTaskTemplate = this.evaluation.currentTaskTemplate(teamId)
 
         /* Check for duplicate task runs */
         if (!this.evaluation.allowRepeatedTasks && this.evaluation.tasksForTeam(teamId)
@@ -322,8 +319,13 @@ class InteractiveAsynchronousRunManager(
             throw IllegalStateException("Task '${currentTaskTemplate.name}' has already been used")
         }
 
-        val currentTaskRun = this.evaluation.IATaskRun(currentTaskTemplate, teamId)
-        currentTaskRun.prepare()
+        val currentTaskRun = store.transactional {
+            val dbTaskTemplate = DbTaskTemplate.query(DbTaskTemplate::templateId eq currentTaskTemplate.id!!).first()
+            val currentTaskRun = this.evaluation.IATaskRun(dbTaskTemplate, teamId)
+            currentTaskRun.prepare()
+            currentTaskRun
+        }
+
 
 //        /* Enqueue WS message for sending */
 //        RunExecutor.broadcastWsMessage(
@@ -455,7 +457,7 @@ class InteractiveAsynchronousRunManager(
      * @return List of [DbSubmission]s.
      */
     override fun allSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
-        this.evaluation.tasks.flatMap { it.getSubmissions() }
+        this.evaluation.tasks.flatMap { it.getDbSubmissions() }
     }
 
     /**
@@ -465,7 +467,7 @@ class InteractiveAsynchronousRunManager(
      * @return List of [DbSubmission]s.
      */
     override fun currentSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
-        this.currentTask(context)?.getSubmissions()?.toList() ?: emptyList()
+        this.currentTask(context)?.getDbSubmissions()?.toList() ?: emptyList()
     }
 
     /**
@@ -669,7 +671,10 @@ class InteractiveAsynchronousRunManager(
                 LOGGER.info("Interrupted SynchronousRunManager, exiting")
                 return
             } catch (e: Throwable) {
-                LOGGER.error("Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!", e)
+                LOGGER.error(
+                    "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
+                    e
+                )
                 LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
 
                 // oh shit, something went horribly, horribly wrong
@@ -701,7 +706,7 @@ class InteractiveAsynchronousRunManager(
         for (teamId in this.teamIds) {
             val runStatus = this.statusMap[teamId]
                 ?: throw IllegalStateException("Run status for team $teamId is not set. This is a programmers error!")
-            val taskStatus = this.evaluation.currentTaskForTeam(teamId)?.status?.toApi()
+            val taskStatus = this.evaluation.currentTaskForTeam(teamId)?.status
             for (updatable in this.updatables) {
                 if (updatable.shouldBeUpdated(runStatus, taskStatus)) {
                     updatable.update(runStatus, taskStatus, RunActionContext("SYSTEM", teamId, setOf(ApiRole.ADMIN)))
@@ -740,7 +745,7 @@ class InteractiveAsynchronousRunManager(
                     val task = this.evaluation.currentTaskForTeam(teamId)
                         ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                     task.start()
-                    AuditLogger.taskStart(this.id, task.teamId, task.template.toApi(), AuditLogSource.REST, null)
+                    AuditLogger.taskStart(this.id, task.teamId, task.template, AuditLogSource.REST, null)
 //                    RunExecutor.broadcastWsMessage(
 //                        teamId,
 //                        ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId)
@@ -755,8 +760,7 @@ class InteractiveAsynchronousRunManager(
      */
     private fun registerOptionalUpdatables() {
         /* Determine if task should be ended once submission threshold per team is reached. */
-        val endOnSubmit = this.dbTemplate.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.submission }
-            .filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
+        val endOnSubmit = this.template.taskTypes.flatMap { it.submissionOptions }.contains(ApiSubmissionOption.LIMIT_CORRECT_PER_TEAM) //FIXME should take into account all limits
         if (endOnSubmit) {
             this.updatables.add(EndOnSubmitUpdatable(this))
         }
@@ -795,7 +799,7 @@ class InteractiveAsynchronousRunManager(
      *
      */
     private fun teamHasPreparingTask(teamId: TeamId) =
-        this.evaluation.currentTaskForTeam(teamId)?.status == DbTaskStatus.PREPARING
+        this.evaluation.currentTaskForTeam(teamId)?.status == ApiTaskStatus.PREPARING
 
     /**
      * Convenience method: Tries to find a matching [TeamId] in the context of this [InteractiveAsynchronousEvaluation]
@@ -805,9 +809,7 @@ class InteractiveAsynchronousRunManager(
      */
     private fun RunActionContext.teamId(): TeamId {
         val userId = this.userId
-        return this@InteractiveAsynchronousRunManager.dbTemplate.teams.asSequence().firstOrNull { team ->
-            team.users.filter { it.id eq userId }.isNotEmpty
-        }?.teamId
+        return this@InteractiveAsynchronousRunManager.template.teams.firstOrNull { team -> team.users.any { it.id == userId } }?.teamId
             ?: throw IllegalArgumentException("Could not find matching team for user, which is required for interaction with this run manager.")
     }
 

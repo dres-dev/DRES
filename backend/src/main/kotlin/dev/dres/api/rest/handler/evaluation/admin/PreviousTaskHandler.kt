@@ -20,7 +20,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class PreviousTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
+class PreviousTaskHandler : AbstractEvaluationAdminHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "evaluation/admin/{evaluationId}/task/previous"
 
     @OpenApi(
@@ -28,7 +28,13 @@ class PreviousTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
         path = "/api/v2/evaluation/admin/{evaluationId}/task/previous",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
-        pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
+        pathParams = [OpenApiParam(
+            "evaluationId",
+            String::class,
+            "The evaluation ID.",
+            required = true,
+            allowEmptyValue = false
+        )],
         tags = ["Evaluation Administrator"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -38,20 +44,35 @@ class PreviousTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val evaluationId = ctx.evaluationId()
-        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
-        return this.store.transactional(false) {
-            val rac = ctx.runActionContext()
-            try {
-                if (evaluationManager.previous(rac)) {
-                    SuccessStatus("Task for evaluation $evaluationId was successfully moved to '${evaluationManager.currentTaskTemplate(rac).name}'.")
-                } else {
-                    throw ErrorStatusException(400, "Task for evaluation $evaluationId could not be changed because there are no tasks left.", ctx)
-                }
-            } catch (e: IllegalStateException) {
-                throw ErrorStatusException(400, "Task for evaluation $evaluationId could not be changed because evaluation is in the wrong state (state = ${evaluationManager.status}).", ctx)
-            } catch (e: IllegalAccessError) {
-                throw ErrorStatusException(403, e.message!!, ctx)
+        val evaluationManager =
+            getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+
+        val rac = ctx.runActionContext()
+        try {
+            if (evaluationManager.previous(rac)) {
+                return SuccessStatus(
+                    "Task for evaluation $evaluationId was successfully moved to '${
+                        evaluationManager.currentTaskTemplate(
+                            rac
+                        ).name
+                    }'."
+                )
+            } else {
+                throw ErrorStatusException(
+                    400,
+                    "Task for evaluation $evaluationId could not be changed because there are no tasks left.",
+                    ctx
+                )
             }
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(
+                400,
+                "Task for evaluation $evaluationId could not be changed because evaluation is in the wrong state (state = ${evaluationManager.status}).",
+                ctx
+            )
+        } catch (e: IllegalAccessError) {
+            throw ErrorStatusException(403, e.message!!, ctx)
         }
+
     }
 }

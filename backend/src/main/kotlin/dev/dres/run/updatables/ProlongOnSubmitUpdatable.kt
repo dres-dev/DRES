@@ -2,11 +2,11 @@ package dev.dres.run.updatables
 
 import dev.dres.api.rest.types.evaluation.ApiEvaluationState
 import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.api.rest.types.template.tasks.options.ApiTaskOption
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.task.options.Defaults
 import dev.dres.data.model.template.task.options.Parameters
 import dev.dres.run.InteractiveRunManager
@@ -34,18 +34,13 @@ class ProlongOnSubmitUpdatable(private val manager: InteractiveRunManager): Upda
     override fun update(runStatus: RunManagerStatus, taskStatus: ApiTaskStatus?, context: RunActionContext) {
         if (runStatus == RunManagerStatus.ACTIVE && taskStatus == ApiTaskStatus.RUNNING) {
             val currentTask = this.manager.currentTask(context) ?: return
-            val prolongOnSubmit = currentTask.template.taskGroup.type.options.filter { it.description eq DbTaskOption.PROLONG_ON_SUBMISSION.description }.any()
+            val taskType = this.manager.template.taskTypes.firstOrNull { it.name == currentTask.template.taskType }!!
+            val prolongOnSubmit = taskType.taskOptions.contains(ApiTaskOption.PROLONG_ON_SUBMISSION)
             if (prolongOnSubmit) {
                 /* Retrieve relevant parameters. */
-                val limit = currentTask.template.taskGroup.type.configurations.filter {
-                    it.key eq Parameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM
-                }.firstOrNull()?.value?.toIntOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT
-                val prolongBy = currentTask.template.taskGroup.type.configurations.filter {
-                    it.key eq Parameters.PROLONG_ON_SUBMISSION_BY_PARAM
-                }.firstOrNull()?.value?.toIntOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_BY_DEFAULT
-                val correctOnly = currentTask.template.taskGroup.type.configurations.filter {
-                    it.key eq Parameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM
-                }.firstOrNull()?.value?.toBooleanStrictOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
+                val limit = taskType.configuration[Parameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM]?.toIntOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT
+                val prolongBy = taskType.configuration[Parameters.PROLONG_ON_SUBMISSION_BY_PARAM]?.toIntOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_BY_DEFAULT
+                val correctOnly = taskType.configuration[Parameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM]?.toBooleanStrictOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
 
                 /* Apply prolongation if necessary. */
                 val lastSubmission: DbSubmission? = DbAnswerSet.filter { it.task.id eq currentTask.taskId }.mapDistinct { it.submission }.lastOrNull()

@@ -22,7 +22,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class StartEvaluationHandler(store: TransientEntityStore) : AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
+class StartEvaluationHandler : AbstractEvaluationAdminHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "evaluation/admin/{evaluationId}/start"
 
     @OpenApi(
@@ -30,7 +30,13 @@ class StartEvaluationHandler(store: TransientEntityStore) : AbstractEvaluationAd
         path = "/api/v2/evaluation/admin/{evaluationId}/start",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
-        pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
+        pathParams = [OpenApiParam(
+            "evaluationId",
+            String::class,
+            "The evaluation ID.",
+            required = true,
+            allowEmptyValue = false
+        )],
         tags = ["Evaluation Administrator"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -40,19 +46,30 @@ class StartEvaluationHandler(store: TransientEntityStore) : AbstractEvaluationAd
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val evaluationId = ctx.evaluationId()
-        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+        val evaluationManager =
+            getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
 
-        return this.store.transactional {
-            val rac = ctx.runActionContext()
-            try {
-                evaluationManager.start(rac)
-                AuditLogger.evaluationStart(evaluationManager.id, evaluationManager.template, AuditLogSource.REST, AccessManager.userIdForSession(ctx.sessionToken())!!, ctx.sessionToken())
-                SuccessStatus("Evaluation $evaluationId was successfully started.")
-            } catch (e: IllegalStateException) {
-                throw ErrorStatusException(400, "Evaluation $evaluationId could not be started because it is in the wrong state (state = ${evaluationManager.status}).", ctx)
-            } catch (e: IllegalAccessError) {
-                throw ErrorStatusException(403, e.message!!, ctx)
-            }
+
+        val rac = ctx.runActionContext()
+        try {
+            evaluationManager.start(rac)
+            AuditLogger.evaluationStart(
+                evaluationManager.id,
+                evaluationManager.template,
+                AuditLogSource.REST,
+                AccessManager.userIdForSession(ctx.sessionToken())!!,
+                ctx.sessionToken()
+            )
+            return SuccessStatus("Evaluation $evaluationId was successfully started.")
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(
+                400,
+                "Evaluation $evaluationId could not be started because it is in the wrong state (state = ${evaluationManager.status}).",
+                ctx
+            )
+        } catch (e: IllegalAccessError) {
+            throw ErrorStatusException(403, e.message!!, ctx)
         }
+
     }
 }

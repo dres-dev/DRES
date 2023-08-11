@@ -1,10 +1,12 @@
 package dev.dres.data.model.run
 
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
+import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.task.options.DbScoreOption
@@ -23,6 +25,7 @@ import dev.dres.run.transformer.MapToSegmentTransformer
 import dev.dres.run.transformer.SubmissionTaskMatchTransformer
 import dev.dres.run.transformer.basics.SubmissionTransformer
 import dev.dres.run.transformer.basics.CombiningSubmissionTransformer
+import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -34,7 +37,8 @@ import java.util.concurrent.ConcurrentHashMap
  * [InteractiveAsynchronousEvaluation]s can be started and ended, and they can be used to create new [IATaskRun]s and access the current [IATaskRun].
  *
  */
-class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(evaluation) {
+class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation: DbEvaluation) :
+    AbstractEvaluation(store, evaluation) {
 
     private val LOGGER = LoggerFactory.getLogger(InteractiveAsynchronousEvaluation::class.java)
 
@@ -52,7 +56,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
     private val tasksMap = ConcurrentHashMap<TeamId, MutableList<IATaskRun>>()
 
     /** Tracks the current [TaskTemplateId] per [TeamId]. */
-    private val navigationMap: MutableMap<TeamId, TaskTemplateId> = HashMap()
+    private val navigationMap: MutableMap<TeamId, ApiTaskTemplate> = HashMap()
 
     /** List of [Scoreboard]s maintained by this [NonInteractiveEvaluation]. */
     override val scoreboards: List<Scoreboard>
@@ -64,24 +68,23 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
         /* Prepare the evaluation scoreboards. */
         val teams = this.template.teams.asSequence().map { it.teamId }.toList()
         this.scoreboards = this.template.taskGroups.asSequence().map { group ->
-            MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
+            MaxNormalizingScoreBoard(group.name, this, teams, { task -> task.taskGroup == group.name }, group.name)
         }.toList()
     }
 
     fun goTo(teamId: TeamId, index: Int) {
-        this.navigationMap[teamId] = this.template.tasks.drop(this.permutation[teamId]!![index]).first().templateId
+        this.navigationMap[teamId] = this.template.tasks[this.permutation[teamId]!![index]]
     }
 
-    fun currentTaskDescription(teamId: TeamId): DbTaskTemplate {
-        val templateId = navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
-        return DbTaskTemplate.filter { it.id eq templateId }.firstOrNull() ?: throw IllegalTeamIdException(teamId)
+    fun currentTaskTemplate(teamId: TeamId): ApiTaskTemplate {
+        return navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
     }
 
     init {
-        val numberOfTasks = this.template.tasks.size()
+        val numberOfTasks = this.template.tasks.size
         require(numberOfTasks > 0) { "Cannot create a run from a competition that doesn't have any tasks. " }
-        this.template.teams.asSequence().forEach {
-            this.tasksMap[it.id] = ArrayList(numberOfTasks)
+        this.template.teams.forEach {
+            this.tasksMap[it.id!!] = ArrayList(numberOfTasks)
             goTo(it.id, 0)
         }
     }
@@ -92,7 +95,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
      * @param teamId The [TeamId] to lookup.
      */
     fun currentTaskForTeam(teamId: TeamId): IATaskRun? { //FIXME
-        val currentTaskTemplateId = this.navigationMap[teamId]!!
+        val currentTaskTemplateId = this.navigationMap[teamId]!!.id
         return this.tasksForTeam(teamId).findLast {
             it.template.id == currentTaskTemplateId
         }
@@ -104,8 +107,8 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
      * @param teamId The [TeamId] to lookup.
      * @return List []
      */
-    fun tasksForTeam(teamId: TeamId)
-        = this.tasksMap[teamId] ?: throw IllegalArgumentException("Given $teamId is unknown to this competition $id.")
+    fun tasksForTeam(teamId: TeamId) =
+        this.tasksMap[teamId] ?: throw IllegalArgumentException("Given $teamId is unknown to this competition $id.")
 
     /**
      * Generates and returns a [String] representation for this [InteractiveAsynchronousEvaluation].
@@ -115,7 +118,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
     /**
      * A [AbstractInteractiveTask] that takes place as part of the [InteractiveAsynchronousEvaluation].
      */
-    inner class IATaskRun internal constructor(task: DbTask) : AbstractInteractiveTask(task) {
+    inner class IATaskRun internal constructor(task: DbTask) : AbstractInteractiveTask(store, task) {
 
         init {
             /* Sanity check. */
@@ -132,17 +135,18 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
             status = DbTaskStatus.CREATED
             evaluation = this@InteractiveAsynchronousEvaluation.evaluation
             template = t
-            team = this@InteractiveAsynchronousEvaluation.evaluation.template.teams.filter { it.teamId eq teamId }.singleOrNull()
+            team = this@InteractiveAsynchronousEvaluation.evaluation.template.teams.filter { it.teamId eq teamId }
+                .singleOrNull()
                 ?: throw IllegalArgumentException("Cannot start a new task run for team with ID ${teamId}. Team is not registered for competition.")
         })
 
         /** The [InteractiveAsynchronousEvaluation] this [IATaskRun] belongs to.*/
-        override val competition: InteractiveAsynchronousEvaluation
+        override val evaluationRun: InteractiveAsynchronousEvaluation
             get() = this@InteractiveAsynchronousEvaluation
 
         /** The position of this [IATaskRun] within the [InteractiveAsynchronousEvaluation]. */
         override val position: Int
-            get() = this@InteractiveAsynchronousEvaluation.tasksMap[this.task.team!!.id]?.indexOf(this) ?: -1
+            get() = this@InteractiveAsynchronousEvaluation.tasksMap[this.dbTask.team!!.id]?.indexOf(this) ?: -1
 
         /** The [SubmissionFilter] instance used by this [IATaskRun]. */
         override val filter: SubmissionFilter
@@ -155,15 +159,14 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
         /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
         override var duration: Long = this.template.duration
 
-        val teamId = this.task.team!!.id
+        val teamId = this.dbTask.team!!.id
 
         /** The [List] of [TeamId]s working on this [IATaskRun]. */
         override val teams: List<TeamId> = listOf(teamId)
 
 
-
         init {
-            this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.task.team!!.id) { _, v ->
+            this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.dbTask.team!!.id) { _, v ->
                 val list = v ?: LinkedList<IATaskRun>()
                 check(list.isEmpty() || list.last().hasEnded) { "Cannot create a new task. Another task is currently running." } //FIXME crashes on restart
                 list.add(this)
@@ -171,41 +174,50 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
             }
 
             /* Initialize submission filter. */
-            if (this.template.taskGroup.type.submission.isEmpty) {
-                this.filter = AcceptAllSubmissionFilter
-            } else {
-                this.filter = CombiningSubmissionFilter(
-                    this.template.taskGroup.type.submission.asSequence().map { option ->
-                        val parameters = this.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq option.description)
-                            .asSequence().map { it.key to it.value }.toMap()
-                        option.newFilter(parameters)
-                    }.toList()
-                )
+            this.filter = store.transactional {
+                if (task.template.taskGroup.type.submission.isEmpty) {
+                    AcceptAllSubmissionFilter
+                } else {
+                    CombiningSubmissionFilter(
+                        task.template.taskGroup.type.submission.asSequence().map { option ->
+                            val parameters =
+                                task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq option.description)
+                                    .asSequence().map { it.key to it.value }.toMap()
+                            option.newFilter(parameters)
+                        }.toList()
+                    )
+                }
             }
 
-            this.transformer = if (this.template.taskGroup.type.options.asSequence().any { it == DbTaskOption.MAP_TO_SEGMENT }) {
-                CombiningSubmissionTransformer(
-                    listOf(
-                        SubmissionTaskMatchTransformer(this.taskId),
-                        MapToSegmentTransformer()
+            this.transformer = store.transactional {
+                if (task.template.taskGroup.type.options.asSequence().any { it == DbTaskOption.MAP_TO_SEGMENT }) {
+                    CombiningSubmissionTransformer(
+                        listOf(
+                            SubmissionTaskMatchTransformer(this.taskId),
+                            MapToSegmentTransformer()
+                        )
                     )
-                )
-            } else {
-                SubmissionTaskMatchTransformer(this.taskId)
+                } else {
+                    SubmissionTaskMatchTransformer(this.taskId)
+                }
             }
 
             /* Initialize task scorer. */
-            this.scorer = CachingTaskScorer(
-                when(val scoreOption = this.template.taskGroup.type.score) {
-                    DbScoreOption.KIS -> KisTaskScorer(
-                        this,
-                        this.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description).asSequence().map { it.key to it.value }.toMap()
-                    )
-                    DbScoreOption.AVS -> AvsTaskScorer(this)
-                    DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this)
-                    else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
-                }
-            )
+            this.scorer = store.transactional {
+                CachingTaskScorer(
+                    when (val scoreOption = task.template.taskGroup.type.score) {
+                        DbScoreOption.KIS -> KisTaskScorer(
+                            this,
+                            task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description)
+                                .asSequence().map { it.key to it.value }.toMap()
+                        )
+
+                        DbScoreOption.AVS -> AvsTaskScorer(this)
+                        DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this)
+                        else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
+                    }
+                )
+            }
         }
     }
 }

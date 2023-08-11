@@ -25,7 +25,7 @@ import kotlinx.dnq.query.asSequence
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(store),
+class CurrentTaskScoreHandler : AbstractScoreHandler(),
     GetRestHandler<ApiScoreOverview> {
 
     override val route = "score/evaluation/{evaluationId}/current"
@@ -44,13 +44,12 @@ class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiScoreOverview = this.store.transactional(true) {
+    override fun doGet(ctx: Context): ApiScoreOverview {
 
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
-
 
         val rac = ctx.runActionContext()
         val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(
@@ -59,9 +58,9 @@ class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
             ctx
         )
         val scores = scorer.scoreMap()
-        return@transactional ApiScoreOverview(
+        return ApiScoreOverview(
             "task",
-            manager.currentTaskTemplate(rac).taskGroup.name,
+            manager.currentTaskTemplate(rac).taskGroup,
             manager.template.teams.asSequence().map { team -> ApiScore(team.id!!, scores[team.id] ?: 0.0) }.toList()
         )
     }

@@ -142,43 +142,43 @@ object RestApi {
             ResultLogHandler(),
 
             // Evaluation
-            ListEvaluationInfoHandler(store),
-            ListEvaluationStatesHandler(store),
-            GetEvaluationInfoHandler(store),
-            GetEvaluationStateHandler(store),
+            ListEvaluationInfoHandler(),
+            ListEvaluationStatesHandler(),
+            GetEvaluationInfoHandler(),
+            GetEvaluationStateHandler(),
             GetTaskHintHandler(store, cache),
             GetTaskTargetHandler(store, cache),
-            GetCurrentTaskHandler(store),
+            GetCurrentTaskHandler(),
             GetSubmissionInfoHandler(store),
-            GetSubmissionAfterInfoHandler(store),
-            GetSubmissionHistoryInfoHandler(store),
-            ViewerReadyHandler(store),
+            GetSubmissionAfterInfoHandler(),
+            GetSubmissionHistoryInfoHandler(),
+            ViewerReadyHandler(),
 
             // Evaluation run scores
-            ListEvaluationScoreHandler(store),
-            CurrentTaskScoreHandler(store),
-            HistoryTaskScoreHandler(store),
-            ListScoreSeriesHandler(store),
-            ListScoreboardsHandler(store),
-            TeamGroupScoreHandler(store),
+            ListEvaluationScoreHandler(),
+            CurrentTaskScoreHandler(),
+            HistoryTaskScoreHandler(),
+            ListScoreSeriesHandler(),
+            ListScoreboardsHandler(),
+            TeamGroupScoreHandler(),
 
             // Evaluation administration
             CreateEvaluationHandler(store, cache),
-            StartEvaluationHandler(store),
-            StopEvaluationHandler(store),
-            NextTaskHandler(store),
-            PreviousTaskHandler(store),
-            SwitchTaskHandler(store),
-            StartTaskHandler(store),
-            StopTaskHandler(store),
-            AdjustDurationHandler(store),
-            AdjustPropertiesHandler(store),
+            StartEvaluationHandler(),
+            StopEvaluationHandler(),
+            NextTaskHandler(),
+            PreviousTaskHandler(),
+            SwitchTaskHandler(),
+            StartTaskHandler(),
+            StopTaskHandler(),
+            AdjustDurationHandler(),
+            AdjustPropertiesHandler(),
             OverrideAnswerSetVerdictHandler(store),
-            ForceViewerHandler(store),
-            ListViewersHandler(store),
-            ListSubmissionsHandler(store),
-            ListPastTaskHandler(store),
-            EvaluationOverviewHandler(store),
+            ForceViewerHandler(),
+            ListViewersHandler(),
+            ListSubmissionsHandler(),
+            ListPastTaskHandler(),
+            EvaluationOverviewHandler(),
             ListAllTeamsHandler(store),
             CreateTeamHandler(store),
             UpdateTeamHandler(store),
@@ -195,13 +195,13 @@ object RestApi {
             InfoHandler(),
 
             //API Client
-            ClientListEvaluationsHandler(store),
-            ClientTaskInfoHandler(store),
+            ClientListEvaluationsHandler(),
+            ClientTaskInfoHandler(),
 
             // Downloads
             EvaluationDownloadHandler(store),
             EvaluationTemplateDownloadHandler(store),
-            ScoreDownloadHandler(store)
+            ScoreDownloadHandler()
         )
 
         javalin = Javalin.create {

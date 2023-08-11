@@ -18,7 +18,7 @@ import kotlinx.dnq.query.query
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class EvaluationTemplateDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandler(store), GetRestHandler<String> {
+class EvaluationTemplateDownloadHandler(private val store: TransientEntityStore) : AbstractDownloadHandler(), GetRestHandler<String> {
 
     /** The route of this [EvaluationTemplateDownloadHandler]. */
     override val route = "download/template/{templateId}"

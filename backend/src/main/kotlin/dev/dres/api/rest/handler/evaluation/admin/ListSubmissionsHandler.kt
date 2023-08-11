@@ -5,7 +5,6 @@ import dev.dres.utilities.extensions.evaluationId
 import dev.dres.api.rest.types.evaluation.ApiSubmissionInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -16,7 +15,8 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0
  */
-class ListSubmissionsHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), GetRestHandler<List<ApiSubmissionInfo>> {
+class ListSubmissionsHandler : AbstractEvaluationAdminHandler(),
+    GetRestHandler<List<ApiSubmissionInfo>> {
     override val route: String = "evaluation/admin/{evaluationId}/submission/list/{templateId}"
 
     @OpenApi(
@@ -38,13 +38,17 @@ class ListSubmissionsHandler(store: TransientEntityStore): AbstractEvaluationAdm
     )
     override fun doGet(ctx: Context): List<ApiSubmissionInfo> {
         val evaluationId = ctx.evaluationId()
-        val templateId = ctx.pathParamMap()["templateId"] ?: throw ErrorStatusException(404, "Parameter 'templateId' is missing!'", ctx)
-        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+        val templateId = ctx.pathParamMap()["templateId"] ?: throw ErrorStatusException(
+            404,
+            "Parameter 'templateId' is missing!'",
+            ctx
+        )
+        val evaluationManager =
+            getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         val rac = ctx.runActionContext()
-        return this.store.transactional(true) {
-            evaluationManager.tasks(rac).filter { it.template.templateId == templateId }.map {
-                ApiSubmissionInfo(evaluationId, it.taskId, it.getSubmissions().map { sub -> sub.toApi() }.toList())
-            }
+        return evaluationManager.tasks(rac).filter { it.templateId == templateId }.map {
+            ApiSubmissionInfo(evaluationId, it.taskId, it.getDbSubmissions().map { sub -> sub.toApi() }.toList())
         }
+
     }
 }

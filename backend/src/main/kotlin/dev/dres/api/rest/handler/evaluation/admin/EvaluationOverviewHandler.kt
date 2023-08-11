@@ -14,8 +14,9 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0
  */
-class EvaluationOverviewHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), GetRestHandler<ApiEvaluationOverview> {
+class EvaluationOverviewHandler : AbstractEvaluationAdminHandler(), GetRestHandler<ApiEvaluationOverview> {
     override val route = "evaluation/admin/{evaluationId}/overview"
+
     @OpenApi(
         summary = "Provides a complete overview of a run.",
         path = "/api/v2/evaluation/admin/{evaluationId}/overview",
@@ -34,9 +35,9 @@ class EvaluationOverviewHandler(store: TransientEntityStore): AbstractEvaluation
     )
     override fun doGet(ctx: Context): ApiEvaluationOverview {
         val evaluationId = ctx.evaluationId()
-        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
-        return this.store.transactional(true) {
-            ApiEvaluationOverview.of(evaluationManager)
-        }
+        val evaluationManager =
+            getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+        return ApiEvaluationOverview.of(evaluationManager)
+
     }
 }

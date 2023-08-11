@@ -10,7 +10,7 @@ import jetbrains.exodus.database.TransientEntityStore
 /**
  *
  */
-class ListEvaluationInfoHandler(store: TransientEntityStore) : AbstractEvaluationViewerHandler(store), GetRestHandler<List<ApiEvaluationInfo>> {
+class ListEvaluationInfoHandler : AbstractEvaluationViewerHandler(), GetRestHandler<List<ApiEvaluationInfo>> {
 
     override val route = "evaluation/info/list"
 
@@ -25,8 +25,8 @@ class ListEvaluationInfoHandler(store: TransientEntityStore) : AbstractEvaluatio
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiEvaluationInfo> = this.store.transactional(true) {
-        this.getRelevantManagers(ctx).map { manager ->
+    override fun doGet(ctx: Context): List<ApiEvaluationInfo> {
+        return this.getRelevantManagers(ctx).map { manager ->
             ApiEvaluationInfo(manager)
         }
     }

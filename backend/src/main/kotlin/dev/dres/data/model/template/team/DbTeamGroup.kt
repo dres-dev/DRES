@@ -49,12 +49,5 @@ class DbTeamGroup(entity: Entity) : PersistentEntity(entity) {
      */
     fun toApi() = ApiTeamGroup(this.teamGroupId, this.name, this.teams.asSequence().map { it.toApi() }.toList(), this.defaultAggregator.toApi())
 
-    /**
-     * Returns a new [TeamAggregatorImpl] for this [DbTeamGroup].
-     *
-     * This is a convenience method and requires an active transaction context.
-     *
-     * @return [TeamAggregatorImpl]
-     */
-    fun newAggregator() : TeamAggregatorImpl = this.defaultAggregator.newInstance(this.teams.toList())
+
 }

@@ -1,10 +1,9 @@
 package dev.dres.data.model.run.interfaces
 
-import dev.dres.data.model.run.DbTaskStatus
-import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.template.TemplateId
 import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.Scoreable
@@ -28,17 +27,17 @@ interface TaskRun: Run, Scoreable {
     /** The unique [TaskTemplateId] that identifies the task template underpinning [TaskRun]. */
     val templateId: TaskTemplateId
 
-    /** The current [DbTaskStatus] of this [TaskRun]. This is typically a transient property. */
-    val status: DbTaskStatus
+    /** The current [ApiTaskStatus] of this [TaskRun]. This is typically a transient property. */
+    val status: ApiTaskStatus
 
     /** Reference to the [EvaluationRun] this [IATaskRun] belongs to. */
-    val competition: EvaluationRun
+    val evaluationRun: EvaluationRun
 
     /** The position of this [IATaskRun] within the enclosing [EvaluationRun]. */
     val position: Int
 
-    /** Reference to the [DbTaskTemplate] describing this [IATaskRun]. */
-    val template: DbTaskTemplate
+    /** Reference to the [ApiTaskTemplate] describing this [IATaskRun]. */
+    val template: ApiTaskTemplate
 
     /** The [CachingTaskScorer] used to update score for this [IATaskRun]. */
     val scorer: CachingTaskScorer
@@ -53,5 +52,5 @@ interface TaskRun: Run, Scoreable {
      *
      * @return [List] of [DbSubmission]s
      */
-    fun getSubmissions(): Sequence<DbSubmission>
+    fun getDbSubmissions(): Sequence<DbSubmission>
 }

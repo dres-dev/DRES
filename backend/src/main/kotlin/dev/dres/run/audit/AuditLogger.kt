@@ -10,6 +10,8 @@ import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.run.interfaces.EvaluationId
+import dev.dres.data.model.run.interfaces.TaskId
+import dev.dres.data.model.template.TemplateId
 
 import dev.dres.run.eventstream.*
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -164,7 +166,7 @@ object AuditLogger {
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskEnd(evaluationId: EvaluationId, taskId: EvaluationId, api: AuditLogSource, session: SessionToken?) {
+    fun taskEnd(evaluationId: EvaluationId, taskId: TemplateId, api: AuditLogSource, session: SessionToken?) {
         log(TaskEndAuditLogEntry(evaluationId, taskId, api, session))
         EventStreamProcessor.event(TaskEndEvent(evaluationId, taskId))
     }

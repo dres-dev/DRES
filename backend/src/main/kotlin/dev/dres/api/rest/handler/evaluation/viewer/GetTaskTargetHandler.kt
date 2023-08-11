@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.types.evaluation.ApiTaskStatus
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.template.tasks.ApiTargetContent
@@ -8,6 +9,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.task.ApiContentElement
 import dev.dres.api.rest.types.task.ApiContentType
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.run.DbTaskStatus
 import dev.dres.data.model.run.RunActionContext
@@ -21,7 +23,7 @@ import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
-import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.*
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
@@ -35,7 +37,7 @@ import java.util.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class GetTaskTargetHandler(store: TransientEntityStore, private val cache: CacheManager) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiTargetContent> {
+class GetTaskTargetHandler(private val store: TransientEntityStore, private val cache: CacheManager) : AbstractEvaluationViewerHandler(), GetRestHandler<ApiTargetContent> {
 
     override val route = "evaluation/{evaluationId}/target/{taskId}"
 
@@ -71,7 +73,7 @@ class GetTaskTargetHandler(store: TransientEntityStore, private val cache: Cache
             if (task == null) {
                 task = manager.taskForId(rac, taskId) ?: throw ErrorStatusException(404, "Task with specified ID $taskId does not exist.", ctx)
             }
-            if (task.status != DbTaskStatus.ENDED) {
+            if (task.status != ApiTaskStatus.ENDED) {
                 throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)
             }
 
@@ -96,16 +98,28 @@ class GetTaskTargetHandler(store: TransientEntityStore, private val cache: Cache
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private fun DbTaskTemplate.toTaskTarget(): ApiTargetContent {
+//    private fun DbTaskTemplate.toTaskTarget(): ApiTargetContent {
+//        var cummulativeOffset = 0L
+//        val sequence = this.targets.asSequence().flatMap {
+//            cummulativeOffset += Math.floorDiv(it.item?.durationMs ?: 10000L, 1000L) + 1L
+//            listOf(
+//                it.toQueryContentElement(),
+//                ApiContentElement(ApiContentType.EMPTY, null, cummulativeOffset)
+//            )
+//        }.toList()
+//        return ApiTargetContent(this.id, sequence)
+//    }
+
+    private fun ApiTaskTemplate.toTaskTarget(): ApiTargetContent { //TODO there must be a better way to do this
         var cummulativeOffset = 0L
-        val sequence = this.targets.asSequence().flatMap {
+        val sequence = DbTaskTemplate.query(DbTaskTemplate::templateId eq this.id).firstOrNull()?.targets?.asSequence()?.flatMap {
             cummulativeOffset += Math.floorDiv(it.item?.durationMs ?: 10000L, 1000L) + 1L
             listOf(
                 it.toQueryContentElement(),
                 ApiContentElement(ApiContentType.EMPTY, null, cummulativeOffset)
             )
-        }.toList()
-        return ApiTargetContent(this.id, sequence)
+        }?.toList() ?: emptyList()
+        return ApiTargetContent(this.id!!, sequence)
     }
 
     /**

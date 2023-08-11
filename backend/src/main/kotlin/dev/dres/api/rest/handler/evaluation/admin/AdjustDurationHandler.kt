@@ -22,7 +22,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class AdjustDurationHandler(store: TransientEntityStore) : AbstractEvaluationAdminHandler(store),
+class AdjustDurationHandler : AbstractEvaluationAdminHandler(),
     PatchRestHandler<SuccessStatus> {
     override val route: String = "evaluation/admin/{evaluationId}/adjust/{duration}"
 
@@ -69,32 +69,31 @@ class AdjustDurationHandler(store: TransientEntityStore) : AbstractEvaluationAdm
         )
         val rac = ctx.runActionContext()
 
-        return this.store.transactional {
+        return try {
             try {
-                try {
-                    evaluationManager.adjustDuration(rac, duration)
-                    AuditLogger.taskModified(
-                        evaluationManager.id,
-                        evaluationManager.currentTaskTemplate(rac).id,
-                        "Task duration adjusted by ${duration}s.",
-                        AuditLogSource.REST,
-                        ctx.sessionToken()
-                    )
-                    SuccessStatus("Duration for run $evaluationId was successfully adjusted.")
-                } catch (e: IllegalArgumentException) {
-                    evaluationManager.abortTask(rac)
-                    SuccessStatus("Successfully stopped task since the duration was below zero after adjusting.")
-                } catch (e: IllegalAccessError) {
-                    throw ErrorStatusException(403, e.message!!, ctx)
-                }
-            } catch (e: IllegalStateException) {
-                throw ErrorStatusException(
-                    400,
-                    "Duration for run $evaluationId could not be adjusted because it is in the wrong state (state = ${evaluationManager.status}).",
-                    ctx
+                evaluationManager.adjustDuration(rac, duration)
+                AuditLogger.taskModified(
+                    evaluationManager.id,
+                    evaluationManager.currentTaskTemplate(rac).id!!,
+                    "Task duration adjusted by ${duration}s.",
+                    AuditLogSource.REST,
+                    ctx.sessionToken()
                 )
+                SuccessStatus("Duration for run $evaluationId was successfully adjusted.")
+            } catch (e: IllegalArgumentException) {
+                evaluationManager.abortTask(rac)
+                SuccessStatus("Successfully stopped task since the duration was below zero after adjusting.")
+            } catch (e: IllegalAccessError) {
+                throw ErrorStatusException(403, e.message!!, ctx)
             }
-
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(
+                400,
+                "Duration for run $evaluationId could not be adjusted because it is in the wrong state (state = ${evaluationManager.status}).",
+                ctx
+            )
         }
+
+
     }
 }

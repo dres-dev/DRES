@@ -8,6 +8,7 @@ import dev.dres.run.validation.TransientMediaSegment
 import dev.dres.run.validation.interfaces.AnswerSetValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
 import dev.dres.run.validation.judged.ItemRange
+import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 
 /**
@@ -17,25 +18,39 @@ import kotlinx.dnq.query.*
  * @author Ralph Gasser
  * @version 2.0.0
  */
-abstract class AbstractNonInteractiveTask(task: DbTask): AbstractTask(task) {
+abstract class AbstractNonInteractiveTask(store: TransientEntityStore, task: DbTask) : AbstractTask(store, task) {
     /** The [AnswerSetValidator] used by this [AbstractNonInteractiveTask]. */
     final override val validator: AnswerSetValidator
 
     init {
-        this.validator = when (val targetOption = this.template.taskGroup.type.target) {
-            DbTargetOption.MEDIA_ITEM -> MediaItemsAnswerSetValidator(this.template.targets.mapDistinct { it.item }.filter { it ne null }.toSet())
-            DbTargetOption.MEDIA_SEGMENT -> {
-                val target = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.asSequence().map { TransientMediaSegment(it.item!!, it.range!!) }.toSet()
-                TemporalOverlapAnswerSetValidator(target)
+        this.validator = store.transactional(true) {
+            val template = task.template
+            when (val targetOption = template.taskGroup.type.target) {
+                DbTargetOption.MEDIA_ITEM -> MediaItemsAnswerSetValidator(template.targets.mapDistinct { it.item }
+                    .filter { it ne null }.toSet())
+
+                DbTargetOption.MEDIA_SEGMENT -> {
+                    val target =
+                        template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }
+                            .asSequence().map { TransientMediaSegment(it.item!!, it.range!!) }.toSet()
+                    TemporalOverlapAnswerSetValidator(target)
+                }
+
+                DbTargetOption.TEXT -> TextAnswerSetValidator(
+                    template.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList()
+                )
+
+                DbTargetOption.JUDGEMENT -> {
+                    val knownRanges =
+                        template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }
+                            .asSequence().map {
+                            ItemRange(it.item?.name!!, it.start!!, it.end!!)
+                        }.toSet()
+                    BasicJudgementValidator(knownCorrectRanges = knownRanges)
+                }
+
+                else -> throw IllegalStateException("The provided target option ${targetOption.description} is not supported by interactive tasks.")
             }
-            DbTargetOption.TEXT -> TextAnswerSetValidator(this.template.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList())
-            DbTargetOption.JUDGEMENT -> {
-                val knownRanges = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
-                    ItemRange(it.item?.name!!, it.start!!, it.end!!)
-                }.toSet()
-                BasicJudgementValidator(knownCorrectRanges = knownRanges)
-            }
-            else -> throw IllegalStateException("The provided target option ${targetOption.description} is not supported by interactive tasks.")
         }
     }
 }

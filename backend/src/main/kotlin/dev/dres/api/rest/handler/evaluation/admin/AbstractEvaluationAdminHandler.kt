@@ -19,7 +19,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0
  */
-abstract class AbstractEvaluationAdminHandler(protected val store: TransientEntityStore) : AccessManagedRestHandler {
+abstract class AbstractEvaluationAdminHandler : AccessManagedRestHandler {
 
     /** By default [AbstractEvaluationAdminHandler] can only be used by [ApiRole.ADMIN]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)

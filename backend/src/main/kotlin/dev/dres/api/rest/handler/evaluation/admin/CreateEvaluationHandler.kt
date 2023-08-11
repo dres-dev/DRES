@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
  * @author Loris Sauter
  * @version 2.0.0
  */
-class CreateEvaluationHandler(store: TransientEntityStore, private val cache: CacheManager) : AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
+class CreateEvaluationHandler(private val store: TransientEntityStore, private val cache: CacheManager) : AbstractEvaluationAdminHandler(), PostRestHandler<SuccessStatus> {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 

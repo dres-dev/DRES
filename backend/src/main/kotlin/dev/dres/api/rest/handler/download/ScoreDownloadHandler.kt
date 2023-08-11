@@ -18,7 +18,7 @@ import kotlinx.dnq.query.firstOrNull
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandler(store), GetRestHandler<String> {
+class ScoreDownloadHandler : AbstractDownloadHandler(), GetRestHandler<String> {
 
     override val route = "download/evaluation/{evaluationId}/scores"
 
@@ -52,7 +52,7 @@ class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandle
         }.sortedBy {
             it.started
         }.flatMap { task ->
-            task.scorer.scores().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup.name}\",\"${manager.template.teams.firstOrNull { t -> t.id == it.first }?.name ?: "???"}\",${it.third}" }
+            task.scorer.scores().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup}\",\"${manager.template.teams.firstOrNull { t -> t.id == it.first }?.name ?: "???"}\",${it.third}" }
         }.joinToString(separator = "\n")
     }
 

@@ -24,20 +24,6 @@ class DbTeamAggregator(entity: Entity) : XdEnumEntity(entity) {
     var description by xdRequiredStringProp(unique = true)
         private set
 
-    /**
-     * Creates and returns a new [TeamAggregatorImpl] for this [DbTeamAggregator].
-     *
-     * @param teams The list of [DbTeam]s to create the [TeamAggregatorImpl] for.
-     * @return [TeamAggregatorImpl]
-     */
-    fun newInstance(teams: List<DbTeam>) = when(this) {
-        MAX -> TeamAggregatorImpl.Max(teams)
-        MIN -> TeamAggregatorImpl.Min(teams)
-        MEAN -> TeamAggregatorImpl.Mean(teams)
-        LAST -> TeamAggregatorImpl.Last(teams)
-        else -> throw IllegalStateException("Failed to generated aggregator for unknown team group ${this.description}.")
-    }
-
     override fun toString() = this.description
 
     fun toApi(): ApiTeamAggregatorType = ApiTeamAggregatorType.values().find { it.toDb() == this } ?: throw IllegalStateException("TeamAggregator ${this.description} is not supported.")

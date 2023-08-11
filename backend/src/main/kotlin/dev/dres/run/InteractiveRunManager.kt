@@ -1,6 +1,7 @@
 package dev.dres.run
 
 import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
@@ -62,7 +63,7 @@ interface InteractiveRunManager : RunManager {
      * @param context The [RunActionContext] used for the invocation.
      * @return [DbTaskTemplate]
      */
-    fun currentTaskTemplate(context: RunActionContext): DbTaskTemplate
+    fun currentTaskTemplate(context: RunActionContext): ApiTaskTemplate
 
     /**
      * Starts the [currentTask] and thus moves the [RunManager.status] from

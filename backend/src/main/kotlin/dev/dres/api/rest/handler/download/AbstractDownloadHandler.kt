@@ -11,7 +11,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractDownloadHandler(protected val store: TransientEntityStore) : AccessManagedRestHandler {
+abstract class AbstractDownloadHandler : AccessManagedRestHandler {
 
     /** The version of the API this [AbstractDownloadHandler] belongs to. */
     override val apiVersion = "v2"

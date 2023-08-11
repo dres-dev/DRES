@@ -17,7 +17,8 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), GetRestHandler<List<ApiTaskTemplateInfo>> {
+class ListPastTaskHandler : AbstractEvaluationAdminHandler(),
+    GetRestHandler<List<ApiTaskTemplateInfo>> {
     override val route: String = "evaluation/admin/{evaluationId}/task/past/list"
 
     @OpenApi(
@@ -30,7 +31,10 @@ class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
         ],
         tags = ["Evaluation Administrator"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<ApiTaskTemplateInfo>::class)]), // FIXME this handler provided information about submissions in past tasks
+            OpenApiResponse(
+                "200",
+                [OpenApiContent(Array<ApiTaskTemplateInfo>::class)]
+            ), // FIXME this handler provided information about submissions in past tasks
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
@@ -38,12 +42,12 @@ class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
     )
     override fun doGet(ctx: Context): List<ApiTaskTemplateInfo> {
         val evaluationId = ctx.evaluationId()
-        val runManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+        val runManager =
+            getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         val rac = ctx.runActionContext()
-        return this.store.transactional (true) {
-            runManager.tasks(rac).filter { it.hasEnded }.map {
-                ApiTaskTemplateInfo(it.template.toApi())
-            }
+        return runManager.tasks(rac).filter { it.hasEnded }.map {
+            ApiTaskTemplateInfo(it.template)
         }
+
     }
 }

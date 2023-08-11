@@ -29,7 +29,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class GetCurrentTaskHandler(store: TransientEntityStore): AbstractEvaluationViewerHandler(store), GetRestHandler<ApiTaskTemplateInfo> {
+class GetCurrentTaskHandler : AbstractEvaluationViewerHandler(), GetRestHandler<ApiTaskTemplateInfo> {
 
     override val route = "evaluation/{evaluationId}/task"
 
@@ -47,12 +47,12 @@ class GetCurrentTaskHandler(store: TransientEntityStore): AbstractEvaluationView
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiTaskTemplateInfo = this.store.transactional (true) {
+    override fun doGet(ctx: Context): ApiTaskTemplateInfo {
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
         val rac = ctx.runActionContext()
-        ApiTaskTemplateInfo(manager.currentTaskTemplate(rac).toApi())
+        return ApiTaskTemplateInfo(manager.currentTaskTemplate(rac))
     }
 }

@@ -180,9 +180,9 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
      * @return [EvaluationRun]
      */
     fun toRunManager(store: TransientEntityStore): RunManager = when (this.type) {
-        DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousRunManager(InteractiveSynchronousEvaluation(this), store)
-        DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousRunManager(InteractiveAsynchronousEvaluation(this), store)
-        DbEvaluationType.NON_INTERACTIVE -> NonInteractiveRunManager(NonInteractiveEvaluation(this), store)
+        DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousRunManager(InteractiveSynchronousEvaluation(store, this), store)
+        DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousRunManager(InteractiveAsynchronousEvaluation(store, this), store)
+        DbEvaluationType.NON_INTERACTIVE -> NonInteractiveRunManager(NonInteractiveEvaluation(store, this), store)
         else -> throw IllegalArgumentException("Unsupported run type ${this.type.description}. This is a programmer's error!")
     }
 }

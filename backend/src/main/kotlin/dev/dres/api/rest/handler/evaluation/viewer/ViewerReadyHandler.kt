@@ -15,7 +15,7 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
-class ViewerReadyHandler(store: TransientEntityStore) : AbstractEvaluationViewerHandler(store), GetRestHandler<SuccessStatus> {
+class ViewerReadyHandler : AbstractEvaluationViewerHandler(), GetRestHandler<SuccessStatus> {
 
     override val route = "evaluation/{evaluationId}/hint/{taskId}/ready"
 
@@ -38,27 +38,26 @@ class ViewerReadyHandler(store: TransientEntityStore) : AbstractEvaluationViewer
     )
     override fun doGet(ctx: Context): SuccessStatus {
 
-        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
+        val taskId =
+            ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
         val rac = ctx.runActionContext()
 
-        return this.store.transactional(true) {
-            val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access Denied", ctx)
-            }
 
-            if(ctx.isParticipant() || ctx.isAdmin()) {
-                manager.viewerReady(
-                    taskId, rac, ViewerInfo(
-                        ctx.sessionToken()!!,
-                        ctx.ip()
-                    )
-                )
-            }
-
-
-            SuccessStatus("ready received")
+        val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
+        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+            throw ErrorStatusException(403, "Access Denied", ctx)
         }
+
+        if (ctx.isParticipant() || ctx.isAdmin()) {
+            manager.viewerReady(
+                taskId, rac, ViewerInfo(
+                    ctx.sessionToken()!!,
+                    ctx.ip()
+                )
+            )
+        }
+
+        return SuccessStatus("ready received")
 
 
     }

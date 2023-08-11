@@ -20,7 +20,8 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClientHandler(store), GetRestHandler<ApiTaskTemplateInfo> {
+class ClientTaskInfoHandler : AbstractEvaluationClientHandler(),
+    GetRestHandler<ApiTaskTemplateInfo> {
     override val route = "client/evaluation/currentTask/{runId}"
 
     @OpenApi(
@@ -38,11 +39,16 @@ class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClie
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiTaskTemplateInfo = this.store.transactional(true) {
+    override fun doGet(ctx: Context): ApiTaskTemplateInfo {
         val run = ctx.eligibleManagerForId<RunManager>()
         val rac = ctx.runActionContext()
-        if (run !is InteractiveRunManager) throw ErrorStatusException(404, "Specified evaluation is not interactive.", ctx)
-        val task = run.currentTask(rac) ?: throw ErrorStatusException(404, "Specified evaluation has no active task.", ctx)
-        ApiTaskTemplateInfo(task.template.toApi())
+        if (run !is InteractiveRunManager) throw ErrorStatusException(
+            404,
+            "Specified evaluation is not interactive.",
+            ctx
+        )
+        val task =
+            run.currentTask(rac) ?: throw ErrorStatusException(404, "Specified evaluation has no active task.", ctx)
+        return ApiTaskTemplateInfo(task.template)
     }
 }

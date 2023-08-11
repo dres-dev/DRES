@@ -11,7 +11,7 @@ import jetbrains.exodus.database.TransientEntityStore
 /**
  * A [GetRestHandler] that returns the names of all available scoreboards for a given run.
  */
-class ListScoreboardsHandler(store: TransientEntityStore) : AbstractScoreHandler(store), GetRestHandler<List<String>> {
+class ListScoreboardsHandler : AbstractScoreHandler(), GetRestHandler<List<String>> {
     override val route = "score/evaluation/{evaluationId}/scoreboard/list"
 
     @OpenApi(
@@ -30,8 +30,8 @@ class ListScoreboardsHandler(store: TransientEntityStore) : AbstractScoreHandler
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<String> = this.store.transactional (true) {
+    override fun doGet(ctx: Context): List<String>  {
         val manager = ctx.eligibleManagerForId<RunManager>()
-        manager.scoreboards.map { it.name }
+        return manager.scoreboards.map { it.name }
     }
 }

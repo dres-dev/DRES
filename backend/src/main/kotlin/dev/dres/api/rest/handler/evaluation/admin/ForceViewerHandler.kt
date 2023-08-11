@@ -19,7 +19,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ForceViewerHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
+class ForceViewerHandler : AbstractEvaluationAdminHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "evaluation/admin/{evaluationId}/viewer/list/{viewerId}/force"
 
     @OpenApi(
@@ -41,20 +41,25 @@ class ForceViewerHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val evaluationId = ctx.evaluationId()
-        val viewerId = ctx.pathParamMap()["viewerId"] ?: throw ErrorStatusException(404, "Parameter 'viewerId' is missing!'", ctx)
-        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)
+        val viewerId =
+            ctx.pathParamMap()["viewerId"] ?: throw ErrorStatusException(404, "Parameter 'viewerId' is missing!'", ctx)
+        val evaluationManager =
+            getManager(evaluationId) ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)
         val rac = ctx.runActionContext()
 
-        return this.store.transactional(true) {
-            try {
-                if (evaluationManager.overrideReadyState(rac, viewerId)) {
-                    SuccessStatus("State for viewer $viewerId (evaluation '$evaluationId') forced successfully.")
-                } else {
-                    throw ErrorStatusException(404, "Viewer $viewerId does not exist!'", ctx)
-                }
-            } catch (e: IllegalStateException) {
-                throw ErrorStatusException(400, "State for viewer $viewerId (evaluation '$evaluationId') could not be enforced because evaluation is in the wrong state (state = ${evaluationManager.status}).", ctx)
+        try {
+            if (evaluationManager.overrideReadyState(rac, viewerId)) {
+                return SuccessStatus("State for viewer $viewerId (evaluation '$evaluationId') forced successfully.")
+            } else {
+                throw ErrorStatusException(404, "Viewer $viewerId does not exist!'", ctx)
             }
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(
+                400,
+                "State for viewer $viewerId (evaluation '$evaluationId') could not be enforced because evaluation is in the wrong state (state = ${evaluationManager.status}).",
+                ctx
+            )
         }
+
     }
 }

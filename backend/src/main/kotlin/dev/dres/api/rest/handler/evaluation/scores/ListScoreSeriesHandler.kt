@@ -10,13 +10,12 @@ import dev.dres.run.eventstream.*
 import dev.dres.run.score.ScoreTimePoint
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A [GetRestHandler] that returns a time series of all data points for a given run and scoreboard.
  */
-class ListScoreSeriesHandler(store: TransientEntityStore) : AbstractScoreHandler(store), GetRestHandler<List<ApiScoreSeries>>, StreamEventHandler {
+class ListScoreSeriesHandler : AbstractScoreHandler(), GetRestHandler<List<ApiScoreSeries>>, StreamEventHandler {
     override val route = "score/evaluation/{evaluationId}/series/{scoreboard}"
 
     init {

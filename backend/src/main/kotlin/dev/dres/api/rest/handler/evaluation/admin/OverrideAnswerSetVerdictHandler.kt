@@ -29,7 +29,7 @@ import kotlinx.dnq.query.first
  * @author Loris Sauter
  * @version 2.0.0
  */
-class OverrideAnswerSetVerdictHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PatchRestHandler<SuccessStatus> {
+class OverrideAnswerSetVerdictHandler(private val store: TransientEntityStore): AbstractEvaluationAdminHandler(), PatchRestHandler<SuccessStatus> {
     override val route: String = "evaluation/admin/{evaluationId}/override/{answerSetId}"
 
     @OpenApi(

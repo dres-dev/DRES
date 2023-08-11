@@ -16,7 +16,7 @@ import kotlinx.dnq.query.*
  * @author Ralph Gasser
  * @version 1.0
  */
-abstract class AbstractEvaluationClientHandler(protected val store: TransientEntityStore) : RestHandler, AccessManagedRestHandler {
+abstract class AbstractEvaluationClientHandler : RestHandler, AccessManagedRestHandler {
     /** By default [AbstractEvaluationClientHandler] can only be used by [ApiRole.VIEWER]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.VIEWER)
 

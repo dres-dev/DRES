@@ -22,7 +22,8 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class StopTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
+class StopTaskHandler : AbstractEvaluationAdminHandler(),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "evaluation/admin/{evaluationId}/task/abort"
 
     @OpenApi(
@@ -30,7 +31,13 @@ class StopTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
         path = "/api/v2/evaluation/admin/{evaluationId}/task/abort",
         methods = [HttpMethod.POST],
         operationId = OpenApiOperation.AUTO_GENERATE,
-        pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
+        pathParams = [OpenApiParam(
+            "evaluationId",
+            String::class,
+            "The evaluation ID.",
+            required = true,
+            allowEmptyValue = false
+        )],
         tags = ["Evaluation Administrator"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -40,19 +47,24 @@ class StopTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val evaluationId = ctx.evaluationId()
-        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
-        return this.store.transactional {
-            val rac = ctx.runActionContext()
-            try {
-                val task = evaluationManager.currentTaskTemplate(rac)
-                evaluationManager.abortTask(rac)
-                AuditLogger.taskEnd(evaluationManager.id, task.id, AuditLogSource.REST, ctx.sessionToken())
-                SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully aborted.")
-            } catch (e: IllegalStateException) {
-                throw ErrorStatusException(400, "Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId could not be aborted because run is in the wrong state (state = ${evaluationManager.status}).", ctx)
-            } catch (e: IllegalAccessError) {
-                throw ErrorStatusException(403, e.message!!, ctx)
-            }
+        val evaluationManager =
+            getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+
+        val rac = ctx.runActionContext()
+        return try {
+            val task = evaluationManager.currentTaskTemplate(rac)
+            evaluationManager.abortTask(rac)
+            AuditLogger.taskEnd(evaluationManager.id, task.id!!, AuditLogSource.REST, ctx.sessionToken())
+            SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully aborted.")
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(
+                400,
+                "Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId could not be aborted because run is in the wrong state (state = ${evaluationManager.status}).",
+                ctx
+            )
+        } catch (e: IllegalAccessError) {
+            throw ErrorStatusException(403, e.message!!, ctx)
         }
+
     }
 }

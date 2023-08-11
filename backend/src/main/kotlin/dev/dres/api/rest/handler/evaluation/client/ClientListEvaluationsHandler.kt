@@ -19,7 +19,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ClientListEvaluationsHandler(store: TransientEntityStore): AbstractEvaluationClientHandler(store), GetRestHandler<List<ApiEvaluationInfo>> {
+class ClientListEvaluationsHandler : AbstractEvaluationClientHandler(), GetRestHandler<List<ApiEvaluationInfo>> {
 
     override val route = "client/evaluation/list"
 
@@ -34,20 +34,22 @@ class ClientListEvaluationsHandler(store: TransientEntityStore): AbstractEvaluat
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiEvaluationInfo> = this.store.transactional(true) { tx ->
-        getRelevantManagers(ctx).map { ApiEvaluationInfo(
-            id = it.id,
-            name = it.name,
-            templateId = it.template.id,
-            templateDescription = it.template.description,
-            when (it) {
-                is InteractiveAsynchronousRunManager -> ApiEvaluationType.ASYNCHRONOUS
-                is InteractiveSynchronousRunManager -> ApiEvaluationType.SYNCHRONOUS
-                else -> TODO()
-            },
-            properties = it.runProperties,
-            teams = emptyList(),
-            tasks = emptyList()
-        ) }
+    override fun doGet(ctx: Context): List<ApiEvaluationInfo> {
+        return getRelevantManagers(ctx).map {
+            ApiEvaluationInfo(
+                id = it.id,
+                name = it.name,
+                templateId = it.template.id,
+                templateDescription = it.template.description,
+                when (it) {
+                    is InteractiveAsynchronousRunManager -> ApiEvaluationType.ASYNCHRONOUS
+                    is InteractiveSynchronousRunManager -> ApiEvaluationType.SYNCHRONOUS
+                    else -> TODO()
+                },
+                properties = it.runProperties,
+                teams = emptyList(),
+                tasks = emptyList()
+            )
+        }
     }
 }

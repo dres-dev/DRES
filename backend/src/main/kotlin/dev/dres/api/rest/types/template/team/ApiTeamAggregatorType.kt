@@ -1,6 +1,8 @@
 package dev.dres.api.rest.types.template.team
 
 import dev.dres.data.model.template.team.DbTeamAggregator
+import dev.dres.data.model.template.team.TeamAggregatorImpl
+import dev.dres.data.model.template.team.TeamId
 
 /**
  * The RESTful API equivalent ofr [DbTeamAggregator].
@@ -23,6 +25,19 @@ enum class ApiTeamAggregatorType {
         MAX -> DbTeamAggregator.MAX
         MEAN -> DbTeamAggregator.MEAN
         LAST -> DbTeamAggregator.LAST
+    }
+
+    /**
+     * Creates and returns a new [TeamAggregatorImpl] for this [DbTeamAggregator].
+     *
+     * @param teamIds The list of [TeamId]s to create the [TeamAggregatorImpl] for.
+     * @return [TeamAggregatorImpl]
+     */
+    fun newInstance(teamIds: Set<TeamId>) = when(this) {
+        MAX -> TeamAggregatorImpl.Max(teamIds)
+        MIN -> TeamAggregatorImpl.Min(teamIds)
+        MEAN -> TeamAggregatorImpl.Mean(teamIds)
+        LAST -> TeamAggregatorImpl.Last(teamIds)
     }
 
 }

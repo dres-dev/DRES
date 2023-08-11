@@ -14,7 +14,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 2.0.0
  */
-abstract class AbstractScoreHandler(protected val store: TransientEntityStore) : RestHandler, AccessManagedRestHandler {
+abstract class AbstractScoreHandler : RestHandler, AccessManagedRestHandler {
     /** By default [AbstractScoreHandler] can only be used by [ApiRole.VIEWER]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.VIEWER)
 

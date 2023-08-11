@@ -16,7 +16,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0
  */
-class ListViewersHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), GetRestHandler<List<ApiViewerInfo>> {
+class ListViewersHandler : AbstractEvaluationAdminHandler(), GetRestHandler<List<ApiViewerInfo>> {
     override val route: String = "evaluation/admin/{evaluationId}/viewer/list"
 
     @OpenApi(
@@ -24,7 +24,13 @@ class ListViewersHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
         path = "/api/v2/evaluation/admin/{evaluationId}/viewer/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
-        pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
+        pathParams = [OpenApiParam(
+            "evaluationId",
+            String::class,
+            "The evaluation ID.",
+            required = true,
+            allowEmptyValue = false
+        )],
         tags = ["Evaluation Administrator"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiViewerInfo>::class)]),
@@ -36,14 +42,15 @@ class ListViewersHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
     override fun doGet(ctx: Context): List<ApiViewerInfo> {
         val evaluationId = ctx.evaluationId()
         val evaluation = getManager(evaluationId) ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)
-        return this.store.transactional(true) {
-            evaluation.viewers().map {
-                ApiViewerInfo(
-                    it.key.sessionToken,
-                    UserManager.get(AccessManager.userIdForSession(it.key.sessionToken))?.username ?: "UNKNOWN",
-                    it.key.host,
-                    it.value)
-            }
+
+        return evaluation.viewers().map {
+            ApiViewerInfo(
+                it.key.sessionToken,
+                UserManager.get(AccessManager.userIdForSession(it.key.sessionToken))?.username ?: "UNKNOWN",
+                it.key.host,
+                it.value
+            )
         }
+
     }
 }

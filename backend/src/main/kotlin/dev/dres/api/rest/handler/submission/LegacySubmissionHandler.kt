@@ -8,6 +8,8 @@ import dev.dres.api.rest.types.evaluation.submission.*
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
+import dev.dres.api.rest.types.template.tasks.options.ApiSubmissionOption
+import dev.dres.api.rest.types.template.tasks.options.ApiTaskOption
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.media.*
@@ -177,9 +179,10 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         val answer = if (textParam != null) {
             ApiClientAnswer(text = textParam)
         } else if (itemParam != null) {
-            val collection = runManager.currentTaskTemplate(rac).collection /* TODO: Do we need the option to explicitly set the collection name? */
-            val mapToSegment = runManager.currentTaskTemplate(rac).taskGroup.type.options.contains(DbTaskOption.MAP_TO_SEGMENT)
-            val item = DbMediaItem.query((DbMediaItem::name eq itemParam) and (DbMediaItem::collection eq collection)).firstOrNull()
+            val collection = runManager.currentTaskTemplate(rac).collectionId /* TODO: Do we need the option to explicitly set the collection name? */
+            val taskType = runManager.currentTaskTemplate(rac).taskType
+            val mapToSegment = runManager.template.taskTypes.find { it.name == taskType }?.taskOptions?.contains(ApiTaskOption.MAP_TO_SEGMENT) == true
+            val item = DbMediaCollection.query(DbMediaCollection::id eq collection).firstOrNull()?.items?.filter { it.name eq itemParam }?.firstOrNull()
                 ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'", ctx)
             val range: Pair<Long, Long>? = when {
                 map.containsKey(PARAMETER_NAME_SHOT) && item.type == DbMediaType.VIDEO -> {

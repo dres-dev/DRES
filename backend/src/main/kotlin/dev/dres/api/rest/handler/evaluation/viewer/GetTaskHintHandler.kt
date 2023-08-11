@@ -1,7 +1,9 @@
 import dev.dres.DRES
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.handler.evaluation.viewer.AbstractEvaluationViewerHandler
+import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.template.tasks.ApiHintContent
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -15,6 +17,8 @@ import dev.dres.data.model.template.task.DbHintType
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.InteractiveRunManager
+import dev.dres.utilities.extensions.isAdmin
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -77,6 +81,15 @@ class GetTaskHintHandler(store: TransientEntityStore, private val cache: CacheMa
                     404,
                     "Task with specified ID $taskId does not exist.",
                     ctx
+                )
+            }
+
+            if(ctx.isParticipant() || ctx.isAdmin()) {
+                manager.viewerPreparing(
+                    taskId, rac, ViewerInfo(
+                        ctx.sessionToken()!!,
+                        ctx.ip()
+                    )
                 )
             }
 

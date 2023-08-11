@@ -38,11 +38,11 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   /** The WebSocketSubject that represent the WebSocket connection to the DRES endpoint. */
   webSocketSubject: WebSocketSubject<IWsMessage>;
 
-  /** A {@link BehaviorSubject} that reflect the WebSocket connection status. */
-  webSocketConnectionSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
+  // /** A {@link BehaviorSubject} that reflect the WebSocket connection status. */
+  // webSocketConnectionSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
-  /** Observable for incoming WebSocket messages. */
-  webSocket: Observable<IWsServerMessage>;
+  // /** Observable for incoming WebSocket messages. */
+  // webSocket: Observable<IWsServerMessage>;
 
   /** Observable for current run ID. */
   evaluationId: Observable<string>;
@@ -105,23 +105,23 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     private _viewContainerRef: ViewContainerRef
   ) {
     /** Initialize basic WebSocketSubject. */
-    const wsurl = this.config.webSocketUrl;
-    const connectionSubject = this.webSocketConnectionSubject
-    this.webSocketSubject = webSocket({
-      url: wsurl,
-      openObserver: {
-        next(openEvent) {
-          console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} established!`);
-          connectionSubject.next(true)
-        },
-      },
-      closeObserver: {
-        next(closeEvent: CloseEvent) {
-          console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} closed: ${closeEvent.reason}.`);
-          connectionSubject.next(false)
-        },
-      },
-    } as WebSocketSubjectConfig<IWsMessage>);
+    // const wsurl = this.config.webSocketUrl;
+    // const connectionSubject = this.webSocketConnectionSubject
+    // this.webSocketSubject = webSocket({
+    //   url: wsurl,
+    //   openObserver: {
+    //     next(openEvent) {
+    //       console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} established!`);
+    //       connectionSubject.next(true)
+    //     },
+    //   },
+    //   closeObserver: {
+    //     next(closeEvent: CloseEvent) {
+    //       console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} closed: ${closeEvent.reason}.`);
+    //       connectionSubject.next(false)
+    //     },
+    //   },
+    // } as WebSocketSubjectConfig<IWsMessage>);
 
     /** Observable for the current run ID. */
     this.evaluationId = this.activeRoute.params.pipe(
@@ -178,54 +178,54 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    /* Basic observable for web socket messages received from the DRES server. */
-    this.webSocket = this.evaluationId.pipe(
-      mergeMap((evaluationId) =>
-        this.webSocketSubject.multiplex(
-            () => {
-              return { evaluationId: evaluationId, type: 'REGISTER' } as IWsClientMessage;
-            },
-            () => {
-              return { evaluationId: evaluationId, type: 'UNREGISTER' } as IWsClientMessage;
-            },
-            (message) => message.evaluationId === evaluationId || message.evaluationId === null
-          )
-          .pipe(
-            retryWhen((err) =>
-              err.pipe(
-                tap((e) =>
-                  console.error(
-                    '[RunViewerComponent] An error occurred with the WebSocket communication channel. Trying to reconnect in 1 second.',
-                    e
-                  )
-                ),
-                delay(5000)
-              )
-            ),
-            map((m) => m as IWsServerMessage),
-            filter((q) => q != null),
-            tap((m) => console.log(`[RunViewerComponent] WebSocket message received: ${m.type}`))
-          )
-      ),
-      share()
-    );
+    // /* Basic observable for web socket messages received from the DRES server. */
+    // this.webSocket = this.evaluationId.pipe(
+    //   mergeMap((evaluationId) =>
+    //     this.webSocketSubject.multiplex(
+    //         () => {
+    //           return { evaluationId: evaluationId, type: 'REGISTER' } as IWsClientMessage;
+    //         },
+    //         () => {
+    //           return { evaluationId: evaluationId, type: 'UNREGISTER' } as IWsClientMessage;
+    //         },
+    //         (message) => message.evaluationId === evaluationId || message.evaluationId === null
+    //       )
+    //       .pipe(
+    //         retryWhen((err) =>
+    //           err.pipe(
+    //             tap((e) =>
+    //               console.error(
+    //                 '[RunViewerComponent] An error occurred with the WebSocket communication channel. Trying to reconnect in 1 second.',
+    //                 e
+    //               )
+    //             ),
+    //             delay(5000)
+    //           )
+    //         ),
+    //         map((m) => m as IWsServerMessage),
+    //         filter((q) => q != null),
+    //         tap((m) => console.log(`[RunViewerComponent] WebSocket message received: ${m.type}`))
+    //       )
+    //   ),
+    //   share()
+    // );
 
-    /*
-     * Observable for run state info; this information is dynamic and is subject to change over the course of a run.
-     *
-     * Updates to the RunState are triggered by WebSocket messages received by the viewer. To not overwhelm the server,
-     * the RunState is updated every 500ms at most.
-     */
-    const wsMessages = this.webSocket.pipe(
-      filter((m) => m.type !== 'PING') /* Filter out ping messages. */,
-      map((b) => b.evaluationId)
-    );
+    // /*
+    //  * Observable for run state info; this information is dynamic and is subject to change over the course of a run.
+    //  *
+    //  * Updates to the RunState are triggered by WebSocket messages received by the viewer. To not overwhelm the server,
+    //  * the RunState is updated every 500ms at most.
+    //  */
+    // const wsMessages = this.webSocket.pipe(
+    //   filter((m) => m.type !== 'PING') /* Filter out ping messages. */,
+    //   map((b) => b.evaluationId)
+    // );
 
-    wsMessages.subscribe({next: 
-      (message) => {
-        //console.log("Ws Message: ", message);
-      }
-    }); 
+    // wsMessages.subscribe({next: 
+    //   (message) => {
+    //     //console.log("Ws Message: ", message);
+    //   }
+    // }); 
 
     this.runState = interval(1000).pipe(mergeMap(() => this.evaluationId)).pipe(
       switchMap((id) => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
@@ -299,16 +299,16 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       hasBackdrop: true
     });
 
-    /* Create subscription for WebSocket connection status and show overlay. */
-    this.overlaySubscription = this.webSocketConnectionSubject.subscribe((status) => {
-      if (status == false) {
-        if(!this.overlayRef.hasAttached()) {
-          this.overlayRef.attach(new TemplatePortal(this.overlayTemplateRef, this._viewContainerRef));
-        }
-      } else {
-        this.overlayRef.detach()
-      }
-    })
+    // /* Create subscription for WebSocket connection status and show overlay. */
+    // this.overlaySubscription = this.webSocketConnectionSubject.subscribe((status) => {
+    //   if (status == false) {
+    //     if(!this.overlayRef.hasAttached()) {
+    //       this.overlayRef.attach(new TemplatePortal(this.overlayTemplateRef, this._viewContainerRef));
+    //     }
+    //   } else {
+    //     this.overlayRef.detach()
+    //   }
+    // })
   }
 
     /**

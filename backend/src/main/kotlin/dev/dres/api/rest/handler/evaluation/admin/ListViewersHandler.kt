@@ -39,8 +39,8 @@ class ListViewersHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
         return this.store.transactional(true) {
             evaluation.viewers().map {
                 ApiViewerInfo(
-                    it.key.sessionId,
-                    UserManager.get(AccessManager.userIdForSession(it.key.httpSessionId))?.username ?: "UNKNOWN",
+                    it.key.sessionToken,
+                    UserManager.get(AccessManager.userIdForSession(it.key.sessionToken))?.username ?: "UNKNOWN",
                     it.key.host,
                     it.value)
             }

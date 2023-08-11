@@ -50,7 +50,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @Input() taskStarted: Observable<ApiTaskTemplateInfo>;
   @Input() taskChanged: Observable<ApiTaskTemplateInfo>;
   @Input() taskEnded: Observable<ApiTaskTemplateInfo>;
-  @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
+
 
   /** Seconds duration remaining for early warning. Default is 60 */
   @Input() earlyWarningThreshold: number = 60;
@@ -144,9 +144,10 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
           break;
         case 'PREPARING':
           this.viewerState.next(ViewerState.VIEWER_SYNC);
+          /* Send ACK. */
           if (h != null) {
-            this.webSocketSubject.next({ evaluationId: s.evaluationId, type: 'ACK' } as IWsClientMessage);
-          } /* Send ACK. */
+            this.runService.getApiV2EvaluationByEvaluationIdHintByTaskIdReady(s.evaluationId, h.taskId).subscribe();
+          } 
           break;
         case 'RUNNING':
           if (s.timeElapsed < 0) {

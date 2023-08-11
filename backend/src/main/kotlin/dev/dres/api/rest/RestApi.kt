@@ -152,6 +152,7 @@ object RestApi {
             GetSubmissionInfoHandler(store),
             GetSubmissionAfterInfoHandler(store),
             GetSubmissionHistoryInfoHandler(store),
+            ViewerReadyHandler(store),
 
             // Evaluation run scores
             ListEvaluationScoreHandler(store),
@@ -333,7 +334,7 @@ object RestApi {
                         }
                     }
                 }
-                ws("ws/run", runExecutor)
+                //ws("ws/run", runExecutor)
             }
         }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))

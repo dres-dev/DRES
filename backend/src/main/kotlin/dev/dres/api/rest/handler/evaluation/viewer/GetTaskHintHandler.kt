@@ -25,6 +25,7 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.eq
+import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 import java.io.FileNotFoundException
@@ -105,6 +106,8 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
             } catch (ioe: IOException) {
                 throw ErrorStatusException(500, "Exception when reading query object cache file.", ctx)
             }
+
+
         }
     }
 
@@ -230,8 +233,8 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
     private fun ApiHint.toContentElement(): ApiContentElement {
 
         //TODO find a better place for this lookup
-        val item = this.mediaItem?.let {
-            DbMediaItem.query(DbMediaItem::mediaItemId eq it).firstOrNull()
+        val item = this.mediaItem?.let {itemId ->
+            DbMediaItem.filter { it.mediaItemId eq itemId }.firstOrNull()
         }
         val range = if (item?.fps != null) {
             this.range?.toTemporalRange(item.fps!!)

@@ -15,19 +15,14 @@ import {
   tap,
   withLatestFrom,
 } from 'rxjs/operators';
-import { webSocket, WebSocketSubject, WebSocketSubjectConfig } from 'rxjs/webSocket';
 import { AppConfig } from '../app.config';
-import { IWsMessage } from '../model/ws/ws-message.interface';
-import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
-import { IWsClientMessage } from '../model/ws/ws-client-message.interface';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
 import { DOCUMENT } from '@angular/common';
 import {Title} from '@angular/platform-browser';
 import {ApiEvaluationInfo, ApiEvaluationState, ApiTaskTemplateInfo, EvaluationService} from '../../../openapi';
-import {Overlay, OverlayRef} from "@angular/cdk/overlay";
-import {TemplatePortal} from "@angular/cdk/portal";
+import {Overlay} from "@angular/cdk/overlay";
 
 @Component({
   selector: 'app-run-viewer',
@@ -35,8 +30,6 @@ import {TemplatePortal} from "@angular/cdk/portal";
   styleUrls: ['./run-viewer.component.scss']
 })
 export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
-  /** The WebSocketSubject that represent the WebSocket connection to the DRES endpoint. */
-  webSocketSubject: WebSocketSubject<IWsMessage>;
 
   // /** A {@link BehaviorSubject} that reflect the WebSocket connection status. */
   // webSocketConnectionSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
@@ -74,18 +67,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Observable of the {@link Widget} that should be displayed at the bottom. */
   bottomWidget: Observable<Widget>;
 
-  /** Reference to the {@link OverlayRef}. Initialized in ngAfterViewInit(). */
-  private overlayRef: OverlayRef = null
-
-  /** Reference to the overlay template. Only available once view has been loaded. */
-  @ViewChild('overlayTemplate')
-  private overlayTemplateRef: TemplateRef<unknown>;
-
-  /** Reference to the overlay template. Only available once view has been loaded. */
-  private overlaySubscription: Subscription;
-
-  /** Internal WebSocket subscription for pinging the server. */
-  private pingSubscription: Subscription;
 
   /** Cached config */
   private p: any;
@@ -104,24 +85,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     @Inject(DOCUMENT) private document: Document,
     private _viewContainerRef: ViewContainerRef
   ) {
-    /** Initialize basic WebSocketSubject. */
-    // const wsurl = this.config.webSocketUrl;
-    // const connectionSubject = this.webSocketConnectionSubject
-    // this.webSocketSubject = webSocket({
-    //   url: wsurl,
-    //   openObserver: {
-    //     next(openEvent) {
-    //       console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} established!`);
-    //       connectionSubject.next(true)
-    //     },
-    //   },
-    //   closeObserver: {
-    //     next(closeEvent: CloseEvent) {
-    //       console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} closed: ${closeEvent.reason}.`);
-    //       connectionSubject.next(false)
-    //     },
-    //   },
-    // } as WebSocketSubjectConfig<IWsMessage>);
 
     /** Observable for the current run ID. */
     this.evaluationId = this.activeRoute.params.pipe(
@@ -178,55 +141,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    // /* Basic observable for web socket messages received from the DRES server. */
-    // this.webSocket = this.evaluationId.pipe(
-    //   mergeMap((evaluationId) =>
-    //     this.webSocketSubject.multiplex(
-    //         () => {
-    //           return { evaluationId: evaluationId, type: 'REGISTER' } as IWsClientMessage;
-    //         },
-    //         () => {
-    //           return { evaluationId: evaluationId, type: 'UNREGISTER' } as IWsClientMessage;
-    //         },
-    //         (message) => message.evaluationId === evaluationId || message.evaluationId === null
-    //       )
-    //       .pipe(
-    //         retryWhen((err) =>
-    //           err.pipe(
-    //             tap((e) =>
-    //               console.error(
-    //                 '[RunViewerComponent] An error occurred with the WebSocket communication channel. Trying to reconnect in 1 second.',
-    //                 e
-    //               )
-    //             ),
-    //             delay(5000)
-    //           )
-    //         ),
-    //         map((m) => m as IWsServerMessage),
-    //         filter((q) => q != null),
-    //         tap((m) => console.log(`[RunViewerComponent] WebSocket message received: ${m.type}`))
-    //       )
-    //   ),
-    //   share()
-    // );
-
-    // /*
-    //  * Observable for run state info; this information is dynamic and is subject to change over the course of a run.
-    //  *
-    //  * Updates to the RunState are triggered by WebSocket messages received by the viewer. To not overwhelm the server,
-    //  * the RunState is updated every 500ms at most.
-    //  */
-    // const wsMessages = this.webSocket.pipe(
-    //   filter((m) => m.type !== 'PING') /* Filter out ping messages. */,
-    //   map((b) => b.evaluationId)
-    // );
-
-    // wsMessages.subscribe({next: 
-    //   (message) => {
-    //     //console.log("Ws Message: ", message);
-    //   }
-    // }); 
-
     this.runState = interval(1000).pipe(mergeMap(() => this.evaluationId)).pipe(
       switchMap((id) => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
       catchError((err, o) => {
@@ -278,50 +192,21 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
    * Registers this RunViewerComponent on view initialization and creates the WebSocket subscription.
    */
   ngOnInit(): void {
-    /* Register WebSocket ping. */
-    this.pingSubscription = interval(5000)
-      .pipe(
-        withLatestFrom(this.evaluationId),
-        tap(([i, evaluationId]) => this.webSocketSubject.next({ evaluationId: evaluationId, type: 'PING' } as IWsClientMessage))
-      )
-      .subscribe();
-
+    
   }
 
   /**
    * Prepare the overlay that is being displayed when WebSocket connection times out.
    */
   ngAfterViewInit() {
-    this.overlayRef = this.overlay.create({
-      positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
-      scrollStrategy: this.overlay.scrollStrategies.block(),
-      backdropClass: "overlay",
-      hasBackdrop: true
-    });
+    
 
-    // /* Create subscription for WebSocket connection status and show overlay. */
-    // this.overlaySubscription = this.webSocketConnectionSubject.subscribe((status) => {
-    //   if (status == false) {
-    //     if(!this.overlayRef.hasAttached()) {
-    //       this.overlayRef.attach(new TemplatePortal(this.overlayTemplateRef, this._viewContainerRef));
-    //     }
-    //   } else {
-    //     this.overlayRef.detach()
-    //   }
-    // })
   }
 
     /**
    * Unregisters this RunViewerComponent on view destruction and cleans the WebSocket subscription.
    */
   ngOnDestroy(): void {
-    /* Unregister Ping service. */
-    this.pingSubscription.unsubscribe();
-    this.pingSubscription = null;
-    this.overlaySubscription.unsubscribe()
-    this.overlaySubscription = null
-    this.overlayRef?.dispose()
-    this.overlayRef = null
     this.titleService.setTitle('DRES');
   }
 

@@ -41,7 +41,7 @@ class NonInteractiveEvaluation(store: TransientEntityStore, evaluation: DbEvalua
     }
 
     /** List of [TaskRun]s registered for this [NonInteractiveEvaluation]. */
-    override val tasks = this.dbEvaluation.tasks.asSequence().map {
+    override val taskRuns = this.dbEvaluation.tasks.asSequence().map {
         NITaskRun(it)
     }.toList()
 
@@ -65,7 +65,7 @@ class NonInteractiveEvaluation(store: TransientEntityStore, evaluation: DbEvalua
 
         /** The position of this [NITaskRun] within the [NonInteractiveEvaluation]. */
         override val position: Int
-            get() = this@NonInteractiveEvaluation.tasks.indexOf(this)
+            get() = this@NonInteractiveEvaluation.taskRuns.indexOf(this)
 
         /** The [CachingTaskScorer] instance used by this [NITaskRun]. */
         override val scorer: CachingTaskScorer = store.transactional { CachingTaskScorer(

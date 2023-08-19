@@ -25,7 +25,7 @@ interface TaskRun: Run, Scoreable {
     override val teams: List<TeamId>
 
     /** The unique [TaskTemplateId] that identifies the task template underpinning [TaskRun]. */
-    val templateId: TaskTemplateId
+    val taskTemplateId: TaskTemplateId
 
     /** The current [ApiTaskStatus] of this [TaskRun]. This is typically a transient property. */
     val status: ApiTaskStatus

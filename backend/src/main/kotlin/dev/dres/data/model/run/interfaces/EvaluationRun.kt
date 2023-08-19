@@ -21,7 +21,7 @@ interface EvaluationRun: Run {
     val template: ApiEvaluationTemplate
 
     /** Collection of [TaskRun]s that make up this [EvaluationRun]. */
-    val tasks: List<TaskRun>
+    val taskRuns: List<TaskRun>
 
     /** Flag indicating that participants can also use the viewer for this [EvaluationRun]. */
     val participantCanView: Boolean

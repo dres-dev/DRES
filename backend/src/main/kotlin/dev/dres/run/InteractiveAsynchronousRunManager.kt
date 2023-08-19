@@ -107,7 +107,7 @@ class InteractiveAsynchronousRunManager(
 
     /** Returns list [JudgementValidator]s associated with this [InteractiveAsynchronousRunManager]. May be empty! */
     override val judgementValidators: List<JudgementValidator>
-        get() = this.evaluation.tasks.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
+        get() = this.evaluation.taskRuns.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
 
     /** The list of [Scoreboard]s maintained by this [InteractiveAsynchronousEvaluation]. */
     override val scoreboards: List<Scoreboard>
@@ -132,7 +132,7 @@ class InteractiveAsynchronousRunManager(
         }
 
         /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
-        this.evaluation.tasks.forEach { task ->
+        this.evaluation.taskRuns.forEach { task ->
             task.getDbSubmissions().forEach { sub ->
                 for (answerSet in sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }) {
                     task.validator.validate(answerSet)
@@ -410,7 +410,7 @@ class InteractiveAsynchronousRunManager(
      * @return [List] of [AbstractInteractiveTask]s
      */
     override fun taskCount(context: RunActionContext): Int {
-        if (context.isAdmin) return this.evaluation.tasks.size
+        if (context.isAdmin) return this.evaluation.taskRuns.size
         val teamId = context.teamId()
         return this.evaluation.tasksForTeam(teamId).size
     }
@@ -424,7 +424,7 @@ class InteractiveAsynchronousRunManager(
      * @return [List] of [AbstractInteractiveTask]s
      */
     override fun tasks(context: RunActionContext): List<AbstractInteractiveTask> {
-        if (context.isAdmin) return this.evaluation.tasks
+        if (context.isAdmin) return this.evaluation.taskRuns
         val teamId = context.teamId()
         return this.evaluation.tasksForTeam(teamId)
     }
@@ -457,7 +457,7 @@ class InteractiveAsynchronousRunManager(
      * @return List of [DbSubmission]s.
      */
     override fun allSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
-        this.evaluation.tasks.flatMap { it.getDbSubmissions() }
+        this.evaluation.taskRuns.flatMap { it.getDbSubmissions() }
     }
 
     /**
@@ -557,7 +557,7 @@ class InteractiveAsynchronousRunManager(
     }
 
     override fun reScore(taskId: TaskId) {
-        val task = evaluation.tasks.find { it.taskId == taskId }
+        val task = evaluation.taskRuns.find { it.taskId == taskId }
         task?.scorer?.invalidate()
     }
 

@@ -112,7 +112,7 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
 
     private fun ApiTaskTemplate.toTaskTarget(): ApiTargetContent { //TODO there must be a better way to do this
         var cummulativeOffset = 0L
-        val sequence = DbTaskTemplate.query(DbTaskTemplate::templateId eq this.id).firstOrNull()?.targets?.asSequence()?.flatMap {
+        val sequence = DbTaskTemplate.filter{it.templateId eq this@toTaskTarget.id}.firstOrNull()?.targets?.asSequence()?.flatMap {
             cummulativeOffset += Math.floorDiv(it.item?.durationMs ?: 10000L, 1000L) + 1L
             listOf(
                 it.toQueryContentElement(),

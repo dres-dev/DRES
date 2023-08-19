@@ -3,7 +3,6 @@ package dev.dres.run
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.data.model.run.*
-import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -56,7 +55,7 @@ class NonInteractiveRunManager(
 
     /** */
     override val judgementValidators: List<JudgementValidator>
-        get() = this.evaluation.tasks.map { it.validator }.filterIsInstance(JudgementValidator::class.java)
+        get() = this.evaluation.taskRuns.map { it.validator }.filterIsInstance(JudgementValidator::class.java)
 
     override fun start(context: RunActionContext) {
         check(this.status == RunManagerStatus.CREATED) { "NonInteractiveRunManager is in status ${this.status} and cannot be started." }
@@ -90,7 +89,7 @@ class NonInteractiveRunManager(
         TODO("Not yet implemented")
     }
 
-    override fun taskCount(context: RunActionContext): Int = this.evaluation.tasks.size
+    override fun taskCount(context: RunActionContext): Int = this.evaluation.taskRuns.size
 
     private val viewerMap: MutableMap<ViewerInfo, Boolean> = mutableMapOf()
 
@@ -141,9 +140,9 @@ class NonInteractiveRunManager(
     /**
      *
      */
-    override fun tasks(context: RunActionContext): List<AbstractNonInteractiveTask> = this.evaluation.tasks
+    override fun tasks(context: RunActionContext): List<AbstractNonInteractiveTask> = this.evaluation.taskRuns
 
-    private val taskMap = this.evaluation.tasks.associateBy { it.taskId }
+    private val taskMap = this.evaluation.taskRuns.associateBy { it.taskId }
 
     /**
      *

@@ -18,10 +18,10 @@
                 {{viewer.ready ? 'link' : 'link_off'}}
               </mat-icon>
               <div class="p4" matListItemTitle>
-                <span [style.color]="viewer.ready ? 'darkgreen' : 'darkred'">{{ viewer.viewersId }}</span>
+                <span class="outline-white" [style.color]="viewer.ready ? 'darkgreen' : 'darkred'">{{ viewer.username }}</span>
               </div>
               <div class="p4" matListItemLine>
-                <span>User:</span> {{ viewer.username }}, <span>Address:</span> {{ viewer.host }}
+                <span>Address:</span> {{ viewer.host }}
               </div>
             </mat-list-item>
           </mat-action-list>

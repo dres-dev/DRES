@@ -8,7 +8,6 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 
 /**
  *
@@ -46,7 +45,7 @@ class ListSubmissionsHandler : AbstractEvaluationAdminHandler(),
         val evaluationManager =
             getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         val rac = ctx.runActionContext()
-        return evaluationManager.tasks(rac).filter { it.templateId == templateId }.map {
+        return evaluationManager.tasks(rac).filter { it.taskTemplateId == templateId }.map {
             ApiSubmissionInfo(evaluationId, it.taskId, it.getDbSubmissions().map { sub -> sub.toApi() }.toList())
         }
 

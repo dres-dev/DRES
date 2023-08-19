@@ -7,6 +7,7 @@ import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.template.TemplateId
+import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.data.model.template.team.TeamAggregatorImpl
 import dev.dres.data.model.template.team.TeamGroupId
 import dev.dres.data.model.template.team.TeamId
@@ -47,11 +48,11 @@ abstract class AbstractTask(protected val store: TransientEntityStore, task: DbT
     final override val taskId: TaskId = this.store.transactional(true) { task.taskId }
 
     /**
-     * The [TemplateId] of this [AbstractTask].
+     * The [TaskTemplateId] of this [AbstractTask].
      *
      * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
      */
-    final override val templateId: TemplateId = this.store.transactional(true) { task.template.templateId }
+    final override val taskTemplateId: TaskTemplateId = this.store.transactional(true) { task.template.templateId }
 
     /**
      * Reference to the [ApiTaskTemplate] describing this [AbstractTask].

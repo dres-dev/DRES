@@ -47,14 +47,14 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
     }
 
     /** List of [TaskRun]s registered for this [InteractiveSynchronousEvaluation]. */
-    override val tasks = LinkedList<ISTaskRun>()
+    override val taskRuns = LinkedList<ISTaskRun>()
 
 
-    private val templates = this.template.tasks
+    private val apiTaskTemplates = this.template.tasks
 
     /** Returns the last [TaskRun]. */
-    val currentTask: AbstractInteractiveTask?
-        get() = this.tasks.lastOrNull { it.templateId == this.templates[this.templateIndex].id }
+    val currentTaskRun: AbstractInteractiveTask?
+        get() = this.taskRuns.lastOrNull { it.taskTemplateId == this.apiTaskTemplates[this.templateIndex].id }
 
     /** The index of the task template this [InteractiveSynchronousEvaluation] is pointing to. */
     var templateIndex: Int = 0
@@ -75,20 +75,13 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
     }
 
     /**
-     * Returns the [TemplateId] this [InteractiveSynchronousEvaluation] is currently pointing to.
-     *
-     * @return [TemplateId]
-     */
-    fun getCurrentTemplateId(): TemplateId = this.currentTask?.templateId!!
-
-    /**
      * Returns the [ApiTaskTemplate] this [InteractiveSynchronousEvaluation] is currently pointing to.
      *
      * Requires an active database transaction.
      *
      * @return [ApiTaskTemplate]
      */
-    fun getCurrentTemplate(): ApiTaskTemplate = this.templates[this.templateIndex]
+    fun getCurrentTaskTemplate(): ApiTaskTemplate = this.apiTaskTemplates[this.templateIndex]
 
     /**
      * Moves this [InteractiveSynchronousEvaluation] to the given task index.
@@ -97,7 +90,7 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
      */
     fun goTo(index: Int) {
         if (index < 0) throw IndexOutOfBoundsException("The template index must be greater or equal to zero.")
-        if (index >= this.templates.size) throw IndexOutOfBoundsException("The template index cannot exceed the number of templates.")
+        if (index >= this.apiTaskTemplates.size) throw IndexOutOfBoundsException("The template index cannot exceed the number of templates.")
         this.templateIndex = index
     }
 
@@ -115,7 +108,7 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
 
         /** The position of this [DbTask] within the [InteractiveSynchronousEvaluation]. */
         override val position: Int
-            get() = this@InteractiveSynchronousEvaluation.tasks.indexOf(this)
+            get() = this@InteractiveSynchronousEvaluation.taskRuns.indexOf(this)
 
         /** The [SubmissionFilter] instance used by this [ISTaskRun]. */
         override val filter: SubmissionFilter
@@ -134,10 +127,10 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
 
         init {
 
-            check(this@InteractiveSynchronousEvaluation.tasks.isEmpty() || this@InteractiveSynchronousEvaluation.tasks.last().hasEnded) {
+            check(this@InteractiveSynchronousEvaluation.taskRuns.isEmpty() || this@InteractiveSynchronousEvaluation.taskRuns.last().hasEnded) {
                 "Cannot create a new task. Another task is currently running."
             }
-            (this@InteractiveSynchronousEvaluation.tasks).add(this)
+            (this@InteractiveSynchronousEvaluation.taskRuns).add(this)
 
             /* Initialize submission filter. */
             this.filter = store.transactional {

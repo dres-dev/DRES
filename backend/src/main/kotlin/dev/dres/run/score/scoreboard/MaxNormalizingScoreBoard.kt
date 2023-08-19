@@ -86,7 +86,7 @@ class MaxNormalizingScoreBoard(override val name: String, override val run: Eval
      * Internal function; calculates the overall score per team.
      */
     private fun recalculate() {
-        val scorers = this.run.tasks.filter { this.taskFilter(it.template) && (it.started != null) }.map { it.scorer }
+        val scorers = this.run.taskRuns.filter { this.taskFilter(it.template) && (it.started != null) }.map { it.scorer }
         val scores = scorers.associate { scorer ->
             scorer.scoreable.taskId to scorer.scores().groupBy { s -> s.first }.mapValues {
                 it.value.maxByOrNull { s -> s.third }?.third ?: 0.0

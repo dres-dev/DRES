@@ -2,7 +2,7 @@ package dev.dres.api.rest.types.template.tasks
 
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.media.CollectionId
-import dev.dres.data.model.template.TemplateId
+import dev.dres.data.model.template.task.TaskTemplateId
 
 /**
  * The RESTful API equivalent for [DbTaskTemplate].
@@ -12,7 +12,7 @@ import dev.dres.data.model.template.TemplateId
  * @version 2.0.0
  */
 data class ApiTaskTemplate(
-    val id: TemplateId? = null,
+    val id: TaskTemplateId? = null,
     val name: String,
     val taskGroup: String,
     val taskType: String,

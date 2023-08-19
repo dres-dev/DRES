@@ -48,7 +48,7 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
     }
 
     /** A [List] of all active [IATaskRun]s.*/
-    override val tasks: List<IATaskRun>
+    override val taskRuns: List<IATaskRun>
         get() = this.tasksMap.values.flatten()
 
     /** A [ConcurrentHashMap] that maps a list of [IATaskRun]s to the [TeamId]s they belong to.*/

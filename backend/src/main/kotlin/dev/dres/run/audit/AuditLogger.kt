@@ -10,7 +10,6 @@ import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.run.interfaces.EvaluationId
-import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.template.TemplateId
 
 import dev.dres.run.eventstream.*
@@ -18,69 +17,66 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
-import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter
 import java.nio.file.Files
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 object AuditLogger {
 
-    const val FLUSH_INTERVAL = 30_000 //flush every 30 seconds
+    private const val FLUSH_INTERVAL = 30_000 //flush every 30 seconds
 
     private val logMarker: Marker = MarkerFactory.getMarker("AUDIT")
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    private val queue = ConcurrentLinkedQueue<AuditLogEntry>()
+    private val queue = LinkedBlockingQueue<AuditLogEntry>()
 
     private var active = true
 
-    private val writerThread = thread(
-        name = "AuditLogHelperThread",
-        isDaemon = true,
-        start = false
-    ) {
-        val mapper = jacksonObjectMapper()
-        Files.createDirectories(DRES.AUDIT_LOG_ROOT)
-        val auditLogFile = DRES.AUDIT_LOG_ROOT.resolve("audit.jsonl").toFile()
-        val writer = PrintWriter(FileWriter(auditLogFile, Charsets.UTF_8, true))
-        var lastFlush = 0L
-        while (active || queue.isNotEmpty()) {
 
-            try {
+    init {
+        thread(
+            name = "AuditLogHelperThread",
+            isDaemon = true,
+            start = true
+        ) {
+            val mapper = jacksonObjectMapper()
+            Files.createDirectories(DRES.AUDIT_LOG_ROOT)
+            val auditLogFile = DRES.AUDIT_LOG_ROOT.resolve("audit.jsonl").toFile()
+            val writer = PrintWriter(FileWriter(auditLogFile, Charsets.UTF_8, true))
+            var lastFlush = 0L
+            while (active || queue.isNotEmpty()) {
 
-                while (queue.isNotEmpty()) {
-                    val logEntry = queue.poll() ?: break
+                try {
+
+                    val logEntry = queue.poll(1, TimeUnit.SECONDS) ?: continue
                     writer.println(
                         mapper.writeValueAsString(logEntry)
                     )
+
+                    val now = System.currentTimeMillis()
+
+                    if (now - lastFlush > FLUSH_INTERVAL) {
+                        writer.flush()
+                        lastFlush = now
+                    }
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-
-                val now = System.currentTimeMillis()
-
-                if (now - lastFlush > FLUSH_INTERVAL) {
-                    writer.flush()
-                    lastFlush = now
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
 
+            writer.flush()
+            writer.close()
+
         }
-
-        writer.flush()
-        writer.close()
-
-    }
-
-    init {
-        writerThread.start()
     }
 
     fun stop() {
+        log(ShutdownAuditLogEntry())
         active = false
     }
 
@@ -253,6 +249,10 @@ object AuditLogger {
      * @param sessionToken The [SessionToken]
      */
     fun logout(userId: UserId, api: AuditLogSource, sessionToken: SessionToken) {
+        log(LogoutAuditLogEntry(userId, api, sessionToken))
+    }
 
+    fun startup() {
+        log(StartupAuditLogEntry())
     }
 }

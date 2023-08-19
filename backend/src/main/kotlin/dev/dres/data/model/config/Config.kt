@@ -32,8 +32,6 @@ data class Config(
     val eventsLocation: Path = DRES.APPLICATION_ROOT.resolve("events"),
     /** Location for Audit event log. */
     val auditLocation: Path = DRES.APPLICATION_ROOT.resolve("audit"),
-    /** Event buffer retention time, defaults to 1 minute */
-    val eventBufferRetentionTime: Int = 60_000,
 ) {
 
     companion object{

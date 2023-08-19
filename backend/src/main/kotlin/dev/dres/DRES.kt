@@ -119,6 +119,8 @@ object DRES {
         /* Initialize Rest API. */
         RestApi.init(CONFIG, store, global)
 
+        AuditLogger.startup()
+
         println("Initialization complete!")
 
         if (args.isNotEmpty() && args.first() == "openapi") {

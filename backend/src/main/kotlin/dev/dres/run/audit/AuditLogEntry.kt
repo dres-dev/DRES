@@ -95,3 +95,6 @@ data class LogoutAuditLogEntry(
     val api: AuditLogSource,
     val sessionToken: SessionToken
 ) : AuditLogEntry()
+
+class StartupAuditLogEntry : AuditLogEntry()
+class ShutdownAuditLogEntry : AuditLogEntry()

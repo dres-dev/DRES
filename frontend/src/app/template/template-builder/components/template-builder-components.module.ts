@@ -47,6 +47,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatDialogModule } from "@angular/material/dialog";
 import { ColorPickerModule } from "ngx-color-picker";
 import {CdkDrag, CdkDropList} from '@angular/cdk/drag-drop';
+import { MatCardModule } from "@angular/material/card";
 
 
 @NgModule({
@@ -68,30 +69,31 @@ import {CdkDrag, CdkDropList} from '@angular/cdk/drag-drop';
     QueryDescriptionExternalImageFormFieldComponent,
     TeamBuilderDialogComponent
   ],
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatButtonModule,
-        MatTooltipModule,
-        MatIconModule,
-        MatMenuModule,
-        MatAutocompleteModule,
-        MatTableModule,
-        MatListModule,
-        SharedModule,
-        MatSelectModule,
-        MatButtonToggleModule,
-        MatGridListModule,
-        CompetitionBuilderModule,
-        NgOptimizedImage,
-        MatChipsModule,
-        MatDialogModule,
-        ColorPickerModule,
-        CdkDropList,
-        CdkDrag
-    ],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatIconModule,
+    MatMenuModule,
+    MatAutocompleteModule,
+    MatTableModule,
+    MatListModule,
+    SharedModule,
+    MatSelectModule,
+    MatButtonToggleModule,
+    MatGridListModule,
+    CompetitionBuilderModule,
+    NgOptimizedImage,
+    MatChipsModule,
+    MatDialogModule,
+    ColorPickerModule,
+    CdkDropList,
+    CdkDrag,
+    MatCardModule
+  ],
   exports: [TemplateInformationComponent,
     JudgesListComponent,
     TeamsListComponent,

@@ -8,6 +8,8 @@ import { map, shareReplay, tap } from "rxjs/operators";
 import { MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
 import { COMMA, ENTER } from "@angular/cdk/keycodes";
 import { MatChipInput, MatChipInputEvent } from "@angular/material/chips";
+import { TemplateBuilderService } from "../../template-builder.service";
+import { CdkDragDrop, moveItemInArray, transferArrayItem } from "@angular/cdk/drag-drop";
 
 @Component({
   selector: 'app-team-builder-dialog',
@@ -47,6 +49,7 @@ export class TeamBuilderDialogComponent {
   constructor(
     private dialogRef: MatDialogRef<TeamBuilderDialogComponent>,
     private userService: UserService,
+    private builder: TemplateBuilderService,
     private config: AppConfig,
     @Inject(MAT_DIALOG_DATA) private team?: ApiTeam
   ) {
@@ -62,7 +65,7 @@ export class TeamBuilderDialogComponent {
       users: new FormControl(team?.users || []),
       userInput: new FormControl(''),
     });
-    this.userService.getApiV2UserList().subscribe(value => this.users = value.filter(u => u.role === "PARTICIPANT" || u.role === "ADMIN").filter(user => !this.form.get('users').value.includes(user)));
+    this.filterUsers()
     this.availableUsers = this.form.get('userInput').valueChanges.pipe(
       startWith(''),
       map(value => this.filterAvailableUsers(value || ''))
@@ -81,6 +84,25 @@ export class TeamBuilderDialogComponent {
     this.form.get('users').value.push(event.option.value);
     this.form.get('userInput').setValue(null,{emit: false});
     this.userInput.nativeElement.value = '';
+  }
+
+  public filterUsers() {
+    this.userService.getApiV2UserList().subscribe(value => {
+      const allUsers = this.builder.usersOfAllTeams();
+      const roles = value
+        .filter(u =>  u.role === "PARTICIPANT" || u.role === "ADMIN");
+      this.users = roles.filter(u => {
+        return !allUsers.includes(u);
+      });
+    });
+  }
+
+  public drop(event: CdkDragDrop<ApiUser[]>){
+    if(event.previousContainer === event.container){
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex)
+    }else{
+      transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex)
+    }
   }
 
   /**

@@ -16,6 +16,7 @@
           <mat-error *ngIf="form.get('name')?.invalid">Name must consist of at least three characters.</mat-error>
         </mat-form-field>
 
+        <!--
         <mat-form-field class="user-chip-list" [style.width]="'100%'">
           <mat-label>Team Members (Users)</mat-label>
           <mat-chip-grid #chipList aria-label="Users">
@@ -35,6 +36,7 @@
           </mat-autocomplete>
         </mat-form-field>
 
+        -->
         <p [style.width]="'100%'">
           <label>Team Color</label> <br />
           <!-- Has been a span before: https://github.com/dres-dev/DRES/blob/a01889625c069256b7645fef95563feb1f4ce12a/frontend/src/app/competition/competition-builder/competition-builder-team-dialog/competition-builder-team-dialog.component.html -->
@@ -48,7 +50,36 @@
                 [cpPosition]="'top-right'"
                 (colorPickerChange)="onColorChange($event)" ></span>
         </p>
-
+        <div>
+          <div class="member-list-container">
+            <h3>Users in Team</h3>
+            <div
+              cdkDropList
+              #memberList="cdkDropList"
+              [cdkDropListData]="form.get('users').value"
+              [cdkDropListConnectedTo]="[userList]"
+              class="member-list"
+              (cdkDropListDropped)="drop($event)">
+              <mat-card class="member-list-item-border" *ngFor="let user of form.get('users').value" cdkDrag>
+                <mat-card-content>{{user.username}}</mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+          <div class="member-list-container">
+            <h3>Users Available</h3>
+            <div
+              cdkDropList
+              #userList="cdkDropList"
+              [cdkDropListData]="users"
+              [cdkDropListConnectedTo]="[memberList]"
+              class="member-list"
+              (cdkDropListDropped)="drop($event)">
+              <mat-card class="member-list-item-border" *ngFor="let user of users" cdkDrag>
+                <mat-card-content>{{user.username}}</mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </form>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ApiEvaluationTemplate, ApiTaskGroup, ApiTaskTemplate, ApiTaskType, ApiTeamGroup } from "../../../../openapi";
+import { ApiEvaluationTemplate, ApiTaskGroup, ApiTaskTemplate, ApiTaskType, ApiTeamGroup, ApiUser } from "../../../../openapi";
 import { BehaviorSubject, Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
@@ -242,4 +242,13 @@ export class TemplateBuilderService {
     this.getTemplate().teamGroups.splice(this.getTemplate().teamGroups.indexOf(teamGroup), 1);
     this.update(this.getTemplate());
   }
+
+  /**
+   * Returns all the users that are in a team.
+   */
+  usersOfAllTeams(): ApiUser[]{
+    return this.getTemplate().teams.map(team => team.users).flat() // TODO cache for large templates?
+  }
+
+
 }

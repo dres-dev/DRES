@@ -23,7 +23,7 @@ import kotlinx.dnq.query.firstOrNull
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(store), GetRestHandler<ApiJudgementRequest> {
+class DequeueVoteHandler: AbstractJudgementHandler(), GetRestHandler<ApiJudgementRequest> {
     override val route = "evaluation/{evaluationId}/vote/next"
 
     @OpenApi(
@@ -42,25 +42,27 @@ class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiJudgementRequest {
-        val request = this.store.transactional(false) {//TODO needs adjustment to deal with answerSets
-            val evaluationManager = ctx.eligibleManagerForId<RunManager>()
-
-            val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().find {  it.isActive } ?: return@transactional null
-            val next = validator.next()
-                ?: /* No submission awaiting judgement */
-                return@transactional null
-            val taskDescription = next.second.task.template.textualDescription()
-            return@transactional ApiJudgementRequest(
-                token = next.first,
-                validator = validator.id,
-                taskDescription = taskDescription,
-                answerSet = next.second.toApi(false)
-            )
-        }
-        return request ?: throw ErrorStatusException(
+        return nextRequest(ctx) ?: throw ErrorStatusException(
             202,
             "There is currently no submission awaiting judgement.",
             ctx
+        )
+    }
+
+    fun nextRequest(ctx: Context): ApiJudgementRequest? { //TODO needs adjustment to deal with answerSets
+        val evaluationManager = ctx.eligibleManagerForId<RunManager>()
+
+        val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().find { it.isActive } ?: return null
+        val next = validator.next()
+            ?: /* No submission awaiting judgement */
+            return null
+
+        val taskDescription = validator.taskTemplate.textualDescription()
+        return ApiJudgementRequest(
+            token = next.first,
+            validator = validator.id,
+            taskDescription = taskDescription,
+            answerSet = next.second
         )
     }
 }

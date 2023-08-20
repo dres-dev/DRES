@@ -1,5 +1,7 @@
 package dev.dres.run.validation.interfaces
 
+import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbVerdictStatus
 
@@ -22,14 +24,14 @@ interface VoteValidator : JudgementValidator {
     /**
      * Places a verdict for the currently active vote.
      *
-     * @param verdict The [DbVerdictStatus] of the vote.
+     * @param verdict The [ApiVerdictStatus] of the vote.
      */
-    fun vote(verdict: DbVerdictStatus)
+    fun vote(verdict: ApiVerdictStatus)
 
     /**
-     * Returns the [DbAnswerSet] this [VoteValidator] is currently accepting votes for.
+     * Returns the [ApiAnswerSet] this [VoteValidator] is currently accepting votes for.
      *
-     * @return [DbAnswerSet] or null, if no vote is ongoing.
+     * @return [ApiAnswerSet] or null, if no vote is ongoing.
      */
-    fun current() : DbAnswerSet?
+    fun current() : ApiAnswerSet?
 }

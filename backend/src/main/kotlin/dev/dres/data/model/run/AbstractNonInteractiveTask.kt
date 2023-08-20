@@ -46,7 +46,7 @@ abstract class AbstractNonInteractiveTask(store: TransientEntityStore, task: DbT
                             .asSequence().map {
                             ItemRange(it.item?.name!!, it.start!!, it.end!!)
                         }.toSet()
-                    BasicJudgementValidator(knownCorrectRanges = knownRanges)
+                    BasicJudgementValidator(template.toApi(), this.store, knownCorrectRanges = knownRanges)
                 }
 
                 else -> throw IllegalStateException("The provided target option ${targetOption.description} is not supported by interactive tasks.")

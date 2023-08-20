@@ -23,7 +23,8 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PostJudgementHandler(store: TransientEntityStore): AbstractJudgementHandler(store), PostRestHandler<SuccessStatus> {
+class PostJudgementHandler : AbstractJudgementHandler(),
+    PostRestHandler<SuccessStatus> {
     override val route = "evaluation/{evaluationId}/judge"
 
     @OpenApi(
@@ -50,19 +51,25 @@ class PostJudgementHandler(store: TransientEntityStore): AbstractJudgementHandle
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        /* Start transaction. */
-        this.store.transactional {
-            val evaluationManager = ctx.eligibleManagerForId<RunManager>()
-            checkEligibility(ctx, evaluationManager)
-            val validator = evaluationManager.judgementValidators.find { it.id == judgement.validator }
-                ?: throw ErrorStatusException(404, "No matching task found for validator ${judgement.validator}.", ctx)
-            try {
-                validator.judge(judgement.token, judgement.verdict.toDb())
-            } catch (ex: JudgementTimeoutException) {
-                throw ErrorStatusException(408, ex.message!!, ctx)
-            }
-            AuditLogger.judgement(evaluationManager.id, validator, judgement.token, judgement.verdict, AuditLogSource.REST, ctx.sessionToken())
+
+        val evaluationManager = ctx.eligibleManagerForId<RunManager>()
+        checkEligibility(ctx, evaluationManager)
+        val validator = evaluationManager.judgementValidators.find { it.id == judgement.validator }
+            ?: throw ErrorStatusException(404, "No matching task found for validator ${judgement.validator}.", ctx)
+        try {
+            validator.judge(judgement.token, judgement.verdict)
+        } catch (ex: JudgementTimeoutException) {
+            throw ErrorStatusException(408, ex.message!!, ctx)
         }
+        AuditLogger.judgement(
+            evaluationManager.id,
+            validator,
+            judgement.token,
+            judgement.verdict,
+            AuditLogSource.REST,
+            ctx.sessionToken()
+        )
+
         return SuccessStatus("Verdict ${judgement.verdict} received and accepted. Thanks!")
     }
 }

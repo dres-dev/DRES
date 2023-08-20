@@ -1,5 +1,8 @@
 package dev.dres.run.validation.interfaces
 
+import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.submissions.*
 
 /**
@@ -25,14 +28,17 @@ interface JudgementValidator {
     val hasOpen: Boolean
         get() = this.open > 0
 
+    /** The template of the task this validator belongs to */
+    val taskTemplate: ApiTaskTemplate
+
     /**
      * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'s internal queue.
      *
-     * If such an element exists, then the [DbSubmission] is returned alongside a unique token, that can be used to update the [DbSubmission]'s [DbVerdictStatus].
+     * If such an element exists, then the [ApiAnswerSet] is returned alongside a unique token, that can be used to update the [ApiAnswerSet]'s [DbVerdictStatus].
      *
-     * @return Optional [Pair] containing a string token and the [DbSubmission] that should be judged.
+     * @return Optional [Pair] containing a string token and the [ApiAnswerSet] that should be judged.
      */
-    fun next(): Pair<String, DbAnswerSet>?
+    fun next(): Pair<String, ApiAnswerSet>?
 
     /**
      * Places a verdict for the [Submission] identified by the given token.
@@ -40,6 +46,6 @@ interface JudgementValidator {
      * @param token The token used to identify the [Submission].
      * @param verdict The [DbVerdictStatus] assigned by the judge.
      */
-    fun judge(token: String, verdict: DbVerdictStatus)
+    fun judge(token: String, verdict: ApiVerdictStatus)
 }
 

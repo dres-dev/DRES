@@ -2,9 +2,6 @@ package dev.dres.data.model.run
 
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbTargetOption
-import dev.dres.data.model.template.team.TeamAggregatorImpl
-import dev.dres.data.model.template.team.TeamGroupId
-import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.validation.MediaItemsAnswerSetValidator
 import dev.dres.run.validation.TemporalOverlapAnswerSetValidator
@@ -56,7 +53,7 @@ abstract class AbstractInteractiveTask(store: TransientEntityStore, task: DbTask
                             .asSequence().map {
                                 ItemRange(it.item?.name!!, it.start!!, it.end!!)
                             }.toSet()
-                    BasicJudgementValidator(knownCorrectRanges = knownRanges)
+                    BasicJudgementValidator(template.toApi(), this.store, knownCorrectRanges = knownRanges)
                 }
 
                 DbTargetOption.VOTE -> {
@@ -68,7 +65,7 @@ abstract class AbstractInteractiveTask(store: TransientEntityStore, task: DbTask
                     val parameters =
                         template.taskGroup.type.configurations.filter { it.key eq targetOption.description }
                             .asSequence().associate { it.key to it.value }
-                    BasicVoteValidator(knownCorrectRanges = knownRanges, parameters = parameters)
+                    BasicVoteValidator(template.toApi(), this.store, knownCorrectRanges = knownRanges, parameters = parameters)
                 }
 
                 else -> throw IllegalStateException("The provided target option ${targetOption.description} is not supported by interactive tasks.")

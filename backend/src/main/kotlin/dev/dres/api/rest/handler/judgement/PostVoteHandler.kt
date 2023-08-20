@@ -21,7 +21,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PostVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(store), PostRestHandler<SuccessStatus> {
+class PostVoteHandler : AbstractJudgementHandler(), PostRestHandler<SuccessStatus> {
     override val route = "evaluation/{evaluationId}/judge/vote"
     override val apiVersion = "v2"
 
@@ -47,12 +47,17 @@ class PostVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(sto
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        this.store.transactional {
-            val evaluationManager = ctx.eligibleManagerForId<RunManager>()
-            val validator = evaluationManager.judgementValidators.find { it is VoteValidator && it.isActive } as? VoteValidator // Get first active vote validator
-                ?: throw ErrorStatusException(404, "There is currently no voting going on in evaluation ${evaluationManager.id}.", ctx)
-            validator.vote(vote.verdict.toDb())
-        }
+
+        val evaluationManager = ctx.eligibleManagerForId<RunManager>()
+        val validator =
+            evaluationManager.judgementValidators.find { it is VoteValidator && it.isActive } as? VoteValidator // Get first active vote validator
+                ?: throw ErrorStatusException(
+                    404,
+                    "There is currently no voting going on in evaluation ${evaluationManager.id}.",
+                    ctx
+                )
+        validator.vote(vote.verdict)
+
         return SuccessStatus("Vote received.")
     }
 }

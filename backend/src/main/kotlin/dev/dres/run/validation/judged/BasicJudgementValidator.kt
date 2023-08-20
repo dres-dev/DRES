@@ -1,10 +1,14 @@
 package dev.dres.run.validation.judged
 
+import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.submissions.*
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.AnswerSetValidator
+import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -20,7 +24,9 @@ import kotlin.concurrent.write
  * @author Ralph Gasser
  * @version 2.0.0
  */
-open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()) : AnswerSetValidator, JudgementValidator {
+open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, protected val store: TransientEntityStore, knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(),
+
+) : AnswerSetValidator, JudgementValidator {
 
     companion object {
         private val counter = AtomicInteger()
@@ -77,29 +83,29 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
     /**
      * Validates the [DbAnswerSet]. For the [BasicJudgementValidator] this means that the [DbAnswerSet] is enqueued for judgement.
      *
-     * Usually requires an ongoing transaction.
-     *
      * @param answerSet The [DbAnswerSet] to validate.
      */
     override fun validate(answerSet: DbAnswerSet) = this.updateLock.read {
-        //only validate submissions which are not already validated
-        if (answerSet.status != DbVerdictStatus.INDETERMINATE) {
-            return@read
-        }
-
-        //check cache first
-        val itemRange = ItemRange(answerSet.answers.first()) //TODO reason about semantics
-        val cachedStatus = this.cache[itemRange]
-        if (cachedStatus != null) {
-            answerSet.status = cachedStatus
-        } else if (itemRange !in this.queuedItemRanges.keys) {
-            this.updateLock.write {
-                this.queue.offer(answerSet.id to itemRange)
-                this.queuedItemRanges[itemRange] = mutableListOf(answerSet.id)
+        this.store.transactional {
+            //only validate submissions which are not already validated
+            if (answerSet.status != DbVerdictStatus.INDETERMINATE) {
+                return@transactional
             }
-        } else {
-            this.updateLock.write {
-                this.queuedItemRanges[itemRange]!!.add(answerSet.id)
+
+            //check cache first
+            val itemRange = ItemRange(answerSet.answers.first()) //TODO reason about semantics
+            val cachedStatus = this.cache[itemRange]
+            if (cachedStatus != null) {
+                answerSet.status = cachedStatus
+            } else if (itemRange !in this.queuedItemRanges.keys) {
+                this.updateLock.write {
+                    this.queue.offer(answerSet.id to itemRange)
+                    this.queuedItemRanges[itemRange] = mutableListOf(answerSet.id)
+                }
+            } else {
+                this.updateLock.write {
+                    this.queuedItemRanges[itemRange]!!.add(answerSet.id)
+                }
             }
         }
     }
@@ -107,33 +113,34 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
     /**
      * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'s internal queue.
      *
-     * If such an element exists, then the [DbAnswerSet] is returned alongside a unique token, that can be used to update
-     * the [DbAnswerSet]'s [DbVerdictStatus].
+     * If such an element exists, then the [ApiAnswerSet] is returned alongside a unique token, that can be used to update
+     * the [ApiAnswerSet]'s [VerdictStatus].
      *
-     * @return [Pair] containing a string token and the [DbSubmission] that should be judged. Can be null!
+     * @return [Pair] containing a string token and the [ApiAnswerSet] that should be judged. Can be null!
      */
-    override fun next(): Pair<String, DbAnswerSet>? = this.updateLock.write {
+    override fun next(): Pair<String, ApiAnswerSet>? = this.updateLock.write {
         checkTimeOuts()
         val next = this.queue.poll() ?: return@write null
-        val answerSet = DbAnswerSet.query(DbAnswerSet::id eq next.first).singleOrNull() ?: return@write null
-        val token = UUID.randomUUID().toString()
-        this.waiting[token] = next
-        this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
-        AuditLogger.prepareJudgement(answerSet.toApi(), this, token)
-        token to answerSet
+        return@write this.store.transactional(true) {
+            val answerSet = DbAnswerSet.query(DbAnswerSet::id eq next.first).singleOrNull() ?: return@transactional null
+            val token = UUID.randomUUID().toString()
+            this.waiting[token] = next
+            this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
+            AuditLogger.prepareJudgement(answerSet.toApi(), this, token)
+            token to answerSet.toApi()
+        }
     }
 
     /**
-     * Places a verdict for the [DbSubmission] identified by the given token.
+     * Places a verdict for the [Submission] identified by the given token.
      *
-     * Requires an ongoing transaction!
-     *
-     * @param token The token used to identify the [DbSubmission].
+     * @param token The token used to identify the [Submission].
      * @param verdict The verdict of the judge.
      */
-    override fun judge(token: String, verdict: DbVerdictStatus) = this.updateLock.write {
-        this.judgeInternal(token, verdict)
-        Unit
+    override fun judge(token: String, verdict: ApiVerdictStatus) {
+        this.updateLock.write {
+            this.judgeInternal(token, verdict)
+        }
     }
 
     /**
@@ -142,18 +149,21 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
      * @param token The token used to identify the [DbSubmission].
      * @param verdict The verdict of the judge.
      */
-    protected fun judgeInternal(token: String, verdict: DbVerdictStatus): AnswerSetId {
+    protected fun judgeInternal(token: String, verdict: ApiVerdictStatus): AnswerSetId {
         val next = this.waiting.remove(token)
             ?: throw JudgementTimeoutException("This JudgementValidator does not contain a submission for the token '$token'.") //submission with token not found TODO: this should be logged
 
         /* Remove from queue set. */
         val otherSubmissions = this.queuedItemRanges.remove(next.second) ?: emptyList()
-        for ((i, answerSetId) in (otherSubmissions + next.first).withIndex()) {
-            val answerSet = DbAnswerSet.query(DbAnswerSet::id eq answerSetId).singleOrNull()
-            if (answerSet != null) {
-                answerSet.status = verdict
-                if (i == 0) {
-                    this.cache[ItemRange(answerSet.answers.first())] = verdict //TODO reason about semantics
+        this.store.transactional {
+            val dbVerdict = verdict.toDb()
+            for ((i, answerSetId) in (otherSubmissions + next.first).withIndex()) {
+                val answerSet = DbAnswerSet.query(DbAnswerSet::id eq answerSetId).singleOrNull()
+                if (answerSet != null) {
+                    answerSet.status = dbVerdict
+                    if (i == 0) {
+                        this.cache[ItemRange(answerSet.answers.first())] = dbVerdict //TODO reason about semantics
+                    }
                 }
             }
         }

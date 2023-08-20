@@ -6,7 +6,7 @@ import dev.dres.data.model.submissions.*
 import io.javalin.openapi.OpenApiIgnore
 
 /**
- * The RESTful API equivalent for the type of an answer set as submitted by the DRES endpoint.
+ * The RESTful API equivalent for the type of answer set as submitted by the DRES endpoint.
  *
  * There is an inherent asymmetry between the answers sets received by DRES (unprocessed & validated) and those sent by DRES (processed and validated).
  *

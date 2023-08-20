@@ -19,7 +19,7 @@ import kotlinx.dnq.query.isEmpty
  * @author Ralph Gasser
  * @version 1.0
  */
-abstract class AbstractJudgementHandler(protected val store: TransientEntityStore): RestHandler, AccessManagedRestHandler {
+abstract class AbstractJudgementHandler: RestHandler, AccessManagedRestHandler {
     /** */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.JUDGE)
 

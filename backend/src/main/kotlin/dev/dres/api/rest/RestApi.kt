@@ -184,11 +184,11 @@ object RestApi {
             UpdateTeamHandler(store),
 
             // Judgement
-            DequeueJudgementHandler(store),
-            DequeueVoteHandler(store),
-            PostJudgementHandler(store),
-            PostVoteHandler(store),
-            JudgementStatusHandler(store),
+            DequeueJudgementHandler(),
+            DequeueVoteHandler(),
+            PostJudgementHandler(),
+            PostVoteHandler(),
+            JudgementStatusHandler(),
 
             // Status
             CurrentTimeHandler(),

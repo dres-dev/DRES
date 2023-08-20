@@ -17,7 +17,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHandler(store),
+class DequeueJudgementHandler : AbstractJudgementHandler(),
     GetRestHandler<ApiJudgementRequest> {
     override val route = "evaluation/{evaluationId}/judge/next"
 
@@ -43,24 +43,24 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiJudgementRequest {
-        /* Start transaction. */
-        val request = this.store.transactional(false) {
-            val evaluationManager = ctx.eligibleManagerForId<RunManager>()
-            checkEligibility(ctx, evaluationManager)
-            val validator = evaluationManager.judgementValidators.find { it.hasOpen } ?: return@transactional null
-            val next = validator.next() ?: return@transactional null
-            val taskDescription = next.second.task.template.textualDescription()
-            return@transactional ApiJudgementRequest(
-                token = next.first,
-                validator = validator.id,
-                taskDescription = taskDescription,
-                answerSet = next.second.toApi(false)
-            )
-        }
-        return request ?: throw ErrorStatusException(
+        return nextRequest(ctx) ?: throw ErrorStatusException(
             202,
             "There is currently no submission awaiting judgement.",
             ctx
+        )
+    }
+
+    private fun nextRequest(ctx: Context): ApiJudgementRequest? {
+        val evaluationManager = ctx.eligibleManagerForId<RunManager>()
+        checkEligibility(ctx, evaluationManager)
+        val validator = evaluationManager.judgementValidators.find { it.hasOpen } ?: return null
+        val next = validator.next() ?: return null
+        val taskDescription = validator.taskTemplate.textualDescription()
+        return ApiJudgementRequest(
+            token = next.first,
+            validator = validator.id,
+            taskDescription = taskDescription,
+            answerSet = next.second
         )
     }
 }

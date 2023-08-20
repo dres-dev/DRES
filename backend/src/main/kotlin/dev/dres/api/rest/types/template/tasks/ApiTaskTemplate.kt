@@ -1,10 +1,12 @@
 package dev.dres.api.rest.types.template.tasks
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.media.CollectionId
 import dev.dres.data.model.template.TemplateId
 import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.template.task.TaskTemplateId
+import io.javalin.openapi.OpenApiIgnore
 
 /**
  * The RESTful API equivalent for [DbTaskTemplate].
@@ -27,5 +29,7 @@ data class ApiTaskTemplate(
     override fun textualDescription(): String = this.hints.filter { it.type == ApiHintType.TEXT }.maxByOrNull { it.start ?: 0 }?.description ?: name
 
     override val templateId: TaskTemplateId
+        @JsonIgnore
+        @OpenApiIgnore
         get() = this.id ?: "N/A"
 }

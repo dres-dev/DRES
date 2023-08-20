@@ -84,6 +84,15 @@ export class TemplateListComponent implements AfterViewInit{
     this.router.navigate(['/template/builder', templateId]).then(s => {});
   }
 
+  public copy(templateId: string){
+    this.templateService.postApiV2TemplateByTemplateIdClone(templateId).subscribe(value => {
+      this.refresh();
+      this.snackBar.open(`Successfully copied ${templateId}`, null, {duration: 5000});
+    }, (error) => {
+      this.snackBar.open(`Error: ${error.error.description}`,null,{duration: 5000});
+    })
+  }
+
   public delete(templateId: string){
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       data: {

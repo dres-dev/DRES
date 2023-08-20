@@ -51,8 +51,11 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
         return mapOf(
             "ls" to listOf("list"),
             "remove" to listOf("delete"),
+            "rm" to listOf("delete"),
             "drop" to listOf("delete"),
-            "add" to listOf("create")
+            "add" to listOf("create"),
+            "cp" to listOf("copy"),
+            "clone" to listOf("copy")
         )
     }
 
@@ -121,12 +124,37 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
                     return@transactional
                 }
 
-                TemplateManager.copyTemplate(evaluationTemplate)
-                println("template copied")
+                val newId = TemplateManager.copyTemplate(evaluationTemplate)
+                println("Successfully copied template. New id=$newId")
             }
-            //println("Successfully copied template.")
         }
     }
+
+    /**
+     * [CliktCommand] to rename a [DbEvaluationTemplate].
+     */
+    inner class Rename : AbstractEvaluationCommand(name = "rename", help = "Renames a Template") {
+
+        private val newName: String by option("-n", "--name", help = "New name of the Template")
+            .required()
+            .validate { require(it.isNotEmpty()) { "Template name must be non empty." } }
+        override fun run() {
+            this@EvaluationTemplateCommand.store.transactional {
+                val evaluationTemplate =
+                    DbEvaluationTemplate.query((DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name))
+                        .firstOrNull()
+                if (evaluationTemplate == null) {
+                    println("Could not find template to copy.")
+                    return@transactional
+                }
+
+                evaluationTemplate.name = newName
+                println("Template renamed")
+            }
+        }
+    }
+
+
 
     /**
      * [CliktCommand] to list all [DbEvaluationTemplate]s.

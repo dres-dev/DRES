@@ -17,8 +17,10 @@ import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
 import kotlinx.dnq.util.getSafe
+import org.apache.logging.log4j.core.util.IOUtils
 import org.joda.time.DateTime
 import java.io.InputStream
+import java.util.Base64
 
 object TemplateManager {
 
@@ -56,6 +58,10 @@ object TemplateManager {
 
     fun getTemplate(templateId: TemplateId): ApiEvaluationTemplate? = this.store.transactional(true) {
         DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq templateId).firstOrNull()?.toApi()
+    }
+
+    fun getTemplateDb(templateId: TemplateId): DbEvaluationTemplate? = this.store.transactional(true) {
+        DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq templateId).firstOrNull()
     }
 
     fun getTeamLogo(teamId: TeamId) : InputStream? = this.store.transactional(true) {
@@ -300,6 +306,18 @@ object TemplateManager {
     /**
      * Creates a copy of an existing [DbEvaluationTemplate]
      */
+    @Throws(IllegalArgumentException::class)
+    fun copyTemplate(templateId: TemplateId): ApiEvaluationTemplate {
+        val existing = getTemplateDb(templateId) ?: throw IllegalArgumentException("Template not found with id $templateId")
+
+        val copy = this.store.transactional { copyTemplate(existing) }
+
+        return getTemplate(copy)!!
+    }
+
+    /**
+     * Creates a copy of an existing [DbEvaluationTemplate]
+     */
     fun copyTemplate(dbEvaluationTemplate: DbEvaluationTemplate): TemplateId {
 
         val apiTemplate = dbEvaluationTemplate.toApi()
@@ -309,7 +327,7 @@ object TemplateManager {
                 it.copy(id = null)
             },
             teams = apiTemplate.teams.map {
-                it.copy(id = null)
+                it.copy(id = null, logoData = Base64.getEncoder().encodeToString(getTeamLogo(it.teamId)!!.readAllBytes()))
             }
         )
 

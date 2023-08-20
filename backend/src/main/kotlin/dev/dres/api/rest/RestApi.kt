@@ -126,6 +126,7 @@ object RestApi {
             ListEvaluationTemplatesHandler(),
             CreateEvaluationTemplateHandler(),
             UpdateEvaluationTemplateHandler(),
+            CloneEvaluationTemplateHandler(),
             ShowEvaluationTemplateHandler(),
             DeleteEvaluationTemplateHandler(),
             ListTeamHandler(),

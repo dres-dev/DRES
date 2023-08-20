@@ -8,8 +8,7 @@
       "url" : "https://dres.dev"
     },
     "license" : {
-      "name" : "MIT",
-      "identifier" : "MIT"
+      "name" : "MIT"
     },
     "version" : "2.0.0"
   },
@@ -4571,6 +4570,78 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/template/{templateId}/clone" : {
+      "post" : {
+        "tags" : [ "Template" ],
+        "summary" : "Clones an existing evaluation template.",
+        "operationId" : "postApiV2TemplateByTemplateIdClone",
+        "parameters" : [ {
+          "name" : "templateId",
+          "in" : "path",
+          "description" : "The evaluation template ID to clone.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
                 }
               }
             }

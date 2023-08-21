@@ -5,7 +5,6 @@ import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.output.HelpFormatter
 import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.mordant.rendering.Widget
-import com.github.ajalt.mordant.table.verticalLayout
 import dev.dres.data.model.config.Config
 import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.database.TransientEntityStore
@@ -43,7 +42,7 @@ object Cli {
 
         clikt = DRESBaseCommand().subcommands(
             EvaluationTemplateCommand(store, cache),
-            UserCommand(store),
+            UserCommand(),
             MediaCollectionCommand(store, config),
             EvaluationCommand(store),
             OpenApiCommand(),

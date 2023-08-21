@@ -7,6 +7,8 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.*
 import com.jakewharton.picnic.table
 import dev.dres.api.rest.types.users.ApiRole
+import dev.dres.api.rest.types.users.ApiUser
+import dev.dres.api.rest.types.users.ApiUserRequest
 import dev.dres.data.model.admin.Password
 import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.admin.DbUser
@@ -26,9 +28,9 @@ import java.util.*
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user") {
+class UserCommand : NoOpCliktCommand(name = "user") {
     init {
-        this.subcommands(Create(store), Update(store), Delete(store), List(store), Roles(store), Export(store), Import(store))
+        this.subcommands(Create(), Update(), Delete(), List(), Roles(), Export(), Import())
     }
 
     override fun aliases() = mapOf(
@@ -42,7 +44,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     /**
      * [CliktCommand] to create a new [DbUser].
      */
-    inner class Create(private val store: TransientEntityStore): CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
+    inner class Create: CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
         /** The name of the newly created user. */
         private val username: String by option("-u", "--username", help = "Username of at least $MIN_LENGTH_USERNAME characters length. Must be unique!")
                 .required()
@@ -55,12 +57,12 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
                 .validate { require(it.length >= MIN_LENGTH_PASSWORD) { "Password for DRES password must consist of at least $MIN_LENGTH_PASSWORD characters." } }
 
         /** The desired [DbRole] of the newly created user. */
-        private val apiRole: ApiRole by option("-r", "--role", help = "Role of the new user.").convert { ApiRole.valueOf(it) }.required()
+        private val apiRole: ApiRole by option("-r", "--role", help = "Role of the new user.").convert { ApiRole.valueOf(it.uppercase()) }.required()
 
         override fun run() {
             try {
                 val created = UserManager.create(username = this.username, password = this.password.hash(), role = apiRole)
-                println("New user '${UserManager.get(username = this.username)}' created.")
+                println("New user '$created' created.")
             } catch (e: Exception) {
                 println("Could not create user '${this.username}': ${e.message}")
             }
@@ -72,7 +74,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     /**
      * [CliktCommand] to update an existing [DbUser].
      */
-    inner class Update(private val store: TransientEntityStore): CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
+    inner class Update: CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id")
 
         /** The new username. */
@@ -103,19 +105,18 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     /**
      * [CliktCommand] to delete a [DbUser].
      */
-    inner class Delete(private val store: TransientEntityStore): CliktCommand(name = "delete", help = "Deletes an existing user.", printHelpOnEmptyArgs = true) {
+    inner class Delete: CliktCommand(name = "delete", help = "Deletes an existing user.", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be deleted.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be deleted.")
                 .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
 
-        override fun run() = this.store.transactional {
+        override fun run()  {
             if (this.id == null && this.username == null) {
                 println("You must specify a valid username or user ID in order to delete a user!")
             }
             val success = UserManager.delete(id = this.id, username = this.username)
             if (success) {
                 println("User deleted successfully!")
-                return@transactional
             } else {
                 println("User could not be deleted because it doesn't exist!")
             }
@@ -125,26 +126,25 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     /**
      * [CliktCommand] to export a [DbUser].
      */
-    inner class Export(private val store: TransientEntityStore): CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.", printHelpOnEmptyArgs = true) {
+    inner class Export: CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be exported.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be exported.")
                 .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
         private val path: String by option("-o", "--output").required()
-        override fun run() = this.store.transactional(true) {
+        override fun run()  {
+
+            val path = Paths.get(this.path)
+            val mapper = ObjectMapper()
+
             if (this.id == null && this.username == null) {
                 val users = UserManager.list()
-                val path = Paths.get(this.path)
-                val mapper = ObjectMapper()
                 Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use { writer ->
                     mapper.writeValue(writer, users)
                 }
                 println("Successfully wrote ${users.size} users to $path.")
-                return@transactional
             } else {
                 val user = UserManager.get(id = this.id, username = this.username)
                 if (user != null) {
-                    val path = Paths.get(this.path)
-                    val mapper = ObjectMapper()
                     Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
                         mapper.writeValue(it, user)
                     }
@@ -159,7 +159,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     /**
      * Imports a specific user(s) from JSON.
      */
-    inner class Import(private val store: TransientEntityStore): CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users", printHelpOnEmptyArgs = true) {
+    inner class Import: CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users", printHelpOnEmptyArgs = true) {
 
         private val new: Boolean by option("-n", "--new", help = "Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
 
@@ -167,23 +167,23 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
 
         private val destination: String by option("-i", "--in", help = "The input file for the users.").required()
 
-        override fun run() = this.store.transactional {
+        override fun run() {
             val path = Paths.get(this.destination)
             val mapper = ObjectMapper()
 
             val import = Files.newBufferedReader(path).use {
                 if (this.multiple) {
-                    mapper.readValue(it, Array<DbUser>::class.java)
+                    mapper.readValue(it, Array<ApiUserRequest>::class.java)
                 } else {
-                    arrayOf(mapper.readValue(it, DbUser::class.java))
+                    arrayOf(mapper.readValue(it, ApiUserRequest::class.java))
                 }
             }
 
-            import.forEach {
+            import.asSequence().filter { it.password != null && it.role != null}.forEach {
                 if (new) {
-                    UserManager.create(it.username, it.hashedPassword(), it.role.toApi())
+                    UserManager.create(it.username, Password.Plain(it.password!!).hash(), it.role!!)
                 } else {
-                    UserManager.update(it.id, it.username, it.hashedPassword(), it.role.toApi())
+                    UserManager.update(null, it.username, Password.Plain(it.password!!).hash(), it.role!!)
                 }
             }
             println("done")
@@ -192,11 +192,11 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
 
 
     /**
-     * [CliktCommand] to list all [DbUser]s.
+     * [CliktCommand] to list all users.
      */
-    inner class List(private val store: TransientEntityStore): CliktCommand(name = "list", help = "Lists all Users") {
+    inner class List: CliktCommand(name = "list", help = "Lists all Users") {
         val plain by option("-p", "--plain", help = "Plain print: No fancy table. Might be easier if the output should be processed").flag(default = false)
-        override fun run() = this.store.transactional(true) {
+        override fun run() {
             val users = UserManager.list()
             println("Available users: ${users.size}")
             if (plain) {
@@ -228,9 +228,9 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     /**
      * [CliktCommand] to list all [DbRole]s.
      */
-    inner class Roles(private val store: TransientEntityStore): CliktCommand(name = "roles", help = "Lists all Roles") {
-        override fun run() = this.store.transactional(true) {
-            println("Available roles: ${DbRole.values().joinToString(", ")}")
+    inner class Roles: CliktCommand(name = "roles", help = "Lists all Roles") {
+        override fun run() {
+            println("Available roles: ${ApiRole.values().filter { it != ApiRole.ANYONE }.joinToString(", ")}")
         }
     }
 }

@@ -6,14 +6,12 @@ import dev.dres.api.rest.handler.PatchRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.api.rest.types.users.UserRequest
-import dev.dres.data.model.admin.DbRole
+import dev.dres.api.rest.types.users.ApiUserRequest
 import dev.dres.data.model.admin.DbUser
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * An [AbstractUserHandler] to update an existing [DbUser]s.
@@ -33,7 +31,7 @@ class UpdateUsersHandler() : AbstractUserHandler(), PatchRestHandler<ApiUser>, A
         path = "/api/v2/user/{userId}", methods = [HttpMethod.PATCH],
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [OpenApiParam("userId", String::class, "User ID", required = true)],
-        requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiUserRequest::class)]),
         tags = ["User"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiUser::class)]),
@@ -44,7 +42,7 @@ class UpdateUsersHandler() : AbstractUserHandler(), PatchRestHandler<ApiUser>, A
     )
     override fun doPatch(ctx: Context): ApiUser {
         val request = try {
-            ctx.bodyAsClass(UserRequest::class.java)
+            ctx.bodyAsClass(ApiUserRequest::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

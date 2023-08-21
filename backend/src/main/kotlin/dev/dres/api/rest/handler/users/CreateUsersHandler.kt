@@ -6,14 +6,13 @@ import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.api.rest.types.users.UserRequest
+import dev.dres.api.rest.types.users.ApiUserRequest
 import dev.dres.data.model.admin.Password
 import dev.dres.data.model.admin.DbUser
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * An [AbstractUserHandler] to create new [DbUser]s.
@@ -31,7 +30,7 @@ class CreateUsersHandler() : AbstractUserHandler(), PostRestHandler<ApiUser>, Ac
         summary = "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
         path = "/api/v2/user", methods = [HttpMethod.POST],
         operationId = OpenApiOperation.AUTO_GENERATE,
-        requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiUserRequest::class)]),
         tags = ["User"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiUser::class)]),
@@ -41,7 +40,7 @@ class CreateUsersHandler() : AbstractUserHandler(), PostRestHandler<ApiUser>, Ac
     )
     override fun doPost(ctx: Context): ApiUser {
         val req = try {
-            ctx.bodyAsClass(UserRequest::class.java)
+            ctx.bodyAsClass(ApiUserRequest::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

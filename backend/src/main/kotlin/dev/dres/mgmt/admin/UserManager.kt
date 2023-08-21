@@ -2,7 +2,7 @@ package dev.dres.mgmt.admin
 
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.api.rest.types.users.UserRequest
+import dev.dres.api.rest.types.users.ApiUserRequest
 import dev.dres.data.model.admin.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
@@ -25,9 +25,9 @@ object UserManager {
     /**
      * Creates a [DbUser] with the given [username], [password] and [role].
      *
-     * @param username The name of the [DbUser]. Must be unique.
+     * @param username The name of the user. Must be unique.
      * @param password The [Password.Hashed] of the user.
-     * @param role The [DbRole] of the new user.
+     * @param role The [ApiRole] of the new user.
      */
     fun create(username: String, password: Password.Hashed, role: ApiRole): ApiUser =
         this.store.transactional {
@@ -41,12 +41,12 @@ object UserManager {
         }
 
     /**
-     * Updates a [DbUser] with the given [UserId], [username], [password] and [role].
+     * Updates a user with the given [UserId], [username], [password] and [role].
      *
      * @param id The [UserId] of the user to update.
-     * @param username The name of the [DbUser]. Must be unique.
+     * @param username The name of the user. Must be unique.
      * @param password The [Password.Hashed] of the user.
-     * @param role The [DbRole] of the new user.
+     * @param role The [ApiRole] of the new user.
      */
     fun update(id: UserId?, username: String?, password: Password.Hashed?, role: ApiRole?): ApiUser? =
         this.store.transactional {
@@ -66,13 +66,13 @@ object UserManager {
 
 
     /**
-     * Updates a [DbUser] for the given [id] based o the [request].
+     * Updates a user for the given [id] based o the [request].
      *
      * @param id The [UserId] of the user to update.
-     * @param request The [UserRequest] detailing the update
+     * @param request The [ApiUserRequest] detailing the update
      * @return True on success, false otherwise.
      */
-    fun update(id: UserId?, request: UserRequest): ApiUser? = update(
+    fun update(id: UserId?, request: ApiUserRequest): ApiUser? = update(
         id = id,
         username = request.username,
         password = request.password?.let { if (it.isNotBlank()) Password.Plain(it).hash() else null },
@@ -80,9 +80,9 @@ object UserManager {
     )
 
     /**
-     * Deletes the [DbUser] for the given [UserId].
+     * Deletes the [ApiUser] for the given [UserId].
      *
-     * @param username The name of the [DbUser] to delete.
+     * @param username The name of the [ApiUser] to delete.
      * @return True on success, false otherwise.
      */
     fun delete(id: UserId? = null, username: String? = null): Boolean = this.store.transactional {
@@ -110,10 +110,10 @@ object UserManager {
 
 
     /**
-     * Checks for the existence of the [DbUser] with the given [EvaluationId].
+     * Checks for the existence of the [ApiUser] with the given [EvaluationId].
      *
      * @param id [EvaluationId] to check.
-     * @return True if [DbUser] exists, false otherwise.
+     * @return True if [ApiUser] exists, false otherwise.
      */
     fun exists(id: UserId? = null, username: String? = null): Boolean = this.store.transactional(true) {
         if (id != null) {
@@ -126,10 +126,10 @@ object UserManager {
     }
 
     /**
-     * Returns the [DbUser] for the given [EvaluationId] or null if [DbUser] doesn't exist.
+     * Returns the [ApiUser] for the given [EvaluationId] or null if [ApiUser] doesn't exist.
      *
-     * @param id The [EvaluationId] of the [DbUser] to fetch.
-     * @return [DbUser] or null
+     * @param id The [EvaluationId] of the [ApiUser] to fetch.
+     * @return [ApiUser] or null
      */
     fun get(id: UserId? = null, username: String? = null): ApiUser? = this.store.transactional(true) {
         if (id != null) {

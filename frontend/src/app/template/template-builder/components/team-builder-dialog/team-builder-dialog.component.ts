@@ -88,11 +88,10 @@ export class TeamBuilderDialogComponent {
 
   public filterUsers() {
     this.userService.getApiV2UserList().subscribe(value => {
-      const allUsers = this.builder.usersOfAllTeams();
       const roles = value
         .filter(u =>  u.role === "PARTICIPANT" || u.role === "ADMIN");
       this.users = roles.filter(u => {
-        return !allUsers.includes(u);
+        return !this.builder.isUserInTeam(u);
       });
     });
   }

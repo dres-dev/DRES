@@ -250,5 +250,16 @@ export class TemplateBuilderService {
     return this.getTemplate().teams.map(team => team.users).flat() // TODO cache for large templates?
   }
 
+  isUserInTeam(user: ApiUser): boolean {
+    const used = this.usersOfAllTeams();
+    let result = false;
+    used.forEach(u => {
+      if(user.id === u.id){
+        result = true;
+        return
+      }
+    })
+    return result;
+  }
 
 }

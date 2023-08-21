@@ -30,6 +30,10 @@
   display: block;
 }
 
+.member-list-item {
+  cursor: move;
+}
+
 .member-list-item-border{
   border-bottom: solid 1px rgba(255,255,255,0.87);
 }

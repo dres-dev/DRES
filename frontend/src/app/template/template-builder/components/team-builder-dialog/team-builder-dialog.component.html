@@ -52,7 +52,9 @@
         </p>
         <div>
           <div class="member-list-container">
-            <h3>Users in Team</h3>
+            <h3>Users in Team
+            <mat-icon matTooltip="To add users to this team, drag'n'drop them from the available users list. To remove users from this team, dragn'n'drop them to the available users list.">help</mat-icon>
+            </h3>
             <div
               cdkDropList
               #memberList="cdkDropList"
@@ -60,13 +62,15 @@
               [cdkDropListConnectedTo]="[userList]"
               class="member-list"
               (cdkDropListDropped)="drop($event)">
-              <mat-card class="member-list-item-border" *ngFor="let user of form.get('users').value" cdkDrag>
+              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of form.get('users').value" cdkDrag>
                 <mat-card-content>{{user.username}}</mat-card-content>
               </mat-card>
             </div>
           </div>
           <div class="member-list-container">
-            <h3>Users Available</h3>
+            <h3>Users Available
+              <mat-icon matTooltip="To add users to the team, drag'n'drop them from this list. To remove users from the team, dragn'n'drop them to the this list.">help</mat-icon>
+            </h3>
             <div
               cdkDropList
               #userList="cdkDropList"
@@ -74,7 +78,7 @@
               [cdkDropListConnectedTo]="[memberList]"
               class="member-list"
               (cdkDropListDropped)="drop($event)">
-              <mat-card class="member-list-item-border" *ngFor="let user of users" cdkDrag>
+              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of users" cdkDrag>
                 <mat-card-content>{{user.username}}</mat-card-content>
               </mat-card>
             </div>

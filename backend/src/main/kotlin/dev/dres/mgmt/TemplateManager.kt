@@ -73,11 +73,10 @@ object TemplateManager {
      * Requires a transaction context.
      */
     fun updateDbTemplate(apiEvaluationTemplate: ApiEvaluationTemplate) {
-
-        val dbEvaluationTemplate =
+        val dbEvaluationTemplate = this.store.transactional(true){
             DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq apiEvaluationTemplate.id and (DbEvaluationTemplate::instance eq false))
                 .firstOrNull() ?: throw IllegalArgumentException("No template with id '${apiEvaluationTemplate.id}'")
-
+        }
         updateDbTemplate(dbEvaluationTemplate, apiEvaluationTemplate)
     }
 

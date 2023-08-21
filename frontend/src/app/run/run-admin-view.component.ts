@@ -5,10 +5,6 @@ import { combineLatest, merge, mergeMap, Observable, of, Subject, timer} from 'r
 import { catchError, filter, map, shareReplay, switchMap } from "rxjs/operators";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  ConfirmationDialogComponent,
-  ConfirmationDialogComponentData,
-} from '../shared/confirmation-dialog/confirmation-dialog.component';
 import { RunInfoOverviewTuple } from './admin-run-list.component';
 import {
     ApiEvaluationInfo,
@@ -104,7 +100,7 @@ export class RunAdminViewComponent {
 
     /** Observable for list of submissions for current task. */
     this.submissionsForCurrentTask = this.run.pipe(
-        switchMap(s => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(s.info.id, s.state.currentTemplate.templateId).pipe(
+        switchMap(s => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(s.info.id, s.state.taskTemplateId).pipe(
             catchError((err, o) => {
               console.log(`[RunAdminViewComponent] There was an error while submissions for the running task: ${err?.message}`);
               return of(null);
@@ -113,9 +109,9 @@ export class RunAdminViewComponent {
             map((submissions: Array<ApiSubmissionInfo>) => {
               const map = new Map<string,number>();
               if (submissions.length > 0) {
-                map.set(s.state.currentTemplate.templateId, submissions[submissions.length - 1].submissions.length);
+                map.set(s.state.taskTemplateId, submissions[submissions.length - 1].submissions.length);
               } else {
-                map.set(s.state.currentTemplate.templateId, 0);
+                map.set(s.state.taskTemplateId, 0);
               }
               return map;
             })

@@ -1,19 +1,15 @@
 package dev.dres.api.rest.types.evaluation
 
-import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunProperties
-import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.NonInteractiveRunManager
 import dev.dres.run.RunManager
-import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.sortedBy
 
 /**
- * Contains the basic and most importantly static information about a [InteractiveSynchronousEvaluation] and the
- * associated [RunManager]. Since this information usually doesn't change in the course of a run,
- * it allows for local caching and other optimizations.
+ * Contains the basic and most importantly static information about a [RunManager].
+ *
+ * Since this information usually doesn't change in the course of a run, it allows for local caching and other optimizations.
  *
  * @author Ralph Gasser
  * @version 1.1.0
@@ -21,18 +17,16 @@ import kotlinx.dnq.query.sortedBy
 data class ApiEvaluationInfo(
     val id: String,
     val name: String,
+    val type: ApiEvaluationType,
+    val properties: RunProperties, // FIXME non-api type exposed via
     val templateId: String,
     val templateDescription: String?,
-    val type: ApiEvaluationType,
-    val properties: RunProperties, // FIXME non-api type exposed via api
     val teams: List<ApiTeamInfo>,
-    val tasks: List<ApiTaskTemplateInfo>,
+    val taskTemplates: List<ApiTaskTemplateInfo>,
 ) {
     constructor(manager: RunManager): this(
         manager.id,
         manager.name,
-        manager.template.id,
-        manager.template.name,
         when(manager) {
             is InteractiveSynchronousRunManager -> ApiEvaluationType.SYNCHRONOUS
             is InteractiveAsynchronousRunManager -> ApiEvaluationType.ASYNCHRONOUS
@@ -40,6 +34,8 @@ data class ApiEvaluationInfo(
             else -> throw IllegalStateException("Incompatible type of run manager.")
         },
         manager.runProperties,
+        manager.template.id,
+        manager.template.description,
         manager.template.teams.asSequence().map { team -> ApiTeamInfo(team) }.toList(),
         manager.template.tasks.map { task -> ApiTaskTemplateInfo(task) }.toList()
     )

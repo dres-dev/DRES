@@ -13,10 +13,5 @@ import dev.dres.data.model.template.task.DbTaskTemplate
  * @version 1.1.0
  */
 data class ApiTaskTemplateInfo(val templateId: String, val name: String, val taskGroup: String, val taskType: String, val duration: Long) {
-
     constructor(task: ApiTaskTemplate) : this(task.id!!, task.name, task.taskGroup, task.taskType, task.duration)
-
-    companion object {
-        val EMPTY_INFO = ApiTaskTemplateInfo("", "N/A", "N/A", "N/A", 0)
-    }
 }

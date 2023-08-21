@@ -13,12 +13,8 @@ import {catchError, filter, map, pairwise, retry, sampleTime, shareReplay, switc
 import {AppConfig} from '../app.config';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
 import {
-    ApiAnswerType,
-    ApiEvaluationInfo,
-    ApiEvaluationState, ApiMediaItem, ApiScoreOverview, ApiSubmission,
-    ApiTaskTemplateInfo, ApiVerdictStatus,
-    EvaluationScoresService,
-    EvaluationService
+    ApiAnswerType, ApiEvaluationInfo, ApiEvaluationState, ApiMediaItem, ApiScoreOverview,
+    ApiSubmission, ApiVerdictStatus, EvaluationScoresService, EvaluationService
 } from 'openapi';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -80,9 +76,15 @@ interface SubmissionPreview {
 })
 export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   @Input() runId: Observable<string>;
+
+  /** Observable for information about the current run. Usually queried once when the view is loaded. */
   @Input() info: Observable<ApiEvaluationInfo>;
+
+  /** Observable for information about the current run's {@link ApiEvaluationState}. */
   @Input() state: Observable<ApiEvaluationState>;
-  @Input() taskEnded: Observable<ApiTaskTemplateInfo>;
+
+  /** Observable that fires whenever a task ends. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  @Input() taskEnded: Observable<ApiEvaluationState>;
 
   /** Observable that tracks all the submissions. */
   submissions: Observable<ApiSubmission[]>;

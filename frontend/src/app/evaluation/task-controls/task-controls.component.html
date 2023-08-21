@@ -4,7 +4,7 @@
     *ngIf="(runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
     mat-icon-button
     aria-label="Start task."
-    matTooltip="Start task '{{ (runState | async)?.currentTemplate.name }}'."
+    matTooltip="Start task '{{ (runState | async)?.taskTemplateId }}'."
     (click)="startTask()"
   >
     <mat-icon>play_circle_outline</mat-icon>
@@ -14,7 +14,7 @@
     *ngIf="(runState | async)?.taskStatus === 'PREPARING' || (runState | async)?.taskStatus === 'RUNNING'"
     mat-icon-button
     aria-label="End running task."
-    matTooltip="End running task '{{ (runState | async)?.currentTemplate.name }}'."
+    matTooltip="End running task '{{ (runState | async)?.taskTemplateId }}'."
     (click)="abortTask()"
   >
     <mat-icon>cancel</mat-icon>
@@ -48,7 +48,7 @@
       *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING'"
       mat-icon-button
       aria-label="Adjust duration."
-      matTooltip="Adjust duration of task '{{ (runState | async)?.currentTemplate.name }}'."
+      matTooltip="Adjust duration of task '{{ (runState | async)?.taskTemplateId }}'."
       [matMenuTriggerFor]="menu"
     >
       <mat-icon>alarm_add</mat-icon>

@@ -1,29 +1,22 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
-import {BehaviorSubject, combineLatest, from, interval, merge, mergeMap, Observable, of, Subscription} from 'rxjs';
+import {BehaviorSubject, combineLatest, from, interval, mergeMap, Observable, of, Subscription} from 'rxjs';
 import {
   catchError,
   delayWhen,
-  filter,
   map,
   repeat,
-  sampleTime,
-  share,
   shareReplay,
   switchMap,
   take,
   tap,
   withLatestFrom,
 } from 'rxjs/operators';
-import { IWsMessage } from '../model/ws/ws-message.interface';
-import { IWsClientMessage } from '../model/ws/ws-client-message.interface';
-import { WebSocketSubject } from 'rxjs/webSocket';
 import { AppConfig } from '../app.config';
 import {
-  ApiContentElement, ApiContentType,
+  ApiContentElement, ApiContentType, ApiEvaluationInfo,
   ApiEvaluationState,
   ApiHintContent,
   ApiTargetContent,
-  ApiTaskTemplateInfo,
   EvaluationService
 } from '../../../openapi';
 
@@ -46,17 +39,30 @@ enum ViewerState {
 })
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @Input() evaluationId: Observable<string>;
-  @Input() state: Observable<ApiEvaluationState>;
-  @Input() taskStarted: Observable<ApiTaskTemplateInfo>;
-  @Input() taskChanged: Observable<ApiTaskTemplateInfo>;
-  @Input() taskEnded: Observable<ApiTaskTemplateInfo>;
 
+  /** Observable for information about the current run. Usually queried once when the view is loaded. */
+  @Input() info: Observable<ApiEvaluationInfo>;
+
+  /** Observable for information about the current run's {@link ApiEvaluationState}. */
+  @Input() state: Observable<ApiEvaluationState>;
+
+  /** Observable that fires whenever a task starts. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  @Input() taskStarted: Observable<ApiEvaluationState>;
+
+  /** Observable that fires whenever a task ends. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  @Input() taskEnded: Observable<ApiEvaluationState>;
+
+  /** Observable that fires whenever the active task template changes. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  @Input() taskChanged: Observable<ApiEvaluationState>;
 
   /** Seconds duration remaining for early warning. Default is 60 */
   @Input() earlyWarningThreshold: number = 60;
 
   /** Seconds duration remaining for late warning. Default is 30 */
   @Input() lateWarningThreshold: number = 30;
+
+  /** Observable that fires whenever the active task template changes. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  currentTaskName: Observable<string>;
 
   /** Time that is still left (only when a task is running). */
   timeLeft: Observable<number>;
@@ -102,16 +108,17 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
    */
   ngAfterViewInit(): void {
     /*  Observable for the current query hint. */
-    const currentTaskHint = this.taskChanged.pipe(
+    const currentTaskHint = this.taskStarted.pipe(
       withLatestFrom(this.evaluationId),
       switchMap(([task, evaluationId]) =>
-        this.runService.getApiV2EvaluationByEvaluationIdHintByTaskId(evaluationId, task.templateId).pipe(
+        this.runService.getApiV2EvaluationByEvaluationIdByTaskIdHint(evaluationId, task.taskId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current query hint due to an error.', e);
             return of(null);
           })
         )
       ),
+      tap((hint) => this.evaluationId.pipe(switchMap(evaluationId => this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(evaluationId, hint.taskId))).subscribe()),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
@@ -119,7 +126,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     const currentTaskTarget = this.taskEnded.pipe(
       withLatestFrom(this.evaluationId),
       switchMap(([task, evaluationId]) =>
-        this.runService.getApiV2EvaluationByEvaluationIdTargetByTaskId(evaluationId, task.templateId).pipe(
+        this.runService.getApiV2EvaluationByEvaluationIdByTaskIdTarget(evaluationId, task.taskId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
             return of(null);
@@ -129,14 +136,13 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    
 
     /*
      * This is the main switch that updates the viewer's state and the only actual subscription.
      *
      * IMPORTANT: Unsubscribe onDestroy.
      */
-    this.viewerStateSubscription = combineLatest([currentTaskHint, this.state]).subscribe(([h, s]) => {
+    this.viewerStateSubscription = this.state.subscribe((s) => {
       switch (s.taskStatus) {
         case 'NO_TASK':
         case 'CREATED':
@@ -144,10 +150,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
           break;
         case 'PREPARING':
           this.viewerState.next(ViewerState.VIEWER_SYNC);
-          /* Send ACK. */
-          if (h != null) {
-            this.runService.getApiV2EvaluationByEvaluationIdHintByTaskIdReady(s.evaluationId, h.taskId).subscribe();
-          } 
           break;
         case 'RUNNING':
           if (s.timeElapsed < 0) {
@@ -219,6 +221,11 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       }),
       shareReplay({ bufferSize: 1, refCount: true })
     );
+
+    /* Observable for the name of the current task. */
+    this.currentTaskName = combineLatest([this.info, this.taskChanged]).pipe(
+        map(([info, state]) => info.taskTemplates.find(t => t.templateId == state.taskTemplateId)?.name)
+    )
 
     /* Observable for the time that is still left. */
     this.timeLeft = this.state.pipe(

@@ -9,7 +9,6 @@ import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * A [GetRestHandler] used to list all ongoing [DbEvaluation]s available to the current user.
@@ -37,18 +36,18 @@ class ClientListEvaluationsHandler : AbstractEvaluationClientHandler(), GetRestH
     override fun doGet(ctx: Context): List<ApiEvaluationInfo> {
         return getRelevantManagers(ctx).map {
             ApiEvaluationInfo(
-                id = it.id,
+                id = it.evaluation.id,
                 name = it.name,
-                templateId = it.template.id,
-                templateDescription = it.template.description,
                 when (it) {
                     is InteractiveAsynchronousRunManager -> ApiEvaluationType.ASYNCHRONOUS
                     is InteractiveSynchronousRunManager -> ApiEvaluationType.SYNCHRONOUS
                     else -> TODO()
                 },
                 properties = it.runProperties,
+                templateId = it.template.id,
+                templateDescription = it.template.description,
                 teams = emptyList(),
-                tasks = emptyList()
+                taskTemplates = emptyList()
             )
         }
     }

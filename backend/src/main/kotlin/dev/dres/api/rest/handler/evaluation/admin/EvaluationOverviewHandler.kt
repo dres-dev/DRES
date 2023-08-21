@@ -18,7 +18,7 @@ class EvaluationOverviewHandler : AbstractEvaluationAdminHandler(), GetRestHandl
     override val route = "evaluation/admin/{evaluationId}/overview"
 
     @OpenApi(
-        summary = "Provides a complete overview of a run.",
+        summary = "Provides a complete overview of an evaluation.",
         path = "/api/v2/evaluation/admin/{evaluationId}/overview",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
@@ -35,8 +35,7 @@ class EvaluationOverviewHandler : AbstractEvaluationAdminHandler(), GetRestHandl
     )
     override fun doGet(ctx: Context): ApiEvaluationOverview {
         val evaluationId = ctx.evaluationId()
-        val evaluationManager =
-            getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found.", ctx)
         return ApiEvaluationOverview.of(evaluationManager)
 
     }

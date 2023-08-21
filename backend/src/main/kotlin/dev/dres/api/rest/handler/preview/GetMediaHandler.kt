@@ -35,14 +35,14 @@ class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<
     override fun doGet(ctx: Context): Any = ""
 
     @OpenApi(summary = "Returns a collection item",
-            path = "/api/v2/media/{itemId}",
-            operationId = OpenApiOperation.AUTO_GENERATE,
-            pathParams = [
-                OpenApiParam("itemId", String::class, "The media item ID.")
-            ],
-            tags = ["Media"],
-            responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
-            ignore = true,
+        path = "/api/v2/media/{itemId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
+        pathParams = [
+            OpenApiParam("itemId", String::class, "The media item ID.")
+        ],
+        tags = ["Media"],
+        responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
+        ignore = true,
         methods = [HttpMethod.GET]
     )
     override fun get(ctx: Context) {

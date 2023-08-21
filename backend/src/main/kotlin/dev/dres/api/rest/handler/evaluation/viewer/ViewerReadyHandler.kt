@@ -17,11 +17,11 @@ import jetbrains.exodus.database.TransientEntityStore
 
 class ViewerReadyHandler : AbstractEvaluationViewerHandler(), GetRestHandler<SuccessStatus> {
 
-    override val route = "evaluation/{evaluationId}/hint/{taskId}/ready"
+    override val route = "evaluation/{evaluationId}/{taskId}/ready"
 
     @OpenApi(
         summary = "Signals that a viewer is ready to show the hints for a particular task.",
-        path = "/api/v2/evaluation/{evaluationId}/hint/{taskId}/ready",
+        path = "/api/v2/evaluation/{evaluationId}/{taskId}/ready",
         tags = ["Evaluation"],
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
@@ -38,23 +38,15 @@ class ViewerReadyHandler : AbstractEvaluationViewerHandler(), GetRestHandler<Suc
     )
     override fun doGet(ctx: Context): SuccessStatus {
 
-        val taskId =
-            ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
+        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
         val rac = ctx.runActionContext()
-
-
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-            throw ErrorStatusException(403, "Access Denied", ctx)
+            throw ErrorStatusException(403, "Access denied!", ctx)
         }
 
         if (ctx.isParticipant() || ctx.isAdmin()) {
-            manager.viewerReady(
-                taskId, rac, ViewerInfo(
-                    ctx.sessionToken()!!,
-                    ctx.ip()
-                )
-            )
+            manager.viewerReady(taskId, rac, ViewerInfo(ctx.sessionToken()!!, ctx.ip()))
         }
 
         return SuccessStatus("ready received")

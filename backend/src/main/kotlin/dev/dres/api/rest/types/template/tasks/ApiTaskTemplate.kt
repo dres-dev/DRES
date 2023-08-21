@@ -1,6 +1,7 @@
 package dev.dres.api.rest.types.template.tasks
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import dev.dres.api.rest.types.evaluation.ApiTaskTemplateInfo
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.media.CollectionId
 import dev.dres.data.model.template.TemplateId

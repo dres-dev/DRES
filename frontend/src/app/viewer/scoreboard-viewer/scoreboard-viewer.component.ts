@@ -113,7 +113,9 @@ export class ScoreboardViewerComponent implements OnInit {
     this.teams = this.info.pipe(map((i) => i.teams));
 
     /* Create observable for current task group. */
-    this.currentTaskGroup = this.state.pipe(map((state) => state.currentTemplate?.taskGroup));
+    this.currentTaskGroup =  combineLatest([this.state, this.info]).pipe(
+        map(([state, info]) => info.taskTemplates.filter((t) => t.templateId === state.taskTemplateId)[0].taskGroup)
+    )
 
     if (this.competitionOverview) {
       /* Create observable for series. */

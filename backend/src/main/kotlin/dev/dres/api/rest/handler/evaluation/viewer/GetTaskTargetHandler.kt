@@ -39,16 +39,16 @@ import java.util.*
  */
 class GetTaskTargetHandler(private val store: TransientEntityStore, private val cache: CacheManager) : AbstractEvaluationViewerHandler(), GetRestHandler<ApiTargetContent> {
 
-    override val route = "evaluation/{evaluationId}/target/{taskId}"
+    override val route = "evaluation/{evaluationId}/{taskId}/target"
 
     @OpenApi(
         summary = "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        path = "/api/v2/evaluation/{evaluationId}/target/{taskId}",
+        path = "/api/v2/evaluation/{evaluationId}/{taskId}/target",
         operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation"],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
-            OpenApiParam("taskId", String::class, "The task ID.", required = true, allowEmptyValue = false)
+            OpenApiParam("taskId", String::class, "The task template ID.", required = true, allowEmptyValue = false)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiTargetContent::class)]),
@@ -59,7 +59,7 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiTargetContent {
-        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
+        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskTemplateId' not specified.", ctx)
         val rac = ctx.runActionContext()
 
         return this.store.transactional (true) {
@@ -69,10 +69,7 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
             }
 
             /* Test for correct state. */
-            var task = manager.currentTask(rac)
-            if (task == null) {
-                task = manager.taskForId(rac, taskId) ?: throw ErrorStatusException(404, "Task with specified ID $taskId does not exist.", ctx)
-            }
+            val task = manager.taskForId(rac, taskId) ?: throw ErrorStatusException(404, "Task with specified ID $taskId does not exist.", ctx)
             if (task.status != ApiTaskStatus.ENDED) {
                 throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)
             }
@@ -98,18 +95,6 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
      * @throws FileNotFoundException
      * @throws IOException
      */
-//    private fun DbTaskTemplate.toTaskTarget(): ApiTargetContent {
-//        var cummulativeOffset = 0L
-//        val sequence = this.targets.asSequence().flatMap {
-//            cummulativeOffset += Math.floorDiv(it.item?.durationMs ?: 10000L, 1000L) + 1L
-//            listOf(
-//                it.toQueryContentElement(),
-//                ApiContentElement(ApiContentType.EMPTY, null, cummulativeOffset)
-//            )
-//        }.toList()
-//        return ApiTargetContent(this.id, sequence)
-//    }
-
     private fun ApiTaskTemplate.toTaskTarget(): ApiTargetContent { //TODO there must be a better way to do this
         var cummulativeOffset = 0L
         val sequence = DbTaskTemplate.filter{it.templateId eq this@toTaskTarget.id}.firstOrNull()?.targets?.asSequence()?.flatMap {

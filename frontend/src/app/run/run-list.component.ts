@@ -6,7 +6,6 @@ import { AccessChecking } from '../model/access-checking.interface';
 import { UserGroup } from '../model/user-group.model';
 import { AccessRoleService } from '../services/session/access-role.service';
 import {ApiRole} from '../../../openapi';
-import { AbstractRunListComponent } from "./abstract-run-list.component";
 import { AdminRunListComponent } from "./admin-run-list.component";
 import { ViewerRunListComponent } from "./viewer-run-list.component";
 

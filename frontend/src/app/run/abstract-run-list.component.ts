@@ -176,7 +176,7 @@ export class AbstractRunListComponent {
             teams: v.teams.length,
             runStatus: s.evaluationStatus,
             taskRunStatus: s.taskStatus,
-            currentTask: s.currentTemplate?.name,
+            currentTask: s.taskTemplateId,
             timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
             asynchronous: v.type === 'ASYNCHRONOUS',
             runProperties: v.properties,

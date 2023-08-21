@@ -7,17 +7,17 @@
 
     <!-- VIEWER_WAITING_FOR_TASK -->
     <div *ngIf="(viewerState | async) === 1">
-      <h2 class="header">{{ (taskChanged | async)?.name }} (Waiting for host to start task)</h2>
+      <h2 class="header">{{ currentTaskName | async }} (Waiting for host to start task)</h2>
     </div>
 
     <!-- VIEWER_SYNC -->
     <div *ngIf="(viewerState | async) === 2">
-      <h2 class="header">{{ (taskChanged | async)?.name }} (Waiting for other viewers)</h2>
+      <h2 class="header">{{ currentTaskName | async }} (Waiting for other viewers)</h2>
     </div>
 
     <!-- VIEWER_COUNTDOWN -->
     <div *ngIf="(viewerState | async) === 3">
-      <h2 class="header">{{ (taskChanged | async)?.name }} (Task is about to start!)</h2>
+      <h2 class="header">{{ currentTaskName | async }} (Task is about to start!)</h2>
       <p *ngIf="taskCountdown | async" class="countdown">
         {{ taskCountdown | async }}
       </p>
@@ -25,7 +25,7 @@
 
     <!-- VIEWER_PLAYBACK -->
     <div *ngIf="(viewerState | async) === 4">
-      <h2 style="text-align: center">{{ (taskChanged | async)?.name }} ({{ toFormattedTime(timeLeft | async) }})</h2>
+      <h2 style="text-align: center">{{ currentTaskName | async }} ({{ toFormattedTime(timeLeft | async) }})</h2>
       <div *ngIf="currentTaskHint | async">
         <app-video-object-preview [queryObject]="currentTaskHint" [muted]="(config.configAsObservable | async).effects.mute"></app-video-object-preview>
         <app-image-object-preview [queryContent]="currentTaskHint"></app-image-object-preview>
@@ -35,8 +35,8 @@
 
     <!-- VIEWER_TASK_ENDED -->
     <div *ngIf="(viewerState | async) === 5">
-      <h2 class="header">{{ (taskChanged | async)?.name }} (Task complete)</h2>
-      <div *ngIf="(currentTaskTarget | async)">
+      <h2 class="header">{{ currentTaskName | async }} (Task complete)</h2>
+      <div *ngIf="currentTaskTarget | async">
         <app-video-object-preview [queryObject]="currentTaskTarget" [muted]="true"></app-video-object-preview>
         <app-image-object-preview [queryContent]="currentTaskTarget"></app-image-object-preview>
       </div>

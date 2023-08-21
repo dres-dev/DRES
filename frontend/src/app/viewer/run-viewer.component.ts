@@ -1,19 +1,13 @@
-import {AfterViewInit, Component, Inject, OnDestroy, OnInit, TemplateRef, ViewChild, ViewContainerRef} from '@angular/core';
+import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef} from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import {BehaviorSubject, interval, merge, mergeMap, Observable, of, Subscription, zip} from 'rxjs';
+import {interval, merge, mergeMap, Observable, of, zip} from 'rxjs';
 import {
   catchError,
-  delay,
   filter,
   map,
   pairwise,
-  retryWhen,
-  sampleTime,
-  share,
   shareReplay,
   switchMap,
-  tap,
-  withLatestFrom,
 } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -21,7 +15,7 @@ import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
 import { DOCUMENT } from '@angular/common';
 import {Title} from '@angular/platform-browser';
-import {ApiEvaluationInfo, ApiEvaluationState, ApiTaskTemplateInfo, EvaluationService} from '../../../openapi';
+import {ApiEvaluationInfo, ApiEvaluationState, EvaluationService} from '../../../openapi';
 import {Overlay} from "@angular/cdk/overlay";
 
 @Component({
@@ -31,29 +25,23 @@ import {Overlay} from "@angular/cdk/overlay";
 })
 export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  // /** A {@link BehaviorSubject} that reflect the WebSocket connection status. */
-  // webSocketConnectionSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
-
-  // /** Observable for incoming WebSocket messages. */
-  // webSocket: Observable<IWsServerMessage>;
-
   /** Observable for current run ID. */
   evaluationId: Observable<string>;
 
   /** Observable for information about the current run. Usually queried once when the view is loaded. */
-  runInfo: Observable<ApiEvaluationInfo>;
+  info: Observable<ApiEvaluationInfo>;
 
-  /** Observable for information about the current run's state. Usually queried when a state change is signaled via WebSocket. */
-  runState: Observable<ApiEvaluationState>;
+  /** Observable for information about the current run's {@link ApiEvaluationState}. */
+  state: Observable<ApiEvaluationState>;
 
-  /** Observable that fires whenever a task starts. Emits the task description of the task that just started. */
-  taskStarted: Observable<ApiTaskTemplateInfo>;
+  /** Observable that fires whenever a task starts. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  taskStarted: Observable<ApiEvaluationState>;
 
-  /** Observable that fires whenever a task changes. Emits the task description of the new task. */
-  taskChanged: Observable<ApiTaskTemplateInfo>;
+  /** Observable that fires whenever a task ends. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  taskEnded: Observable<ApiEvaluationState>;
 
-  /** Observable that fires whenever a task ends. Emits the task description of the task that just ended. */
-  taskEnded: Observable<ApiTaskTemplateInfo>;
+  /** Observable that fires whenever the active task template changes. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  taskChanged: Observable<ApiEvaluationState>;
 
   /** Observable of the {@link Widget} that should be displayed on the left-hand side. */
   leftWidget: Observable<Widget>;
@@ -66,7 +54,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Observable of the {@link Widget} that should be displayed at the bottom. */
   bottomWidget: Observable<Widget>;
-
 
   /** Cached config */
   private p: any;
@@ -120,7 +107,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     /* Basic observable for general run info; this information is static and does not change over the course of a run. */
-    this.runInfo = this.evaluationId.pipe(
+    this.info = this.evaluationId.pipe(
       switchMap((evaluationId) =>
         this.runService.getApiV2EvaluationByEvaluationIdInfo(evaluationId).pipe(
           catchError((err, o) => {
@@ -141,7 +128,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    this.runState = interval(1000).pipe(mergeMap(() => this.evaluationId)).pipe(
+    this.state = interval(1000).pipe(mergeMap(() => this.evaluationId)).pipe(
       switchMap((id) => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
       catchError((err, o) => {
         console.log(
@@ -160,30 +147,30 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     /* Basic observable that fires when a task starts.  */
-    this.taskStarted = this.runState.pipe(
+    this.taskStarted = this.state.pipe(
       pairwise(),
       filter(([s1, s2]) => (s1 === null || s1.taskStatus === 'PREPARING') && s2.taskStatus === 'RUNNING'),
-      map(([s1, s2]) => s2.currentTemplate),
+      map(([s1, s2]) => s2),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
     /* Basic observable that fires when a task ends.  */
-    this.taskEnded = merge(of(null as ApiEvaluationState), this.runState).pipe(
+    this.taskEnded = merge(of(null as ApiEvaluationState), this.state).pipe(
       pairwise(),
       filter(([s1, s2]) => (s1 === null || s1.taskStatus === 'RUNNING') && s2.taskStatus === 'ENDED'),
-      map(([s1, s2]) => s2.currentTemplate),
+      map(([s1, s2]) => s2),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
     /* Observable that tracks the currently active task. */
-    this.taskChanged = merge(of(null as ApiEvaluationState), this.runState).pipe(
+    this.taskChanged = merge(of(null as ApiEvaluationState), this.state).pipe(
       pairwise(),
-      filter(([s1, s2]) => s1 === null || s1.currentTemplate.name !== s2.currentTemplate.name),
-      map(([s1, s2]) => s2.currentTemplate),
+      filter(([s1, s2]) => s1 === null || s1.taskTemplateId !== s2.taskTemplateId),
+      map(([s1, s2]) => s2),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    this.runInfo.subscribe((info: ApiEvaluationInfo) => {
+    this.info.subscribe((info: ApiEvaluationInfo) => {
         this.titleService.setTitle(info.name + ' - DRES');
     })
   }

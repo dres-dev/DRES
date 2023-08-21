@@ -245,10 +245,10 @@
       }
     },
     "/api/v2/collection" : {
-      "post" : {
+      "patch" : {
         "tags" : [ "Collection" ],
-        "summary" : "Adds a new media collection.",
-        "operationId" : "postApiV2Collection",
+        "summary" : "Updates a media collection",
+        "operationId" : "patchApiV2Collection",
         "parameters" : [ ],
         "requestBody" : {
           "content" : {
@@ -295,10 +295,10 @@
         "deprecated" : false,
         "security" : [ ]
       },
-      "patch" : {
+      "post" : {
         "tags" : [ "Collection" ],
-        "summary" : "Updates a media collection",
-        "operationId" : "patchApiV2Collection",
+        "summary" : "Adds a new media collection.",
+        "operationId" : "postApiV2Collection",
         "parameters" : [ ],
         "requestBody" : {
           "content" : {
@@ -382,56 +382,6 @@
       }
     },
     "/api/v2/collection/{collectionId}" : {
-      "delete" : {
-        "tags" : [ "Collection" ],
-        "summary" : "Deletes a media collection identified by a collection id.",
-        "operationId" : "deleteApiV2CollectionByCollectionId",
-        "parameters" : [ {
-          "name" : "collectionId",
-          "in" : "path",
-          "description" : "Collection ID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
       "get" : {
         "tags" : [ "Collection" ],
         "summary" : "Shows the content of the specified media collection.",
@@ -470,6 +420,56 @@
           },
           "404" : {
             "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "delete" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Deletes a media collection identified by a collection id.",
+        "operationId" : "deleteApiV2CollectionByCollectionId",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -1094,7 +1094,7 @@
     "/api/v2/evaluation/admin/{evaluationId}/overview" : {
       "get" : {
         "tags" : [ "Evaluation Administrator" ],
-        "summary" : "Provides a complete overview of a run.",
+        "summary" : "Provides a complete overview of an evaluation.",
         "operationId" : "getApiV2EvaluationAdminByEvaluationIdOverview",
         "parameters" : [ {
           "name" : "evaluationId",
@@ -1947,150 +1947,6 @@
         "security" : [ ]
       }
     },
-    "/api/v2/evaluation/{evaluationId}/hint/{taskId}" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns the task hint for the specified task.",
-        "operationId" : "getApiV2EvaluationByEvaluationIdHintByTaskId",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "taskId",
-          "in" : "path",
-          "description" : "The task ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiHintContent"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/{evaluationId}/hint/{taskId}/ready" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Signals that a viewer is ready to show the hints for a particular task.",
-        "operationId" : "getApiV2EvaluationByEvaluationIdHintByTaskIdReady",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "taskId",
-          "in" : "path",
-          "description" : "The task ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
     "/api/v2/evaluation/{evaluationId}/info" : {
       "get" : {
         "tags" : [ "Evaluation" ],
@@ -2722,78 +2578,6 @@
         "security" : [ ]
       }
     },
-    "/api/v2/evaluation/{evaluationId}/target/{taskId}" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        "operationId" : "getApiV2EvaluationByEvaluationIdTargetByTaskId",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "taskId",
-          "in" : "path",
-          "description" : "The task ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiTargetContent"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
     "/api/v2/evaluation/{evaluationId}/task" : {
       "get" : {
         "tags" : [ "Evaluation" ],
@@ -2980,6 +2764,222 @@
           },
           "401" : {
             "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/{evaluationId}/{taskId}/hint" : {
+      "get" : {
+        "tags" : [ "Evaluation" ],
+        "summary" : "Returns the task hint for the specified task.",
+        "operationId" : "getApiV2EvaluationByEvaluationIdByTaskIdHint",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "The task ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiHintContent"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/{evaluationId}/{taskId}/ready" : {
+      "get" : {
+        "tags" : [ "Evaluation" ],
+        "summary" : "Signals that a viewer is ready to show the hints for a particular task.",
+        "operationId" : "getApiV2EvaluationByEvaluationIdByTaskIdReady",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "The task ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/{evaluationId}/{taskId}/target" : {
+      "get" : {
+        "tags" : [ "Evaluation" ],
+        "summary" : "Returns the task target for the current task run (i.e. the one that is currently selected).",
+        "operationId" : "getApiV2EvaluationByEvaluationIdByTaskIdTarget",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "The task template ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiTargetContent"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -4418,10 +4418,10 @@
       }
     },
     "/api/v2/template/{templateId}" : {
-      "delete" : {
+      "get" : {
         "tags" : [ "Template" ],
-        "summary" : "Deletes the evaluation template with the given template ID.",
-        "operationId" : "deleteApiV2TemplateByTemplateId",
+        "summary" : "Loads the detailed definition of a specific evaluation template.",
+        "operationId" : "getApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -4439,7 +4439,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
+                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
                 }
               }
             }
@@ -4478,10 +4478,10 @@
         "deprecated" : false,
         "security" : [ ]
       },
-      "get" : {
+      "delete" : {
         "tags" : [ "Template" ],
-        "summary" : "Loads the detailed definition of a specific evaluation template.",
-        "operationId" : "getApiV2TemplateByTemplateId",
+        "summary" : "Deletes the evaluation template with the given template ID.",
+        "operationId" : "deleteApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -4499,7 +4499,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
+                  "$ref" : "#/components/schemas/SuccessStatus"
                 }
               }
             }
@@ -4822,6 +4822,36 @@
       }
     },
     "/api/v2/user" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get information about the current user.",
+        "operationId" : "getApiV2User",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
       "post" : {
         "tags" : [ "User" ],
         "summary" : "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
@@ -4854,36 +4884,6 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Get information about the current user.",
-        "operationId" : "getApiV2User",
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
                 }
               }
             }
@@ -5056,6 +5056,56 @@
         "deprecated" : false,
         "security" : [ ]
       },
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Gets details of the user with the given id.",
+        "operationId" : "getApiV2UserByUserId",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User's UID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "If the user could not be found.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
       "patch" : {
         "tags" : [ "User" ],
         "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
@@ -5104,56 +5154,6 @@
           },
           "404" : {
             "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Gets details of the user with the given id.",
-        "operationId" : "getApiV2UserByUserId",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User's UID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found.",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -5321,17 +5321,17 @@
           "name" : {
             "type" : "string"
           },
-          "templateId" : {
-            "type" : "string"
-          },
-          "templateDescription" : {
-            "type" : "string"
-          },
           "type" : {
             "$ref" : "#/components/schemas/ApiEvaluationType"
           },
           "properties" : {
             "$ref" : "#/components/schemas/RunProperties"
+          },
+          "templateId" : {
+            "type" : "string"
+          },
+          "templateDescription" : {
+            "type" : "string"
           },
           "teams" : {
             "type" : "array",
@@ -5339,14 +5339,14 @@
               "$ref" : "#/components/schemas/ApiTeamInfo"
             }
           },
-          "tasks" : {
+          "taskTemplates" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
             }
           }
         },
-        "required" : [ "id", "name", "templateId", "type", "properties", "teams", "tasks" ]
+        "required" : [ "id", "name", "type", "properties", "templateId", "teams", "taskTemplates" ]
       },
       "ApiEvaluationOverview" : {
         "type" : "object",
@@ -5374,11 +5374,14 @@
           "evaluationStatus" : {
             "$ref" : "#/components/schemas/ApiEvaluationStatus"
           },
+          "taskId" : {
+            "type" : "string"
+          },
           "taskStatus" : {
             "$ref" : "#/components/schemas/ApiTaskStatus"
           },
-          "currentTemplate" : {
-            "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
+          "taskTemplateId" : {
+            "type" : "string"
           },
           "timeLeft" : {
             "type" : "integer",

@@ -24,10 +24,8 @@ import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
-import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.firstOrNull
-import kotlinx.dnq.query.query
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
@@ -49,11 +47,11 @@ import java.util.*
 class GetTaskHintHandler(private val store: TransientEntityStore, private val cache: CacheManager) :
     AbstractEvaluationViewerHandler(), GetRestHandler<ApiHintContent> {
 
-    override val route = "evaluation/{evaluationId}/hint/{taskId}"
+    override val route = "evaluation/{evaluationId}/{taskId}/hint"
 
     @OpenApi(
         summary = "Returns the task hint for the specified task.",
-        path = "/api/v2/evaluation/{evaluationId}/hint/{taskId}",
+        path = "/api/v2/evaluation/{evaluationId}/{taskId}/hint",
         tags = ["Evaluation"],
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
@@ -78,36 +76,19 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
                 throw ErrorStatusException(403, "Access Denied", ctx)
             }
 
-            val currentTaskDescription = manager.currentTaskTemplate(rac)
-            val template = if (currentTaskDescription.id == taskId) {
-                currentTaskDescription
-            } else {
-                manager.taskForId(rac, taskId)?.template ?: throw ErrorStatusException(
-                    404,
-                    "Task with specified ID $taskId does not exist.",
-                    ctx
-                )
-            }
-
+            val task = manager.taskForId(rac, taskId) ?: throw ErrorStatusException(404, "Task with specified ID $taskId does not exist.", ctx)
             if(ctx.isParticipant() || ctx.isAdmin()) {
-                manager.viewerPreparing(
-                    taskId, rac, ViewerInfo(
-                        ctx.sessionToken()!!,
-                        ctx.ip()
-                    )
-                )
+                manager.viewerPreparing(taskId, rac, ViewerInfo(ctx.sessionToken()!!, ctx.ip()))
             }
 
             try {
                 ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
-                template.toTaskHint()
+                task.template.toTaskHint()
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)
             } catch (ioe: IOException) {
                 throw ErrorStatusException(500, "Exception when reading query object cache file.", ctx)
             }
-
-
         }
     }
 
@@ -119,25 +100,6 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
      * @throws FileNotFoundException
      * @throws IOException
      */
-//    private fun DbTaskTemplate.toTaskHint(): ApiHintContent {
-//        val sequence = this.hints.asSequence().groupBy { it.type }.flatMap { group ->
-//            var index = 0
-//            group.value.sortedBy { it.start ?: 0 }.flatMap {
-//                val ret = mutableListOf(it.toContentElement())
-//                if (it.end != null) {
-//                    if (index == (group.value.size - 1)) {
-//                        ret.add(ApiContentElement(contentType = ret.first().contentType, offset = it.end!!))
-//                    } else if ((group.value[index + 1].start ?: 0) > it.end!!) {
-//                        ret.add(ApiContentElement(contentType = ret.first().contentType, offset = it.end!!))
-//                    }
-//                }
-//                index += 1
-//                ret
-//            }
-//        }
-//        return ApiHintContent(this.id, sequence, false)
-//    }
-
     private fun ApiTaskTemplate.toTaskHint(): ApiHintContent = store.transactional(true){
         val sequence = this.hints.groupBy { it.type }.flatMap { (type, hints) ->
             var index = 0

@@ -3,12 +3,12 @@
     <mat-card appearance="outlined">
       <mat-card-header>
         <mat-card-title>
-          <app-back-button forceBack="true"></app-back-button>Viewer for '{{ (runInfo | async)?.name }}'
+          <app-back-button forceBack="true"></app-back-button>Viewer for '{{ (info | async)?.name }}'
         </mat-card-title>
-        <mat-card-subtitle><strong>Description:</strong> {{ (runInfo | async)?.templateDescription }}</mat-card-subtitle>
+        <mat-card-subtitle><strong>Description:</strong> {{ (info | async)?.name }}</mat-card-subtitle>
 
         <div class="spacer-flex"></div>
-        <app-task-controls *ngIf="(runInfo | async)?.type === 'ASYNCHRONOUS'" [runState]="runState"></app-task-controls>
+        <app-task-controls *ngIf="(info | async)?.type === 'ASYNCHRONOUS'" [runState]="state"></app-task-controls>
         <div class="spacer-flex"></div>
 
         <button mat-icon-button [matMenuTriggerFor]="animals">
@@ -87,22 +87,23 @@
       <app-task-viewer
         *ngSwitchCase="'player'"
         [evaluationId]="evaluationId"
-        [state]="runState"
+        [info]="info"
+        [state]="state"
         [taskChanged]="taskChanged"
         [taskStarted]="taskStarted"
-        [taskEnded]="taskEnded"  
+        [taskEnded]="taskEnded"
       ></app-task-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'competition_score'"
         [competitionOverview]="true"
-        [info]="runInfo"
-        [state]="runState"
+        [info]="info"
+        [state]="state"
       ></app-scoreboard-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'task_type_score'"
         [competitionOverview]="false"
-        [info]="runInfo"
-        [state]="runState"
+        [info]="info"
+        [state]="state"
       ></app-scoreboard-viewer>
     </div>
 
@@ -115,7 +116,8 @@
       <app-task-viewer
         *ngSwitchCase="'player'"
         [evaluationId]="evaluationId"
-        [state]="runState"
+        [info]="info"
+        [state]="state"
         [taskChanged]="taskChanged"
         [taskStarted]="taskStarted"
         [taskEnded]="taskEnded"
@@ -123,14 +125,14 @@
       <app-scoreboard-viewer
         *ngSwitchCase="'competition_score'"
         [competitionOverview]="true"
-        [info]="runInfo"
-        [state]="runState"
+        [info]="info"
+        [state]="state"
       ></app-scoreboard-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'task_type_score'"
         [competitionOverview]="false"
-        [info]="runInfo"
-        [state]="runState"
+        [info]="info"
+        [state]="state"
       ></app-scoreboard-viewer>
     </div>
 
@@ -143,7 +145,8 @@
       <app-task-viewer
         *ngSwitchCase="'player'"
         [evaluationId]="evaluationId"
-        [state]="runState"
+        [info]="info"
+        [state]="state"
         [taskChanged]="taskChanged"
         [taskStarted]="taskStarted"
         [taskEnded]="taskEnded"
@@ -151,14 +154,14 @@
       <app-scoreboard-viewer
         *ngSwitchCase="'competition_score'"
         [competitionOverview]="true"
-        [info]="runInfo"
-        [state]="runState"
+        [info]="info"
+        [state]="state"
       ></app-scoreboard-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'task_type_score'"
         [competitionOverview]="false"
-        [info]="runInfo"
-        [state]="runState"
+        [info]="info"
+        [state]="state"
       ></app-scoreboard-viewer>
     </div>
   </div>
@@ -168,8 +171,8 @@
       *ngSwitchCase="'team_score'"
       [runId]="evaluationId"
       [taskEnded]="taskEnded"
-      [info]="runInfo"
-      [state]="runState"
+      [info]="info"
+      [state]="state"
     ></app-teams-viewer>
   </div>
 </div>

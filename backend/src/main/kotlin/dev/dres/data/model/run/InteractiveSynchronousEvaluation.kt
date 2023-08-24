@@ -170,7 +170,7 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
                             this,
                             task.template.taskGroup.type.configurations.query(DbConfiguredOption::key.startsWith(scoreOption.description))
                                 /* the split[1] is okay, as DOMAIN.KEY is enforced in template manager (here, DOMAIN is scoreOption.description)*/
-                                .asSequence().map { it.key.split(".")[1] to it.value }.toMap(),
+                                .asSequence().map { it.key.substringAfter(".") to it.value }.toMap(),
                             store
                         )
 

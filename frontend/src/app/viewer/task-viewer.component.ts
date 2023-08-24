@@ -110,13 +110,14 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /*  Observable for the current query hint. */
     const currentTaskHint = this.taskStarted.pipe(
       withLatestFrom(this.evaluationId),
-      switchMap(([task, evaluationId]) =>
-        this.runService.getApiV2EvaluationByEvaluationIdByTaskIdHint(evaluationId, task.taskId).pipe(
-          catchError((e) => {
-            console.error('[TaskViewerComponent] Could not load current query hint due to an error.', e);
-            return of(null);
-          })
-        )
+      switchMap(([task, evaluationId]) => {
+          return this.runService.getApiV2EvaluationByEvaluationIdByTaskIdHint(evaluationId, task.taskId).pipe(
+            catchError((e) => {
+              console.error("[TaskViewerComponent] Could not load current query hint due to an error.", e);
+              return of(null);
+            })
+          );
+        }
       ),
       tap((hint) => this.evaluationId.pipe(switchMap(evaluationId => this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(evaluationId, hint.taskId))).subscribe()),
       shareReplay({ bufferSize: 1, refCount: true })
@@ -143,6 +144,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      * IMPORTANT: Unsubscribe onDestroy.
      */
     this.viewerStateSubscription = this.state.subscribe((s) => {
+      // this.timeElapsed = of(s.timeElapsed)
       switch (s.taskStatus) {
         case 'NO_TASK':
         case 'CREATED':
@@ -187,7 +189,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     this.currentTaskHint = currentTaskHint.pipe(
       mergeMap((hint) => {
         return this.timeElapsed.pipe(
-          take(1),
+            take(1),
             mergeMap((timeElapsed) => {
             const actualTimeElapsed = Math.max(timeElapsed, 0);
             const sequence = [];

@@ -7,8 +7,8 @@ import {
   map,
   pairwise,
   shareReplay,
-  switchMap,
-} from 'rxjs/operators';
+  switchMap, tap
+} from "rxjs/operators";
 import { AppConfig } from '../app.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
@@ -147,7 +147,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     /* Basic observable that fires when a task starts.  */
-    this.taskStarted = this.state.pipe(
+    this.taskStarted = merge(of(null as ApiEvaluationState), this.state).pipe(
       pairwise(),
       filter(([s1, s2]) => (s1 === null || s1.taskStatus === 'PREPARING') && s2.taskStatus === 'RUNNING'),
       map(([s1, s2]) => s2),

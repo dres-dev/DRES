@@ -111,6 +111,9 @@ object TemplateManager {
             taskType.options.addAll(apiTaskType.taskOptions.map { it.toDb() })
             taskType.configurations.clear()
             taskType.configurations.addAll(apiTaskType.configuration.entries.map {
+                if(!it.key.contains(".") || it.key.split(".").size != 2){
+                    throw IllegalArgumentException("Type Configurations must be in the form of DOMAIN.KEY, but ${it.key} given")
+                }
                 DbConfiguredOption.new {
                     this.key = it.key
                     this.value = it.value

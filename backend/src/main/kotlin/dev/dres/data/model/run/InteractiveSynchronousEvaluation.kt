@@ -168,8 +168,9 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
                     when (val scoreOption = task.template.taskGroup.type.score) {
                         DbScoreOption.KIS -> KisTaskScorer(
                             this,
-                            task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description)
-                                .asSequence().map { it.key to it.value }.toMap(),
+                            task.template.taskGroup.type.configurations.query(DbConfiguredOption::key.startsWith(scoreOption.description))
+                                /* the split[1] is okay, as DOMAIN.KEY is enforced in template manager (here, DOMAIN is scoreOption.description)*/
+                                .asSequence().map { it.key.split(".")[1] to it.value }.toMap(),
                             store
                         )
 

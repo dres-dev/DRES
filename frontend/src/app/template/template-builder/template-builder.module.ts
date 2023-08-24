@@ -16,13 +16,15 @@ import { TeamgroupsListComponent } from './components/teamgroups-list/teamgroups
 import { TeamgroupsDialogComponent } from './components/teamgroups-dialog/teamgroups-dialog.component';
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatChipsModule } from "@angular/material/chips";
+import { TemplateImportTreeComponent } from './components/template-import-tree/template-import-tree.component';
 
 
 @NgModule({
   declarations: [
     TemplateBuilderComponent,
     TeamgroupsListComponent,
-    TeamgroupsDialogComponent
+    TeamgroupsDialogComponent,
+    TemplateImportTreeComponent
 
   ],
   imports: [

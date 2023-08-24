@@ -109,7 +109,9 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("412", [OpenApiContent(ErrorStatus::class)])
         ],
-        methods = [HttpMethod.GET]
+        methods = [HttpMethod.GET],
+        deprecated = true,
+        description = "This has been the submission endpoint for version 1. Please refrain from using it and migrate to the v2 endpoint."
     )
     override fun doGet(ctx: Context): SuccessfulSubmissionsStatus {
         /* Obtain run action context and parse submission. */

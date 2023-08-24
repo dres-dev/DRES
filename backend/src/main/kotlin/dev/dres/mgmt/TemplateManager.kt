@@ -73,7 +73,8 @@ object TemplateManager {
      * Requires a transaction context.
      */
     fun updateDbTemplate(apiEvaluationTemplate: ApiEvaluationTemplate) {
-        val dbEvaluationTemplate = this.store.transactional(true){
+        val dbEvaluationTemplate =
+            this.store.transactional(true){
             DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq apiEvaluationTemplate.id and (DbEvaluationTemplate::instance eq false))
                 .firstOrNull() ?: throw IllegalArgumentException("No template with id '${apiEvaluationTemplate.id}'")
         }
@@ -149,13 +150,29 @@ object TemplateManager {
 
         /* Update task information: Remove deleted tasks. */
         val taskIds = apiEvaluationTemplate.tasks.mapNotNull { it.id }.toTypedArray()
-        dbEvaluationTemplate.tasks.removeAll(
-            DbTaskTemplate.query(
-                DbTaskTemplate::evaluation eq dbEvaluationTemplate and not(
-                    DbTaskTemplate::id.containsIn(*taskIds)
-                )
+        val taskTemplatesToDeleteQuery = DbTaskTemplate.query(
+            DbTaskTemplate::evaluation eq dbEvaluationTemplate and not(
+                DbTaskTemplate::id.containsIn(*taskIds)
             )
         )
+        val hintsToDelIds = taskTemplatesToDeleteQuery.toList().map {
+            it.hints.toList().map { hint -> hint.entityId }
+        }.flatten().toTypedArray()
+        val targetsToDelIds = taskTemplatesToDeleteQuery.toList().map{
+            it.targets.toList().map{target -> target.entityId}
+        }.flatten().toTypedArray()
+
+        dbEvaluationTemplate.tasks.removeAll(
+            taskTemplatesToDeleteQuery
+        )
+        /*
+        DbTaskTemplate has children relationships with both, DbHint and DbTaskTarget.
+        Despite being written in the documentation, for some reason the .removeAll above does not
+        delete the children, hence we have to take care of it ourselves.
+        https://jetbrains.github.io/xodus-dnq/properties.html
+         */
+        DbHint.all().toList().filter{hintsToDelIds.contains(it.entityId)}.forEach { it.delete() }
+        DbTaskTemplateTarget.all().toList().filter{targetsToDelIds.contains(it.entityId)}.forEach{it.delete()}
 
         /*  Update task information: Remaining tasks. */
         apiEvaluationTemplate.tasks.forEachIndexed { idx, apiTask ->

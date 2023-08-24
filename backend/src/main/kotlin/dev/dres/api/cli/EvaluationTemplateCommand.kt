@@ -43,7 +43,8 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
             Delete(),
             Copy(),
             Export(),
-            Import()
+            Import(),
+            Rename()
         )
     }
 

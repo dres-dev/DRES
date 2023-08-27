@@ -1,6 +1,5 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
-import dev.dres.DRES
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.template.ApiEvaluationStartMessage
 import dev.dres.api.rest.types.evaluation.ApiEvaluationType
@@ -9,6 +8,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.mgmt.TemplateManager
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.RunExecutor
@@ -23,8 +23,7 @@ import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 import org.slf4j.LoggerFactory
-import java.nio.file.Files
-import java.util.concurrent.TimeUnit
+import java.lang.Exception
 
 /**
  * [PostRestHandler] to create an [DbEvaluation].
@@ -34,7 +33,8 @@ import java.util.concurrent.TimeUnit
  * @author Loris Sauter
  * @version 2.0.0
  */
-class CreateEvaluationHandler(private val store: TransientEntityStore, private val cache: CacheManager) : AbstractEvaluationAdminHandler(), PostRestHandler<SuccessStatus> {
+class CreateEvaluationHandler(private val store: TransientEntityStore, private val cache: CacheManager) :
+    AbstractEvaluationAdminHandler(), PostRestHandler<SuccessStatus> {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -62,51 +62,36 @@ class CreateEvaluationHandler(private val store: TransientEntityStore, private v
 
         /* Prepare run manager. */
         val evaluation = this.store.transactional {
-            val template = DbEvaluationTemplate.query((DbEvaluationTemplate::id eq message.templateId) and (DbEvaluationTemplate::instance eq false)).firstOrNull()
-                ?: throw ErrorStatusException(404, "Evaluation template with ID ${message.templateId} could not be found.'", ctx)
+            val template =
+                DbEvaluationTemplate.query((DbEvaluationTemplate::id eq message.templateId) and (DbEvaluationTemplate::instance eq false))
+                    .firstOrNull()
+                    ?: throw ErrorStatusException(
+                        404,
+                        "Evaluation template with ID ${message.templateId} could not be found.'",
+                        ctx
+                    )
 
             /* ensure that only one synchronous run of an evaluation is happening at any given time */
             if (message.type == ApiEvaluationType.SYNCHRONOUS && RunExecutor.managers().any {
                     it is InteractiveSynchronousRunManager && it.template.id == template.id && it.status != RunManagerStatus.TERMINATED
                 }
             ) {
-                throw ErrorStatusException(400, "Synchronous run of evaluation template ${template.name} already exists.", ctx)
+                throw ErrorStatusException(
+                    400,
+                    "Synchronous run of evaluation template ${template.name} already exists.",
+                    ctx
+                )
             }
 
             /* Check and prepare videos */
-            val segmentTasks = template.getAllVideos()
-            val await = segmentTasks.map {source ->
 
-                when(source) {
-                    is DbEvaluationTemplate.VideoSource.ItemSource -> {
-                        val item = source.item
-                        val path = item.pathToOriginal()
-                        if (!Files.exists(path)) {
-                            logger.error("Required media file $path not found for item ${item.name}.")
-                            throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
-                        }
-
-                        this@CreateEvaluationHandler.cache.asyncPreviewVideo(item, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
-                    }
-                    is DbEvaluationTemplate.VideoSource.PathSource -> {
-                        val path = DRES.EXTERNAL_ROOT.resolve(source.path)
-                        if (!Files.exists(path)) {
-                            logger.error("ERROR: Media file $path not found for external video.")
-                            throw ErrorStatusException(500, "Required media file $path not found.", ctx)
-                        }
-
-                        this@CreateEvaluationHandler.cache.asyncPreviewVideo(path, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
-                    }
-                }
+            try {
+                TemplateManager.prepareTemplate(message.templateId, this@CreateEvaluationHandler.cache)
+            } catch (e: Exception) {
+                logger.error(e.message)
+                throw ErrorStatusException(500, e.message ?: "", ctx)
             }
-            await.all {
-                try {
-                    it.get(60, TimeUnit.SECONDS)
-                    true
-                 } catch (e: Throwable) {
-                    throw ErrorStatusException(500, "Required media file could not be prepared.", ctx)
-                 }
-            }
+
 
             /* Prepare evaluation. */
             val evaluation = DbEvaluation.new {

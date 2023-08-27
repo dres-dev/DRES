@@ -43,7 +43,7 @@ object Cli {
         clikt = DRESBaseCommand().subcommands(
             EvaluationTemplateCommand(cache),
             UserCommand(),
-            MediaCollectionCommand(store, config),
+            MediaCollectionCommand(config),
             EvaluationCommand(store),
             OpenApiCommand(),
             ExecutionCommand(),

@@ -2,11 +2,9 @@ package dev.dres.mgmt
 
 import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.api.rest.types.collection.ApiMediaItem
+import dev.dres.api.rest.types.collection.ApiMediaSegment
 import dev.dres.api.rest.types.collection.ApiPopulatedMediaCollection
-import dev.dres.data.model.media.CollectionId
-import dev.dres.data.model.media.DbMediaCollection
-import dev.dres.data.model.media.DbMediaItem
-import dev.dres.data.model.media.MediaItemId
+import dev.dres.data.model.media.*
 import dev.dres.utilities.extensions.cleanPathString
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
@@ -21,31 +19,35 @@ object MediaCollectionManager {
         this.store = store
     }
 
-    fun getCollections(): List<ApiMediaCollection> = this.store.transactional (true) {
+    fun getCollections(): List<ApiMediaCollection> = this.store.transactional(true) {
         DbMediaCollection.all().asSequence().map { ApiMediaCollection.fromMediaCollection(it) }.toList()
     }
 
-    fun getCollection(collectionId: CollectionId) : ApiMediaCollection? = this.store.transactional (true) {
+    fun getCollection(collectionId: CollectionId): ApiMediaCollection? = this.store.transactional(true) {
         DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()?.toApi()
     }
 
-    fun getPopulatedCollection(collectionId: CollectionId) : ApiPopulatedMediaCollection? = this.store.transactional (true) {
-        val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional null
-        val items = DbMediaItem.query(DbMediaItem::collection eq collection).asSequence().map { it.toApi() }.toList()
-        ApiPopulatedMediaCollection(ApiMediaCollection.fromMediaCollection(collection), items)
-    }
-
-    fun createCollection(name: String, description: String?, basePath: String): ApiMediaCollection? = this.store.transactional {
-        try{
-            DbMediaCollection.new {
-                this.name = name
-                this.description = description
-                this.path = basePath.cleanPathString()
-            }.toApi()
-        } catch (e: Exception) {
-            null
+    fun getPopulatedCollection(collectionId: CollectionId): ApiPopulatedMediaCollection? =
+        this.store.transactional(true) {
+            val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
+                ?: return@transactional null
+            val items =
+                DbMediaItem.query(DbMediaItem::collection eq collection).asSequence().map { it.toApi() }.toList()
+            ApiPopulatedMediaCollection(ApiMediaCollection.fromMediaCollection(collection), items)
         }
-    }
+
+    fun createCollection(name: String, description: String?, basePath: String): ApiMediaCollection? =
+        this.store.transactional {
+            try {
+                DbMediaCollection.new {
+                    this.name = name
+                    this.description = description
+                    this.path = basePath.cleanPathString()
+                }.toApi()
+            } catch (e: Exception) {
+                null
+            }
+        }
 
     fun updateCollection(apiMediaCollection: ApiMediaCollection) {
         this.store.transactional {
@@ -59,8 +61,9 @@ object MediaCollectionManager {
         }
     }
 
-    fun deleteCollection(collectionId: CollectionId) : ApiMediaCollection? = this.store.transactional {
-        val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional null
+    fun deleteCollection(collectionId: CollectionId): ApiMediaCollection? = this.store.transactional {
+        val collection =
+            DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional null
         val api = collection.toApi()
         collection.delete()
         api
@@ -89,26 +92,53 @@ object MediaCollectionManager {
 
     }
 
-    fun getMediaItem(mediaItemId: MediaItemId) : ApiMediaItem? = this.store.transactional(true) {
+    fun addMediaItems(collectionId: CollectionId, mediaItems: Collection<ApiMediaItem>) {
+
+        this.store.transactional {
+            val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
+                ?: throw IllegalArgumentException("Invalid parameters, collection with ID $collectionId does not exist.")
+
+            mediaItems.filter { item -> collection.items.filter { it.location eq item.location }.isEmpty }
+                .forEach { mediaItem ->
+                    val item = DbMediaItem.new {
+                        this.type = mediaItem.type.toDb()
+                        this.name = mediaItem.name
+                        this.location = mediaItem.location
+                        this.fps = mediaItem.fps
+                        this.durationMs = mediaItem.durationMs
+                    }
+                    collection.items.add(item)
+                }
+
+        }
+
+    }
+
+    fun getMediaItem(mediaItemId: MediaItemId): ApiMediaItem? = this.store.transactional(true) {
         DbMediaItem.query(DbMediaItem::id eq mediaItemId).firstOrNull()?.toApi()
     }
 
-    fun getMediaItemsByName(collectionId: CollectionId, names: List<String>) : List<ApiMediaItem> = this.store.transactional(true) {
-        val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional emptyList<ApiMediaItem>()
-        collection.items.filter { it.name isIn names }.asSequence().map { it.toApi() }.toList()
-    }
+    fun getMediaItemsByName(collectionId: CollectionId, names: List<String>): List<ApiMediaItem> =
+        this.store.transactional(true) {
+            val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
+                ?: return@transactional emptyList<ApiMediaItem>()
+            collection.items.filter { it.name isIn names }.asSequence().map { it.toApi() }.toList()
+        }
 
-    fun getMediaItemsByPartialName(collectionId: CollectionId, name: String?, limit: Int = 50) : List<ApiMediaItem> = this.store.transactional(true) {
-        val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional emptyList<ApiMediaItem>()
-        if (!name.isNullOrBlank()) {
-            collection.items.query(DbMediaItem::name startsWith name).sortedBy(DbMediaItem::name)
-        } else {
-            collection.items
-        }.take(limit).asSequence().map { it.toApi() }.toList()
-    }
+    fun getMediaItemsByPartialName(collectionId: CollectionId, name: String?, limit: Int = 50): List<ApiMediaItem> =
+        this.store.transactional(true) {
+            val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
+                ?: return@transactional emptyList<ApiMediaItem>()
+            if (!name.isNullOrBlank()) {
+                collection.items.query(DbMediaItem::name startsWith name).sortedBy(DbMediaItem::name)
+            } else {
+                collection.items
+            }.take(limit).asSequence().map { it.toApi() }.toList()
+        }
 
-    fun getRandomMediaItem(collectionId: CollectionId) : ApiMediaItem? = this.store.transactional(true) {
-        val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional null
+    fun getRandomMediaItem(collectionId: CollectionId): ApiMediaItem? = this.store.transactional(true) {
+        val collection =
+            DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional null
         collection.items.drop(Random.nextInt(0, collection.items.size())).take(1).firstOrNull()?.toApi()
     }
 
@@ -142,5 +172,31 @@ object MediaCollectionManager {
         item.delete()
     }
 
+    /**
+     * Adds segments, returns the number of segments added
+     */
+    fun addSegments(collectionId: CollectionId, segments: Collection<ApiMediaSegment>): Int = this.store.transactional {
+        val collection =
+            DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional 0
+        segments.groupBy { it.mediaItemName }.flatMap { entry ->
+            val videoItem = collection.items.filter { it.name eq entry.key }.firstOrNull()
+            entry.value.map { segment ->
+                if (videoItem != null) {
+                    videoItem.segments.addAll(
+                        segments.map {
+                            DbMediaSegment.new {
+                                this.name = segment.segmentName
+                                this.start = segment.start
+                                this.end = segment.end
+                            }
+                        }
+                    )
+                    segments.size
+                } else {
+                    0
+                }
+            }
+        }.sum()
+    }
 
 }

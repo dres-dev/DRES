@@ -14,10 +14,13 @@ import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult
 import com.jakewharton.picnic.table
+import dev.dres.api.rest.types.collection.ApiMediaItem
+import dev.dres.api.rest.types.collection.ApiMediaSegment
 import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.data.model.config.Config
 import dev.dres.data.model.media.*
-import jetbrains.exodus.database.TransientEntityStore
+import dev.dres.mgmt.MediaCollectionManager
+import dev.dres.utilities.extensions.cleanPathString
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
@@ -26,7 +29,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
-import java.util.concurrent.TimeUnit
 import kotlin.io.path.extension
 import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.relativeTo
@@ -40,7 +42,7 @@ import kotlin.streams.asSequence
  * @author Loris Sauter
  * @version 2.0.0
  */
-class MediaCollectionCommand(private val store: TransientEntityStore, private val config: Config) :
+class MediaCollectionCommand(private val config: Config) :
     NoOpCliktCommand(name = "collection") {
     private val logMarker = MarkerFactory.getMarker("CLI")
     private val logger = LoggerFactory.getLogger(this.javaClass)
@@ -73,7 +75,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
 
     companion object {
         enum class SortField {
-            ID, NAME, LOCATION, DURATION, FPS
+            ID, NAME, LOCATION
         }
 
         /** used for chunking of sequences to be committed */
@@ -91,20 +93,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
         CliktCommand(name = name, help = help, printHelpOnEmptyArgs = true) {
 
         /** The [CollectionId] of the [DbMediaCollection] affected by this [AbstractCollectionCommand]. */
-        protected val id: CollectionId? by option("-i", "--id", help = "ID of a media collection.")
+        protected val id: CollectionId by option("-i", "--id", help = "ID of a media collection.").required()
 
-        /** The name of the [DbMediaCollection] affected by this [AbstractCollectionCommand]. */
-        protected val name: String? by option("-c", "--collection", help = "Name of a media collection.")
-
-        /**
-         * Loads and returns the [DbMediaCollection] for the specified parameters.
-         * This is a convenience method and requires a transaction context.
-         *
-         * @return [DbMediaCollection] or null
-         */
-        protected fun getCollection(): DbMediaCollection? =
-            DbMediaCollection.query((DbMediaCollection::id eq this.id).or(DbMediaCollection::name eq this.name))
-                .firstOrNull()
     }
 
     /**
@@ -134,14 +124,13 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
             if (!Files.exists(Paths.get(this.basePath))) {
                 this@MediaCollectionCommand.logger.warn("Collection base path ${this.basePath} does not exist!")
             }
-            this@MediaCollectionCommand.store.transactional {
-                DbMediaCollection.new {
-                    this.name = this@Create.name
-                    this.description = this@Create.description
-                    this.path = this@Create.basePath
-                }
+
+            if (MediaCollectionManager.createCollection(name, description, basePath) == null) {
+                println("Could not create collection.")
+            } else {
+                println("Successfully added new media collection.")
             }
-            println("Successfully added new media collection.")
+
         }
     }
 
@@ -149,17 +138,15 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
      * [CliktCommand] to create a new [DbMediaCollection].
      */
     inner class Delete :
-        AbstractCollectionCommand( "delete", help = "Deletes a media collection.") {
+        AbstractCollectionCommand("delete", help = "Deletes a media collection.") {
         override fun run() {
-            this@MediaCollectionCommand.store.transactional {
-                val collection = this.getCollection()
-                if (collection == null) {
-                    println("Failed to delete collection; specified collection not found.")
-                    return@transactional
-                }
-                collection.delete()
+
+            if (MediaCollectionManager.deleteCollection(this.id) == null) {
+                println("Failed to delete collection; specified collection not found.")
+            } else {
+                println("Collection deleted successfully.")
             }
-            println("Collection deleted successfully.")
+
         }
     }
 
@@ -187,19 +174,22 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
         )
 
         override fun run() {
-            this@MediaCollectionCommand.store.transactional {
-                val collection = this.getCollection()
-                if (collection == null) {
-                    println("Failed to update collection; specified collection not found.")
-                    return@transactional
-                }
 
-                /* Update collection. */
-                collection.name = (this.newName ?: collection.name)
-                collection.description = (this.newDescription ?: collection.path)
-                collection.path = (this.newPath ?: collection.path)
+            val collection = MediaCollectionManager.getCollection(id)
 
+            if (collection == null) {
+                println("Failed to update collection; specified collection not found.")
+                return
             }
+
+            val updated = collection.copy(
+                name = (this.newName ?: collection.name),
+                description = (this.newDescription ?: collection.description),
+                basePath = (this.newPath?.cleanPathString() ?: collection.basePath)
+            )
+
+            MediaCollectionManager.updateCollection(updated)
+
             println("Successfully updated media collection.")
         }
     }
@@ -214,10 +204,10 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
             help = "Plain print: No fancy table presentation for machine readable output"
         ).flag(default = false)
 
-        override fun run() = this@MediaCollectionCommand.store.transactional(true) {
+        override fun run() {
             println("Available media collections ${DbMediaCollection.all().size()}")
             if (this.plain) {
-                DbMediaCollection.all().asSequence().forEach { println(it) }
+                MediaCollectionManager.getCollections().forEach(::println)
             } else {
                 println(
                     table {
@@ -230,8 +220,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                             row("id", "name", "description", "basePath", "# items")
                         }
                         body {
-                            DbMediaCollection.all().asSequence().forEach { c ->
-                                row(c.id, c.name, c.description ?: "", c.path, c.items.size())
+                            MediaCollectionManager.getCollections().forEach { c ->
+                                row(c.id, c.name, c.description ?: "", c.basePath, c.itemCount)
                             }
                         }
                     }
@@ -255,28 +245,25 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
 
         private val plain by option("-p", "--plain", help = "Plain formatting. No fancy tables").flag(default = false)
 
-        override fun run() = this@MediaCollectionCommand.store.transactional(true) {
+        override fun run() {
             /* Find media collection. */
-            val collection = this.getCollection()
+            val collection = MediaCollectionManager.getPopulatedCollection(id)
             if (collection == null) {
                 println("Collection not found.")
-                return@transactional
+                return
             }
 
-            /* Query for items.. */
-            val query = collection.items.sortedBy(
-                when (this.sort) {
-                    SortField.ID -> DbMediaItem::id
-                    SortField.NAME -> DbMediaItem::name
-                    SortField.LOCATION -> DbMediaItem::location
-                    SortField.DURATION -> DbMediaItem::durationMs
-                    SortField.FPS -> DbMediaItem::fps
+            val items = collection.items.sortedBy {
+                when (sort) {
+                    SortField.ID -> it.mediaItemId
+                    SortField.NAME -> it.name
+                    SortField.LOCATION -> it.location
                 }
-            )
+            }
 
             /* Print items. */
             if (this.plain) {
-                query.asSequence().forEach { println(it) }
+                items.forEach(::println)
             } else {
                 println(
                     table {
@@ -289,12 +276,12 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                             row("id", "name", "location", "type", "durationMs", "fps")
                         }
                         body {
-                            query.asSequence().forEach {
+                            items.forEach {
                                 row(
-                                    it.id,
+                                    it.mediaItemId,
                                     it.name,
                                     it.location,
-                                    it.type.description,
+                                    it.type,
                                     it.durationMs ?: "n/a",
                                     it.fps ?: "n/a"
                                 )
@@ -310,21 +297,21 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
      * [CliktCommand] to validate a [DbMediaCollection]'s [DbMediaItem]s.
      */
     inner class Check : AbstractCollectionCommand(
-                "check",
+        "check",
         help = "Checks if all the files in a media collection are present and accessible."
     ) {
-        override fun run() = this@MediaCollectionCommand.store.transactional(true) {
+        override fun run() {
             /* Find media collection. */
-            val collection = this.getCollection()
+            val collection = MediaCollectionManager.getPopulatedCollection(id)
             if (collection == null) {
                 println("Collection not found.")
-                return@transactional
+                return
             }
 
             /* Check items. */
             var counter = 0
-            for (item in collection.items.asSequence()) {
-                val path = item.pathToOriginal()
+            for (item in collection.items) {
+                val path = Paths.get(collection.collection.basePath!!, item.location)
                 if (Files.exists(path)) {
                     if (Files.isReadable(path)) {
                         counter++
@@ -335,14 +322,14 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                     println("Item ${item.name} at $path not found.")
                 }
             }
-            println("Successfully checked $counter of ${collection.items.size()} media itemss")
+            println("Successfully checked $counter of ${collection.items.size} media items")
         }
     }
 
     /**
      * [CliktCommand] to validate a [DbMediaCollection]'s [DbMediaItem]s.
      */
-    inner class Scan() : AbstractCollectionCommand(
+    inner class Scan : AbstractCollectionCommand(
         "scan",
         help = "Scans a collection directory and adds found items"
     ) {
@@ -382,17 +369,14 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
             }
 
             /* Find media collection and note base path */
-            val collectionAndPathTuple = this@MediaCollectionCommand.store.transactional(true) {
-                val collection = this.getCollection()
-                return@transactional collection to collection?.path
-            }
-            val collection = collectionAndPathTuple.first
+
+            val collection = MediaCollectionManager.getCollection(id)
             if (collection == null) {
                 println("Collection not found.")
                 return
             }
 
-            val base = Paths.get(collectionAndPathTuple.second)
+            val base = Paths.get(collection.basePath!!)
             if (!Files.exists(base)) {
                 println("Failed to scan collection; '$base' does not exist.")
                 return
@@ -415,67 +399,72 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                 Files.isRegularFile(it) && (it.extension in imageTypes || it.extension in videoTypes)
             }.asSequence().chunked(transactionChunkSize).forEach { list ->
 
-                this@MediaCollectionCommand.store.transactional {
+                val items = list.mapNotNull {
+                    val relativePath = it.relativeTo(base)
 
-                    list.forEach {
-                        val relativePath = it.relativeTo(base)
-                        val exists =
-                            DbMediaItem.query((DbMediaItem::collection eq collection) and (DbMediaItem::location eq relativePath.toString())).isNotEmpty
-                        if (!exists) {
-                            try {
-                                when (it.extension.lowercase()) {
-                                    in this.imageTypes -> {
-                                        println("Found image $it; analyzing...")
-                                        collection.items.add(DbMediaItem.new {
-                                            this.type = DbMediaType.IMAGE
-                                            this.name = it.fileName.nameWithoutExtension
-                                            this.location = relativePath.toString()
-                                        })
-                                    }
-
-                                    in videoTypes -> {
-                                        println("Found video $it; analyzing...")
-                                        val result = this.analyze(it).streams.first()
-                                        val fps = (result.rFrameRate
-                                            ?: result.avgFrameRate!!).toFloat()
-                                        val duration = result.duration
-                                            .let { duration ->
-                                                if (duration != null) {
-                                                    (duration.toDouble() * 1000.0).toLong()
-                                                } else {
-                                                    println("Cannot read duration from file, counting frames")
-                                                    val analysis =
-                                                        this.analyze(it, countFrames = true)
-                                                    val frames =
-                                                        analysis.streams.first().nbReadFrames
-                                                    println("Counted $frames frames")
-                                                    ((frames * 1000) / fps).toLong()
-                                                }
-                                            }
-
-                                        println("Found frame rate to be $fps frames per seconds and duration $duration ms")
-                                        collection.items.add(DbMediaItem.new {
-                                            this.type = DbMediaType.VIDEO
-                                            this.name = it.fileName.nameWithoutExtension
-                                            this.location = relativePath.toString()
-                                            this.durationMs = duration
-                                            this.fps = fps
-                                        })
-                                    }
-                                }
-                            } catch (e: Throwable) {
-                                this@MediaCollectionCommand.logger.error(
-                                    this@MediaCollectionCommand.logMarker,
-                                    "An error occurred with $it. Noting and skipping..."
+                    val item = try {
+                        when (it.extension.lowercase()) {
+                            in this.imageTypes -> {
+                                println("Found image $it; analyzing...")
+                                ApiMediaItem(
+                                    type = ApiMediaType.IMAGE,
+                                    name = it.fileName.nameWithoutExtension,
+                                    location = relativePath.toString(),
+                                    collectionId = id,
+                                    mediaItemId = "" //is generated anew anyway
                                 )
-                                println("An error occurred with $it. Noting and skipping...")
-                                issues[it] = e.stackTraceToString()
                             }
-                        }
-                        ++fileCounter
 
+                            in videoTypes -> {
+                                println("Found video $it; analyzing...")
+                                val result = this.analyze(it).streams.first()
+                                val fps = (result.rFrameRate
+                                    ?: result.avgFrameRate!!).toFloat()
+                                val duration = result.duration
+                                    .let { duration ->
+                                        if (duration != null) {
+                                            (duration.toDouble() * 1000.0).toLong()
+                                        } else {
+                                            println("Cannot read duration from file, counting frames")
+                                            val analysis =
+                                                this.analyze(it, countFrames = true)
+                                            val frames =
+                                                analysis.streams.first().nbReadFrames
+                                            println("Counted $frames frames")
+                                            ((frames * 1000) / fps).toLong()
+                                        }
+                                    }
+
+                                println("Found frame rate to be $fps frames per seconds and duration $duration ms")
+                                ApiMediaItem(
+                                    type = ApiMediaType.VIDEO,
+                                    name = it.fileName.nameWithoutExtension,
+                                    location = relativePath.toString(),
+                                    durationMs = duration,
+                                    fps = fps,
+                                    collectionId = id,
+                                    mediaItemId = "" //is generated anew anyway
+                                )
+                            }
+
+                            else -> null
+                        }
+                    } catch (e: Throwable) {
+                        this@MediaCollectionCommand.logger.error(
+                            this@MediaCollectionCommand.logMarker,
+                            "An error occurred with $it. Noting and skipping..."
+                        )
+                        println("An error occurred with $it. Noting and skipping...")
+                        issues[it] = e.stackTraceToString()
+                        null
                     }
+                    ++fileCounter
+                    item
+
                 }
+
+                MediaCollectionManager.addMediaItems(id, items)
+
 
             }
             if (issues.isNotEmpty()) {
@@ -495,7 +484,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
      * [CliktCommand] to delete [DbMediaItem]s.
      */
     inner class DeleteItem :
-        AbstractCollectionCommand( "deleteItem", help = "Deletes media item(s).") {
+        AbstractCollectionCommand("deleteItem", help = "Deletes media item(s).") {
         /** The item ID matching the name of the [DbMediaItem] to delete. */
         private val itemId: MediaId? by option("-ii", "--itemId", help = "ID of the media item.")
 
@@ -510,31 +499,33 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
         ).convert { it.toRegex() }
 
 
-        override fun run() = this@MediaCollectionCommand.store.transactional {
+        override fun run() {
             /* Sanity check. */
             if (itemName == null && itemId == null && itemNameRegex == null) {
                 println("Item(s) not specified.")
-                return@transactional
+                return
             }
 
             /* Find media collection. */
-            val collection = this.getCollection()
+            val collection = MediaCollectionManager.getPopulatedCollection(id)
             if (collection == null) {
                 println("Collection not found.")
-                return@transactional
+                return
             }
 
             var counter = 0
             if (this.itemId != null || this.itemName != null) {
-                collection.items.filter { (it.id eq itemId).or(it.name eq itemName) }.asSequence().forEach {
-                    it.delete()
-                    counter += 1
+
+                collection.items.filter { (it.mediaItemId == itemId) || (it.name == itemName) }.forEach {
+                    MediaCollectionManager.deleteMediaItem(it.mediaItemId)
+                    ++counter
                 }
+
             } else if (this.itemNameRegex != null) {
-                collection.items.asSequence().forEach {
+                collection.items.forEach {
                     if (this.itemNameRegex!!.matches(it.name)) {
-                        it.delete()
-                        counter += 1
+                        MediaCollectionManager.deleteMediaItem(it.mediaItemId)
+                        ++counter
                     }
                 }
             }
@@ -546,7 +537,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
      * [CliktCommand] to delete [DbMediaItem]s.
      */
     inner class AddItem :
-        AbstractCollectionCommand( name = "add", help = "Adds a media item to a media collection.") {
+        AbstractCollectionCommand(name = "add", help = "Adds a media item to a media collection.") {
 
         /** The [ApiMediaType] of the new [DbMediaItem]. */
         private val type: ApiMediaType by option(
@@ -568,28 +559,32 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
         /** The fps rate of the new [DbMediaItem]. */
         private val fps: Float? by option("-f", "--fps").float().required()
 
-        override fun run() = this@MediaCollectionCommand.store.transactional {
+        override fun run() {
             /* Find media collection. */
-            val collection = this.getCollection()
+            val collection = MediaCollectionManager.getCollection(id)
             if (collection == null) {
                 println("Collection not found.")
-                return@transactional
+                return
             }
 
             /* Check if file exists. */
-            val fullPath = Paths.get(collection.path, this@AddItem.path)
+            val fullPath = Paths.get(collection.basePath!!, this@AddItem.path)
             if (!Files.exists(fullPath)) {
                 println("Warning: Media item $fullPath doesn't seem to exist. Continuing anyway...")
             }
 
             /* Add new media item. */
-            collection.items.add(DbMediaItem.new {
-                this.type = this@AddItem.type.toDb()
-                this.name = Paths.get(this@AddItem.path).nameWithoutExtension
-                this.location = this@AddItem.path
-                this.durationMs = this@AddItem.duration
-                this.fps = this@AddItem.fps
-            })
+            val item = ApiMediaItem(
+                type = this@AddItem.type,
+                name = Paths.get(this@AddItem.path).nameWithoutExtension,
+                location = this@AddItem.path,
+                durationMs = this@AddItem.duration,
+                fps = this@AddItem.fps,
+                collectionId = id,
+                mediaItemId = ""
+            )
+
+            MediaCollectionManager.addMediaItem(item)
 
             println("Media item added successfully.")
         }
@@ -599,9 +594,9 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
      * [CliktCommand] to export a [DbMediaCollection].
      */
     inner class Export :
-        AbstractCollectionCommand( "export", help = "Exports a media collection into a CSV file.") {
+        AbstractCollectionCommand("export", help = "Exports a media collection into a CSV file.") {
 
-        /** The output path for the export.. */
+        /** The output path for the export. */
         private val output: Path by option(
             "-o",
             "--output",
@@ -611,21 +606,21 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
         /** The header of an exported CSV file. */
         private val header = listOf("itemType", "name", "location", "duration", "fps")
 
-        override fun run() = this@MediaCollectionCommand.store.transactional(true) {
+        override fun run() {
             /* Find media collection. */
-            val collection = this.getCollection()
+            val collection = MediaCollectionManager.getPopulatedCollection(id)
             if (collection == null) {
                 println("Collection not found.")
-                return@transactional
+                return
             }
 
             Files.newOutputStream(this.output, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW).use { os ->
                 csvWriter().open(os) {
                     writeRow(this@Export.header)
-                    collection.items.asSequence().forEach {
+                    collection.items.forEach {
                         writeRow(
                             listOf(
-                                it.type.description,
+                                it.type,
                                 it.name,
                                 it.location,
                                 it.durationMs?.toString(),
@@ -642,7 +637,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
      * [CliktCommand] to import a [DbMediaCollection].
      */
     inner class Import :
-        AbstractCollectionCommand( "import", help = "Imports a media collection from a CSV file.") {
+        AbstractCollectionCommand("import", help = "Imports a media collection from a CSV file.") {
 
         /** [Path] to the input file. */
         private val input: Path by option(
@@ -660,9 +655,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                 return
             }
 
-
             /* Find media collection. */
-            val collection = this.getCollection()
+            val collection = MediaCollectionManager.getCollection(id)
             if (collection == null) {
                 println("Collection not found.")
                 return
@@ -672,26 +666,28 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                 val chunks = csvReader().readAllWithHeader(ips).chunked(transactionChunkSize)
 
                 chunks.forEach { rows ->
-                    this@MediaCollectionCommand.store.transactional {
-                        for (row in rows) {
-                            collection.items.add(DbMediaItem.new {
-                                this.type = ApiMediaType.valueOf(row.getValue("itemType").uppercase()).toDb()
-                                this.name = row.getValue("name")
-                                this.location = row.getValue("location")
-                                this.durationMs = row["duration"]?.toLongOrNull()
-                                this.fps = row["fps"]?.toFloatOrNull()
-                            })
-                            ++inserted
-                        }
+
+                    val items = rows.map { row ->
+                        ++inserted
+                        ApiMediaItem(
+                            type = ApiMediaType.valueOf(row.getValue("itemType").uppercase()),
+                            name = row.getValue("name"),
+                            location = row.getValue("location"),
+                            durationMs = row["duration"]?.toLongOrNull(),
+                            fps = row["fps"]?.toFloatOrNull(),
+                            collectionId = id,
+                            mediaItemId = ""
+                        )
                     }
+
+                    MediaCollectionManager.addMediaItems(id, items)
+
                 }
             }
             println("Successfully imported $inserted media items.")
         }
     }
 
-
-    data class ListSegment(val video: String, val name: String, val start: Int, val end: Int)
 
     /**
      * [CliktCommand] to import a [DbMediaSegment]s.
@@ -723,7 +719,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
 
 
             /* Find media collection. */
-            val collection = this@MediaCollectionCommand.store.transactional { this.getCollection() }
+            val collection = MediaCollectionManager.getCollection(id)
             if (collection == null) {
                 println("Collection not found.")
                 return
@@ -739,26 +735,12 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                     val videoName = it["video"] ?: return@mapNotNull null
                     val start = it["start"]?.toIntOrNull() ?: return@mapNotNull null
                     val end = it["end"]?.toIntOrNull() ?: return@mapNotNull null
-                    ListSegment(videoName, segmentName, start, end)
+                    ApiMediaSegment(videoName, segmentName, start, end)
                 }
-                    .groupBy(ListSegment::video)
+                    .sortedBy { it.mediaItemName }
                     .asSequence().chunked(transactionChunkSize)
                     .forEach { chunk ->
-                        this@MediaCollectionCommand.store.transactional {
-                            chunk.forEach { (videoName, segments) ->
-                                val videoItem = collection.items.filter { it.name eq videoName }.firstOrNull()
-                                videoItem?.segments?.addAll(
-                                    segments.map {
-                                        DbMediaSegment.new {
-                                            this.name = it.name
-                                            this.start = it.start
-                                            this.end = it.end
-                                        }
-                                    }
-                                )
-                                ++inserted
-                            }
-                        }
+                        inserted += MediaCollectionManager.addSegments(id, chunk)
                     }
             }
 

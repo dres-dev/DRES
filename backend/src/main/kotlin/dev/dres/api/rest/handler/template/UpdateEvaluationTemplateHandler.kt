@@ -5,13 +5,11 @@ import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.config.Config
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.mgmt.TemplateManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * A [AbstractEvaluationTemplateHandler] that can be used to create a new [DbEvaluationTemplate].
@@ -61,7 +59,7 @@ class UpdateEvaluationTemplateHandler :
         }
 
         try {
-            TemplateManager.updateDbTemplate(apiValue)
+            TemplateManager.updateTemplate(apiValue)
         } catch (e: IllegalArgumentException) {
             throw ErrorStatusException(404, e.message ?: "", ctx)
         }

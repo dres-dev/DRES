@@ -29,7 +29,7 @@ object Cli {
 
     private const val PROMPT = "DRES> "
 
-    private lateinit var clikt:CliktCommand
+    private lateinit var clikt: CliktCommand
 
     /**
      * Blocking call that executes the CLI subsystem.
@@ -41,9 +41,9 @@ object Cli {
     fun loop(config: Config, store: TransientEntityStore, cache: CacheManager) {
 
         clikt = DRESBaseCommand().subcommands(
-            EvaluationTemplateCommand(store, cache),
+            EvaluationTemplateCommand(cache),
             UserCommand(),
-            MediaCollectionCommand(store, config),
+            MediaCollectionCommand(config),
             EvaluationCommand(store),
             OpenApiCommand(),
             ExecutionCommand(),
@@ -65,20 +65,14 @@ object Cli {
                 // Based on https://github.com/jline/jline3/wiki/Completion
                 // However, this is not working as subcommands are not completed
                 Completers.TreeCompleter(
-                        clikt.registeredSubcommands().map {
-                            if(it.registeredSubcommands().isNotEmpty()){
-                                node(it.commandName, node(*it.registeredSubcommandNames().toTypedArray()))
-                            }else{
-                                node(it.commandName)
-                            }
+                    clikt.registeredSubcommands().map {
+                        if(it.registeredSubcommands().isNotEmpty()){
+                            node(it.commandName, node(*it.registeredSubcommandNames().toTypedArray()))
+                        }else{
+                            node(it.commandName)
                         }
+                    }
                 ),
-                // Pseudo-solution. Not ideal, as all subcommands are flattened
-                /*AggregateCompleter(
-                    StringsCompleter(clikt.registeredSubcommandNames()),
-                    StringsCompleter(
-                        clikt.registeredSubcommands().flatMap { it.registeredSubcommandNames() })
-                ),*/
                 Completers.FileNameCompleter()
             )
         )

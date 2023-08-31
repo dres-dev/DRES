@@ -1,5 +1,6 @@
 package dev.dres.mgmt
 
+import dev.dres.DRES
 import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.api.rest.types.template.ApiEvaluationTemplateOverview
 import dev.dres.api.rest.types.template.tasks.ApiTargetType
@@ -13,14 +14,16 @@ import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.template.team.TeamId
+import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
 import kotlinx.dnq.util.getSafe
-import org.apache.logging.log4j.core.util.IOUtils
 import org.joda.time.DateTime
 import java.io.InputStream
+import java.nio.file.Files
 import java.util.Base64
+import java.util.concurrent.TimeUnit
 
 object TemplateManager {
 
@@ -56,11 +59,9 @@ object TemplateManager {
         }.toList()
     }
 
-    fun getTemplate(templateId: TemplateId): ApiEvaluationTemplate? = this.store.transactional(true) {
-        DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq templateId).firstOrNull()?.toApi()
-    }
+    fun getTemplate(templateId: TemplateId): ApiEvaluationTemplate? = getDbTemplate(templateId)?.toApi()
 
-    fun getTemplateDb(templateId: TemplateId): DbEvaluationTemplate? = this.store.transactional(true) {
+    private fun getDbTemplate(templateId: TemplateId): DbEvaluationTemplate? = this.store.transactional(true) {
         DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq templateId).firstOrNull()
     }
 
@@ -72,17 +73,17 @@ object TemplateManager {
      * Writes the state of an [ApiEvaluationTemplate].
      * Requires a transaction context.
      */
-    fun updateDbTemplate(apiEvaluationTemplate: ApiEvaluationTemplate) {
+    fun updateTemplate(apiEvaluationTemplate: ApiEvaluationTemplate) {
         val dbEvaluationTemplate =
             this.store.transactional(true){
             DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq apiEvaluationTemplate.id and (DbEvaluationTemplate::instance eq false))
                 .firstOrNull() ?: throw IllegalArgumentException("No template with id '${apiEvaluationTemplate.id}'")
         }
-        updateDbTemplate(dbEvaluationTemplate, apiEvaluationTemplate)
+        updateTemplate(dbEvaluationTemplate, apiEvaluationTemplate)
     }
 
     @Throws(IllegalArgumentException::class)
-    fun updateDbTemplate(dbEvaluationTemplate: DbEvaluationTemplate, apiEvaluationTemplate: ApiEvaluationTemplate) = this.store.transactional {
+    fun updateTemplate(dbEvaluationTemplate: DbEvaluationTemplate, apiEvaluationTemplate: ApiEvaluationTemplate) = this.store.transactional {
 
 
         /* Update core information. */
@@ -327,7 +328,7 @@ object TemplateManager {
      */
     @Throws(IllegalArgumentException::class)
     fun copyTemplate(templateId: TemplateId): ApiEvaluationTemplate {
-        val existing = getTemplateDb(templateId) ?: throw IllegalArgumentException("Template not found with id $templateId")
+        val existing = getDbTemplate(templateId) ?: throw IllegalArgumentException("Template not found with id $templateId")
 
         val copy = this.store.transactional { copyTemplate(existing) }
 
@@ -352,9 +353,48 @@ object TemplateManager {
 
         val newTemplate = DbEvaluationTemplate.new()
 
-        updateDbTemplate(newTemplate, copy)
+        updateTemplate(newTemplate, copy)
 
         return newTemplate.templateId
+
+    }
+
+    fun prepareTemplate(templateId: TemplateId, cache: CacheManager) = this.store.transactional (true) {
+
+        val template = getDbTemplate(templateId) ?: throw IllegalArgumentException("Template with id '$templateId' not found")
+
+        val segmentTasks = template.getAllVideos()
+        val await = segmentTasks.map {source ->
+
+            when(source) {
+                is DbEvaluationTemplate.VideoSource.ItemSource -> {
+                    val item = source.item
+                    val path = item.pathToOriginal()
+                    if (!Files.exists(path)) {
+                        throw IllegalStateException("Required media file $path not found for item ${item.name}.")
+                    }
+
+                    cache.asyncPreviewVideo(item, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
+                }
+                is DbEvaluationTemplate.VideoSource.PathSource -> {
+                    val path = DRES.EXTERNAL_ROOT.resolve(source.path)
+                    if (!Files.exists(path)) {
+                        throw IllegalStateException("Required media file $path not found.")
+                    }
+
+                    cache.asyncPreviewVideo(path, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
+                }
+            }
+        }
+        await.all {
+            try {
+                it.get(60, TimeUnit.SECONDS)
+                true
+            } catch (e: Throwable) {
+                throw IllegalStateException("Required media file could not be prepared.")
+            }
+        }
+
 
     }
 

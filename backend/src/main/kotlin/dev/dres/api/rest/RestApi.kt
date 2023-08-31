@@ -119,6 +119,7 @@ object RestApi {
             RandomMediaItemHandler(), // Must be before ListMediaItem
             ShowMediaItemHandler(),
             ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
+            UploadExternalItemHandler(), // Must be before ListExternalItemHandler
             ListMediaItemHandler(),
             ListExternalItemHandler(),
 

@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.preview
 
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
@@ -38,7 +39,7 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
     override val permittedRoles = setOf(ApiRole.VIEWER)
 
     /** All [AbstractPreviewHandler]s are part of the v1 API. */
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     /**
      * Handles a request for a preview based on an [CollectionId] and a [DbMediaItem]'s name. Fetching of the [DbMediaItem] takes

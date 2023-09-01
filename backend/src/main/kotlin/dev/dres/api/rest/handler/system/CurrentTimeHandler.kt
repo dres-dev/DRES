@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.system
 
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.system.CurrentTime
 import io.javalin.http.Context
@@ -14,7 +15,7 @@ import io.javalin.openapi.*
 class CurrentTimeHandler : GetRestHandler<CurrentTime> {
 
     override val route = "status/time"
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     @OpenApi(summary = "Returns the current time on the server.",
         path = "/api/v2/status/time",

@@ -63,6 +63,8 @@ import org.slf4j.MarkerFactory
  */
 object RestApi {
 
+    const val LATEST_API_VERSION = "v2"
+
     private var javalin: Javalin? = null
 
     private val logMarker = MarkerFactory.getMarker("REST")
@@ -119,9 +121,12 @@ object RestApi {
             RandomMediaItemHandler(), // Must be before ListMediaItem
             ShowMediaItemHandler(),
             ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
-            UploadExternalItemHandler(), // Must be before ListExternalItemHandler
             ListMediaItemHandler(),
+            UploadExternalItemHandler(),
             ListExternalItemHandler(),
+            FindExternalItemHandler(),
+            DeleteExternalItemHandler(), // Must be last of external/ route
+
 
             // Template
             ListEvaluationTemplatesHandler(),

@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.judgement
 
 import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -24,7 +25,7 @@ abstract class AbstractJudgementHandler: RestHandler, AccessManagedRestHandler {
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.JUDGE)
 
     /** */
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     /**
      * Checks if [RunManager] can actually be judged by the user defined in the current [Context].

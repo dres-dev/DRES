@@ -6,7 +6,7 @@ import { filter } from 'rxjs/operators';
 import { MatSort, Sort } from '@angular/material/sort';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { MatTableDataSource } from '@angular/material/table';
-import {ApiUser, UserRequest, UserService} from '../../../../openapi';
+import { ApiUser, ApiUserRequest, UserService } from "../../../../openapi";
 import {mergeMap} from 'rxjs';
 
 @Component({
@@ -39,7 +39,7 @@ export class AdminUserListComponent implements AfterViewInit {
       .afterClosed()
       .pipe(
         filter((r) => r != null),
-        mergeMap((u: UserRequest) => {
+        mergeMap((u: ApiUserRequest) => {
           return this.userService.postApiV2User(u);
         })
       )
@@ -60,7 +60,7 @@ export class AdminUserListComponent implements AfterViewInit {
       .afterClosed()
       .pipe(
         filter((r) => r != null),
-        mergeMap((u: UserRequest) => {
+        mergeMap((u: ApiUserRequest) => {
           console.debug(`Edit Result: ${u}`);
           return this.userService.patchApiV2UserByUserId(user.id, u);
         })

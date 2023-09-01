@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.team
 
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PatchRestHandler
 import dev.dres.api.rest.types.template.team.ApiTeam
@@ -21,7 +22,7 @@ class UpdateTeamHandler(private val store: TransientEntityStore) : PatchRestHand
 
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     override val route = "template/team/{teamId}"
 

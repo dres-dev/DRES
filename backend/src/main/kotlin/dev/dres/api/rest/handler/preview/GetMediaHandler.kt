@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.preview
 
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
@@ -29,7 +30,7 @@ class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<
     override val permittedRoles = setOf(ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.ADMIN)
 
     /** [GetMediaHandler] is part of the v1 API. */
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     //not used
     override fun doGet(ctx: Context): Any = ""

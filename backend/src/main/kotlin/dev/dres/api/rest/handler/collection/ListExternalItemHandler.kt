@@ -21,18 +21,13 @@ import kotlin.streams.toList
 /**
  * Lists and returns the media items in the external media item directory.
  */
-class ListExternalItemHandler : GetRestHandler<List<String>> {
-
-    override val apiVersion = "v2"
+class ListExternalItemHandler : AbstractExternalItemHandler(), GetRestHandler<List<String>> {
 
     @OpenApi(
-        summary = "Lists items from the external media collection whose name start with the given string.",
-        path = "/api/v2/external/{startsWith}",
+        summary = "Lists items from the external media collection.",
+        path = "/api/v2/external/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
-        pathParams = [
-            OpenApiParam("startsWith", String::class, "Name starts with.", required = true)
-        ],
         tags = ["Collection"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<String>::class)]),
@@ -43,28 +38,28 @@ class ListExternalItemHandler : GetRestHandler<List<String>> {
     )
     override fun doGet(ctx: Context): List<String> {
         // TODO https://github.com/javalin/javalin-openapi/issues/178 Apparently, we cannot use the slash-included notation here (https://javalin.io/documentation#endpoint-handlers)
-        val startsWith = ctx.pathParamMap()["startsWith"] ?: ""
         try {
             val files = Files.walk(DRES.EXTERNAL_ROOT, 1, FileVisitOption.FOLLOW_LINKS)
             val list = files
                 .filter {
                     Files.isRegularFile(it) &&
-                            it.name.startsWith(startsWith) &&
                             (
-                                    it.name.endsWith(".jpg", ignoreCase = true) ||
-                                            it.name.endsWith(".png", ignoreCase = true) ||
+                                    it.name.endsWith(".png", ignoreCase = true) ||
                                             it.name.endsWith(".mp4", ignoreCase = true)
                                     )
-                }.sorted { o1, o2 -> o1.name.length - o2.name.length }
-                .limit(50)
+                }.sorted { o1, o2 -> o1.compareTo(o2) }
 
             return list.map { it.toFile().name }.collect(Collectors.toList())
         } catch (ioe: IOException) {
-            throw ErrorStatusException(404, "Cannot access external files on '${DRES.EXTERNAL_ROOT}'", ctx)
+            throw ErrorStatusException(
+                404,
+                "Cannot access external files on '${DRES.EXTERNAL_ROOT}'",
+                ctx
+            )
         }
 
 
     }
 
-    override val route: String = "external/{startsWith}"
+    override val route: String = "external/list"
 }

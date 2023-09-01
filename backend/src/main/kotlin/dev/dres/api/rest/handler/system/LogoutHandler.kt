@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.system
 
 import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -20,7 +21,7 @@ import io.javalin.openapi.*
  */
 class LogoutHandler() : RestHandler, GetRestHandler<SuccessStatus> {
     override val route = "logout"
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     @OpenApi(
         summary = "Clears all user roles of the current session.",

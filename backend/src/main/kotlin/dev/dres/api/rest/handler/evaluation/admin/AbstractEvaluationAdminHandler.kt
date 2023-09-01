@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiRole
@@ -25,7 +26,7 @@ abstract class AbstractEvaluationAdminHandler : AccessManagedRestHandler {
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
    /** All [AbstractEvaluationAdminHandler]s are part of the v1 API. */
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     /**
      * Obtains the [InteractiveRunManager] for the given [EvaluationId].

@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.template
 
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.handler.collection.AbstractCollectionHandler
@@ -29,7 +30,7 @@ abstract class AbstractEvaluationTemplateHandler() : RestHandler, AccessManagedR
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
     /** All [AbstractCollectionHandler]s are part of the v2 API. */
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     /** Convenience method to extract [DbEvaluationTemplate]'s ID from [Context]. */
     protected fun templateIdFromContext(ctx: Context): TemplateId =

@@ -668,7 +668,7 @@ export class CompetitionFormBuilder {
       `components.${index}.path`,
       pathFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
-        switchMap((s) => this.collectionService.getApiV2ExternalByStartsWith(s))
+        switchMap((s) => this.collectionService.getApiV2ExternalFindByStartsWith(s))
       )
     );
 
@@ -701,7 +701,7 @@ export class CompetitionFormBuilder {
       `components.${index}.path`,
       pathFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
-        switchMap((s) => this.collectionService.getApiV2ExternalByStartsWith(s))
+        switchMap((s) => this.collectionService.getApiV2ExternalFindByStartsWith(s))
       )
     );
 

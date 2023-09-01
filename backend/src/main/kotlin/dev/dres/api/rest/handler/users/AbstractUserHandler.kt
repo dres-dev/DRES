@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.users
 
 import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -20,7 +21,7 @@ typealias SessionToken = String
  */
 abstract class AbstractUserHandler: RestHandler, AccessManagedRestHandler {
     /** All [AbstractUserHandler]s are part of the v1 API. */
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     /** Convenience method to extract [DbUser] from current session. */
     protected fun userFromSession(ctx: Context): ApiUser {

@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import {ApiRole, ApiUser, UserRequest} from '../../../../openapi';
+import { ApiRole, ApiUser, ApiUserRequest } from "../../../../openapi";
 
 @Component({
   selector: 'app-admin-user-create-or-edit-dialog',
@@ -55,12 +55,12 @@ export class AdminUserCreateOrEditDialogComponent {
     }
   }
 
-  fetchData(): UserRequest {
+  fetchData(): ApiUserRequest {
     return {
       username: this.form.controls.username.value,
       password: this.form.controls.password.value,
       role: this.form.controls.role.value,
-    } as UserRequest;
+    } as ApiUserRequest;
   }
 
   asJson(): string {

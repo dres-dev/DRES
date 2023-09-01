@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.system
 
 import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -25,7 +26,7 @@ import jetbrains.exodus.database.TransientEntityStore
 class LoginHandler() : RestHandler, PostRestHandler<ApiUser> {
 
     override val route = "login"
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     data class LoginRequest(var username: String, var password: String)
 

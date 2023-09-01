@@ -1,7 +1,7 @@
 import {Inject, Injectable} from '@angular/core';
 import {catchError, filter, map, shareReplay, tap, withLatestFrom} from 'rxjs/operators';
 import {BehaviorSubject, mergeMap, Observable, of, Subscription} from 'rxjs';
-import {ApiRole, ApiUser, LoginRequest, UserRequest, UserService} from '../../../../openapi';
+import {ApiRole, ApiUser, LoginRequest, ApiUserRequest, UserService} from '../../../../openapi';
 import {ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree} from "@angular/router";
 
 /**
@@ -59,7 +59,7 @@ export class AuthenticationService {
    *
    * @param user The UserRequest object to update the profile with.
    */
-  public updateUser(user: UserRequest) {
+  public updateUser(user: ApiUserRequest) {
     return this.user.pipe(
       mergeMap((u: ApiUser) => this.userService.patchApiV2UserByUserId(u.id, user))
     );

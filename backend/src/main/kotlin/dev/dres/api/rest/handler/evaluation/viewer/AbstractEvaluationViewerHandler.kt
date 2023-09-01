@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.*
 import dev.dres.api.rest.handler.evaluation.client.AbstractEvaluationClientHandler
 import dev.dres.api.rest.types.users.ApiRole
@@ -29,7 +30,7 @@ abstract class AbstractEvaluationViewerHandler: RestHandler, AccessManagedRestHa
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.VIEWER)
 
     /** All [AbstractEvaluationClientHandler]s are part of the v1 API. */
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     /**
      * Returns the [RunManager] associated with the current [Context].

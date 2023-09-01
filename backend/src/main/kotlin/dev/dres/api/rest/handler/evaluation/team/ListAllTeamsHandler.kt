@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.team
 
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.template.team.ApiTeam
@@ -16,7 +17,7 @@ class ListAllTeamsHandler(private val store: TransientEntityStore) : GetRestHand
 
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     override val route = "template/team/list"
 

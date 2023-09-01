@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.collection
 
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
@@ -24,8 +25,8 @@ abstract class AbstractCollectionHandler() : RestHandler, AccessManagedRestHandl
     /** All [AbstractCollectionHandler]s require [ApiRole.ADMIN]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
-    /** All [AbstractCollectionHandler]s are part of the v1 API. */
-    override val apiVersion = "v2"
+    /** All [AbstractCollectionHandler]s are part of the v2 API. */
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     protected fun collectionId(ctx: Context) = ctx.pathParamMap()["collectionId"] ?: throw ErrorStatusException(404, "Parameter 'collectionId' is missing!'", ctx)
 }

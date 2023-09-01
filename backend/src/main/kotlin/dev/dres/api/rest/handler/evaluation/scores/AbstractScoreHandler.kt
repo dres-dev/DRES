@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.scores
 
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.users.ApiRole
@@ -19,5 +20,5 @@ abstract class AbstractScoreHandler : RestHandler, AccessManagedRestHandler {
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.VIEWER)
 
     /** All [AbstractScoreHandler]s are part of the v1 API. */
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 }

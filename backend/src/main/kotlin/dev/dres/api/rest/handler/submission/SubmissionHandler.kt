@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.submission
 
 import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
@@ -35,7 +36,7 @@ class SubmissionHandler(private val store: TransientEntityStore): PostRestHandle
 
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
 
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     override val route = "submit/{evaluationId}"
 

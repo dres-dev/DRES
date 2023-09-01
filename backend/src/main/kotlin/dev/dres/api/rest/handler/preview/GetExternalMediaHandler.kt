@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.preview
 
 import dev.dres.DRES
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.users.ApiRole
@@ -32,7 +33,7 @@ class GetExternalMediaHandler : GetRestHandler<Any>, AccessManagedRestHandler {
     /**
      * The API version, currently `v2`
      */
-    override val apiVersion = "v2"
+    override val apiVersion = RestApi.LATEST_API_VERSION
 
     @OpenApi(
         summary = "Returns the requested external mediu, if present",

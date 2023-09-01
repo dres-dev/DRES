@@ -122,21 +122,17 @@ object RestApi {
             ShowMediaItemHandler(),
             ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
             ListMediaItemHandler(),
-            DRES.CONFIG.externalMediaEndpointsEnabled.let {
-                if(it){
-                    UploadExternalItemHandler()
-                }else{
-                    null
-                }
+            if(DRES.CONFIG.externalMediaEndpointsEnabled){
+                UploadExternalItemHandler()
+            }else{
+                null
             },
             ListExternalItemHandler(),
             FindExternalItemHandler(),
-            DRES.CONFIG.externalMediaEndpointsEnabled.let {
-                if(it){
-                    DeleteExternalItemHandler()
-                }else{
-                    null
-                }
+            if(DRES.CONFIG.externalMediaEndpointsEnabled){
+                DeleteExternalItemHandler()
+            }else{
+                null
             }, // Must be last of external/ route
 
 

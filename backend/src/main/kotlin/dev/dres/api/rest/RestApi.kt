@@ -89,7 +89,7 @@ object RestApi {
          *  - Above naming scheme applies also for nested / context-sensitive entities
          *  - REST conventions for `POST`, `PATCH` and `DELETE` methods apply
          */
-        val apiRestHandlers = listOf(
+        val apiRestHandlers = listOfNotNull(
 
             // User
             LoginHandler(),
@@ -122,10 +122,22 @@ object RestApi {
             ShowMediaItemHandler(),
             ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
             ListMediaItemHandler(),
-            UploadExternalItemHandler(),
+            DRES.CONFIG.externalMediaEndpointsEnabled.let {
+                if(it){
+                    UploadExternalItemHandler()
+                }else{
+                    null
+                }
+            },
             ListExternalItemHandler(),
             FindExternalItemHandler(),
-            DeleteExternalItemHandler(), // Must be last of external/ route
+            DRES.CONFIG.externalMediaEndpointsEnabled.let {
+                if(it){
+                    DeleteExternalItemHandler()
+                }else{
+                    null
+                }
+            }, // Must be last of external/ route
 
 
             // Template

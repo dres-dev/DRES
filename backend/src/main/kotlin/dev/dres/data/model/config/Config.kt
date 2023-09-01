@@ -32,6 +32,8 @@ data class Config(
     val eventsLocation: Path = DRES.APPLICATION_ROOT.parent.resolve("events"),
     /** Location for Audit event log. Defaults to `$APPLICATION_ROOT/../audit`*/
     val auditLocation: Path = DRES.APPLICATION_ROOT.parent.resolve("audit"),
+    /** Whether API endpoints for external media should be available */
+    val externalMediaEndpointsEnabled: Boolean = false,
 ) {
 
     companion object{

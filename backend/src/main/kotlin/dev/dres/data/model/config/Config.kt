@@ -22,16 +22,16 @@ data class Config(
     val keystorePassword: String = "password",
     /** The [CacheConfig] */
     val cache: CacheConfig = CacheConfig(),
-    /** Folder taht contains the database. Defaults to `$APPLICATION_ROOT/data`*/
-    val dataPath: Path = DRES.APPLICATION_ROOT.resolve("data"),
+    /** Folder that contains the database. Defaults to `$APPLICATION_ROOT/../data`*/
+    val dataPath: Path = DRES.APPLICATION_ROOT.parent.resolve("data"),
     /** Folder that contains external media. Defaults to `$cwd/external` */
     val externalMediaLocation : Path = Paths.get("./external"),
     /** Folder that contains task type rpesets. Defaults to `$cwd/type-presets` */
     val presetsLocation: Path = Paths.get("./type-presets"),
-    /** Folder for event data. Defaults to `$APPLICATION_ROOT/external` */
-    val eventsLocation: Path = DRES.APPLICATION_ROOT.resolve("events"),
-    /** Location for Audit event log. */
-    val auditLocation: Path = DRES.APPLICATION_ROOT.resolve("audit"),
+    /** Folder for event data. Defaults to `$APPLICATION_ROOT/../events` */
+    val eventsLocation: Path = DRES.APPLICATION_ROOT.parent.resolve("events"),
+    /** Location for Audit event log. Defaults to `$APPLICATION_ROOT/../audit`*/
+    val auditLocation: Path = DRES.APPLICATION_ROOT.parent.resolve("audit"),
 ) {
 
     companion object{

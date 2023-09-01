@@ -59,7 +59,7 @@ object TemplateManager {
         }.toList()
     }
 
-    fun getTemplate(templateId: TemplateId): ApiEvaluationTemplate? = getDbTemplate(templateId)?.toApi()
+    fun getTemplate(templateId: TemplateId): ApiEvaluationTemplate? = this.store.transactional (true){  getDbTemplate(templateId)?.toApi() }
 
     private fun getDbTemplate(templateId: TemplateId): DbEvaluationTemplate? = this.store.transactional(true) {
         DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq templateId).firstOrNull()

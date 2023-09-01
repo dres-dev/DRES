@@ -44,8 +44,10 @@ object DRES {
     /** Version of DRES. */
     const val VERSION = "2.0.0"
 
-    /** Application root; should pe relative to JAR file or classes path. */
-    val APPLICATION_ROOT: Path = File(DRES::class.java.protectionDomain.codeSource.location.toURI()).toPath()
+    /** Application root; should be relative to JAR file or classes path. */
+    val APPLICATION_ROOT: Path =
+        File(DRES::class.java.protectionDomain.codeSource.location.toURI()).toPath()
+
 
     /** The path to the data folder. Can be different from the application root if provided via command line argument */
     lateinit var DATA_ROOT: Path

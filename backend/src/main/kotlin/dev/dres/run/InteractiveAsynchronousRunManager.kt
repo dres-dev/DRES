@@ -14,6 +14,7 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.*
+import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
@@ -599,32 +600,16 @@ class InteractiveAsynchronousRunManager(
      */
     override fun viewers(): Map<ViewerInfo, Boolean> = Collections.unmodifiableMap(this.viewers)
 
-//    /**
-//     * Processes WebSocket [ClientMessage] received by the [InteractiveAsynchronousRunManager].
-//     *
-//     * @param connection The [WebSocketConnection] through which the message was received.
-//     * @param message The [ClientMessage] received.
-//     */
-//    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean {
-//        when (message.type) {
-//            ClientMessageType.REGISTER -> this.viewers[connection] = true
-//            ClientMessageType.UNREGISTER -> this.viewers.remove(connection)
-//            else -> { /* No op. */
-//            }
-//        }
-//        return true
-//    }
-
-    override fun viewerPreparing(taskId: TaskId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+    override fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
         val currentTaskId = this.currentTask(rac)?.taskId
-        if (taskId == currentTaskId) {
+        if (taskTemplateId == currentTaskId) {
             this.viewers[viewerInfo] = false
         }
     }
 
-    override fun viewerReady(taskId: TaskId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+    override fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
         val currentTaskId = this.currentTask(rac)?.taskId
-        if (taskId == currentTaskId) {
+        if (taskTemplateId == currentTaskId) {
             this.viewers[viewerInfo] = true
         }
     }

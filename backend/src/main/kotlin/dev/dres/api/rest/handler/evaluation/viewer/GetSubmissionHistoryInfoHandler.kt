@@ -49,7 +49,7 @@ class GetSubmissionHistoryInfoHandler: AbstractEvaluationViewerHandler(), GetRes
                 ) == true
                 manager.currentSubmissions(rac).map { it.toApi(hidden) }
             } else {
-                manager.taskForId(rac, taskId)?.getDbSubmissions()?.map { it.toApi() }?.toList() ?: emptyList()
+                manager.taskForId(rac, taskId)?.getSubmissions() ?: emptyList()
             }
         } else {
             emptyList()

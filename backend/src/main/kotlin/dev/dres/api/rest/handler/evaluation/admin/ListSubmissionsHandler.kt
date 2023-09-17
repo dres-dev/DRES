@@ -46,7 +46,7 @@ class ListSubmissionsHandler : AbstractEvaluationAdminHandler(),
             getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         val rac = ctx.runActionContext()
         return evaluationManager.tasks(rac).filter { it.taskTemplateId == templateId }.map {
-            ApiSubmissionInfo(evaluationId, it.taskId, it.getDbSubmissions().map { sub -> sub.toApi() }.toList())
+            ApiSubmissionInfo(evaluationId, it.taskId, it.getSubmissions())
         }
 
     }

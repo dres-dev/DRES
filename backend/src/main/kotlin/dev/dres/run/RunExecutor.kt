@@ -54,14 +54,17 @@ object RunExecutor {
 
     /** Initializes the [RunExecutor] singleton.
      *
-     * @param config The [Config] with which DRES was started.
      * @param store The [TransientEntityStore] instance used to access persistent data.
-     * @param cache The [CacheManager] instance used to access the media cache.
      */
-    fun init(config: Config, store: TransientEntityStore, cache: CacheManager) {
+    fun init(store: TransientEntityStore) {
         store.transactional {
-            DbEvaluation.filter { (it.ended eq null) }.asSequence().forEach {e ->
-                this.schedule(e.toRunManager(store))  /* Re-schedule evaluations. */
+            DbEvaluation.filter { (it.ended eq null) }.asSequence().forEach {evaluation ->
+                try {
+                    this.schedule(evaluation.toRunManager(store))  /* Re-schedule evaluations. */
+                } catch (e: IllegalStateException) {
+                    logger.error("Could not re-schedule previous run: ${e.message}")
+                    evaluation.ended = System.currentTimeMillis()
+                }
             }
         }
     }

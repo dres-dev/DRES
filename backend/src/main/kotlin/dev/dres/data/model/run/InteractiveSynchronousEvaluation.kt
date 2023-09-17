@@ -127,10 +127,10 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
 
         init {
 
-            check(this@InteractiveSynchronousEvaluation.taskRuns.isEmpty() || this@InteractiveSynchronousEvaluation.taskRuns.last().hasEnded) {
+            check(this@InteractiveSynchronousEvaluation.taskRuns.isEmpty() || this@InteractiveSynchronousEvaluation.taskRuns.last().hasEnded) { //FIXME causes issues when resuming evaluation
                 "Cannot create a new task. Another task is currently running."
             }
-            (this@InteractiveSynchronousEvaluation.taskRuns).add(this)
+            this@InteractiveSynchronousEvaluation.taskRuns.add(this)
 
             /* Initialize submission filter. */
             this.filter = store.transactional {

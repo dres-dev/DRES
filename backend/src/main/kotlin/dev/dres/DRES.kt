@@ -112,7 +112,7 @@ object DRES {
         TemplateManager.init(store)
 
         /* Initialize RunExecutor. */
-        RunExecutor.init(CONFIG, store, global)
+        RunExecutor.init(store)
 
         /* Initialize EventStreamProcessor */
         EventStreamProcessor.register( /* Add handlers here */)

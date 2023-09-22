@@ -17,7 +17,7 @@ import kotlinx.dnq.query.*
  * @author Ralph Gasser
  * @version 1.2.0
  */
-class EndOnSubmitUpdatable(private val manager: InteractiveRunManager, private val context: RunActionContext = RunActionContext.INTERNAL) : Updatable {
+class EndOnSubmitUpdatable(private val manager: InteractiveRunManager) : Updatable {
 
     /** The [EndOnSubmitUpdatable] always belongs to the [Phase.MAIN]. */
     override val phase: Phase = Phase.MAIN
@@ -32,7 +32,7 @@ class EndOnSubmitUpdatable(private val manager: InteractiveRunManager, private v
     override fun update(runStatus: RunManagerStatus, taskStatus: ApiTaskStatus?, context: RunActionContext) {
         if (runStatus == RunManagerStatus.ACTIVE && taskStatus == ApiTaskStatus.RUNNING)  {
             /* Get list of teams and list of submissions. */
-            val currentTask = this.manager.currentTask(this.context) ?: return
+            val currentTask = this.manager.currentTask(context) ?: return
 
             /* Determine of endOnSubmit is true for given task. */
             val taskType = this.manager.template.taskTypes.firstOrNull { it.name == currentTask.template.taskType }!!
@@ -46,7 +46,7 @@ class EndOnSubmitUpdatable(private val manager: InteractiveRunManager, private v
                     val limit = taskType.configuration["LIMIT_CORRECT_PER_TEAM"]?.toIntOrNull() ?: 1
 
                     /* Count number of correct submissions per team. */
-                    if (this.manager.timeLeft(this.context) > 0) {
+                    if (this.manager.timeLeft(context) > 0) {
                         for (s in submissions) {
                             for (a in s.answerSets.toList()) {
                                 if (a.status == DbVerdictStatus.CORRECT) {
@@ -57,7 +57,7 @@ class EndOnSubmitUpdatable(private val manager: InteractiveRunManager, private v
 
                         /* If all teams have reached the limit, end the task. */
                         if (teams.all { it.value >= limit }) {
-                            this.manager.abortTask(this.context)
+                            this.manager.abortTask(context)
                         }
                     }
                 }

@@ -62,7 +62,13 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
 
     init {
         /* Load all ongoing tasks. */
-        this.dbEvaluation.tasks.asSequence().forEach { IATaskRun(it) }
+        this.dbEvaluation.tasks.asSequence().forEach {
+            try{
+                IATaskRun(it)
+            } catch (e: Exception) {
+                LOGGER.error("could not load task: ${e.message}")
+            }
+        }
 
         /* Prepare the evaluation scoreboards. */
         val teams = this.template.teams.asSequence().map { it.teamId }.toList()
@@ -124,20 +130,20 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
             require(task.team != null) { "The task of an interactive asynchronous evaluation must be assigned to a single team." }
         }
 
-        /**
-         * Constructor used to generate an [IATaskRun] from a [DbTaskTemplate].
-         *
-         * @param t [DbTaskTemplate] to generate [IATaskRun] from.
-         * @param teamId The [TeamId] this [IATaskRun] is created for.
-         */
-        constructor(t: DbTaskTemplate, teamId: TeamId) : this(DbTask.new {
-            status = DbTaskStatus.CREATED
-            evaluation = this@InteractiveAsynchronousEvaluation.dbEvaluation
-            template = t
-            team = this@InteractiveAsynchronousEvaluation.dbEvaluation.template.teams.filter { it.teamId eq teamId }
-                .singleOrNull()
-                ?: throw IllegalArgumentException("Cannot start a new task run for team with ID ${teamId}. Team is not registered for competition.")
-        })
+//        /**
+//         * Constructor used to generate an [IATaskRun] from a [DbTaskTemplate].
+//         *
+//         * @param t [DbTaskTemplate] to generate [IATaskRun] from.
+//         * @param teamId The [TeamId] this [IATaskRun] is created for.
+//         */
+//        constructor(t: DbTaskTemplate, teamId: TeamId) : this(DbTask.new {
+//            status = DbTaskStatus.CREATED
+//            evaluation = this@InteractiveAsynchronousEvaluation.dbEvaluation
+//            template = t
+//            team = this@InteractiveAsynchronousEvaluation.dbEvaluation.template.teams.filter { it.teamId eq teamId }
+//                .singleOrNull()
+//                ?: throw IllegalArgumentException("Cannot start a new task run for team with ID ${teamId}. Team is not registered for competition.")
+//        })
 
         /** The [InteractiveAsynchronousEvaluation] this [IATaskRun] belongs to.*/
         override val evaluationRun: InteractiveAsynchronousEvaluation

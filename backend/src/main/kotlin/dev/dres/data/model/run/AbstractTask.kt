@@ -1,6 +1,7 @@
 package dev.dres.data.model.run
 
 import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
@@ -155,7 +156,7 @@ abstract class AbstractTask(protected val store: TransientEntityStore, task: DbT
     }
 
     /** Returns a [Sequence] of all [DbSubmission]s connected to this [AbstractTask]. */
-    override fun getDbSubmissions() = DbAnswerSet.filter { a ->
+    fun getDbSubmissions() = DbAnswerSet.filter { a ->
         a.task.id eq this@AbstractTask.taskId
     }.mapDistinct {
         it.submission
@@ -173,5 +174,9 @@ abstract class AbstractTask(protected val store: TransientEntityStore, task: DbT
      */
     internal fun updateTeamAggregation(teamScores: Map<TeamId, Double>) {
         this.teamGroupAggregators.values.forEach { it.aggregate(teamScores) }
+    }
+
+    override fun getSubmissions(): List<ApiSubmission> = this.store.transactional(true) {
+        this.getDbSubmissions().map { it.toApi() }.toList()
     }
 }

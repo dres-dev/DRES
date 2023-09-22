@@ -19,7 +19,7 @@ import io.javalin.http.Context
  * @author Ralph Gasser
  * @version 2.0.0
  */
-data class RunActionContext(val userId: UserId, var evaluationId: EvaluationId?, val roles: Set<ApiRole>) {
+open class RunActionContext(val userId: UserId, var evaluationId: EvaluationId?, val roles: Set<ApiRole>) {
 
     /** True if the user associated with this [RunActionContext] acts as [DbRole.ADMIN]*/
     val isAdmin: Boolean

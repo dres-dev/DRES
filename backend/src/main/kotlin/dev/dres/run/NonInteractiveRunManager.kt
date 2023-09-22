@@ -105,14 +105,14 @@ class NonInteractiveRunManager(
 //    }
 
     override fun viewerPreparing(
-        taskId: dev.dres.data.model.run.TaskId,
+        taskTemplateId: dev.dres.data.model.run.TaskId,
         rac: RunActionContext,
         viewerInfo: ViewerInfo
     ) {
         /* nop */
     }
 
-    override fun viewerReady(taskId: dev.dres.data.model.run.TaskId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+    override fun viewerReady(taskTemplateId: dev.dres.data.model.run.TaskId, rac: RunActionContext, viewerInfo: ViewerInfo) {
         /* nop */
     }
 

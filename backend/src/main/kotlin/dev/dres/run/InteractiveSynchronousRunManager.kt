@@ -252,8 +252,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
         }
 
-//        /* Enqueue WS message for sending */
-//        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_PREPARE, this.evaluation.currentTask?.taskId))
 
         LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.currentTaskRun?.taskId} with task template ${this.evaluation.getCurrentTaskTemplate().id}.")
 

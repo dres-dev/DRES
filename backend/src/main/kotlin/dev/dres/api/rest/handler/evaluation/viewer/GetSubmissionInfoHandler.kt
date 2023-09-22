@@ -47,7 +47,8 @@ class GetSubmissionInfoHandler(private val store: TransientEntityStore): Abstrac
         }
 
         val limit = manager.runProperties.limitSubmissionPreviews
-        val currentTask = manager.currentTask(rac) ?: throw ErrorStatusException(404, "No active task.", ctx)
+        val currentTask = manager.currentTask(rac) ?: return emptyList()
+
         val blind = currentTask.isRunning && manager.template.taskTypes.find { it.name == currentTask.template.taskType }?.taskOptions?.contains(
             ApiTaskOption.HIDDEN_RESULTS
         ) == true

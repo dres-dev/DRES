@@ -1,6 +1,7 @@
 package dev.dres.data.model.run.interfaces
 
 import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.submissions.DbSubmission
@@ -47,10 +48,12 @@ interface TaskRun: Run, Scoreable {
      */
     fun prepare()
 
+
     /**
-     * Returns a [List] of all [DbSubmission]s that belong to this [TaskRun].
+     * Returns a [List] of all [ApiSubmission]s that belong to this [TaskRun].
      *
-     * @return [List] of [DbSubmission]s
+     * @return [List] of [ApiSubmission]s
      */
-    fun getDbSubmissions(): Sequence<DbSubmission>
+    fun getSubmissions(): List<ApiSubmission>
+
 }

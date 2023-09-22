@@ -3,10 +3,7 @@ package dev.dres.data.model.run
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbTargetOption
 import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.run.validation.MediaItemsAnswerSetValidator
-import dev.dres.run.validation.TemporalOverlapAnswerSetValidator
-import dev.dres.run.validation.TextAnswerSetValidator
-import dev.dres.run.validation.TransientMediaSegment
+import dev.dres.run.validation.*
 import dev.dres.run.validation.interfaces.AnswerSetValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
 import dev.dres.run.validation.judged.BasicVoteValidator
@@ -40,7 +37,7 @@ abstract class AbstractInteractiveTask(store: TransientEntityStore, task: DbTask
                     val target =
                         template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }
                             .asSequence().map { TransientMediaSegment(it.item!!, it.range!!) }.toSet()
-                    TemporalOverlapAnswerSetValidator(target)
+                    TemporalContainmentAnswerSetValidator(target)
                 }
 
                 DbTargetOption.TEXT -> TextAnswerSetValidator(

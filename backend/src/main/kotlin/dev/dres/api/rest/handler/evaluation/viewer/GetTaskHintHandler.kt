@@ -14,11 +14,11 @@ import dev.dres.api.rest.types.template.tasks.ApiHintType
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
-import dev.dres.data.model.template.task.DbHint
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.mgmt.cache.CacheManager
-import dev.dres.run.InteractiveRunManager
+import dev.dres.run.*
 import dev.dres.utilities.extensions.isAdmin
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
@@ -47,16 +47,16 @@ import java.util.*
 class GetTaskHintHandler(private val store: TransientEntityStore, private val cache: CacheManager) :
     AbstractEvaluationViewerHandler(), GetRestHandler<ApiHintContent> {
 
-    override val route = "evaluation/{evaluationId}/{taskId}/hint"
+    override val route = "evaluation/{evaluationId}/template/task/{taskTemplateId}/hint"
 
     @OpenApi(
-        summary = "Returns the task hint for the specified task.",
-        path = "/api/v2/evaluation/{evaluationId}/{taskId}/hint",
+        summary = "Returns the task hint for the specified task template in the context of the provided evaluation.",
+        path = "/api/v2/evaluation/{evaluationId}/template/task/{taskTemplateId}/hint",
         tags = ["Evaluation"],
-        operationId = OpenApiOperation.AUTO_GENERATE,
+        operationId = "getHintForTaskTemplateId",
         pathParams = [
-            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true),
-            OpenApiParam("taskId", String::class, "The task ID.", required = true)
+            OpenApiParam("evaluationId", String::class, "The ID of the evaluation.", required = true),
+            OpenApiParam("taskTemplateId", String::class, "The ID of the task template.", required = true)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiHintContent::class)]),
@@ -67,28 +67,47 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiHintContent {
-        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
+        val taskTemplateId = ctx.pathParamMap()["taskTemplateId"] ?: throw ErrorStatusException(400, "Parameter 'taskTemplateId' not specified.", ctx)
         val rac = ctx.runActionContext()
 
         return this.store.transactional(true) {
-            val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access Denied", ctx)
-            }
+            val manager = ctx.eligibleManagerForId<RunManager>()
 
-            val task = manager.taskForId(rac, taskId) ?: throw ErrorStatusException(404, "Task with specified ID $taskId does not exist.", ctx)
-            if(ctx.isParticipant() || ctx.isAdmin()) {
-                manager.viewerPreparing(taskId, rac, ViewerInfo(ctx.sessionToken()!!, ctx.ip()))
-            }
+            /* Performs (run manager specific) gate-keeping. */
+            manager.executeGatekeeper(ctx, taskTemplateId, rac)
 
+            /* Find template and load hint. */
+            val template = manager.evaluation.template.tasks.find { it.id == taskTemplateId } ?: throw ErrorStatusException(404, "Task template not found.", ctx)
             try {
                 ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
-                task.template.toTaskHint()
+                template.toTaskHint()
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)
             } catch (ioe: IOException) {
                 throw ErrorStatusException(500, "Exception when reading query object cache file.", ctx)
             }
+        }
+    }
+
+    /**
+     * This function executes [RunManager] implementation specific checks and logic that is necessary in the context of this API call.
+     *
+     * @param ctx [Context]
+     * @param taskTemplateId The ID of the task template that is accessed.
+     * @param rac [RunActionContext]
+     */
+    private fun RunManager.executeGatekeeper(ctx: Context, taskTemplateId: String, rac: RunActionContext) {
+        when(this) {
+            is InteractiveRunManager -> {
+                if (!this.runProperties.participantCanView && ctx.isParticipant()) {
+                    throw ErrorStatusException(403, "Access Denied", ctx)
+                }
+
+                if (ctx.isParticipant() || ctx.isAdmin()) {
+                    this.viewerPreparing(taskTemplateId, rac, ViewerInfo(ctx.sessionToken()!!, ctx.ip()))
+                }
+            }
+            else -> { /* No op */ }
         }
     }
 
@@ -118,79 +137,6 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
         }
         ApiHintContent(this.id!!, sequence, false)
     }
-
-    /**
-     * Generates and returns a [ApiContentElement] object of this [DbHint] to be used by the RESTful interface.
-     *
-     * @return [ApiContentElement]
-     *
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-//    private fun DbHint.toContentElement(): ApiContentElement {
-//        val content = when (this.type) {
-//            DbHintType.IMAGE -> {
-//                val path = if (this.item != null) {
-//                    this@GetTaskHintHandler.cache.asyncPreviewImage(this.item!!)
-//                        .get() /* This should return immediately, since the previews have been prepared. */
-//                } else {
-//                    this@GetTaskHintHandler.cache.asyncPreviewImage(
-//                        DRES.EXTERNAL_ROOT.resolve(
-//                            this.path
-//                                ?: throw IllegalStateException("DbHint of type IMAGE is expected to hold a valid media item or external path but it doesn't! This is a programmer's error!")
-//                        )
-//                    ).get()
-//                }
-//                if (Files.exists(path)) {
-//                    if (path.toString().endsWith(".jpg", ignoreCase = true)) {
-//                        Base64.getEncoder().encodeToString(Files.readAllBytes(path))
-//                    } else { //should never happen
-//                        null
-//                    }
-//                } else {
-//                    null
-//                }
-//            }
-//
-//            DbHintType.VIDEO -> {
-//                val start = this.temporalRangeStart
-//                    ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid start timestamp but doesn't! This is a programmer's error!")
-//                val end = this.temporalRangeEnd
-//                    ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid end timestamp but doesn't!! This is a programmer's error!")
-//                val path = if (this.item != null) {
-//                    this@GetTaskHintHandler.cache.asyncPreviewVideo(this.item!!, start, end)
-//                        .get() /* This should return immediately, since the previews have been prepared. */
-//                } else {
-//                    val source = DRES.EXTERNAL_ROOT.resolve(
-//                        this.path
-//                            ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid media item or external path but it doesn't! This is a programmer's error!")
-//                    )
-//                    this@GetTaskHintHandler.cache.asyncPreviewVideo(source, start, end).get()
-//                }
-//                if (Files.exists(path)) {
-//                    Base64.getEncoder().encodeToString(Files.readAllBytes(path))
-//                } else {
-//                    null
-//                }
-//            }
-//
-//            DbHintType.TEXT -> this.text
-//                ?: throw IllegalStateException("A hint of type  ${this.type.description} must have a valid text.")
-//
-//            DbHintType.EMPTY -> ""
-//            else -> throw IllegalStateException("The hint type ${this.type.description} is not supported.")
-//        }
-//
-//        val contentType = when (this.type) {
-//            DbHintType.IMAGE -> ApiContentType.IMAGE
-//            DbHintType.VIDEO -> ApiContentType.VIDEO
-//            DbHintType.TEXT -> ApiContentType.TEXT
-//            DbHintType.EMPTY -> ApiContentType.EMPTY
-//            else -> throw IllegalStateException("The hint type ${this.type.description} is not supported.")
-//        }
-//
-//        return ApiContentElement(contentType = contentType, content = content, offset = this.start ?: 0L)
-//    }
 
     private fun ApiHint.toContentElement(): ApiContentElement {
 

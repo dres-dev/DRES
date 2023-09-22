@@ -52,17 +52,16 @@ class CurrentTaskScoreHandler : AbstractScoreHandler(),
         }
 
         val rac = ctx.runActionContext()
-        val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(
-            404,
-            "No active task run in evaluation ${ctx.evaluationId()}.",
-            ctx
-        )
-        val scores = scorer.scoreMap()
+        val template = manager.currentTaskTemplate(rac)
+        val scores = manager.currentTask(rac)?.scorer?.scoreMap() ?: emptyMap()
+
         return ApiScoreOverview(
-            "task",
-            manager.currentTaskTemplate(rac).taskGroup,
-            manager.template.teams.asSequence().map { team -> ApiScore(team.id!!, scores[team.id] ?: 0.0) }.toList()
+            template.name,
+            template.taskGroup,
+            manager.template.teams.map { team -> ApiScore(team.id!!, scores[team.id] ?: 0.0) }.toList()
         )
+
+
     }
 
 }

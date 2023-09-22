@@ -6,7 +6,6 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
-import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.SubmissionId
 
@@ -126,7 +125,7 @@ interface InteractiveRunManager : RunManager {
      * @param context The [RunActionContext] used for the invocation.
      * @return [List] of [TaskRun]s
      */
-    override fun tasks(context: RunActionContext): List<TaskRun>
+    override fun tasks(context: RunActionContext): List<AbstractInteractiveTask>
 
     /**
      * Returns a reference to the currently active [TaskRun].
@@ -134,7 +133,7 @@ interface InteractiveRunManager : RunManager {
      * @param context The [RunActionContext] used for the invocation.
      * @return [TaskRun] that is currently active or null, if no such task is active.
      */
-    fun currentTask(context: RunActionContext): TaskRun?
+    fun currentTask(context: RunActionContext): AbstractInteractiveTask?
 
     /**
      * Returns [TaskRun]s for the specified [EvaluationId].
@@ -142,7 +141,7 @@ interface InteractiveRunManager : RunManager {
      * @param context The [RunActionContext] used for the invocation.
      * @param taskId The [EvaluationId] of the desired [TaskRun].
      */
-    fun taskForId(context: RunActionContext, taskId: EvaluationId): TaskRun?
+    fun taskForId(context: RunActionContext, taskId: EvaluationId): AbstractInteractiveTask?
 
     /**
      * Invoked by an external caller to update an existing submission by its [SubmissionId] with a new [ApiVerdictStatus].

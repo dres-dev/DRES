@@ -108,10 +108,10 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
    */
   ngAfterViewInit(): void {
     /*  Observable for the current query hint. */
-    const currentTaskHint = this.taskStarted.pipe(
-      withLatestFrom(this.evaluationId),
-      switchMap(([task, evaluationId]) => {
-          return this.runService.getApiV2EvaluationByEvaluationIdByTaskIdHint(evaluationId, task.taskId).pipe(
+    const currentTaskHint = this.taskChanged.pipe(
+      mergeMap((task) => {
+          console.log("current task hint triggered", task)
+          return this.runService.getApiV2EvaluationByEvaluationIdByTaskIdHint(task.evaluationId, task.taskId).pipe(
             catchError((e) => {
               console.error("[TaskViewerComponent] Could not load current query hint due to an error.", e);
               return of(null);
@@ -122,6 +122,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       tap((hint) => this.evaluationId.pipe(switchMap(evaluationId => this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(evaluationId, hint.taskId))).subscribe()),
       shareReplay({ bufferSize: 1, refCount: true })
     );
+
 
     /*  Observable for the current query target. */
     const currentTaskTarget = this.taskEnded.pipe(

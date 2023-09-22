@@ -185,7 +185,7 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
             val taskType = runManager.currentTaskTemplate(rac).taskType
             val mapToSegment = runManager.template.taskTypes.find { it.name == taskType }?.taskOptions?.contains(ApiTaskOption.MAP_TO_SEGMENT) == true
             val item = DbMediaCollection.query(DbMediaCollection::id eq collection).firstOrNull()?.items?.filter { it.name eq itemParam }?.firstOrNull()
-                ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'", ctx)
+                ?: throw ErrorStatusException(404, "Item '$PARAMETER_NAME_ITEM' not found'", ctx)
             val range: Pair<Long, Long>? = when {
                 map.containsKey(PARAMETER_NAME_SHOT) && item.type == DbMediaType.VIDEO -> {
                     val shot = map[PARAMETER_NAME_SHOT]?.first()!!

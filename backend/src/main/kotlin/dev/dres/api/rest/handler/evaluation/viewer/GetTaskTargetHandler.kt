@@ -11,7 +11,6 @@ import dev.dres.api.rest.types.task.ApiContentElement
 import dev.dres.api.rest.types.task.ApiContentType
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.media.DbMediaType
-import dev.dres.data.model.run.DbTaskStatus
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.template.task.DbHint
@@ -20,6 +19,7 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.DbTaskTemplateTarget
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.InteractiveRunManager
+import dev.dres.run.RunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -39,16 +39,16 @@ import java.util.*
  */
 class GetTaskTargetHandler(private val store: TransientEntityStore, private val cache: CacheManager) : AbstractEvaluationViewerHandler(), GetRestHandler<ApiTargetContent> {
 
-    override val route = "evaluation/{evaluationId}/{taskId}/target"
+    override val route = "evaluation/{evaluationId}/template/task/{taskTemplateId}/target"
 
     @OpenApi(
-        summary = "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        path = "/api/v2/evaluation/{evaluationId}/{taskId}/target",
-        operationId = OpenApiOperation.AUTO_GENERATE,
+        summary = "Returns the task target for the specified task template in the context of the provided evaluation.",
+        path = "/api/v2/evaluation/{evaluationId}/template/task/{taskTemplateId}/target",
+        operationId = "getTargetForTaskTemplateId",
         tags = ["Evaluation"],
         pathParams = [
-            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
-            OpenApiParam("taskId", String::class, "The task template ID.", required = true, allowEmptyValue = false)
+            OpenApiParam("evaluationId", String::class, "The ID of the evaluation.", required = true),
+            OpenApiParam("taskTemplateId", String::class, "The ID of the task template.", required = true)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiTargetContent::class)]),
@@ -59,29 +59,47 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiTargetContent {
-        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskTemplateId' not specified.", ctx)
+        val taskTemplateId = ctx.pathParamMap()["taskTemplateId"] ?: throw ErrorStatusException(400, "Parameter 'taskTemplateId' not specified.", ctx)
         val rac = ctx.runActionContext()
 
         return this.store.transactional (true) {
-            val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access Denied", ctx)
-            }
+            val manager = ctx.eligibleManagerForId<RunManager>()
 
-            /* Test for correct state. */
-            val task = manager.taskForId(rac, taskId) ?: throw ErrorStatusException(404, "Task with specified ID $taskId does not exist.", ctx)
-            if (task.status != ApiTaskStatus.ENDED) {
-                throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)
-            }
+            /* Performs (run manager specific) gate-keeping. */
+            manager.executeGatekeeper(ctx, taskTemplateId, rac)
 
+            /* Accesses template and converts it to target. */
+            val template = manager.evaluation.template.tasks.find { it.id == taskTemplateId }
+                ?: throw ErrorStatusException(404, "Task template not found.", ctx)
             try {
                 ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
-                task.template.toTaskTarget()
+                template.toTaskTarget()
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)
             } catch (ioe: IOException) {
                 throw ErrorStatusException(500, "Exception when reading query object cache file.", ctx)
             }
+        }
+    }
+
+    /**
+     * This function executes [RunManager] implementation specific checks and logic that is necessary in the context of this API call.
+     *
+     * @param ctx [Context]
+     * @param taskTemplateId The ID of the task template that is accessed.
+     * @param rac [RunActionContext]
+     */
+    private fun RunManager.executeGatekeeper(ctx: Context, taskTemplateId: String, rac: RunActionContext) {
+        when(this) {
+            is InteractiveRunManager -> {
+                if (!this.runProperties.participantCanView && ctx.isParticipant()) {
+                    throw ErrorStatusException(403, "Access denied; you are not authorised to access the specified task target.", ctx)
+                }
+                if (!this.tasks(rac).any { it.taskTemplateId == taskTemplateId && it.status == ApiTaskStatus.ENDED }) {
+                    throw ErrorStatusException(401, "Access denied; task target cannot be display if task has not been run yet.", ctx)
+                }
+            }
+            else -> { /* No op */ }
         }
     }
 

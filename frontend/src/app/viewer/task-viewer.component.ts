@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } fro
 import {BehaviorSubject, combineLatest, from, interval, mergeMap, Observable, of, Subscription} from 'rxjs';
 import {
   catchError,
-  delayWhen,
+  delayWhen, filter,
   map,
   repeat,
   shareReplay,
@@ -77,10 +77,16 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   viewerState: BehaviorSubject<ViewerState> = new BehaviorSubject(ViewerState.VIEWER_UNKNOWN);
 
   /** Reference to the current {@link ApiHintContent}. */
-  currentTaskHint: Observable<ApiContentElement>;
+  currentTaskHint = new BehaviorSubject<ApiHintContent | null>(null);
+
+  /** Subscription related to {@link currentTaskHint}. */
+  currentTaskHintSubscription: Subscription
+
+  /** Reference to the {@link ApiHintContent} of the current {@link ApiHintContent}. */
+  currentHintContent: Observable<ApiContentElement>;
 
   /** Reference to the current {@link ApiTargetContent}. */
-  currentTaskTarget: Observable<ApiContentElement>;
+  currentTargetContent: Observable<ApiContentElement>;
 
   /** The subscription associated with the current viewer state. */
   viewerStateSubscription: Subscription;
@@ -108,9 +114,9 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
    */
   ngAfterViewInit(): void {
     /*  Observable for the current query hint. */
-    const currentTaskHint = this.taskChanged.pipe(
+    this.currentTaskHintSubscription = this.taskChanged.pipe(
       mergeMap((task) => {
-          return this.runService.getHintForTaskTemplateId(task.evaluationId, task.taskId).pipe(
+          return this.runService.getHintForTaskTemplateId(task.evaluationId, task.taskTemplateId).pipe(
             catchError((e) => {
               console.error("[TaskViewerComponent] Could not load current query hint due to an error.", e);
               return of(null);
@@ -118,16 +124,17 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
           );
         }
       ),
-      tap((hint) => this.evaluationId.pipe(switchMap(evaluationId => this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(evaluationId, hint.taskId))).subscribe()),
-      shareReplay({ bufferSize: 1, refCount: true })
-    );
+      tap((hint) => {
+        this.state.pipe(switchMap(state => this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(state.evaluationId, state.taskTemplateId))).subscribe()
+      })
+    ).subscribe(n => this.currentTaskHint.next(n))
 
 
     /*  Observable for the current query target. */
     const currentTaskTarget = this.taskEnded.pipe(
       withLatestFrom(this.evaluationId),
       switchMap(([task, evaluationId]) =>
-        this.runService.getTargetForTaskTemplateId(evaluationId, task.taskId).pipe(
+        this.runService.getTargetForTaskTemplateId(evaluationId, task.taskTemplateId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
             return of(null);
@@ -172,8 +179,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    /** Map task target to representation used by viewer. */
-    this.currentTaskTarget = currentTaskTarget.pipe(
+    /* Map task target to representation used by viewer. */
+    this.currentTargetContent = currentTaskTarget.pipe(
       mergeMap((h: ApiHintContent) => {
         if (!h) {
           return from([]);
@@ -186,7 +193,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /* Map task hint to representation used by viewer. */
-    this.currentTaskHint = currentTaskHint.pipe(
+    this.currentHintContent = this.currentTaskHint.pipe(
+      filter(h => h != null),
       mergeMap((hint) => {
         return this.timeElapsed.pipe(
             take(1),
@@ -249,6 +257,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.viewerStateSubscription.unsubscribe(); /* IMPORTANT! */
     this.viewerStateSubscription = null;
+    this.currentTaskHintSubscription.unsubscribe()
+    this.currentTaskHintSubscription = null;
   }
 
   /**

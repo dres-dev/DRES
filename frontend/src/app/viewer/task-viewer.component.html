@@ -25,21 +25,21 @@
 
     <!-- VIEWER_PLAYBACK -->
     <div *ngIf="(viewerState | async) === 4">
-      <h2 style="text-align: center">{{ currentTaskName | async }} ({{ toFormattedTime(timeLeft | async) }})</h2>
+      <h2 style="text-align: center">{{ currentHintContent | async }} ({{ toFormattedTime(timeLeft | async) }})</h2>
       <div *ngIf="currentTaskHint | async">
-        <app-text-object-preview [queryContent]="currentTaskHint"></app-text-object-preview>
-        <app-video-object-preview [queryObject]="currentTaskHint" [muted]="(config.configAsObservable | async).effects.mute"></app-video-object-preview>
-        <app-image-object-preview [queryContent]="currentTaskHint"></app-image-object-preview>
+        <app-text-object-preview [queryContent]="currentHintContent"></app-text-object-preview>
+        <app-video-object-preview [queryObject]="currentHintContent" [muted]="(config.configAsObservable | async).effects.mute"></app-video-object-preview>
+        <app-image-object-preview [queryContent]="currentHintContent"></app-image-object-preview>
       </div>
     </div>
 
     <!-- VIEWER_TASK_ENDED -->
     <div *ngIf="(viewerState | async) === 5">
       <h2 class="header">{{ currentTaskName | async }} (Task complete)</h2>
-      <div *ngIf="currentTaskTarget | async">
-        <app-text-object-preview [queryContent]="currentTaskTarget"></app-text-object-preview>
-        <app-video-object-preview [queryObject]="currentTaskTarget" [muted]="true"></app-video-object-preview>
-        <app-image-object-preview [queryContent]="currentTaskTarget"></app-image-object-preview>
+      <div *ngIf="currentTargetContent | async">
+        <app-text-object-preview [queryContent]="currentTargetContent"></app-text-object-preview>
+        <app-video-object-preview [queryObject]="currentTargetContent" [muted]="true"></app-video-object-preview>
+        <app-image-object-preview [queryContent]="currentTargetContent"></app-image-object-preview>
       </div>
     </div>
 

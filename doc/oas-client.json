@@ -10,6 +10,7 @@
       "get" : {
         "tags" : [ "Submission" ],
         "summary" : "Endpoint to accept submissions",
+        "description" : "This has been the submission endpoint for version 1. Please refrain from using it and migrate to the v2 endpoint.",
         "operationId" : "getApiV1Submit",
         "parameters" : [ {
           "name" : "collection",
@@ -146,7 +147,7 @@
             }
           }
         },
-        "deprecated" : false,
+        "deprecated" : true,
         "security" : [ ]
       }
     },
@@ -307,150 +308,6 @@
         "security" : [ ]
       }
     },
-    "/api/v2/evaluation/{evaluationId}/hint/{taskId}" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns the task hint for the specified task.",
-        "operationId" : "getApiV2EvaluationByEvaluationIdHintByTaskId",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "taskId",
-          "in" : "path",
-          "description" : "The task ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiHintContent"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/{evaluationId}/hint/{taskId}/ready" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Signals that a viewer is ready to show the hints for a particular task.",
-        "operationId" : "getApiV2EvaluationByEvaluationIdHintByTaskIdReady",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "taskId",
-          "in" : "path",
-          "description" : "The task ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
     "/api/v2/evaluation/{evaluationId}/info" : {
       "get" : {
         "tags" : [ "Evaluation" ],
@@ -536,346 +393,6 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ApiEvaluationState"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/{evaluationId}/submission/list" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns all submissions for the current task run, if one is either running or has just ended.",
-        "operationId" : "getApiV2EvaluationByEvaluationIdSubmissionList",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiSubmission"
-                  }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/{evaluationId}/submission/list/after/{timestamp}" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns all submissions for the current task that are more recent than the provided timestamp, if a task is either running or has just ended.",
-        "operationId" : "getApiV2EvaluationByEvaluationIdSubmissionListAfterByTimestamp",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "timestamp",
-          "in" : "path",
-          "description" : "Timestamp that marks the lower bound for returned submissions.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiSubmission"
-                  }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/{evaluationId}/target/{taskId}" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        "operationId" : "getApiV2EvaluationByEvaluationIdTargetByTaskId",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "taskId",
-          "in" : "path",
-          "description" : "The task ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiTargetContent"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/{evaluationId}/task" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns the information for the currently active task template (i.e., the one that is currently selected).",
-        "operationId" : "getApiV2EvaluationByEvaluationIdTask",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/{evaluationId}/task/{taskId}/submission/list" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-        "operationId" : "getApiV2EvaluationByEvaluationIdTaskByTaskIdSubmissionList",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "taskId",
-          "in" : "path",
-          "description" : "Task ID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiSubmission"
-                  }
                 }
               }
             }
@@ -1133,145 +650,6 @@
         "security" : [ ]
       }
     },
-    "/api/v2/preview/{mediaItemId}/{start}/{end}" : {
-      "get" : {
-        "tags" : [ "Media" ],
-        "summary" : "Returns a preview video from a media item. ",
-        "operationId" : "getApiV2PreviewByMediaItemIdByStartByEnd",
-        "parameters" : [ {
-          "name" : "mediaItemId",
-          "in" : "path",
-          "description" : "Unique ID of the media item. Must be a video.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "start",
-          "in" : "path",
-          "description" : "Start timestamp into the video in milliseconds.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        }, {
-          "name" : "end",
-          "in" : "path",
-          "description" : "End timestamp into the video in milliseconds.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "video/mp4" : { }
-            }
-          },
-          "202" : {
-            "description" : "Accepted"
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "404" : {
-            "description" : "Not Found"
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/preview/{mediaItemId}/{timestamp}" : {
-      "get" : {
-        "tags" : [ "Media" ],
-        "summary" : "Returns a preview image from a media item.",
-        "operationId" : "getApiV2PreviewByMediaItemIdByTimestamp",
-        "parameters" : [ {
-          "name" : "mediaItemId",
-          "in" : "path",
-          "description" : "Unique ID of the media item.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "timestamp",
-          "in" : "path",
-          "description" : "Time into the video in milliseconds (for videos only).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "image/jpeg" : { }
-            }
-          },
-          "202" : {
-            "description" : "Accepted"
-          },
-          "400" : {
-            "description" : "Bad Request"
-          },
-          "404" : {
-            "description" : "Not Found"
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/status/info" : {
-      "get" : {
-        "tags" : [ "Status" ],
-        "summary" : "Returns an overview of the server properties.",
-        "operationId" : "getApiV2StatusInfo",
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/DresInfo"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
     "/api/v2/status/time" : {
       "get" : {
         "tags" : [ "Status" ],
@@ -1396,7 +774,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/UserRequest"
+                "$ref" : "#/components/schemas/ApiUserRequest"
               }
             }
           },
@@ -1580,7 +958,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/UserRequest"
+                "$ref" : "#/components/schemas/ApiUserRequest"
               }
             }
           },
@@ -1713,9 +1091,13 @@
           },
           "basePath" : {
             "type" : "string"
+          },
+          "itemCount" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         },
-        "required" : [ "name" ]
+        "required" : [ "name", "itemCount" ]
       },
       "ApiMediaItem" : {
         "type" : "object",
@@ -1826,17 +1208,17 @@
           "name" : {
             "type" : "string"
           },
-          "templateId" : {
-            "type" : "string"
-          },
-          "templateDescription" : {
-            "type" : "string"
-          },
           "type" : {
             "$ref" : "#/components/schemas/ApiEvaluationType"
           },
           "properties" : {
             "$ref" : "#/components/schemas/RunProperties"
+          },
+          "templateId" : {
+            "type" : "string"
+          },
+          "templateDescription" : {
+            "type" : "string"
           },
           "teams" : {
             "type" : "array",
@@ -1844,14 +1226,14 @@
               "$ref" : "#/components/schemas/ApiTeamInfo"
             }
           },
-          "tasks" : {
+          "taskTemplates" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
             }
           }
         },
-        "required" : [ "id", "name", "templateId", "type", "properties", "teams", "tasks" ]
+        "required" : [ "id", "name", "type", "properties", "templateId", "teams", "taskTemplates" ]
       },
       "ApiEvaluationOverview" : {
         "type" : "object",
@@ -1879,11 +1261,14 @@
           "evaluationStatus" : {
             "$ref" : "#/components/schemas/ApiEvaluationStatus"
           },
+          "taskId" : {
+            "type" : "string"
+          },
           "taskStatus" : {
             "$ref" : "#/components/schemas/ApiTaskStatus"
           },
-          "currentTemplate" : {
-            "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
+          "taskTemplateId" : {
+            "type" : "string"
           },
           "timeLeft" : {
             "type" : "integer",
@@ -2718,12 +2103,9 @@
           },
           "comment" : {
             "type" : "string"
-          },
-          "templateId" : {
-            "type" : "string"
           }
         },
-        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints", "comment", "templateId" ]
+        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints", "comment" ]
       },
       "ApiTaskType" : {
         "type" : "object",
@@ -2865,7 +2247,7 @@
           }
         }
       },
-      "UserRequest" : {
+      "ApiUserRequest" : {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {

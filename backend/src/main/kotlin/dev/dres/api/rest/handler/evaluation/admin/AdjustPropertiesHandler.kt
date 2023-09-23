@@ -5,16 +5,15 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.run.DbEvaluation
-import dev.dres.data.model.run.RunProperties
+import dev.dres.data.model.run.ApiRunProperties
 import dev.dres.utilities.extensions.evaluationId
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A [PatchRestHandler] handler to adjust an ongoing [DbEvaluation]'s [RunProperties].
+ * A [PatchRestHandler] handler to adjust an ongoing [DbEvaluation]'s [ApiRunProperties].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
@@ -32,7 +31,7 @@ class AdjustPropertiesHandler : AbstractEvaluationAdminHandler(), PatchRestHandl
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID", required = true, allowEmptyValue = false),
         ],
-        requestBody = OpenApiRequestBody([OpenApiContent(RunProperties::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiRunProperties::class)]),
         tags = ["Evaluation Administrator"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -43,7 +42,7 @@ class AdjustPropertiesHandler : AbstractEvaluationAdminHandler(), PatchRestHandl
     )
     override fun doPatch(ctx: Context): SuccessStatus {
         val properties = try {
-            ctx.bodyAsClass<RunProperties>()
+            ctx.bodyAsClass<ApiRunProperties>()
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

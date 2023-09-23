@@ -31,24 +31,14 @@ class ClientListEvaluationsHandler : AbstractEvaluationClientHandler(), GetRestH
             OpenApiResponse("200", [OpenApiContent(Array<ApiEvaluationInfo>::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
         ],
+        queryParams = [
+            OpenApiParam("session", String::class, "Session Token")
+        ],
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<ApiEvaluationInfo> {
         return getRelevantManagers(ctx).map {
-            ApiEvaluationInfo(
-                id = it.evaluation.id,
-                name = it.name,
-                when (it) {
-                    is InteractiveAsynchronousRunManager -> ApiEvaluationType.ASYNCHRONOUS
-                    is InteractiveSynchronousRunManager -> ApiEvaluationType.SYNCHRONOUS
-                    else -> TODO()
-                },
-                properties = it.runProperties,
-                templateId = it.template.id,
-                templateDescription = it.template.description,
-                teams = emptyList(),
-                taskTemplates = emptyList()
-            )
+            ApiEvaluationInfo(it)
         }
     }
 }

@@ -47,9 +47,12 @@ class SubmissionHandler(private val store: TransientEntityStore): PostRestHandle
         path = "/api/v2/submit/{evaluationId}",
         methods = [HttpMethod.POST],
         operationId = OpenApiOperation.AUTO_GENERATE,
-        requestBody = OpenApiRequestBody([OpenApiContent(ApiClientSubmission::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiClientSubmission::class)], required = true),
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The ID of the evaluation the submission belongs to.", required = true),
+        ],
+        queryParams = [
+            OpenApiParam("session", String::class, "Session Token")
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessfulSubmissionsStatus::class)], description = "The submission was accepted by the server and there was a verdict"),

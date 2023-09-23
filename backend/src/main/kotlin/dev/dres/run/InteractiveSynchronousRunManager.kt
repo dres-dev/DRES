@@ -55,9 +55,9 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         private val LOGGER = LoggerFactory.getLogger(InteractiveSynchronousRunManager::class.java)
     }
 
-    /** Generates and returns [RunProperties] for this [InteractiveAsynchronousRunManager]. */
-    override val runProperties: RunProperties
-        get() = RunProperties(this.evaluation.participantCanView, false, this.evaluation.allowRepeatedTasks, this.evaluation.limitSubmissionPreviews)
+    /** Generates and returns [ApiRunProperties] for this [InteractiveAsynchronousRunManager]. */
+    override val runProperties: ApiRunProperties
+        get() = ApiRunProperties(this.evaluation.participantCanView, false, this.evaluation.allowRepeatedTasks, this.evaluation.limitSubmissionPreviews)
 
     /** [EvaluationId] of this [InteractiveSynchronousRunManager]. */
     override val id: EvaluationId
@@ -154,11 +154,11 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     /**
-     * Updates the [RunProperties] for the [InteractiveSynchronousEvaluation] backing this [InteractiveSynchronousRunManager].
+     * Updates the [ApiRunProperties] for the [InteractiveSynchronousEvaluation] backing this [InteractiveSynchronousRunManager].
      *
-     * @param properties The set of new [RunProperties]
+     * @param properties The set of new [ApiRunProperties]
      */
-    override fun updateProperties(properties: RunProperties) {
+    override fun updateProperties(properties: ApiRunProperties) {
         store.transactional {
             this.evaluation.allowRepeatedTasks = properties.allowRepeatedTasks
             this.evaluation.limitSubmissionPreviews = properties.limitSubmissionPreviews

@@ -1,9 +1,11 @@
 package dev.dres.api.rest.types.evaluation.submission
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.MediaItemId
 import dev.dres.data.model.submissions.DbAnswer
 import dev.dres.data.model.submissions.DbAnswerType
+import io.javalin.openapi.OpenApiIgnore
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.singleOrNull
 
@@ -20,6 +22,8 @@ data class ApiClientAnswer(
     val text: String? = null,
 
     /** The [MediaItemId] associated with the [ApiClientAnswer]. Is usually added as contextual information by the receiving endpoint. */
+    @JsonIgnore
+    @get:OpenApiIgnore
     val mediaItemId: MediaItemId? = null,
 
     /** The name of the media item that is part of the answer. */
@@ -65,7 +69,7 @@ data class ApiClientAnswer(
      *
      * @return The [DbAnswerType] for this [ApiClientAnswer].
      */
-    fun tryDetermineType() = when {
+    private fun tryDetermineType() = when {
         this.mediaItemName != null && this.start != null && this.end != null -> DbAnswerType.TEMPORAL
         this.mediaItemName != null  -> DbAnswerType.ITEM
         this.text != null  -> DbAnswerType.TEXT

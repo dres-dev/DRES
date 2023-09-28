@@ -35,9 +35,14 @@ class ClientOpenApiPlugin : OpenApiPlugin(OpenApiPluginConfiguration()
                 "/evaluation/template",
                 "/evaluation/{evaluationId}/judge",
                 "/evaluation/{evaluationId}/vote",
+                "/evaluation/{evaluationId}/submission",
+                "/evaluation/{evaluationId}/task",
+                "/evaluation/{evaluationId}/{taskId}",
                 "/download",
                 "/mediaitem",
-                "/template"
+                "/template",
+                "/preview",
+                "/status/info"
             )
 
             val relevantRoutes =

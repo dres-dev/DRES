@@ -3,7 +3,6 @@ package dev.dres.run
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
-import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
@@ -54,7 +53,7 @@ interface RunManager : Runnable {
     val judgementValidators: List<JudgementValidator>
 
     /** [JudgementValidator]s for all tasks that use them */
-    val runProperties: RunProperties
+    val runProperties: ApiRunProperties
 
     /** The [TransientEntityStore] that backs this [InteractiveRunManager]. */
     val store: TransientEntityStore
@@ -84,11 +83,11 @@ interface RunManager : Runnable {
     fun end(context: RunActionContext)
 
     /**
-     * Updates the [RunProperties] for this [RunManager].
+     * Updates the [ApiRunProperties] for this [RunManager].
      *
-     * @param properties The new [RunProperties]
+     * @param properties The new [ApiRunProperties]
      */
-    fun updateProperties(properties: RunProperties)
+    fun updateProperties(properties: ApiRunProperties)
 
     /**
      * Returns the number of [DbTask]s held by this [RunManager].

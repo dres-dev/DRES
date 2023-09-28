@@ -63,9 +63,9 @@ class InteractiveAsynchronousRunManager(
         private val LOGGER = LoggerFactory.getLogger(InteractiveAsynchronousRunManager::class.java)
     }
 
-    /** Generates and returns [RunProperties] for this [InteractiveAsynchronousRunManager]. */
-    override val runProperties: RunProperties
-        get() = RunProperties(
+    /** Generates and returns [ApiRunProperties] for this [InteractiveAsynchronousRunManager]. */
+    override val runProperties: ApiRunProperties
+        get() = ApiRunProperties(
             this.evaluation.participantCanView,
             false,
             this.evaluation.allowRepeatedTasks,
@@ -200,7 +200,7 @@ class InteractiveAsynchronousRunManager(
     /**
      *
      */
-    override fun updateProperties(properties: RunProperties) {
+    override fun updateProperties(properties: ApiRunProperties) {
         TODO("Not yet implemented")
     }
 

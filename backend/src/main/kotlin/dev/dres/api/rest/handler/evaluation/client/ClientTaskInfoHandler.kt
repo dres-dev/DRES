@@ -32,6 +32,9 @@ class ClientTaskInfoHandler : AbstractEvaluationClientHandler(),
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)
         ],
+        queryParams = [
+            OpenApiParam("session", String::class, "Session Token")
+        ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiTaskTemplateInfo::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),

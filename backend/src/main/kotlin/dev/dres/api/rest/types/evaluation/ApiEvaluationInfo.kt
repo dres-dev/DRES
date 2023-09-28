@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.evaluation
 
-import dev.dres.data.model.run.RunProperties
+import dev.dres.data.model.run.ApiRunProperties
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.NonInteractiveRunManager
@@ -18,7 +18,8 @@ data class ApiEvaluationInfo(
     val id: String,
     val name: String,
     val type: ApiEvaluationType,
-    val properties: RunProperties, // FIXME non-api type exposed via
+    val status: ApiEvaluationStatus,
+    val properties: ApiRunProperties,
     val templateId: String,
     val templateDescription: String?,
     val teams: List<ApiTeamInfo>,
@@ -33,6 +34,7 @@ data class ApiEvaluationInfo(
             is NonInteractiveRunManager -> ApiEvaluationType.NON_INTERACTIVE
             else -> throw IllegalStateException("Incompatible type of run manager.")
         },
+        manager.status.toApi(),
         manager.runProperties,
         manager.template.id,
         manager.template.description,

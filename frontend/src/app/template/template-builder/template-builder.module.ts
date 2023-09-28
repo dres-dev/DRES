@@ -19,6 +19,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { TemplateImportTreeComponent } from './components/template-import-tree/template-import-tree.component';
 import { MatTreeModule } from "@angular/material/tree";
 import { MatCheckboxModule } from "@angular/material/checkbox";
+import { TemplateImportDialogComponent } from './components/template-import-dialog/template-import-dialog.component';
 
 
 @NgModule({
@@ -26,7 +27,8 @@ import { MatCheckboxModule } from "@angular/material/checkbox";
     TemplateBuilderComponent,
     TeamgroupsListComponent,
     TeamgroupsDialogComponent,
-    TemplateImportTreeComponent
+    TemplateImportTreeComponent,
+    TemplateImportDialogComponent
 
   ],
   imports: [

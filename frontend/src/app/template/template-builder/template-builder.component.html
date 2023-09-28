@@ -29,6 +29,17 @@
                 [inline]="true"
                 matTooltip="Download the entire evaluation template as JSON"></app-download-button>
     </div>
+    <div>
+        <app-upload-json-button [name]="''" [multi]="false" [handler]="onUpload" [inline]="true" matTooltip="Upload an evaluation template as JSON to import from"></app-upload-json-button>
+    </div>
+    <div>
+        <button mat-icon-button
+                aria-label="Import from other evaluation templates"
+                matTooltip="Import from other evaluation templates"
+                (click)="import()">
+            <mat-icon>file_upload</mat-icon>
+        </button>
+    </div>
 </div>
 <div>
     <mat-tab-group animationDuration="1ms" dynamicHeight>

@@ -1,14 +1,28 @@
 import { Component, HostListener, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import {AbstractTemplateBuilderComponent} from './components/abstract-template-builder.component';
-import {DeactivationGuarded} from '../../services/can-deactivate.guard';
-import {Observable, Subscription} from 'rxjs';
-import { ApiTaskGroup, ApiTaskTemplate, ApiTaskType, DownloadService, TemplateService, UserService } from "../../../../openapi";
-import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {TemplateBuilderService} from './template-builder.service';
-import {take} from 'rxjs/operators';
+import { AbstractTemplateBuilderComponent } from "./components/abstract-template-builder.component";
+import { DeactivationGuarded } from "../../services/can-deactivate.guard";
+import { forkJoin, Observable, Subscription } from "rxjs";
+import {
+  ApiEvaluationTemplate, ApiEvaluationTemplateOverview,
+  ApiTaskGroup,
+  ApiTaskTemplate,
+  ApiTaskType,
+  DownloadService,
+  TemplateService,
+  UserService
+} from "../../../../openapi";
+import { ActivatedRoute, Router, RouterStateSnapshot } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { TemplateBuilderService } from "./template-builder.service";
+import { map, switchMap, take } from "rxjs/operators";
 import { TaskTemplateEditorLauncher } from "./components/tasks-list/task-templates-list.component";
 import { TaskTemplateEditorComponent } from "./components/task-template-editor/task-template-editor.component";
+import { MatDialog } from "@angular/material/dialog";
+import {
+  TemplateImportDialogComponent,
+  TemplateImportDialogData
+} from "./components/template-import-dialog/template-import-dialog.component";
+import { TemplateImportTreeBranch } from "./components/template-import-tree/template-import-tree.component";
 
 @Component({
   selector: 'app-template-builder',
@@ -32,6 +46,7 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
       private downloadService: DownloadService,
       route: ActivatedRoute,
       private router: Router,
+      private dialg: MatDialog,
       snackBar: MatSnackBar,
       public builderService: TemplateBuilderService
 ) {
@@ -69,6 +84,33 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
     if(this.builderService.hasTemplate()){
       return this.downloadService.getApiV2DownloadTemplateByTemplateId(this.builderService.getTemplate()?.id).pipe(take(1));
     }
+  }
+
+  public onUpload(contents: string){
+    console.log("Uploaded "+contents.length+" characters")
+  }
+
+  public import(){
+    console.log("Import open")
+    let templateList : Observable<ApiEvaluationTemplate[]>;
+    templateList = this.templateService.getApiV2TemplateList().pipe(
+      map(overviews => overviews.map(o => this.templateService.getApiV2TemplateByTemplateId(o.id))),
+      switchMap(templateList => forkJoin(...templateList))
+    );
+    templateList.subscribe(templates => {
+      console.log("Templates ", templates)
+      const ownIdx = templates.indexOf(this.builderService.getTemplate())
+      templates.splice(ownIdx,1)
+      const dialogref = this.dialg.open(TemplateImportDialogComponent, {width: '800px', data: {templates: templates, branches: TemplateImportTreeBranch.ALL} as TemplateImportDialogData})
+      dialogref.afterClosed().subscribe( d => {
+        this.onImport(d)
+      })
+    })
+
+  }
+
+  public onImport(templateToImportFrom: ApiEvaluationTemplate){
+    console.log("Importing...", templateToImportFrom)
   }
 
   public save(){

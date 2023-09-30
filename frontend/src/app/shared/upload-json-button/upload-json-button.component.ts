@@ -7,6 +7,8 @@ import { MatButton } from '@angular/material/button';
   styleUrls: ['./upload-json-button.component.scss'],
 })
 export class UploadJsonButtonComponent {
+
+  @Input() inline = false;
   /** The display name for the button. Defaults to 'Upload' */
   @Input() name = 'Upload';
   /** If multi-select files are enabled. Defaults to false (only single file) */

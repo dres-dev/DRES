@@ -17,6 +17,9 @@ import { TeamgroupsDialogComponent } from './components/teamgroups-dialog/teamgr
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatChipsModule } from "@angular/material/chips";
 import { TemplateImportTreeComponent } from './components/template-import-tree/template-import-tree.component';
+import { MatTreeModule } from "@angular/material/tree";
+import { MatCheckboxModule } from "@angular/material/checkbox";
+import { TemplateImportDialogComponent } from './components/template-import-dialog/template-import-dialog.component';
 
 
 @NgModule({
@@ -24,7 +27,8 @@ import { TemplateImportTreeComponent } from './components/template-import-tree/t
     TemplateBuilderComponent,
     TeamgroupsListComponent,
     TeamgroupsDialogComponent,
-    TemplateImportTreeComponent
+    TemplateImportTreeComponent,
+    TemplateImportDialogComponent
 
   ],
   imports: [
@@ -41,7 +45,9 @@ import { TemplateImportTreeComponent } from './components/template-import-tree/t
     TemplateBuilderComponentsModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    MatChipsModule
+    MatChipsModule,
+    MatTreeModule,
+    MatCheckboxModule
   ],
   exports: [TemplateBuilderComponent]
 })

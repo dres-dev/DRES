@@ -205,9 +205,12 @@ class MediaCollectionCommand(private val config: Config) :
         ).flag(default = false)
 
         override fun run() {
-            println("Available media collections ${DbMediaCollection.all().size()}")
+
+            val collections = MediaCollectionManager.getCollections()
+
+            println("Available media collections ${collections.size}")
             if (this.plain) {
-                MediaCollectionManager.getCollections().forEach(::println)
+                collections.forEach(::println)
             } else {
                 println(
                     table {

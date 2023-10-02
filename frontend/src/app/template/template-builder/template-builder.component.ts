@@ -111,6 +111,7 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
 
   public onImport(templateToImportFrom: ApiEvaluationTemplate){
     console.log("Importing...", templateToImportFrom)
+    this.builderService.importFrom(templateToImportFrom);
   }
 
   public save(){

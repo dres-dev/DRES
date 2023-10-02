@@ -262,4 +262,44 @@ export class TemplateBuilderService {
     return result;
   }
 
+  importFrom(from: ApiEvaluationTemplate) {
+
+    /* types */
+    from.taskTypes.forEach(it => {
+      if(!this.getTemplate().taskTypes.includes(it)){
+        this.getTemplate().taskTypes.push(it)
+      }
+    })
+    /* task groups */
+    from.taskGroups.forEach(it => {
+      if(!this.getTemplate().taskGroups.includes(it)){
+        this.getTemplate().taskGroups.push(it)
+      }
+    })
+    /* tasks */
+    from.tasks.forEach(it => {
+      if(!this.getTemplate().tasks.includes(it)){
+        this.getTemplate().tasks.push(it)
+      }
+    })
+    /* teams */
+    from.teams.forEach(it => {
+      if(!this.getTemplate().teams.includes(it)){
+        this.getTemplate().teams.push(it)
+      }
+    })
+    /* team groups */
+    from.teamGroups.forEach(it => {
+      if(!this.getTemplate().teamGroups.includes(it)){
+        this.getTemplate().teamGroups.push(it)
+      }
+    })
+    /* judges */
+    from.judges.forEach(it => {
+      if(!this.getTemplate().judges.includes(it)){
+        this.getTemplate().judges.push(it)
+      }
+    })
+    this.update(this.getTemplate());
+  }
 }

@@ -4,7 +4,7 @@ import { TemplateBuilderService } from "../../template-builder.service";
 import { MatDialog } from "@angular/material/dialog";
 import { ApiTaskType, TemplateService } from "../../../../../../openapi";
 import { Observable } from "rxjs";
-import { filter, map, shareReplay } from "rxjs/operators";
+import { filter, map, shareReplay, tap } from "rxjs/operators";
 import {
   CompetitionBuilderTaskTypeDialogComponent
 } from "../../../../competition/competition-builder/competition-builder-task-type-dialog/competition-builder-task-type-dialog.component";
@@ -74,7 +74,7 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
       } else {
         return [];
       }
-    }));
+    }), tap((t) => this.table?.renderRows()));
   }
 
 

@@ -173,6 +173,16 @@
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "200" : {
@@ -215,7 +225,17 @@
         "tags" : [ "Evaluation Client" ],
         "summary" : "Lists an overview of all evaluation runs visible to the current client.",
         "operationId" : "getApiV2ClientEvaluationList",
-        "parameters" : [ ],
+        "parameters" : [ {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -246,10 +266,10 @@
       }
     },
     "/api/v2/collection" : {
-      "patch" : {
+      "post" : {
         "tags" : [ "Collection" ],
-        "summary" : "Updates a media collection",
-        "operationId" : "patchApiV2Collection",
+        "summary" : "Adds a new media collection.",
+        "operationId" : "postApiV2Collection",
         "parameters" : [ ],
         "requestBody" : {
           "content" : {
@@ -296,10 +316,10 @@
         "deprecated" : false,
         "security" : [ ]
       },
-      "post" : {
+      "patch" : {
         "tags" : [ "Collection" ],
-        "summary" : "Adds a new media collection.",
-        "operationId" : "postApiV2Collection",
+        "summary" : "Updates a media collection",
+        "operationId" : "patchApiV2Collection",
         "parameters" : [ ],
         "requestBody" : {
           "content" : {
@@ -383,56 +403,6 @@
       }
     },
     "/api/v2/collection/{collectionId}" : {
-      "get" : {
-        "tags" : [ "Collection" ],
-        "summary" : "Shows the content of the specified media collection.",
-        "operationId" : "getApiV2CollectionByCollectionId",
-        "parameters" : [ {
-          "name" : "collectionId",
-          "in" : "path",
-          "description" : "Collection ID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiPopulatedMediaCollection"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
       "delete" : {
         "tags" : [ "Collection" ],
         "summary" : "Deletes a media collection identified by a collection id.",
@@ -471,6 +441,56 @@
           },
           "401" : {
             "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Shows the content of the specified media collection.",
+        "operationId" : "getApiV2CollectionByCollectionId",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiPopulatedMediaCollection"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -1174,7 +1194,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/RunProperties"
+                "$ref" : "#/components/schemas/ApiRunProperties"
               }
             }
           },
@@ -3692,6 +3712,43 @@
         "security" : [ ]
       }
     },
+    "/api/v2/preview/{mediaItemId}" : {
+      "get" : {
+        "tags" : [ "Media" ],
+        "summary" : "Returns a preview image from a media item.",
+        "operationId" : "getApiV2PreviewByMediaItemId",
+        "parameters" : [ {
+          "name" : "mediaItemId",
+          "in" : "path",
+          "description" : "Unique ID of the media item.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "image/jpeg" : { }
+            }
+          },
+          "202" : {
+            "description" : "Accepted"
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/preview/{mediaItemId}/{start}/{end}" : {
       "get" : {
         "tags" : [ "Media" ],
@@ -3770,7 +3827,7 @@
           "name" : "timestamp",
           "in" : "path",
           "description" : "Time into the video in milliseconds (for videos only).",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -4197,6 +4254,16 @@
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "requestBody" : {
           "content" : {
@@ -4206,7 +4273,7 @@
               }
             }
           },
-          "required" : false
+          "required" : true
         },
         "responses" : {
           "200" : {
@@ -4616,10 +4683,10 @@
       }
     },
     "/api/v2/template/{templateId}" : {
-      "get" : {
+      "delete" : {
         "tags" : [ "Template" ],
-        "summary" : "Loads the detailed definition of a specific evaluation template.",
-        "operationId" : "getApiV2TemplateByTemplateId",
+        "summary" : "Deletes the evaluation template with the given template ID.",
+        "operationId" : "deleteApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -4637,7 +4704,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
+                  "$ref" : "#/components/schemas/SuccessStatus"
                 }
               }
             }
@@ -4676,10 +4743,10 @@
         "deprecated" : false,
         "security" : [ ]
       },
-      "delete" : {
+      "get" : {
         "tags" : [ "Template" ],
-        "summary" : "Deletes the evaluation template with the given template ID.",
-        "operationId" : "deleteApiV2TemplateByTemplateId",
+        "summary" : "Loads the detailed definition of a specific evaluation template.",
+        "operationId" : "getApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -4697,7 +4764,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
+                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
                 }
               }
             }
@@ -5020,36 +5087,6 @@
       }
     },
     "/api/v2/user" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Get information about the current user.",
-        "operationId" : "getApiV2User",
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
       "post" : {
         "tags" : [ "User" ],
         "summary" : "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
@@ -5082,6 +5119,36 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get information about the current user.",
+        "operationId" : "getApiV2User",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
                 }
               }
             }
@@ -5254,56 +5321,6 @@
         "deprecated" : false,
         "security" : [ ]
       },
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Gets details of the user with the given id.",
-        "operationId" : "getApiV2UserByUserId",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User's UID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found.",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
       "patch" : {
         "tags" : [ "User" ],
         "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
@@ -5352,6 +5369,56 @@
           },
           "404" : {
             "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Gets details of the user with the given id.",
+        "operationId" : "getApiV2UserByUserId",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User's UID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "If the user could not be found.",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -5526,8 +5593,11 @@
           "type" : {
             "$ref" : "#/components/schemas/ApiEvaluationType"
           },
+          "status" : {
+            "$ref" : "#/components/schemas/ApiEvaluationStatus"
+          },
           "properties" : {
-            "$ref" : "#/components/schemas/RunProperties"
+            "$ref" : "#/components/schemas/ApiRunProperties"
           },
           "templateId" : {
             "type" : "string"
@@ -5548,7 +5618,7 @@
             }
           }
         },
-        "required" : [ "id", "name", "type", "properties", "templateId", "teams", "taskTemplates" ]
+        "required" : [ "id", "name", "type", "status", "properties", "templateId", "teams", "taskTemplates" ]
       },
       "ApiEvaluationOverview" : {
         "type" : "object",
@@ -5889,9 +5959,6 @@
           "text" : {
             "type" : "string"
           },
-          "mediaItemId" : {
-            "type" : "string"
-          },
           "mediaItemName" : {
             "type" : "string"
           },
@@ -6187,7 +6254,7 @@
             "$ref" : "#/components/schemas/ApiEvaluationType"
           },
           "properties" : {
-            "$ref" : "#/components/schemas/RunProperties"
+            "$ref" : "#/components/schemas/ApiRunProperties"
           }
         },
         "required" : [ "templateId", "name", "type", "properties" ]
@@ -6372,6 +6439,9 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
+          "id" : {
+            "type" : "string"
+          },
           "name" : {
             "type" : "string"
           },
@@ -6426,6 +6496,9 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
+          "id" : {
+            "type" : "string"
+          },
           "name" : {
             "type" : "string"
           },
@@ -6615,13 +6688,9 @@
             "items" : {
               "$ref" : "#/components/schemas/QueryEvent"
             }
-          },
-          "serverTimeStamp$backend" : {
-            "type" : "integer",
-            "format" : "int64"
           }
         },
-        "required" : [ "timestamp", "events", "serverTimeStamp$backend" ]
+        "required" : [ "timestamp", "events" ]
       },
       "QueryResult" : {
         "type" : "object",
@@ -6674,13 +6743,9 @@
             "items" : {
               "$ref" : "#/components/schemas/QueryEvent"
             }
-          },
-          "serverTimeStamp$backend" : {
-            "type" : "integer",
-            "format" : "int64"
           }
         },
-        "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events", "serverTimeStamp$backend" ]
+        "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events" ]
       },
       "TemporalPoint" : {
         "type" : "object",
@@ -6704,7 +6769,7 @@
         },
         "required" : [ "start", "end", "center" ]
       },
-      "RunProperties" : {
+      "ApiRunProperties" : {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {

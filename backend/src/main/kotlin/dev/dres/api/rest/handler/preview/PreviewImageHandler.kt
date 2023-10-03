@@ -13,8 +13,10 @@ import kotlinx.dnq.query.query
 /**
  * A general purpose, [AbstractPreviewHandler] that handles image previews for different [DbMediaItem].
  *
- * @author Ralph Gasser
- * @version 1.0.0
+ * [PreviewImageHandler] vs [PreviewImageTimelessHandler]: Optional path parameters are not allowed in OpenApi.
+ *
+ * @author Ralph Gasser and Loris Sauter
+ * @version 1.1.0
  */
 class PreviewImageHandler(store: TransientEntityStore, cache: CacheManager) : AbstractPreviewHandler(store, cache) {
 
@@ -25,7 +27,7 @@ class PreviewImageHandler(store: TransientEntityStore, cache: CacheManager) : Ab
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
             OpenApiParam("mediaItemId", String::class, "Unique ID of the media item.", required = true, allowEmptyValue = false),
-            OpenApiParam("timestamp", Long::class, "Time into the video in milliseconds (for videos only).", required = false, allowEmptyValue = false)
+            OpenApiParam("timestamp", Long::class, "Time into the video in milliseconds (for videos only).", required = true, allowEmptyValue = false)
         ],
         tags = ["Media"],
         responses = [

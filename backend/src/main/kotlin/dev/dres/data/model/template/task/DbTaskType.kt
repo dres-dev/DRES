@@ -56,6 +56,7 @@ class DbTaskType(entity: Entity) : XdEntity(entity) {
      * @return [ApiTaskType]
      */
     fun toApi(): ApiTaskType = ApiTaskType(
+        id=this.xdId,
         name = this.name,
         duration = this.duration,
         targetOption = this.target.toApi(),

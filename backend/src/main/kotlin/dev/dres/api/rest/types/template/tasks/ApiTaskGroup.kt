@@ -8,4 +8,4 @@ import dev.dres.data.model.template.task.DbTaskGroup
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class ApiTaskGroup(val name: String, val type: String)
+data class ApiTaskGroup(val id: String?,val name: String, val type: String)

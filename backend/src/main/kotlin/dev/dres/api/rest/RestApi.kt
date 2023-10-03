@@ -18,11 +18,8 @@ import dev.dres.api.rest.handler.evaluation.viewer.*
 import dev.dres.api.rest.handler.judgement.*
 import dev.dres.api.rest.handler.log.QueryLogHandler
 import dev.dres.api.rest.handler.log.ResultLogHandler
-import dev.dres.api.rest.handler.preview.GetExternalMediaHandler
+import dev.dres.api.rest.handler.preview.*
 import dev.dres.api.rest.handler.template.*
-import dev.dres.api.rest.handler.preview.GetMediaHandler
-import dev.dres.api.rest.handler.preview.PreviewImageHandler
-import dev.dres.api.rest.handler.preview.PreviewVideoHandler
 import dev.dres.api.rest.handler.scores.ListEvaluationScoreHandler
 import dev.dres.api.rest.handler.submission.LegacySubmissionHandler
 import dev.dres.api.rest.handler.submission.SubmissionHandler
@@ -104,7 +101,8 @@ object RestApi {
             UserDetailsHandler(),
 
             // Media
-            PreviewImageHandler(store, cache),
+            PreviewImageHandler(store, cache), /* [PreviewImageHandler] vs [PreviewImageTimelessHandler]: Optional path parameters are not allowed in OpenApi. [PreviewImageHandler] has timestamp as path parameter and must be initialised first */
+            PreviewImageTimelessHandler(store,cache), /* [PreviewImageHandler] vs [PreviewImageTimelessHandler]: Optional path parameters are not allowed in OpenApi */
             PreviewVideoHandler(store, cache),
             GetExternalMediaHandler(), // Must be registered before GetMediaHandler, as route is similar
             GetMediaHandler(store),

@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.template
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.dres.DRES
 import dev.dres.api.rest.handler.AccessManagedRestHandler
@@ -69,7 +70,7 @@ class ListTaskTypePresetsHandler : AccessManagedRestHandler, GetRestHandler<List
 
             LOGGER.trace("Internal preset files (jar) resources: {}", list2.toString())
 
-            list2.map{ ObjectMapper().readValue(it, ApiTaskType::class.java) }
+            list2.map{ ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false).readValue(it, ApiTaskType::class.java) }
             }catch(e: Exception){
                 LOGGER.error("Error upon loading internal presets.", e)
                 LOGGER.warn("An error occurred during loading of internal task type presets. Only external ones are available. Check logs accordingly.")

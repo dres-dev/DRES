@@ -37,5 +37,5 @@ class DbTaskGroup(entity: Entity) : XdEntity(entity) {
      *
      * @return [ApiTargetType]
      */
-    fun toApi(): ApiTaskGroup = ApiTaskGroup(this.name,this.type.name)
+    fun toApi(): ApiTaskGroup = ApiTaskGroup(this.xdId,this.name,this.type.name)
 }

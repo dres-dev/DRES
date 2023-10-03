@@ -1607,9 +1607,6 @@
           "text" : {
             "type" : "string"
           },
-          "mediaItemId" : {
-            "type" : "string"
-          },
           "mediaItemName" : {
             "type" : "string"
           },
@@ -2090,6 +2087,9 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
+          "id" : {
+            "type" : "string"
+          },
           "name" : {
             "type" : "string"
           },
@@ -2144,6 +2144,9 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
+          "id" : {
+            "type" : "string"
+          },
           "name" : {
             "type" : "string"
           },

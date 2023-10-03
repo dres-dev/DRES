@@ -1,5 +1,7 @@
 package dev.dres.api.rest.types.template.tasks
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.dres.api.rest.types.template.tasks.options.*
 import dev.dres.data.model.template.task.DbTaskType
@@ -15,6 +17,7 @@ import java.nio.file.StandardOpenOption
  * @version 1.1.0
  */
 data class ApiTaskType(
+    val id: String?,
     val name: String,
     val duration: Long,
     val targetOption: ApiTargetOption,
@@ -25,8 +28,8 @@ data class ApiTaskType(
     val configuration: Map<String, String>
 ) {
 
-    constructor() : this("Default TaskType DO NOT USE!",
-    300,
+    constructor() : this("---NO_ID---","---Default TaskType DO NOT USE!---",
+    1,
         ApiTargetOption.TEXT, listOf(ApiHintOption.TEXT),
         listOf(ApiSubmissionOption.TEXTUAL_SUBMISSION),
         listOf(ApiTaskOption.HIDDEN_RESULTS), ApiScoreOption.KIS, mapOf()
@@ -40,7 +43,7 @@ data class ApiTaskType(
          */
         fun read(file: Path): ApiTaskType =
             Files.newInputStream(file, StandardOpenOption.READ).use {
-                ObjectMapper().readValue(it, ApiTaskType::class.java)
+                ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(it, ApiTaskType::class.java)
             }
     }
 }

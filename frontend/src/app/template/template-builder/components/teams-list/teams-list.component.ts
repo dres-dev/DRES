@@ -6,7 +6,7 @@ import { Observable } from "rxjs";
 import { TemplateBuilderService } from "../../template-builder.service";
 import { MatDialog } from "@angular/material/dialog";
 import { AppConfig } from "../../../../app.config";
-import { filter, map } from "rxjs/operators";
+import { filter, map, tap } from "rxjs/operators";
 import { TeamBuilderDialogComponent } from "../team-builder-dialog/team-builder-dialog.component";
 import { ActivatedRoute } from "@angular/router";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -48,7 +48,8 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
         } else {
           return [];
         }
-      })
+      }),
+      tap(_ => this.teamTable?.renderRows())
     );
   }
 

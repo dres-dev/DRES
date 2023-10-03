@@ -3,7 +3,7 @@ import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.c
 import { TemplateBuilderService } from "../../template-builder.service";
 import { ApiTaskType, ApiTeam, ApiTeamGroup, TemplateService } from "../../../../../../openapi";
 import { Observable } from "rxjs";
-import { filter, map } from "rxjs/operators";
+import { filter, map, tap } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import {
   ActionableDynamicTable,
@@ -60,7 +60,8 @@ export class TeamgroupsListComponent extends AbstractTemplateBuilderComponent im
         }else{
           return [];
         }
-      })
+      }),
+      tap((_ => this.table?.renderRows()))
     );
   }
 

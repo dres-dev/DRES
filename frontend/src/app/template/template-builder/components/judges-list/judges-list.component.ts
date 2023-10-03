@@ -4,7 +4,7 @@ import { ApiRole, ApiUser, TemplateService, UserService } from "../../../../../.
 import {combineLatest, Observable} from 'rxjs';
 import {AbstractTemplateBuilderComponent} from '../abstract-template-builder.component';
 import {TemplateBuilderService} from '../../template-builder.service';
-import {filter, map, shareReplay, withLatestFrom} from 'rxjs/operators';
+import { filter, map, shareReplay, tap, withLatestFrom } from "rxjs/operators";
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import { ActivatedRoute } from "@angular/router";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -74,7 +74,8 @@ export class JudgesListComponent extends AbstractTemplateBuilderComponent implem
                 } else {
                     return [];
                 }
-            })
+            }),
+          tap(_ => this.judgesTable?.renderRows())
         );
     }
 

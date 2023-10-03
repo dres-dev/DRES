@@ -3,12 +3,12 @@ import { map, take } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
+  ApiRunProperties,
   ApiTaskStatus, DownloadService,
   EvaluationAdministratorService,
   EvaluationScoresService,
-  EvaluationService, RunManagerStatus,
-  RunProperties
-} from '../../../openapi';
+  EvaluationService, RunManagerStatus
+} from "../../../openapi";
 
 export interface RunInfoWithState {
   id: string;
@@ -20,7 +20,7 @@ export interface RunInfoWithState {
   currentTask?: string;
   timeLeft: string;
   asynchronous: boolean;
-  runProperties: RunProperties;
+  runProperties: ApiRunProperties;
 }
 
 export class AbstractRunListComponent {

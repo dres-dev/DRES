@@ -3,7 +3,7 @@ import {
   ApiCreateEvaluation,
   ApiEvaluationOverview, ApiEvaluationStartMessage, ApiEvaluationTemplateOverview,
   DownloadService,
-  EvaluationAdministratorService, RunProperties, SuccessStatus,
+  EvaluationAdministratorService, ApiRunProperties, SuccessStatus,
   TemplateService
 } from "../../../../openapi";
 import { Router } from "@angular/router";
@@ -127,7 +127,7 @@ export class TemplateListComponent implements AfterViewInit{
             shuffleTasks: r.shuffleTasks,
             allowRepeatedTasks: r.allowRepeatedTasks,
             limitSubmissionPreviews: r.limit
-          } as RunProperties // TODO Rename in BE to ApiEvaluationProperties
+          } as ApiRunProperties
         } as ApiEvaluationStartMessage)
       })
     ).subscribe((r: SuccessStatus) => {

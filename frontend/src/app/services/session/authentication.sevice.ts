@@ -110,7 +110,8 @@ export class AuthenticationService {
           if (!role) {
             return this.router.parseUrl(`/login?returnUrl=${state.url}`)
           } else if (route.data.roles && route.data.roles.indexOf(role) === -1) {
-            return this.router.parseUrl('/forbidden');
+            //return this.router.parseUrl('/forbidden');
+            return this.router.parseUrl(`/login?returnUrl=${state.url}`)
           } else {
             return true;
           }

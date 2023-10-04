@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef} from '@angular/core';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ActivatedRoute, ActivationEnd, Params, Router } from "@angular/router";
 import {interval, merge, mergeMap, Observable, of, zip} from 'rxjs';
 import {
   catchError,
@@ -55,6 +55,8 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Observable of the {@link Widget} that should be displayed at the bottom. */
   bottomWidget: Observable<Widget>;
 
+  noUi: Observable<boolean>;
+
   /** Cached config */
   private p: any;
 
@@ -105,6 +107,13 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       map((a) => this.resolveWidgetFromParams(a, 'bottom')),
       shareReplay({ bufferSize: 1, refCount: true })
     );
+    this.noUi = this.activeRoute.paramMap.pipe(
+      map((a) => {
+        console.log("A", a);
+        const map = this.parseMatrixParams(a.get('runId'))
+        return Object.keys(map).includes("noUi") && map['noUi'] === "true"
+      })
+    )
 
     /* Basic observable for general run info; this information is static and does not change over the course of a run. */
     this.info = this.evaluationId.pipe(

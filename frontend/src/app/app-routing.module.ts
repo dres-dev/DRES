@@ -118,7 +118,7 @@ const routes: Routes = [
 
   /* Two important 'catch-all's. */
   { path: '', redirectTo: 'evaluation/list', pathMatch: 'full' },
-  { path: '**', component: NotFoundComponent }
+  { path: '**', component: NotFoundComponent, title: "404 - Not Found!" }
 ];
 
 @NgModule({

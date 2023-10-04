@@ -1,4 +1,4 @@
-<mat-toolbar color="primary">
+<mat-toolbar *ngIf="!(noUi | async)" color="primary">
   <button mat-flat-button color="primary" (click)="openInfoDialog()" matTooltip="Click for server information"><h2 style="margin: 0;">DRES</h2></button>
   <div class="spacer-small"></div>
   <app-api-status></app-api-status>

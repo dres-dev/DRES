@@ -6370,6 +6370,9 @@
           "mediaItem" : {
             "type" : "string"
           },
+          "mediaItemName" : {
+            "type" : "string"
+          },
           "range" : {
             "$ref" : "#/components/schemas/ApiTemporalRange"
           }
@@ -6411,6 +6414,9 @@
           },
           "range" : {
             "$ref" : "#/components/schemas/ApiTemporalRange"
+          },
+          "name" : {
+            "type" : "string"
           }
         },
         "required" : [ "type" ]

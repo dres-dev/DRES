@@ -56,7 +56,12 @@ class DbTaskTemplateTarget(entity: Entity) : XdEntity(entity) {
         DbTargetType.JUDGEMENT,
         DbTargetType.JUDGEMENT_WITH_VOTE -> ApiTarget(this.type.toApi(), null)
         DbTargetType.MEDIA_ITEM,
-        DbTargetType.MEDIA_ITEM_TEMPORAL_RANGE -> ApiTarget(this.type.toApi(), this.item?.id, this.range?.let { ApiTemporalRange(it) })
+        DbTargetType.MEDIA_ITEM_TEMPORAL_RANGE -> ApiTarget(
+            type=this.type.toApi(),
+            target =  this.item?.id,
+            range= this.range?.let { ApiTemporalRange(it) },
+            name= this.item?.name
+        )
         DbTargetType.TEXT -> ApiTarget(this.type.toApi(), this.text)
         else -> throw IllegalStateException("Task description of type ${this.type.description} is not supported.")
     }

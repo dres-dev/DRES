@@ -6,8 +6,8 @@ import dev.dres.data.model.template.*
 /**
  * The RESTful API equivalent for [TaskDescriptionHint].
  *
- * @author Luca Rossetto & Ralph Gasser
- * @version 2.0.0
+ * @author Luca Rossetto & Ralph Gasser & Loris Sauter
+ * @version 2.1.0
  */
 data class ApiHint(
         /**
@@ -64,6 +64,11 @@ data class ApiHint(
          * This is the reference to the media item
          */
         val mediaItem: String? = null,
+
+        /**
+         * This is a reference to the media item's name, in case there is one.
+         */
+        val mediaItemName: String? = null,
 
         /**
          * In case [type] is

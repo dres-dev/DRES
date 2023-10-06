@@ -11,6 +11,9 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.TemplateId
 import dev.dres.data.model.template.task.*
 import dev.dres.data.model.template.task.options.DbConfiguredOption
+import dev.dres.data.model.template.task.options.DbHintOption
+import dev.dres.data.model.template.task.options.DbSubmissionOption
+import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.template.team.TeamId
@@ -92,9 +95,40 @@ object TemplateManager {
         dbEvaluationTemplate.modified = DateTime.now()
 
         /* Update task type information. */
-        val taskTypes = apiEvaluationTemplate.taskTypes.map { it.name }.toTypedArray()
+
+        /* Update task type information: Remove deleted types. */
+        val typesIds = apiEvaluationTemplate.taskTypes.mapNotNull { it.id }.toTypedArray()
+        val typesToDeleteQuery = DbTaskType.query(
+            DbTaskType::evaluation eq dbEvaluationTemplate and not(
+                DbTaskType::id.containsIn(*typesIds)
+            )
+        )
+        val hintOptsToDelIds = typesToDeleteQuery.toList().map {
+            it.hints.toList().map { hint -> hint.entityId }
+        }.flatten().toTypedArray()
+        val submissionOptsToDelIds = typesToDeleteQuery.toList().map{
+            it.submission.toList().map{target -> target.entityId}
+        }.flatten().toTypedArray()
+        val taskOptsToDelIds = typesToDeleteQuery.toList().map{
+            it.options.toList().map{target -> target.entityId}
+        }.flatten().toTypedArray()
+        val configOptsToDelIds = typesToDeleteQuery.toList().map{
+            it.configurations.toList().map{target -> target.entityId}
+        }.flatten().toTypedArray()
+
+        /*
+        DbTaskTemplate has children relationships with both, DbHint and DbTaskTarget.
+        Despite being written in the documentation, for some reason the .removeAll above does not
+        delete the children, hence we have to take care of it ourselves.
+        https://jetbrains.github.io/xodus-dnq/properties.html
+         */
+        DbHintOption.all().toList().filter{hintOptsToDelIds.contains(it.entityId)}.forEach { it.delete() }
+        DbSubmissionOption.all().toList().filter{submissionOptsToDelIds.contains(it.entityId)}.forEach{it.delete()}
+        DbTaskOption.all().toList().filter{taskOptsToDelIds.contains(it.entityId)}.forEach{it.delete()}
+        DbConfiguredOption.all().toList().filter{configOptsToDelIds.contains(it.entityId)}.forEach{it.delete()}
+
         dbEvaluationTemplate.taskTypes.removeAll(
-            DbTaskType.query(DbTaskType::evaluation eq dbEvaluationTemplate and not(DbTaskType::name.containsIn(*taskTypes)))
+            typesToDeleteQuery
         )
         for (apiTaskType in apiEvaluationTemplate.taskTypes) {
             val taskType =

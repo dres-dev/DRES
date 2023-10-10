@@ -23,7 +23,7 @@ export enum TemplateImportTreeBranch {
   TEAMS = 1 << 3,           // 001000
   TEAM_GROUPS = 1 << 4,     // 010000
   JUDGES = 1 << 5,          // 100000
-  ALL = ~(~0<<6)            // 111111
+  ALL = ~(~0 << 6)            // 111111
 }
 
 /**
@@ -34,7 +34,7 @@ export class TemplateTreeFlatNode<T> {
   expandable: boolean;
   item: T;
   label: string;
-  branch: TemplateImportTreeBranch
+  branch: TemplateImportTreeBranch;
 }
 
 export class TemplateTreeNode<T> {
@@ -50,7 +50,7 @@ export class TemplateTreeNode<T> {
   templateUrl: "./template-import-tree.component.html",
   styleUrls: ["./template-import-tree.component.scss"]
 })
-export class TemplateImportTreeComponent implements OnInit{
+export class TemplateImportTreeComponent implements OnInit {
 
   flatNodeMap = new Map<TemplateTreeFlatNode<any>, TemplateTreeNode<any>>();
   nestedNodeMap = new Map<TemplateTreeNode<any>, TemplateTreeFlatNode<any>>();
@@ -59,9 +59,9 @@ export class TemplateImportTreeComponent implements OnInit{
 
   selectedParent: TemplateTreeFlatNode<any> | null = null;
 
-  treeControl: FlatTreeControl<TemplateTreeFlatNode<any>>
-  treeFlattener: MatTreeFlattener<TemplateTreeNode<any>, TemplateTreeFlatNode<any>>
-  dataSource: MatTreeFlatDataSource<TemplateTreeNode<any>, TemplateTreeFlatNode<any>>
+  treeControl: FlatTreeControl<TemplateTreeFlatNode<any>>;
+  treeFlattener: MatTreeFlattener<TemplateTreeNode<any>, TemplateTreeFlatNode<any>>;
+  dataSource: MatTreeFlatDataSource<TemplateTreeNode<any>, TemplateTreeFlatNode<any>>;
 
   selection = new SelectionModel<TemplateTreeFlatNode<any>>(true);
 
@@ -73,21 +73,21 @@ export class TemplateImportTreeComponent implements OnInit{
   constructor() {
     this.treeFlattener = new MatTreeFlattener<TemplateTreeNode<any>, TemplateTreeFlatNode<any>>(
       this.transformer, this.getLevel, this.isExpandable, this.getChildren
-    )
+    );
     this.treeControl = new FlatTreeControl<TemplateTreeFlatNode<any>>(this.getLevel, this.isExpandable);
     this.dataSource = new MatTreeFlatDataSource<TemplateTreeNode<any>, TemplateTreeFlatNode<any>>(this.treeControl, this.treeFlattener);
   }
 
   ngOnInit(): void {
-      this.dataSource.data = TemplateImportTreeComponent.buildTrees(this.templates, this.branches);
-      this.templates.forEach(it => this.templatesMap.set(it.id, it));
-      console.log(this.templatesMap)
-    }
+    this.dataSource.data = TemplateImportTreeComponent.buildTrees(this.templates, this.branches);
+    this.templates.forEach(it => this.templatesMap.set(it.id, it));
+    console.log(this.templatesMap);
+  }
 
   getLevel = (node: TemplateTreeFlatNode<any>) => node.level;
   isExpandable = (node: TemplateTreeFlatNode<any>) => node.expandable;
   getChildren = (node: TemplateTreeNode<any>) => node.children;
-  hasChild = (_: number, node: TemplateTreeFlatNode<any>) => node.expandable
+  hasChild = (_: number, node: TemplateTreeFlatNode<any>) => node.expandable;
 
   transformer = (node: TemplateTreeNode<any>, level: number) => {
     const existingNode = this.nestedNodeMap.get(node);
@@ -100,7 +100,7 @@ export class TemplateImportTreeComponent implements OnInit{
     this.flatNodeMap.set(flatNode, node);
     this.nestedNodeMap.set(node, flatNode);
     return flatNode;
-  }
+  };
 
   /** Whether all the descendants of the node are selected. */
   descendantsAllSelected(node: TemplateTreeFlatNode<any>): boolean {
@@ -182,7 +182,7 @@ export class TemplateImportTreeComponent implements OnInit{
     return null;
   }
 
-  public getImportTemplate(){
+  public getImportTemplate(): ApiEvaluationTemplate | null {
     const types: ApiTaskType[] = [];
     const taskGroups: ApiTaskGroup[] = [];
     const tasks: ApiTaskTemplate[] = [];
@@ -192,34 +192,42 @@ export class TemplateImportTreeComponent implements OnInit{
     /** Sanitation */
     /* Tasks require task groups which in turn require types*/
     this.getAllSelectedTaskTemplates().forEach(it => {
-      it[0].id = undefined
+      it[0].id = undefined;
       tasks.push(it[0]);
-      const group = this.templatesMap.get(it[1]).taskGroups.find((g:ApiTaskGroup) => g.name === it[0].taskGroup)
-      if(!taskGroups.includes(group)){
+      const group = this.templatesMap.get(it[1]).taskGroups.find((g: ApiTaskGroup) => g.name === it[0].taskGroup);
+      if (!taskGroups.includes(group)) {
         taskGroups.push(group);
       }
-      const type = this.templatesMap.get(it[1]).taskTypes.find((t:ApiTaskType) => t.name === group.type)
-      if(!types.includes(type)){
-        types.push(type)
+      const type = this.templatesMap.get(it[1]).taskTypes.find((t: ApiTaskType) => t.name === group.type);
+      if (!types.includes(type)) {
+        types.push(type);
       }
-    })
+    });
 
     /* TaskGroup requires TaskType */
     this.getAllSelectedTaskGroups().forEach(it => {
-      if(!taskGroups.includes(it[0])){
-        taskGroups.push(it[0])
-        const type = this.templatesMap.get(it[1]).taskTypes.find((t: ApiTaskType) => t.name === it[0].type)
-        if(!types.includes(type)){
-          types.push(type)
+      if (!taskGroups.includes(it[0])) {
+        taskGroups.push(it[0]);
+        const type = this.templatesMap.get(it[1]).taskTypes.find((t: ApiTaskType) => t.name === it[0].type);
+        if (!types.includes(type)) {
+          types.push(type);
         }
       }
-    })
+    });
 
     this.getAllSelectedTaskTypes().forEach(it => {
-      if(!types.includes(it[0])){
-        types.push(it[0])
+      if (!types.includes(it[0])) {
+        types.push(it[0]);
       }
-    })
+    });
+
+    /* Catch no selection */
+
+    if (
+      this.selection.isEmpty()
+    ) {
+      return null;
+    }
 
 
     return {
@@ -231,32 +239,32 @@ export class TemplateImportTreeComponent implements OnInit{
       teams: teams,
       teamGroups: teamGroups,
       judges: judges,
-      id:"---IMPORT_TEMPLATE_NO_ID---"
-    } as ApiEvaluationTemplate
+      id: "---IMPORT_TEMPLATE_NO_ID---"
+    } as ApiEvaluationTemplate;
   }
 
-  public getAllSelectedTaskTypes(){
-    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TASK_TYPES) as [ApiTaskType, string][]
+  public getAllSelectedTaskTypes() {
+    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TASK_TYPES) as [ApiTaskType, string][];
   }
 
-  public getAllSelectedTaskGroups(){
-    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TASK_GROUPS) as [ApiTaskGroup,string][];
+  public getAllSelectedTaskGroups() {
+    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TASK_GROUPS) as [ApiTaskGroup, string][];
   }
 
-  public getAllSelectedTaskTemplates(){
-    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TASK_TEMPLATES) as [ApiTaskTemplate, string][]
+  public getAllSelectedTaskTemplates() {
+    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TASK_TEMPLATES) as [ApiTaskTemplate, string][];
   }
 
-  public getAllSelectedTeams(){
-    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TEAMS) as [ApiTeam, string][]
+  public getAllSelectedTeams() {
+    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TEAMS) as [ApiTeam, string][];
   }
 
-  public getAllSelectedTeamGroups(){
-    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TEAM_GROUPS) as [ApiTeamGroup,string][]
+  public getAllSelectedTeamGroups() {
+    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.TEAM_GROUPS) as [ApiTeamGroup, string][];
   }
 
-  public getAllSelectedJudges(){
-    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.JUDGES) as [ApiUser,string][]
+  public getAllSelectedJudges() {
+    return this.getSelectedItemsForBranch(TemplateImportTreeBranch.JUDGES) as [ApiUser, string][];
   }
 
   /**
@@ -264,44 +272,43 @@ export class TemplateImportTreeComponent implements OnInit{
    * @param branch A single branch, do not use ALL or NONE here (or any combination)
    * @private
    */
-  private getSelectedItemsForBranch(branch: TemplateImportTreeBranch){
+  private getSelectedItemsForBranch(branch: TemplateImportTreeBranch) {
     /* Filter appropriately */
-    const items = this.selection.selected.filter(it => TemplateImportTreeComponent.checkForBranch(it.branch, branch)).map(it => this.flatNodeMap.get(it))
-    switch(branch){
+    const items = this.selection.selected.filter(it => TemplateImportTreeComponent.checkForBranch(it.branch, branch)).map(it => this.flatNodeMap.get(it));
+    switch (branch) {
       case TemplateImportTreeBranch.NONE:
       case TemplateImportTreeBranch.ALL:
-        throw new Error("Cannot type set for TemplateImportTreeBanches ALL and NONE. This is a programmer's error")
+        throw new Error("Cannot type set for TemplateImportTreeBanches ALL and NONE. This is a programmer's error");
       case TemplateImportTreeBranch.TASK_TYPES:
-        return items.map<[ApiTaskType, string]>(it => [it.item, it.origin])
+        return items.map<[ApiTaskType, string]>(it => [it.item, it.origin]);
       case TemplateImportTreeBranch.TASK_GROUPS:
-        return items.map<[ApiTaskGroup, string]>(it => [it.item, it.origin])
+        return items.map<[ApiTaskGroup, string]>(it => [it.item, it.origin]);
       case TemplateImportTreeBranch.TASK_TEMPLATES:
         return items.map<[ApiTaskTemplate, string]>(it => {
           /* Warning: collectionId remains and therefore must exist */
           const newItem = it.item as ApiTaskTemplate;
           // newItem.id = undefined; // We need the id for sanitation purposes (to resolve for the parent evaluation template */
-          return [newItem, it.origin]
-        })
+          return [newItem, it.origin];
+        });
       case TemplateImportTreeBranch.TEAMS:
         return items.map<[ApiTeam, string]>(it => {
-          const newItem = it.item as ApiTeam
+          const newItem = it.item as ApiTeam;
           newItem.id = undefined;
-          return [newItem, it.origin]
-        })
+          return [newItem, it.origin];
+        });
       case TemplateImportTreeBranch.TEAM_GROUPS:
         return items.map<[ApiTeamGroup, string]>(it => {
-          const newItem = it.item as ApiTeamGroup
-          newItem.id = undefined
-          return [newItem, it.origin]
-        })
+          const newItem = it.item as ApiTeamGroup;
+          newItem.id = undefined;
+          return [newItem, it.origin];
+        });
       case TemplateImportTreeBranch.JUDGES:
-        return items.map<[ApiUser, string]>(it => [it.item,it.origin])
+        return items.map<[ApiUser, string]>(it => [it.item, it.origin]);
     }
   }
 
 
-
-  public static buildTrees(templates: ApiEvaluationTemplate[], branches: TemplateImportTreeBranch): TemplateTreeNode<ApiEvaluationTemplate>[]{
+  public static buildTrees(templates: ApiEvaluationTemplate[], branches: TemplateImportTreeBranch): TemplateTreeNode<ApiEvaluationTemplate>[] {
     return templates.map(it => this.buildTree(it, branches));
   }
 
@@ -310,19 +317,19 @@ export class TemplateImportTreeComponent implements OnInit{
     root.item = template;
     root.label = template.name;
     root.children = [] as TemplateTreeNode<any>[];
-    if(this.checkForBranch(branches, TemplateImportTreeBranch.TASK_TYPES) && template.taskTypes.length > 0){
+    if (this.checkForBranch(branches, TemplateImportTreeBranch.TASK_TYPES) && template.taskTypes.length > 0) {
       root.children.push(this.buildTaskTypesBranch(template));
     }
-    if(this.checkForBranch(branches, TemplateImportTreeBranch.TASK_GROUPS) && template.taskGroups.length > 0){
+    if (this.checkForBranch(branches, TemplateImportTreeBranch.TASK_GROUPS) && template.taskGroups.length > 0) {
       root.children.push(this.buildTaskGroupsBranch(template));
     }
-    if(this.checkForBranch(branches, TemplateImportTreeBranch.TASK_TEMPLATES)  && template.tasks.length > 0){
+    if (this.checkForBranch(branches, TemplateImportTreeBranch.TASK_TEMPLATES) && template.tasks.length > 0) {
       root.children.push(this.buildTaskTemplatesBranch(template));
     }
-    if(this.checkForBranch(branches, TemplateImportTreeBranch.TEAMS)  && template.teams.length > 0){
+    if (this.checkForBranch(branches, TemplateImportTreeBranch.TEAMS) && template.teams.length > 0) {
       root.children.push(this.buildTeamsBranch(template));
     }
-    if(this.checkForBranch(branches, TemplateImportTreeBranch.TEAM_GROUPS)  && template.teamGroups.length > 0){
+    if (this.checkForBranch(branches, TemplateImportTreeBranch.TEAM_GROUPS) && template.teamGroups.length > 0) {
       root.children.push(this.buildTeamGroupsBranch(template));
     }
     // TODO load apiusers for judges on the fly in future version
@@ -332,24 +339,24 @@ export class TemplateImportTreeComponent implements OnInit{
     return root;
   }
 
-  public static checkForBranch(branches: TemplateImportTreeBranch, test: TemplateImportTreeBranch): boolean{
-    return (branches & test) === test
+  public static checkForBranch(branches: TemplateImportTreeBranch, test: TemplateImportTreeBranch): boolean {
+    return (branches & test) === test;
   }
 
   public static buildTaskTypesBranch(template: ApiEvaluationTemplate): TemplateTreeNode<ApiTaskType[]> {
-    return this.buildBranch<ApiTaskType>(template, "taskTypes", "Task Types", "name",TemplateImportTreeBranch.TASK_TYPES);
+    return this.buildBranch<ApiTaskType>(template, "taskTypes", "Task Types", "name", TemplateImportTreeBranch.TASK_TYPES);
   }
 
   public static buildTaskGroupsBranch(template: ApiEvaluationTemplate): TemplateTreeNode<ApiTaskGroup[]> {
-    return this.buildBranch<ApiTaskGroup>(template, "taskGroups", "Task Groups", "name",TemplateImportTreeBranch.TASK_GROUPS);
+    return this.buildBranch<ApiTaskGroup>(template, "taskGroups", "Task Groups", "name", TemplateImportTreeBranch.TASK_GROUPS);
   }
 
   public static buildTaskTemplatesBranch(template: ApiEvaluationTemplate): TemplateTreeNode<ApiTaskTemplate[]> {
-    return this.buildBranch<ApiTaskTemplate>(template, "tasks", "Task Templates","name", TemplateImportTreeBranch.TASK_TEMPLATES);
+    return this.buildBranch<ApiTaskTemplate>(template, "tasks", "Task Templates", "name", TemplateImportTreeBranch.TASK_TEMPLATES);
   }
 
   public static buildTeamsBranch(template: ApiEvaluationTemplate): TemplateTreeNode<ApiTeam[]> {
-    return this.buildBranch<ApiTeam>(template, "teams", "Teams","name", TemplateImportTreeBranch.TEAMS);
+    return this.buildBranch<ApiTeam>(template, "teams", "Teams", "name", TemplateImportTreeBranch.TEAMS);
   }
 
   public static buildTeamGroupsBranch(template: ApiEvaluationTemplate): TemplateTreeNode<ApiTeamGroup[]> {
@@ -371,7 +378,7 @@ export class TemplateImportTreeComponent implements OnInit{
       item.item = it;
       item.children = null;
       item.branch = branch;
-      item.origin = template.id
+      item.origin = template.id;
       //console.log("THE CHILD", item)
       return item;
     });

@@ -263,38 +263,54 @@ export class TemplateBuilderService {
   }
 
   importFrom(from: ApiEvaluationTemplate) {
+    /* Import check is currently on name, may switch to completely UUID based matching */
 
     /* types */
     from.taskTypes.forEach(it => {
-      if(!this.getTemplate().taskTypes.includes(it)){
+      if(!this.getTemplate().taskTypes.map(that => that.name).includes(it.name)){
+        this.getTemplate().taskTypes.push(it)
+      }else{
+        it.name = `${it.name} (Imported)`
         this.getTemplate().taskTypes.push(it)
       }
     })
     /* task groups */
     from.taskGroups.forEach(it => {
-      if(!this.getTemplate().taskGroups.includes(it)){
+      if(!this.getTemplate().taskGroups.map(that => that.name).includes(it.name)){
+        this.getTemplate().taskGroups.push(it)
+      }else{
+        it.name = `${it.name} (Imported)`
         this.getTemplate().taskGroups.push(it)
       }
     })
     /* tasks */
     from.tasks.forEach(it => {
-      if(!this.getTemplate().tasks.includes(it)){
+      if(!this.getTemplate().tasks.map(that => that.name).includes(it.name)){
+        this.getTemplate().tasks.push(it)
+      }else{
+        it.name = `${it.name} (Imported)`
         this.getTemplate().tasks.push(it)
       }
     })
     /* teams */
     from.teams.forEach(it => {
-      if(!this.getTemplate().teams.includes(it)){
+      if(!this.getTemplate().teams.map(that => that.name).includes(it.name)){
+        this.getTemplate().teams.push(it)
+      }else{
+        it.name = `${it.name} (Imported)`
         this.getTemplate().teams.push(it)
       }
     })
     /* team groups */
     from.teamGroups.forEach(it => {
-      if(!this.getTemplate().teamGroups.includes(it)){
+      if(!this.getTemplate().teamGroups.map(that => that.name).includes(it.name)){
+        this.getTemplate().teamGroups.push(it)
+      }else{
+        it.name = `${it.name} (Imported)`
         this.getTemplate().teamGroups.push(it)
       }
     })
-    /* judges */
+    /* judges are userids, hence no renaming */
     from.judges.forEach(it => {
       if(!this.getTemplate().judges.includes(it)){
         this.getTemplate().judges.push(it)

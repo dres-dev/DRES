@@ -1,8 +1,6 @@
 package dev.dres.data.model.template.task
 
 import dev.dres.api.rest.types.template.tasks.ApiTaskType
-import dev.dres.api.rest.types.template.tasks.TaskTypeId
-import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.options.*
 import dev.dres.data.model.template.task.options.DbConfiguredOption
@@ -17,18 +15,13 @@ import kotlinx.dnq.simple.min
  * @author Luca Rossetto & Ralph Gasser
  * @version 2.0.0
  */
-class DbTaskType(entity: Entity) : PersistentEntity(entity) {
+class DbTaskType(entity: Entity) : XdEntity(entity) {
     /** Combination of [DbTaskType] name / competition must be unique. */
     companion object: XdNaturalEntityType<DbTaskType>() {
         override val compositeIndices = listOf(
             listOf(DbTaskType::name, DbTaskType::evaluation)
         )
     }
-
-    /** The [TaskTypeId] of this [DbTaskType]. */
-    var taskTypeId: TaskTypeId
-        get() = this.id
-        set(value) { this.id = value }
 
     /** The name of this [DbTaskType]. */
     var name by xdRequiredStringProp(unique = false, trimmed = false)
@@ -63,7 +56,6 @@ class DbTaskType(entity: Entity) : PersistentEntity(entity) {
      * @return [ApiTaskType]
      */
     fun toApi(): ApiTaskType = ApiTaskType(
-        id=this.xdId,
         name = this.name,
         duration = this.duration,
         targetOption = this.target.toApi(),

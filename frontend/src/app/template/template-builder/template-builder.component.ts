@@ -98,9 +98,11 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
       switchMap(templateList => forkJoin(...templateList))
     );
     templateList.subscribe(templates => {
-      console.log("Templates ", templates)
-      const ownIdx = templates.indexOf(this.builderService.getTemplate())
-      templates.splice(ownIdx,1)
+      const ownIdx = templates.map(it => it.id).indexOf(this.builderService.getTemplate().id)
+      if(ownIdx !== -1){
+        /* In case something went wrong, ownIdx results in -1, which with the splice would result in splicing the last element, which in this case we dont want */
+        templates.splice(ownIdx,1)
+      }
       const dialogref = this.dialg.open(TemplateImportDialogComponent, {width: '800px', data: {templates: templates, branches: TemplateImportTreeBranch.ALL} as TemplateImportDialogData})
       dialogref.afterClosed().subscribe( d => {
         this.onImport(d)
@@ -111,7 +113,9 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
 
   public onImport(templateToImportFrom: ApiEvaluationTemplate){
     console.log("Importing...", templateToImportFrom)
-    this.builderService.importFrom(templateToImportFrom);
+    if(templateToImportFrom){
+      this.builderService.importFrom(templateToImportFrom);
+    }
   }
 
   public save(){

@@ -11,7 +11,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
-typealias TaskTypeId = String
 
 /**
  * The RESTful API equivalent of a [DbTaskType].
@@ -20,7 +19,6 @@ typealias TaskTypeId = String
  * @version 1.1.0
  */
 data class ApiTaskType(
-    val id: TaskTypeId? = null,
     val name: String,
     val duration: Long,
     val targetOption: ApiTargetOption,
@@ -31,7 +29,7 @@ data class ApiTaskType(
     val configuration: Map<String, String>
 ) {
 
-    constructor() : this("---NO_ID---","---Default TaskType DO NOT USE!---",
+    constructor() : this("---Default TaskType DO NOT USE!---",
     1,
         ApiTargetOption.TEXT, listOf(ApiHintOption.TEXT),
         listOf(ApiSubmissionOption.TEXTUAL_SUBMISSION),
@@ -50,8 +48,4 @@ data class ApiTaskType(
             }
     }
 
-    val taskTypeId: TaskTypeId
-        @JsonIgnore
-        @OpenApiIgnore
-        get() = this.id ?: "N/A"
 }

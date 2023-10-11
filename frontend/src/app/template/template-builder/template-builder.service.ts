@@ -265,26 +265,42 @@ export class TemplateBuilderService {
   importFrom(from: ApiEvaluationTemplate) {
     /* Import check is currently on name, may switch to completely UUID based matching */
 
+    const alteredTypes: Map<string,ApiTaskType> = new Map<string, ApiTaskType>()
+    const alteredGroups: Map<string,ApiTaskGroup> = new Map<string, ApiTaskGroup>()
+
     /* types */
     from.taskTypes.forEach(it => {
       if(!this.getTemplate().taskTypes.map(that => that.name).includes(it.name)){
         this.getTemplate().taskTypes.push(it)
       }else{
+        const legacyName = it.name
         it.name = `${it.name} (Imported)`
+        alteredTypes.set(legacyName, it)
         this.getTemplate().taskTypes.push(it)
       }
     })
     /* task groups */
     from.taskGroups.forEach(it => {
+      if(alteredTypes.has(it.type)){
+        it.type = alteredTypes.get(it.type).name
+      }
       if(!this.getTemplate().taskGroups.map(that => that.name).includes(it.name)){
         this.getTemplate().taskGroups.push(it)
       }else{
+        const legacyName = it.name
         it.name = `${it.name} (Imported)`
+        alteredGroups.set(legacyName, it)
         this.getTemplate().taskGroups.push(it)
       }
     })
     /* tasks */
     from.tasks.forEach(it => {
+      if(alteredTypes.has(it.taskType)){
+        it.taskType = alteredTypes.get(it.taskType).name
+      }
+      if(alteredGroups.has(it.taskGroup)){
+        it.taskGroup = alteredGroups.get(it.taskGroup).name
+      }
       if(!this.getTemplate().tasks.map(that => that.name).includes(it.name)){
         this.getTemplate().tasks.push(it)
       }else{

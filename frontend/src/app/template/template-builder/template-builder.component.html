@@ -30,7 +30,10 @@
                 matTooltip="Download the entire evaluation template as JSON"></app-download-button>
     </div>
     <div>
-        <app-upload-json-button [name]="''" [multi]="false" [handler]="onUpload" [inline]="true" matTooltip="Upload an evaluation template as JSON to import from"></app-upload-json-button>
+        <app-upload-json-button #jsonUpload [name]="''"
+                                [multi]="false"
+                                [inline]="true"
+                                matTooltip="Upload an evaluation template as JSON to import from"></app-upload-json-button>
     </div>
     <div>
         <button mat-icon-button

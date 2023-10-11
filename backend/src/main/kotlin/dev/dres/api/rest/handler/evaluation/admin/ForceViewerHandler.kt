@@ -19,7 +19,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ForceViewerHandler : AbstractEvaluationAdminHandler(), PostRestHandler<SuccessStatus> {
+class ForceViewerHandler() : AbstractEvaluationAdminHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "evaluation/admin/{evaluationId}/viewer/list/{viewerId}/force"
 
     @OpenApi(

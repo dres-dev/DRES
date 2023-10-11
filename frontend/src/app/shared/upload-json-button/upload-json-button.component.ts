@@ -14,7 +14,7 @@ export class UploadJsonButtonComponent {
   /** If multi-select files are enabled. Defaults to false (only single file) */
   @Input() multi = false; // Currently only single file upload handled
   /** The handler to process the uploaded thing */
-  @Input() handler: (contents: string) => void;
+  @Input() handler: (contents: any) => void;
 
   @ViewChild('fileInput', { static: false }) fileUpload: HTMLInputElement;
 
@@ -34,7 +34,7 @@ export class UploadJsonButtonComponent {
         const reader = new FileReader();
 
         reader.onload = (e: any) => {
-          this.handler(e.target.result);
+          this.handler(JSON.parse(e.target.result));
         };
         if (this.multi) {
           // TODO multi file upload

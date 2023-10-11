@@ -3,6 +3,7 @@ import { AbstractTemplateBuilderComponent } from "./components/abstract-template
 import { DeactivationGuarded } from "../../services/can-deactivate.guard";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import {
+  ApiEvaluation,
   ApiEvaluationTemplate, ApiEvaluationTemplateOverview,
   ApiTaskGroup,
   ApiTaskTemplate,
@@ -23,6 +24,8 @@ import {
   TemplateImportDialogData
 } from "./components/template-import-dialog/template-import-dialog.component";
 import { TemplateImportTreeBranch } from "./components/template-import-tree/template-import-tree.component";
+import { instanceOfEvaluation, instanceOfTemplate } from "../../utilities/api.utilities";
+import { UploadJsonButtonComponent } from "../../shared/upload-json-button/upload-json-button.component";
 
 @Component({
   selector: 'app-template-builder',
@@ -35,6 +38,7 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
   }
 
   @ViewChild('taskTemplateEditor', {static: true}) taskEditor: TaskTemplateEditorComponent;
+  @ViewChild('jsonUpload', {static: true}) jsonUpload: UploadJsonButtonComponent;
 
 
   changeSub: Subscription;
@@ -74,6 +78,7 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
           this.snackBar.open(`Error: ${r?.error?.description}`, null,{duration: 5000});
         });
     });
+    this.jsonUpload.handler = (contents => this.onUpload(contents))
   }
 
   fileProvider = () => {
@@ -85,9 +90,31 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
       return this.downloadService.getApiV2DownloadTemplateByTemplateId(this.builderService.getTemplate()?.id).pipe(take(1));
     }
   }
-
-  public onUpload(contents: string){
-    console.log("Uploaded "+contents.length+" characters")
+  private openImportDialog(templates: ApiEvaluationTemplate[]){
+    const ownIdx = templates.map(it => it.id).indexOf(this.builderService.getTemplate().id)
+    if(ownIdx !== -1){
+      /* In case something went wrong, ownIdx results in -1, which with the splice would result in splicing the last element, which in this case we dont want */
+      templates.splice(ownIdx,1)
+    }
+    const dialogref = this.dialg.open(TemplateImportDialogComponent, {width: '800px', data: {templates: templates, branches: TemplateImportTreeBranch.ALL} as TemplateImportDialogData})
+    dialogref.afterClosed().subscribe( d => {
+      this.onImport(d)
+    })
+  }
+  public onUpload(contents: any){
+    console.log("Uploaded received: ",contents)
+    let tmplt: ApiEvaluationTemplate
+    if(instanceOfTemplate(contents)){
+      tmplt = contents as ApiEvaluationTemplate
+    }else if(instanceOfEvaluation(contents)){
+      tmplt = (contents as ApiEvaluation).template
+    }else{
+      // TODO replace with toast
+      console.warn("Uploaded file does not conform to expected types")
+      return
+    }
+    console.log("Uploaded template ", tmplt)
+    this.openImportDialog([tmplt]);
   }
 
   public import(){
@@ -97,19 +124,10 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
       map(overviews => overviews.map(o => this.templateService.getApiV2TemplateByTemplateId(o.id))),
       switchMap(templateList => forkJoin(...templateList))
     );
-    templateList.subscribe(templates => {
-      const ownIdx = templates.map(it => it.id).indexOf(this.builderService.getTemplate().id)
-      if(ownIdx !== -1){
-        /* In case something went wrong, ownIdx results in -1, which with the splice would result in splicing the last element, which in this case we dont want */
-        templates.splice(ownIdx,1)
-      }
-      const dialogref = this.dialg.open(TemplateImportDialogComponent, {width: '800px', data: {templates: templates, branches: TemplateImportTreeBranch.ALL} as TemplateImportDialogData})
-      dialogref.afterClosed().subscribe( d => {
-        this.onImport(d)
-      })
-    })
-
+    templateList.subscribe(templates => this.openImportDialog(templates))
   }
+
+
 
   public onImport(templateToImportFrom: ApiEvaluationTemplate){
     console.log("Importing...", templateToImportFrom)

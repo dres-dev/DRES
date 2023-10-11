@@ -1228,6 +1228,43 @@
         "type" : "string",
         "enum" : [ "FRAME_NUMBER", "SECONDS", "MILLISECONDS", "TIMECODE" ]
       },
+      "ApiEvaluation" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "evaluationId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/ApiEvaluationType"
+          },
+          "template" : {
+            "$ref" : "#/components/schemas/ApiEvaluationTemplate"
+          },
+          "created" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "started" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ended" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTask"
+            }
+          }
+        },
+        "required" : [ "evaluationId", "name", "type", "template", "created", "tasks" ]
+      },
       "ApiEvaluationInfo" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -1350,6 +1387,33 @@
           }
         },
         "required" : [ "evaluationId", "taskId", "submissions" ]
+      },
+      "ApiTask" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "templateId" : {
+            "type" : "string"
+          },
+          "started" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ended" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "submissions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiAnswerSet"
+            }
+          }
+        },
+        "required" : [ "taskId", "templateId", "submissions" ]
       },
       "ApiTaskOverview" : {
         "type" : "object",
@@ -2150,9 +2214,6 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "id" : {
-            "type" : "string"
-          },
           "name" : {
             "type" : "string"
           },

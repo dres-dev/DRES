@@ -195,6 +195,7 @@ object RestApi {
             ListAllTeamsHandler(store),
             CreateTeamHandler(store),
             UpdateTeamHandler(store),
+            GetEvaluationHandler(store),
 
             // Judgement
             DequeueJudgementHandler(),

@@ -7,7 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
 import { ServicesModule } from './services/services.module';
 import { MatMenuModule } from '@angular/material/menu';
 import { CompetitionModule } from './competition/competition.module';
@@ -29,6 +29,7 @@ import {DragDropModule} from '@angular/cdk/drag-drop';
 import {MatTableModule} from '@angular/material/table';
 import { LoggingModule } from "./services/logging/logging.module";
 import { ErrorHandlingModule } from "./error-handling/error-handling.module";
+import { DresBackendUnauthorisedHandlerService } from "./error-handling/dres-backend-unauthorised-handler.service";
 
 /**
  * Method used to load application config.
@@ -76,6 +77,7 @@ export function initializeApp(appConfig: AppConfig) {
     AppConfig,
     { provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true },
     AccessRoleService,
+    {provide: HTTP_INTERCEPTORS, useClass: DresBackendUnauthorisedHandlerService, multi:true}
   ],
   bootstrap: [AppComponent],
 })

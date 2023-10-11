@@ -81,7 +81,6 @@ export class TemplateImportTreeComponent implements OnInit {
   ngOnInit(): void {
     this.dataSource.data = TemplateImportTreeComponent.buildTrees(this.templates, this.branches);
     this.templates.forEach(it => this.templatesMap.set(it.id, it));
-    console.log(this.templatesMap);
   }
 
   getLevel = (node: TemplateTreeFlatNode<any>) => node.level;

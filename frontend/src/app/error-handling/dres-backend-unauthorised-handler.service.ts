@@ -14,14 +14,10 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
       catchError((err, caught) => {
-        console.log("ERROR: ", err, req)
       if(err instanceof HttpErrorResponse){
         const e = err as HttpErrorResponse
         const url = new URL(e.url)
-        console.log("URL", url.host)
         if(e.status === 401 && url.host.startsWith(this.config.config.endpoint.host)){
-          console.log("401")
-          console.log("SNAP", this.router.url)
           let rt
           if(this.router.url.startsWith("/login")){
             rt = this.router.parseUrl(this.router.url)

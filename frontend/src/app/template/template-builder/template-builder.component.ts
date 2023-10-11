@@ -102,23 +102,20 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
     })
   }
   public onUpload(contents: any){
-    console.log("Uploaded received: ",contents)
     let tmplt: ApiEvaluationTemplate
     if(instanceOfTemplate(contents)){
       tmplt = contents as ApiEvaluationTemplate
     }else if(instanceOfEvaluation(contents)){
       tmplt = (contents as ApiEvaluation).template
     }else{
-      // TODO replace with toast
+      this.snackBar.open(`Uploaded file was either not a JSON file or did not conform to the expected types (EvaluationTemplate or Evaluation)`, null, {duration: 5000})
       console.warn("Uploaded file does not conform to expected types")
       return
     }
-    console.log("Uploaded template ", tmplt)
     this.openImportDialog([tmplt]);
   }
 
   public import(){
-    console.log("Import open")
     let templateList : Observable<ApiEvaluationTemplate[]>;
     templateList = this.templateService.getApiV2TemplateList().pipe(
       map(overviews => overviews.map(o => this.templateService.getApiV2TemplateByTemplateId(o.id))),
@@ -130,7 +127,6 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
 
 
   public onImport(templateToImportFrom: ApiEvaluationTemplate){
-    console.log("Importing...", templateToImportFrom)
     if(templateToImportFrom){
       this.builderService.importFrom(templateToImportFrom);
     }

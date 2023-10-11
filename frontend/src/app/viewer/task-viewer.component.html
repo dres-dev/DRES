@@ -25,7 +25,7 @@
 
     <!-- VIEWER_PLAYBACK -->
     <div *ngIf="(viewerState | async) === 4">
-      <h2 style="text-align: center">{{ currentHintContent | async }} ({{ toFormattedTime(timeLeft | async) }})</h2>
+      <h2 style="text-align: center">{{ currentTaskName | async }} ({{ toFormattedTime(timeLeft | async) }})</h2>
       <div *ngIf="currentTaskHint | async">
         <app-text-object-preview [queryContent]="currentHintContent"></app-text-object-preview>
         <app-video-object-preview [queryObject]="currentHintContent" [muted]="(config.configAsObservable | async).effects.mute"></app-video-object-preview>

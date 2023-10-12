@@ -40,6 +40,10 @@
         <mat-label>Name</mat-label>
         <input type="text" matInput placeholder="Name" [formControl]="form.get('name')"/>
       </mat-form-field>
+      <mat-form-field matTooltip="Comment only visible for administrators, not during the evaluation" class="flex-40">
+        <mat-label>Comment</mat-label>
+        <input type="text" matInput placeholder="Comment" [formControl]="form.get('comment')"/>
+      </mat-form-field>
 
       <mat-form-field class="flex-40" *ngIf="form.get('mediaCollection')">
         <mat-select

@@ -25,7 +25,7 @@ data class ApiTaskTemplate(
     val collectionId: CollectionId,
     val targets: List<ApiTarget>,
     val hints: List<ApiHint>,
-    val comment: String = ""
+    val comment: String?
 ) : TaskTemplate {
     override fun textualDescription(): String = this.hints.filter { it.type == ApiHintType.TEXT }.maxByOrNull { it.start ?: 0 }?.description ?: name
 

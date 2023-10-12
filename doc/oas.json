@@ -5880,6 +5880,9 @@
           "name" : {
             "type" : "string"
           },
+          "comment" : {
+            "type" : "string"
+          },
           "taskGroup" : {
             "type" : "string"
           },
@@ -5891,7 +5894,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "templateId", "name", "taskGroup", "taskType", "duration" ]
+        "required" : [ "templateId", "name", "comment", "taskGroup", "taskType", "duration" ]
       },
       "ApiTeamInfo" : {
         "type" : "object",

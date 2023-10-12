@@ -8,10 +8,23 @@ import dev.dres.data.model.template.task.DbTaskTemplate
  *
  * Since this information usually doesn't change in the course of a run, it allows for local caching and other optimizations.
  *
- * @author Ralph Gasser
- * @author Loris Sauter
- * @version 1.1.0
+ * @author Ralph Gasser & Loris Sauter
+ * @version 1.2.0
  */
-data class ApiTaskTemplateInfo(val templateId: String, val name: String, val taskGroup: String, val taskType: String, val duration: Long) {
-    constructor(task: ApiTaskTemplate) : this(task.id!!, task.name, task.taskGroup, task.taskType, task.duration)
+data class ApiTaskTemplateInfo(
+    val templateId: String,
+    val name: String,
+    val comment: String?,
+    val taskGroup: String,
+    val taskType: String,
+    val duration: Long
+) {
+    constructor(task: ApiTaskTemplate) : this(
+        task.id!!,
+        task.name,
+        task.comment,
+        task.taskGroup,
+        task.taskType,
+        task.duration
+    )
 }

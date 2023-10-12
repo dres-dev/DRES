@@ -36,7 +36,7 @@ export class RunAdminViewComponent {
   runOverview: Observable<RunInfoOverviewTuple>;
   viewers: Observable<ApiViewerInfo[]>;
   refreshSubject: Subject<void> = new Subject();
-  displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
+  displayedColumnsTasks: string[] = ['name', 'comment', 'group', 'type', 'duration', 'past', 'action'];
   teams: Observable<ApiTeam[]>;
   submissionsForPastTasks: Observable<Map<string,number>>;
   submissionsForCurrentTask: Observable<Map<string,number>>;

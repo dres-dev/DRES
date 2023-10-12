@@ -226,6 +226,7 @@ export class CompetitionFormBuilder {
 
   public storeFormData(){
       this.data.name = this.form.get('name').value;
+      this.data.comment = this.form.get('comment').value || '';
       this.data.taskGroup = this.form.get('taskGroup').value;
       this.data.taskType = this.taskType.name /* Cannot be edited! */;
       this.data.duration= this.form.get('duration').value;
@@ -303,6 +304,7 @@ export class CompetitionFormBuilder {
     this.form = new UntypedFormGroup({
       id: new UntypedFormControl(this.data?.id),
       name: new UntypedFormControl(this.data?.name, [Validators.required]),
+      comment: new UntypedFormControl(this.data?.comment || ''),
       taskGroup: new UntypedFormControl(taskGroup.name),
       duration: new UntypedFormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
       mediaCollection: new UntypedFormControl(this.data?.collectionId ?? this.builderService.defaultCollection, [Validators.required]),

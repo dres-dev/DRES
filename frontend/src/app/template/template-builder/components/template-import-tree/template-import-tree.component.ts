@@ -7,11 +7,12 @@ import {
   ApiTaskType,
   ApiTeam,
   ApiTeamGroup,
-  ApiUser
+  ApiUser, TemplateService
 } from "../../../../../../openapi";
 import { FlatTreeControl } from "@angular/cdk/tree";
 import { MatTreeFlatDataSource, MatTreeFlattener } from "@angular/material/tree";
 import { SelectionModel } from "@angular/cdk/collections";
+import { AppConfig } from "../../../../app.config";
 
 /* See https://v15.material.angular.io/components/tree/examples */
 
@@ -70,7 +71,7 @@ export class TemplateImportTreeComponent implements OnInit {
   @Input()
   branches: TemplateImportTreeBranch;
 
-  constructor() {
+  constructor(private config: AppConfig) {
     this.treeFlattener = new MatTreeFlattener<TemplateTreeNode<any>, TemplateTreeFlatNode<any>>(
       this.transformer, this.getLevel, this.isExpandable, this.getChildren
     );
@@ -292,7 +293,19 @@ export class TemplateImportTreeComponent implements OnInit {
       case TemplateImportTreeBranch.TEAMS:
         return items.map<[ApiTeam, string]>(it => {
           const newItem = it.item as ApiTeam;
+          /* Transfer old team logo as data url in new team */
+          console.log("Teamt ransfer")
+          fetch(this.config.resolveApiUrl(`/template/logo/${newItem.id}`),{credentials:'include'})
+            .then(async r => {
+            const reader = new FileReader();
+            reader.readAsDataURL(await r.blob());
+            reader.onload = () => {
+              newItem.logoData = reader.result as string
+              console.log("NEW ITEM ASYNC", newItem)
+            };
+          })
           newItem.id = undefined;
+          console.log("returning", newItem)
           return [newItem, it.origin];
         });
       case TemplateImportTreeBranch.TEAM_GROUPS:

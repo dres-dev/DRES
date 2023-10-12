@@ -77,7 +77,7 @@ export function initializeApp(appConfig: AppConfig) {
     AppConfig,
     { provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true },
     AccessRoleService,
-    {provide: HTTP_INTERCEPTORS, useClass: DresBackendUnauthorisedHandlerService, multi:true}
+    {provide: HTTP_INTERCEPTORS, useClass: DresBackendUnauthorisedHandlerService, deps: [AppConfig], multi:true}
   ],
   bootstrap: [AppComponent],
 })

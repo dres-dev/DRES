@@ -4,17 +4,6 @@
   margin: 100px 0px;
 }
 
-.mat-form-field {
-  width: 100%;
-  min-width: 300px;
-}
-
-mat-card-title,
-mat-card-content {
-  display: flex;
-  justify-content: center;
-}
-
 mat-grid-list {
   min-width: 300px;
 }
@@ -31,10 +20,6 @@ mat-grid-list {
   justify-content: flex-end;
 }
 
-// See https://stackoverflow.com/a/52009315
-.mat-card-header {
-  width: 100% !important;
-}
 
 .flush-right {
   margin-left: auto;

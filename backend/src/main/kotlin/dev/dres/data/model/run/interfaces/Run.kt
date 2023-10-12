@@ -1,7 +1,5 @@
 package dev.dres.data.model.run.interfaces
 
-import java.rmi.server.UID
-
 /**
  * A [Run] that can be started and ended and keeps track of the points in time, these events took place.
  *
@@ -40,7 +38,6 @@ interface Run {
      * @throws IllegalStateException If [Run] has ended running.
      */
     fun end()
-
 
     /**
      * Reactivates an ended [Run].

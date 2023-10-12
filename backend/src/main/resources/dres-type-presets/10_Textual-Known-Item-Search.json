@@ -1,0 +1,20 @@
+{
+ "name": "Textual Known Item Search",
+ "duration": 420,
+ "targetOption": "SINGLE_MEDIA_SEGMENT",
+ "hintOptions": [
+  "TEXT"
+ ],
+ "submissionOptions": [
+  "NO_DUPLICATES",
+  "LIMIT_CORRECT_PER_TEAM",
+  "TEMPORAL_SUBMISSION"
+ ],
+ "taskOptions": [
+  "HIDDEN_RESULTS"
+ ],
+ "scoreOption": "KIS",
+ "configuration": {
+  "LIMIT_CORRECT_PER_TEAM.limit": "1"
+ }
+}

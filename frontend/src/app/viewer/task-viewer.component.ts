@@ -1,28 +1,24 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
-import { CompetitionRunService, ContentElement, RunState, TaskInfo, TaskTarget } from '../../../openapi';
-import { BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription, timer } from 'rxjs';
+import {BehaviorSubject, combineLatest, from, interval, mergeMap, Observable, of, Subscription} from 'rxjs';
 import {
   catchError,
-  delayWhen,
-  filter,
-  flatMap,
+  delayWhen, filter,
   map,
   repeat,
-  sampleTime,
-  share,
   shareReplay,
   switchMap,
   take,
   tap,
   withLatestFrom,
 } from 'rxjs/operators';
-import { IWsMessage } from '../model/ws/ws-message.interface';
-import { IWsClientMessage } from '../model/ws/ws-client-message.interface';
-import { WebSocketSubject } from 'rxjs/webSocket';
 import { AppConfig } from '../app.config';
-import { AudioPlayerUtilities } from '../utilities/audio-player.utilities';
-import { fromArray } from 'rxjs/internal/observable/fromArray';
-import TaskRunStatusEnum = RunState.TaskRunStatusEnum;
+import {
+  ApiContentElement, ApiContentType, ApiEvaluationInfo,
+  ApiEvaluationState,
+  ApiHintContent,
+  ApiTargetContent,
+  EvaluationService
+} from '../../../openapi';
 
 /**
  * Internal enumeration used for TaskViewerComponent.
@@ -42,12 +38,31 @@ enum ViewerState {
   styleUrls: ['./task-viewer.component.scss'],
 })
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
-  @Input() runId: Observable<string>;
-  @Input() state: Observable<RunState>;
-  @Input() taskStarted: Observable<TaskInfo>;
-  @Input() taskChanged: Observable<TaskInfo>;
-  @Input() taskEnded: Observable<TaskInfo>;
-  @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
+  @Input() evaluationId: Observable<string>;
+
+  /** Observable for information about the current run. Usually queried once when the view is loaded. */
+  @Input() info: Observable<ApiEvaluationInfo>;
+
+  /** Observable for information about the current run's {@link ApiEvaluationState}. */
+  @Input() state: Observable<ApiEvaluationState>;
+
+  /** Observable that fires whenever a task starts. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  @Input() taskStarted: Observable<ApiEvaluationState>;
+
+  /** Observable that fires whenever a task ends. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  @Input() taskEnded: Observable<ApiEvaluationState>;
+
+  /** Observable that fires whenever the active task template changes. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  @Input() taskChanged: Observable<ApiEvaluationState>;
+
+  /** Seconds duration remaining for early warning. Default is 60 */
+  @Input() earlyWarningThreshold: number = 60;
+
+  /** Seconds duration remaining for late warning. Default is 30 */
+  @Input() lateWarningThreshold: number = 30;
+
+  /** Observable that fires whenever the active task template changes. Emits the {@link ApiEvaluationState} that triggered the fire. */
+  currentTaskName: Observable<string>;
 
   /** Time that is still left (only when a task is running). */
   timeLeft: Observable<number>;
@@ -61,43 +76,65 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   /** The current {@link ViewerState} of this {@link TaskViewerComponent}. */
   viewerState: BehaviorSubject<ViewerState> = new BehaviorSubject(ViewerState.VIEWER_UNKNOWN);
 
-  /** Reference to the current {@link TaskHint} {@link ContentElement}s. */
-  currentTaskHint: Observable<ContentElement>;
+  /** Reference to the current {@link ApiHintContent}. */
+  currentTaskHint = new BehaviorSubject<ApiHintContent | null>(null);
 
-  /** Reference to the current {@link TaskTarget} {@link ContentElement}. */
-  currentTaskTarget: Observable<ContentElement>;
+  /** Subscription related to {@link currentTaskHint}. */
+  currentTaskHintSubscription: Subscription
+
+  /** Reference to the {@link ApiHintContent} of the current {@link ApiHintContent}. */
+  currentHintContent: Observable<ApiContentElement>;
+
+  /** Reference to the current {@link ApiTargetContent}. */
+  currentTargetContent: Observable<ApiContentElement>;
 
   /** The subscription associated with the current viewer state. */
   viewerStateSubscription: Subscription;
 
-  /** Reference to the audio element used during countdown. */
-  @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
+  /** Reference to the audio elements used during countdown. */
+  @ViewChild('audio_beep_1') beep1: ElementRef<HTMLAudioElement>;
+  @ViewChild('audio_beep_2') beep2: ElementRef<HTMLAudioElement>;
+  @ViewChild('audio_ding') ding: ElementRef<HTMLAudioElement>;
+  @ViewChild('audio_glass') glass: ElementRef<HTMLAudioElement>;
 
-  constructor(protected runService: CompetitionRunService, public config: AppConfig) {}
+  constructor(protected runService: EvaluationService, public config: AppConfig) {}
+
+  private playOnce(audio: HTMLAudioElement) {
+    if (this.config.config.effects.mute) {
+      return
+    }
+    audio
+        .play()
+        .catch((reason) => console.warn('Failed to play audio effects due to an error:', reason))
+        .then(() => {});
+  }
 
   /**
    * Create a subscription for task changes.
    */
   ngAfterViewInit(): void {
     /*  Observable for the current query hint. */
-    const currentTaskHint = this.taskChanged.pipe(
-      withLatestFrom(this.runId),
-      switchMap(([task, runId]) =>
-        this.runService.getApiV1RunWithRunidHintWithTaskid(runId, task.id).pipe(
-          catchError((e) => {
-            console.error('[TaskViewerComponent] Could not load current query hint due to an error.', e);
-            return of(null);
-          })
-        )
+    this.currentTaskHintSubscription = this.taskChanged.pipe(
+      mergeMap((task) => {
+          return this.runService.getHintForTaskTemplateId(task.evaluationId, task.taskTemplateId).pipe(
+            catchError((e) => {
+              console.error("[TaskViewerComponent] Could not load current query hint due to an error.", e);
+              return of(null);
+            })
+          );
+        }
       ),
-      shareReplay({ bufferSize: 1, refCount: true })
-    );
+      tap((hint) => {
+        this.state.pipe(switchMap(state => this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(state.evaluationId, state.taskTemplateId))).subscribe()
+      })
+    ).subscribe(n => this.currentTaskHint.next(n))
+
 
     /*  Observable for the current query target. */
-    const currentTaskTarget = this.state.pipe(
-      filter(s => s.taskRunStatus == TaskRunStatusEnum.ENDED),
-      switchMap((s) =>
-        this.runService.getApiV1RunWithRunidTargetWithTaskid(s.id, s.currentTask.id).pipe(
+    const currentTaskTarget = this.taskEnded.pipe(
+      withLatestFrom(this.evaluationId),
+      switchMap(([task, evaluationId]) =>
+        this.runService.getTargetForTaskTemplateId(evaluationId, task.taskTemplateId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
             return of(null);
@@ -107,47 +144,21 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    /*
-     * This Observable is used to poll the RunState; it merges the normal state observable with a timer and makes sure that:
-     * - If normal state changes (e.g. due to an external event), that state object is re-used
-     * - If timer fire, the state is queried.
-     * - Both timer + normal state only trigger an update every 500ms.
-     *
-     * Implicitly, this Observable is only used when a task is running due to how it is used in the template!
-     */
-    const polledState = merge(interval(1000).pipe(flatMap(() => this.runId)), this.state).pipe(
-      sampleTime(1000) /* This is again sampled to only ever emit once every second. */,
-      switchMap((s) => {
-        if (typeof s === 'string') {
-          return this.runService.getApiV1RunWithRunidState(s); /* Timer! Load run state! */
-        } else {
-          return of(s as RunState); /* This is a freshly loaded run state. */
-        }
-      }),
-      catchError((err, o) => {
-        console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);
-        return of(null);
-      }),
-      filter((p) => p != null),
-      share()
-    );
 
     /*
      * This is the main switch that updates the viewer's state and the only actual subscription.
      *
      * IMPORTANT: Unsubscribe onDestroy.
      */
-    this.viewerStateSubscription = combineLatest([currentTaskHint, polledState]).subscribe(([h, s]) => {
-      switch (s.taskRunStatus) {
+    this.viewerStateSubscription = this.state.subscribe((s) => {
+      // this.timeElapsed = of(s.timeElapsed)
+      switch (s.taskStatus) {
         case 'NO_TASK':
         case 'CREATED':
           this.viewerState.next(ViewerState.VIEWER_WAITING_FOR_TASK);
           break;
         case 'PREPARING':
           this.viewerState.next(ViewerState.VIEWER_SYNC);
-          if (h != null) {
-            this.webSocketSubject.next({ runId: s.id, type: 'ACK' } as IWsClientMessage);
-          } /* Send ACK. */
           break;
         case 'RUNNING':
           if (s.timeElapsed < 0) {
@@ -155,9 +166,9 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             this.viewerState.next(ViewerState.VIEWER_COUNTDOWN);
             this.taskCountdown.next(countdown);
             if (countdown > 0) {
-              AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_1.ogg', this.audio.nativeElement);
+              this.playOnce(this.beep1.nativeElement);
             } else {
-              AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_2.ogg', this.audio.nativeElement);
+              this.playOnce(this.beep2.nativeElement);
             }
           } else {
             this.viewerState.next(ViewerState.VIEWER_PLAYBACK);
@@ -168,30 +179,30 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    /** Map task target to representation used by viewer. */
-    this.currentTaskTarget = currentTaskTarget.pipe(
-      flatMap((h: TaskTarget) => {
+    /* Map task target to representation used by viewer. */
+    this.currentTargetContent = currentTaskTarget.pipe(
+      mergeMap((h: ApiHintContent) => {
         if (!h) {
-          return fromArray([]);
+          return from([]);
         }
-        return fromArray(h.sequence).pipe(
-          delayWhen<ContentElement>((c: ContentElement) => interval(1000 * c.offset)),
-          repeat(-1)
+        return from(h.sequence).pipe(
+          delayWhen<ApiContentElement>((c: ApiContentElement) => interval(1000 * c.offset)),
+          repeat(1)
         );
       })
     );
 
     /* Map task hint to representation used by viewer. */
-    this.currentTaskHint = currentTaskHint.pipe(
-      flatMap((hint) => {
-        console.log(`Current Task Hint fired`);
+    this.currentHintContent = this.currentTaskHint.pipe(
+      filter(h => h != null),
+      mergeMap((hint) => {
         return this.timeElapsed.pipe(
-          take(1),
-          flatMap((timeElapsed) => {
+            take(1),
+            mergeMap((timeElapsed) => {
             const actualTimeElapsed = Math.max(timeElapsed, 0);
             const sequence = [];
             if (hint) {
-              const largest = new Map<ContentElement.ContentTypeEnum, ContentElement>();
+              const largest = new Map<ApiContentType, ApiContentElement>();
               hint.sequence.forEach((c) => {
                 if (c.offset >= actualTimeElapsed) {
                   sequence.push(c);
@@ -206,11 +217,11 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
               });
             }
 
-            return fromArray(sequence).pipe(
+            return from(sequence).pipe(
               delayWhen<any>((c) => interval(Math.max(0, 1000 * (c.offset - actualTimeElapsed)))),
               map((t, index) => {
                 if (index > 0) {
-                  AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
+                  this.playOnce(this.ding.nativeElement);
                 }
                 return t;
               })
@@ -221,21 +232,23 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
+    /* Observable for the name of the current task. */
+    this.currentTaskName = combineLatest([this.info, this.taskChanged]).pipe(
+        map(([info, state]) => info.taskTemplates.find(t => t.templateId == state.taskTemplateId)?.name)
+    )
+
     /* Observable for the time that is still left. */
-    this.timeLeft = polledState.pipe(
+    this.timeLeft = this.state.pipe(
       map((s) => s.timeLeft) /* Compensating for added countdown. */,
       tap((t) => {
-        if (t === 30 || t === 60) {
-          AudioPlayerUtilities.playOnce(
-            '/immutable/assets/audio/glass.ogg',
-            this.audio.nativeElement
-          ); /* Reminder that time is running out. */
+        if (t === this.lateWarningThreshold || t === this.earlyWarningThreshold) {
+          this.playOnce(this.glass.nativeElement); /* Reminder that time is running out. */
         }
       })
     );
 
     /* Observable for the time that has elapsed. */
-    this.timeElapsed = polledState.pipe(map((s) => s.timeElapsed));
+    this.timeElapsed = this.state.pipe(map((s) => s.timeElapsed));
   }
 
   /**
@@ -244,6 +257,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.viewerStateSubscription.unsubscribe(); /* IMPORTANT! */
     this.viewerStateSubscription = null;
+    this.currentTaskHintSubscription.unsubscribe()
+    this.currentTaskHintSubscription = null;
   }
 
   /**

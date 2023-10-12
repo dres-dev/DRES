@@ -1,27 +1,29 @@
 package dev.dres.run.score.scorer
 
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.submissions.AnswerSet
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
-import dev.dres.data.model.submissions.aspects.StatusAspect
-import dev.dres.data.model.submissions.batch.ResultBatch
-import dev.dres.run.score.ScoreEntry
-import dev.dres.run.score.interfaces.ResultBatchTaskScorer
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
-import kotlin.concurrent.write
+import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.template.team.TeamId
+import dev.dres.run.score.Scoreable
+import jetbrains.exodus.database.TransientEntityStore
 
-class InferredAveragePrecisionScorer : ResultBatchTaskScorer {
+
+/**
+ *
+ * Computes the Inferred Average Precision as used in TREC based on an ordered, partially assessed list of [AnswerSet]s.
+ * See https://www-nlpir.nist.gov/projects/tv2006/infap/inferredAP.pdf for details.
+ *
+ * @author Luca Rossetto
+ * @version 1.0.0
+ */
+class InferredAveragePrecisionScorer( scoreable: Scoreable, store: TransientEntityStore?) : AbstractTaskScorer(scoreable, store) {
 
     companion object {
 
-        private val epsilon = 0.01 //TODO check what TRECVID uses
+        private const val epsilon = 1e-6 //TODO check what TRECVID uses
+        private fun infAP(elements: Sequence<AnswerSet>): Double {
 
-
-        //see https://www-nlpir.nist.gov/projects/tv2006/infap/inferredAP.pdf
-        fun infAP(elements: List<StatusAspect>): Double {
-
-            if (elements.isEmpty()) {
+            if (elements.none()) {
                 return 0.0
             }
 
@@ -30,35 +32,35 @@ class InferredAveragePrecisionScorer : ResultBatchTaskScorer {
             var correct = 0
             var wrong = 0
 
-            elements.forEachIndexed { index, statusAspect ->
+            elements.forEachIndexed { index, answerSet ->
 
                 val k = index + 1.0
-                when(statusAspect.status) {
-                    SubmissionStatus.CORRECT -> {
+                when (answerSet.status()) {
+                    VerdictStatus.CORRECT -> {
                         ++judgements // |d100|
                         ++correct // |rel|
 
-                        val ap = if (index == 0){ //special case for first document
-                            1.0 //all are relevant so far, since there is only one so far and it is relevant
+                        val ap = if (index == 0) { //special case for first document
+                            1.0 //all are relevant so far, since there is only one so far, and it is relevant
                         } else {
                             (1.0 / k) + ((k - 1.0) / k) * ((judgements / (k - 1.0)) * ((correct + epsilon) / (correct + wrong + 2.0 * epsilon)))
                         }
 
-                        println(ap)
-
                         infAPSum += ap
 
                     }
-                    SubmissionStatus.WRONG -> {
+
+                    VerdictStatus.WRONG -> {
                         ++judgements
                         ++wrong // |nonrel|
                     }
+
                     else -> {}
                 }
 
             }
 
-            if (correct == 0){
+            if (correct == 0) {
                 return 0.0
             }
 
@@ -66,22 +68,20 @@ class InferredAveragePrecisionScorer : ResultBatchTaskScorer {
 
         }
 
-        fun score(submissions: List<Submission>): Double = infAP(submissions)
-        fun score(batch: ResultBatch<*>): Double = infAP(batch.results)
-
     }
 
-    private var lastScores: MutableMap<Pair<TeamId, String>, Double> = mutableMapOf()
-    private val lastScoresLock = ReentrantReadWriteLock()
-
-    override fun computeScores(batch: ResultBatch<*>): Double = this.lastScoresLock.write {
-        val score = score(batch)
-        this.lastScores[batch.teamId to batch.name] = score
-        return@write score
+    /**
+     * Computes and returns the scores for this [InferredAveragePrecisionScorer] based on a [Sequence] of [Submission]s.
+     *
+     * The sole use of this method is to keep the implementing classes unit-testable (irrespective of the database).
+     *
+     * @param submissions A [Sequence] of [Submission]s to obtain scores for.
+     * @return A [Map] of [TeamId] to calculated task score.
+     */
+    override fun calculateScores(submissions: Sequence<Submission>): Map<TeamId, Double> {
+        return this.scoreable.teams.associateWith { teamId ->
+            val answerSets = submissions.filter { it.teamId == teamId }.flatMap { it.answerSets() }.filter { it.taskId == this.scoreable.taskId }
+            infAP(answerSets)
+        }
     }
-
-    override fun scores(): List<ScoreEntry> = this.lastScoresLock.read {
-        this.lastScores.map { ScoreEntry(it.key.first, it.key.second, it.value) }
-    }
-
 }

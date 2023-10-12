@@ -1,17 +1,21 @@
-<div fxLayout="column" fxLayoutAlign="space-evenly stretch">
-  <app-run-admin-toolbar [runId]="runId" [run]="run" [update]="update"></app-run-admin-toolbar>
+<div class="flex flex-column content-evenly align-stretch">
+  <app-run-admin-toolbar [runId]="runId" [run]="run" [refreshSubject]="update"></app-run-admin-toolbar>
   <div fxLayout="row" fxLayoutAlign="space-between stretch">
-    <mat-card fxFlex="49"
+    <mat-card appearance="outlined" class="flex-48"
       ><!-- Overview of Tasks -->
       <mat-card-header>
         <mat-card-title>Tasks Overview</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <table #taskTable mat-table [dataSource]="(run | async)?.runInfo?.tasks" style="width: 100%">
+        <table #taskTable mat-table [dataSource]="(run | async)?.runInfo?.taskTemplates" style="width: 100%">
           <!-- Name Column -->
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Name</th>
             <td mat-cell *matCellDef="let task" [matTooltip]="'TaskId: ' + task.id">{{ task.name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="comment">
+            <th mat-header-cell *matHeaderCellDef>Comment</th>
+            <td mat-cell *matCellDef="let task">{{ task.comment }}</td>
           </ng-container>
 
           <!-- Task Group Column -->
@@ -55,7 +59,7 @@
         </table>
       </mat-card-content>
     </mat-card>
-    <mat-card fxFlex="49"
+    <mat-card appearance="outlined" class="flex-48"
       ><!-- Tasks per Team -->
       <mat-card-header fxLayout="row" fxLayoutAlign="space-between center">
         <mat-card-title>Tasks per Team </mat-card-title>
@@ -85,6 +89,11 @@
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Name</th>
                 <td mat-cell *matCellDef="let task" [matTooltip]="'TaskId: ' + task.taskId">{{ task.name }}</td>
+              </ng-container>
+              <!-- Comment Column -->
+              <ng-container matColumnDef="comment">
+                <th mat-header-cell *matHeaderCellDef>Comment</th>
+                <td mat-cell *matCellDef="let task">{{ task.comment }}</td>
               </ng-container>
 
               <!-- Task Status Column -->

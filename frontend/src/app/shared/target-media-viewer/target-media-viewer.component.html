@@ -1,0 +1,9 @@
+<ng-container *ngIf="target">
+  <ng-container [ngSwitch]="target?.type">
+    <div *ngSwitchCase="'TEXT'">{{target.target}}</div>
+    <div *ngSwitchCase="'JUDGEMENT'">Judgement targets do not have a preview</div>
+    <div *ngSwitchCase="'JUDGEMENT_WITH_VOTE'">Judgement targets do not have a preview</div>
+    <app-media-item-viewer *ngSwitchCase="'MEDIA_ITEM'" [item]="target.target | resolveMediaItem | async"></app-media-item-viewer>
+    <app-media-item-viewer *ngSwitchCase="'MEDIA_ITEM_TEMPORAL_RANGE'" [item]="target.target | resolveMediaItem | async" [range]="target.range"></app-media-item-viewer>
+  </ng-container>
+</ng-container>

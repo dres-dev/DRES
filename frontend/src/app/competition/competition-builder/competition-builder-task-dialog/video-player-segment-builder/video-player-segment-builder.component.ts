@@ -1,23 +1,30 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from "@angular/core";
 import { Observable, of, Subscription } from 'rxjs';
-import { RestMediaItem, RestTemporalPoint, RestTemporalRange } from '../../../../../../openapi';
+import { ApiMediaItem, ApiTemporalPoint, ApiTemporalRange } from '../../../../../../openapi';
 import { AppConfig } from '../../../../app.config';
-import { Options } from '@angular-slider/ngx-slider';
 
+/**
+ * DTO for [VideoPlayerSegmentBuilder] configuration.
+ * Requires either `mediaItem` or `externalPath` to be set.
+ * `segmentStart` and `segmentEnd` are optional
+ */
 export interface VideoPlayerSegmentBuilderData {
-  mediaItem: RestMediaItem;
-  segmentStart: number;
-  segmentEnd: number;
+  mediaItem?: ApiMediaItem;
+  segmentStart?: number;
+  segmentEnd?: number;
+  externalPath?:string;
 }
+
 
 @Component({
   selector: 'app-video-player-segment-builder',
   templateUrl: './video-player-segment-builder.component.html',
   styleUrls: ['./video-player-segment-builder.component.scss'],
 })
-export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDestroy {
+export class VideoPlayerSegmentBuilderComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() data: VideoPlayerSegmentBuilderData;
-  @Output() rangeChange = new EventEmitter<RestTemporalRange>();
+  @Output() rangeChange = new EventEmitter<ApiTemporalRange>();
+  @Input() showTitle = true
 
   @ViewChild('videoPlayer', { static: false }) video: ElementRef;
   videoUrl: Observable<string>;
@@ -27,34 +34,31 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
   endInSeconds = 100;
   durationInSeconds = 100;
 
-  options = {
-    floor: 0,
-    ceil: 100,
-    showTicks: false,
-  } as Options;
-
   doLoop = true;
 
   private requestSub: Subscription;
+
+  isMediaItemPlayer = false;
 
   constructor(
     public config: AppConfig /*,
                 public dialogRef: MatDialogRef<VideoPlayerSegmentBuilderData>,
                 @Inject(MAT_DIALOG_DATA) public data: VideoPlayerSegmentBuilderData*/
-  ) {}
+  ) {
+  }
 
   ngAfterViewInit(): void {
+    console.log("VIDEO DATA: ",this.data);
+    console.log("MEDIA ITEM", this.isMediaItemPlayer)
     setTimeout(() => {
       /*
        * timeout because of value changed after checking thingy
        * https://blog.angular-university.io/angular-debugging/
        */
-      if (this.data.mediaItem) {
+      if (this.data) {
         this.videoUrl = of(
-          this.config.resolveApiUrl(`/media/${this.data?.mediaItem?.collectionId}/${this.data?.mediaItem?.id}`)
+          this.isMediaItemPlayer ? this.config.resolveMediaItemUrl(this.data.mediaItem.mediaItemId) : this.config.resolveExternalUrl(this.data.externalPath)
         );
-        this.durationInSeconds = this.data.mediaItem.durationMs / 1000;
-        this.setNewRange(0, this.durationInSeconds);
       }
       if (this.data.segmentStart) {
         this.startInSeconds = this.data.segmentStart === -1 ? 0 : this.data.segmentStart;
@@ -92,12 +96,6 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
     });
   }
 
-  setNewRange(start: number, end: number) {
-    const newOptions: Options = Object.assign({}, this.options);
-    newOptions.ceil = start;
-    newOptions.floor = end;
-    this.options = newOptions;
-  }
 
   stop() {
     this.videoUrl = undefined;
@@ -162,10 +160,19 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
 
   public fetchData() {
     const out = {
-      start: { value: this.startInSeconds.toString(), unit: 'SECONDS' } as RestTemporalPoint,
-      end: { value: this.endInSeconds.toString(), unit: 'SECONDS' } as RestTemporalPoint,
-    } as RestTemporalRange;
+      start: { value: this.startInSeconds.toString(), unit: 'SECONDS' } as ApiTemporalPoint,
+      end: { value: this.endInSeconds.toString(), unit: 'SECONDS' } as ApiTemporalPoint,
+    } as ApiTemporalRange;
     console.log(`Fetched: ${out}`);
     return out;
+  }
+
+  ngOnInit(): void {
+    if(this.data){
+      if(this.data.mediaItem && this.data.mediaItem.mediaItemId){
+        console.log("media item!")
+        this.isMediaItemPlayer = true;
+      }
+    }
   }
 }

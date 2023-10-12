@@ -5,33 +5,37 @@
       <mat-form-field style="width: 80%">
         <mat-label>Name</mat-label>
         <input type="text" matInput placeholder="Name" formControlName="name" />
+        <mat-error *ngIf="form.get('name')?.invalid">Required. Name must consist of at least three characters.</mat-error>
       </mat-form-field>
 
       <mat-form-field style="width: 20%">
         <mat-label>Duration [s]</mat-label>
         <input type="text" matInput placeholder="Duration [s]" formControlName="defaultTaskDuration" />
+        <mat-error *ngIf="form.get('defaultTaskDuration')?.invalid">Required. Name must consist of at least three characters.</mat-error>
       </mat-form-field>
     </p>
 
     <p>
       <mat-form-field style="width: 50%">
-        <mat-select placeholder="Target" formControlName="target">
+        <mat-select placeholder="Target*" formControlName="target">
           <mat-option *ngFor="let type of targetTypes" [value]="type">
             {{ type }}
           </mat-option>
         </mat-select>
+        <mat-error *ngIf="form.get('target')?.invalid">Required.</mat-error>
       </mat-form-field>
 
       <mat-form-field style="width: 50%">
-        <mat-select placeholder="Scoring" formControlName="scoring">
+        <mat-select placeholder="Scoring*" formControlName="scoring">
           <mat-option *ngFor="let type of scoreTypes" [value]="type">
             {{ type }}
           </mat-option>
         </mat-select>
+        <mat-error *ngIf="form.get('scoring')?.invalid">Required.</mat-error>
       </mat-form-field>
     </p>
 
-    <h3>Used Task Components</h3>
+    <h3>Used Task Components*</h3>
     <section class="checkbox-section">
       <mat-checkbox
         *ngFor="let type of componentTypes"
@@ -41,6 +45,7 @@
       >
         {{ type.type }}
       </mat-checkbox>
+      <mat-error *ngIf="form.get('components')?.invalid">Requires at least one.</mat-error>
     </section>
 
     <h3>Submission Filters</h3>

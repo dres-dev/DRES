@@ -1,0 +1,40 @@
+<div>
+    <form [formGroup]="form">
+        <p>
+            <mat-form-field style="width: 100%">
+                <mat-label>Name</mat-label>
+                <input type="text" matInput placeholder="Evaluation Template Name" formControlName="name" required/>
+            </mat-form-field>
+        </p>
+        <p>
+            <mat-form-field style="width: 100%">
+                <mat-label>Description</mat-label>
+                <textarea matInput placeholder="Description" formControlName="description" required></textarea>
+            </mat-form-field>
+        </p>
+        <p>
+            <span>
+            Client-side convenience fields for default values<br/>
+            </span>
+            <mat-form-field style="width: 50%" matTooltip="By default the most used collection">
+                <mat-label>Default collection for tasks within this evaluation template</mat-label>
+                <mat-select
+                  [placeholder]="'Default Media Collection'"
+                  formControlName="collection"
+                >
+                    <mat-option *ngFor="let mediaCollection of mediaCollectionSource | async"
+                                [value]="mediaCollection.id">
+                        <span>{{ mediaCollection.name }}</span> (ID: {{ mediaCollection.id }})
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field style="width: 50%">
+                <mat-label>Default length of a random segment in seconds. If set to zero this causes random length.</mat-label>
+                <input type="number" matInput
+                       [placeholder]="'Default segment length'"
+                       formControlName="defaultRandomLength"
+                >
+            </mat-form-field>
+        </p>
+    </form>
+</div>

@@ -1,8 +1,7 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CompetitionRunScoresService, CompetitionRunService, RunInfo } from '../../../../openapi';
-import { catchError, filter, flatMap, map, shareReplay, switchMap, tap } from 'rxjs/operators';
-import { combineLatest, concat, interval, Observable, of } from 'rxjs';
+import { catchError, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 import {
   ApexAxisChartSeries,
   ApexChart,
@@ -14,6 +13,7 @@ import {
   ApexXAxis,
   ApexYAxis,
 } from 'ng-apexcharts';
+import {ApiEvaluationInfo, EvaluationScoresService, EvaluationService} from '../../../../openapi';
 
 @Component({
   selector: 'app-score-history',
@@ -26,7 +26,7 @@ export class RunScoreHistoryComponent {
   /** Title for the time series graph. */
   public title: Observable<ApexTitleSubtitle>;
   /** Run information for the current run ID. */
-  public runInfo: Observable<RunInfo>;
+  public runInfo: Observable<ApiEvaluationInfo>;
   /** Time series data. */
   public series: Observable<ApexAxisChartSeries>;
   /** The currently selected scoreboard. */
@@ -113,20 +113,20 @@ export class RunScoreHistoryComponent {
   constructor(
     private router: Router,
     private activeRoute: ActivatedRoute,
-    private runService: CompetitionRunService,
-    private scoreService: CompetitionRunScoresService
+    private runService: EvaluationService,
+    private scoreService: EvaluationScoresService
   ) {
     /* Information about current run. */
     this.runId = this.activeRoute.params.pipe(map((a) => a.runId));
     this.runInfo = this.runId.pipe(
       switchMap((runId) =>
-        this.runService.getApiV1RunWithRunidInfo(runId).pipe(
+        this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
             );
             if (err.status === 404) {
-              this.router.navigate(['/competition/list']);
+              this.router.navigate(['/template/list']);
             }
             return of(null);
           }),
@@ -151,13 +151,13 @@ export class RunScoreHistoryComponent {
     /* List of scoreboard for the current run ID. */
     this.scoreboards = this.runId.pipe(
       switchMap((runId) =>
-        this.scoreService.getApiV1ScoreRunWithRunidScoreboardList(runId).pipe(
+        this.scoreService.getApiV2ScoreEvaluationByEvaluationIdTeamGroupList(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
             );
             if (err.status === 404) {
-              this.router.navigate(['/competition/list']);
+              this.router.navigate(['/template/list']);
             }
             return of([]);
           })
@@ -171,16 +171,18 @@ export class RunScoreHistoryComponent {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
+    // FIXME got that handler missing?
+
     /* Load time series data should be visualized. */
-    const scores = this.runId.pipe(
-      flatMap((r) =>
+    /*const scores = this.runId.pipe(
+      mergeMap((r) =>
         interval(2000).pipe(
           switchMap((i) => {
             return this.scoreService.getApiV1ScoreRunWithRunidSeriesWithScoreboard(r, this.selectedScoreboard).pipe(
               catchError((err, o) => {
                 console.log(`[ScoreHistoryComponent] There was an error while loading scores for run: ${err?.message}`);
                 if (err.status === 404) {
-                  this.router.navigate(['/competition/list']);
+                  this.router.navigate(['/template/list']);
                 }
                 return of(null);
               }),
@@ -190,12 +192,14 @@ export class RunScoreHistoryComponent {
         )
       ),
       shareReplay({ bufferSize: 1, refCount: true })
-    );
+    );*/
 
     /* Prepare time series data. */
+    /*
     const series = combineLatest([scores, this.runInfo]).pipe(
       map(([data, run]) => {
         /* Prepare data structure for ApexCharts. */
+        /*
         const array: ApexAxisChartSeries = [];
         for (const s of data) {
           const team = run.teams.find((t) => t.uid === s.team);
@@ -210,5 +214,6 @@ export class RunScoreHistoryComponent {
       })
     );
     this.series = concat(of([{ name: 'Empty', data: [] }]), series);
+    */
   }
 }

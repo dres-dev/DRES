@@ -1,0 +1,18 @@
+{
+ "name": "Visual Known Item Search",
+ "duration": 300,
+ "targetOption": "SINGLE_MEDIA_SEGMENT",
+ "hintOptions": [
+  "VIDEO_ITEM_SEGMENT"
+ ],
+ "submissionOptions": [
+  "NO_DUPLICATES",
+  "LIMIT_CORRECT_PER_TEAM",
+  "TEMPORAL_SUBMISSION"
+ ],
+ "taskOptions": [],
+ "scoreOption": "KIS",
+ "configuration": {
+  "LIMIT_CORRECT_PER_TEAM.limit": "1"
+ }
+}

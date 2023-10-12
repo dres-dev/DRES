@@ -1,11 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { SessionId, UserDetails, UserRequest, UserService } from '../../../../openapi';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { first, flatMap, tap } from 'rxjs/operators';
+import { first } from 'rxjs/operators';
 import { AuthenticationService } from '../../services/session/authentication.sevice';
+import {ApiUser, ApiUserRequest, UserService} from '../../../../openapi';
 
 @Component({
   selector: 'app-profile',
@@ -13,17 +13,17 @@ import { AuthenticationService } from '../../services/session/authentication.sev
   styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit, OnDestroy {
-  user: Observable<UserDetails>;
-  sessionId: Observable<SessionId>;
+  user: Observable<ApiUser>;
+  sessionId: Observable<string>;
   loggedIn: Observable<boolean>;
 
   editing = false;
 
   private userSub: Subscription;
 
-  form: FormGroup = new FormGroup({
-    username: new FormControl({ value: '', disabled: !this.editing }),
-    password: new FormControl({ value: '', disabled: !this.editing }),
+  form: UntypedFormGroup = new UntypedFormGroup({
+    username: new UntypedFormControl({ value: '', disabled: !this.editing }),
+    password: new UntypedFormControl({ value: '', disabled: !this.editing }),
   });
 
   constructor(
@@ -35,7 +35,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
-    this.sessionId = this.userService.getApiV1UserSession();
+    this.sessionId = this.userService.getApiV2UserSession();
   }
 
   ngOnInit(): void {
@@ -52,22 +52,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
   public submit() {
     console.log(`Submitting u=${this.form.controls.username.value} and p=${this.form.controls.password.value}`);
     if (this.form.valid) {
-      const usr = { username: this.form.controls.username.value } as UserRequest;
+      const usr = { username: this.form.controls.username.value } as ApiUserRequest;
       if (this.form.controls.password.value !== '') {
         usr.password = this.form.controls.password.value;
       }
       this.authenticationService
         .updateUser(usr)
         .pipe(first())
-        .subscribe(
-          (r: UserDetails) => {
+        .subscribe({
+          next: (r: ApiUser) => {
             this.snackBar.open(`Save successful!`, null, { duration: 5000 });
             this.toggleEdit();
           },
-          (error) => {
+          error: (error) => {
             this.snackBar.open(`Save failed: ${error.error.description}!`, null, { duration: 5000 });
           }
-        );
+        });
     }
   }
 

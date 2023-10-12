@@ -304,3 +304,6 @@ local.config.json
 
 ## Do not include the generated client bindings
 frontend/openapi/
+
+## Do not include the generated yarn.lock when using the build process
+yarn.lock

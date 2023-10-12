@@ -1,10 +1,9 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { CollectionService, RestFullMediaCollection, RestMediaItem } from '../../../../openapi';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { BehaviorSubject, Observable, of, Subject, Subscription } from 'rxjs';
-import { catchError, filter, flatMap, map, retry, shareReplay, switchMap } from 'rxjs/operators';
+import {BehaviorSubject, mergeMap, Observable, of, Subject, Subscription} from 'rxjs';
+import { catchError, filter, map, retry, shareReplay, switchMap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import {
   MediaItemBuilderData,
@@ -13,6 +12,7 @@ import {
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
+import {ApiMediaItem, ApiPopulatedMediaCollection, CollectionService} from '../../../../openapi';
 
 @Component({
   selector: 'app-collection-viewer',
@@ -20,25 +20,28 @@ import { MatSort } from '@angular/material/sort';
   styleUrls: ['./collection-viewer.component.scss'],
 })
 export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
+
+  public isLoading = true;
+
   displayedColumns = ['actions', 'id', 'name', 'location', 'type', 'durationMs', 'fps'];
 
   /** Material Table UI element for sorting. */
   @ViewChild(MatSort) sort: MatSort;
 
   /** Material Table UI element for pagination. */
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild('paginator') paginator: MatPaginator;
 
   /** Data source for Material tabl.e */
-  dataSource = new MatTableDataSource<RestMediaItem>();
+  dataSource = new MatTableDataSource<ApiMediaItem>();
 
   /** Observable containing the collection ID of the collection displayed by this component. Derived from active route. */
   collectionId: Observable<string>;
 
   /** Observable containing the media collection information. */
-  collection: Observable<RestFullMediaCollection>;
+  collection: Observable<ApiPopulatedMediaCollection>;
 
   /** A subject used to trigger refrehs of the list. */
-  refreshSubject: Subject<null> = new BehaviorSubject(null);
+  refreshSubject: Subject<void> = new BehaviorSubject(null);
 
   /** Reference to the subscription held by this component. */
   private subscription: Subscription;
@@ -63,6 +66,8 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     /* Initialize sorting and pagination. */
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    /* Custom filter: on ID, Name and Location */
+    this.dataSource.filterPredicate = (data: ApiMediaItem, value: string) => data.mediaItemId.includes(value) || data.name.includes(value) || data.location.includes(value)
 
     /*
      * Initialize subscription for collection data.
@@ -70,9 +75,9 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
      * IMPORTANT: Unsubscribe OnDestroy!
      */
     this.collection = this.refreshSubject.pipe(
-      flatMap((s) => this.collectionId),
+      mergeMap((s) => this.collectionId),
       switchMap((id) =>
-        this.collectionService.getApiV1CollectionWithCollectionid(id).pipe(
+        this.collectionService.getApiV2CollectionByCollectionId(id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[CollectionViewer.${id}] There was an error while loading the current collection ${err?.message}`);
@@ -86,9 +91,19 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
       ),
       shareReplay({ bufferSize: 1, refCount: true })
     );
-    this.subscription = this.collection.subscribe((s: RestFullMediaCollection) => {
+    this.subscription = this.collection.subscribe((s: ApiPopulatedMediaCollection) => {
       this.dataSource.data = s.items;
+      this.isLoading = false;
     });
+  }
+
+  applyFilter(event: Event){
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if(this.dataSource.paginator){
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   /**
@@ -101,15 +116,15 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
 
   delete(id: string) {
     if (confirm(`Do you really want to delete media item with ID ${id}?`)) {
-      this.collectionService.deleteApiV1MediaitemWithMediaid(id).subscribe(
-        (r) => {
+      this.collectionService.deleteApiV2MediaItemByMediaId(id).subscribe({
+        next: (r) => {
           this.refreshSubject.next();
-          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
+          this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
         },
-        (r) => {
-          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+        error: (r) => {
+          this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
         }
-      );
+      });
     }
   }
 
@@ -119,7 +134,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
 
   show(id: string) {
     this.collectionId.subscribe((collectionId) => {
-      window.open(this.mediaUrlForItem(collectionId, id), '_blank');
+      window.open(this.mediaUrlForItem(id), '_blank');
     });
   }
 
@@ -127,7 +142,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     this.collectionId.subscribe((colId: string) => {
       const config = { width: '500px' } as MatDialogConfig<Partial<MediaItemBuilderData>>;
       if (id) {
-        config.data = { item: this.dataSource.data.find((it) => it.id === id), collectionId: colId } as MediaItemBuilderData;
+        config.data = { item: this.dataSource.data.find((it) => it.mediaItemId === id), collectionId: colId } as MediaItemBuilderData;
       } else {
         config.data = { collectionId: colId } as Partial<MediaItemBuilderData>;
       }
@@ -136,35 +151,35 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
         .afterClosed()
         .pipe(
           filter((r) => r != null),
-          flatMap((r: RestMediaItem) => {
+          mergeMap((r: ApiMediaItem) => {
             if (id) {
-              return this.collectionService.patchApiV1Mediaitem(r);
+              return this.collectionService.patchApiV2Mediaitem(r);
             } else {
-              return this.collectionService.postApiV1Mediaitem(r);
+              return this.collectionService.postApiV2MediaItem(r);
             }
           })
         )
-        .subscribe(
-          (r) => {
+        .subscribe({
+          next: (r) => {
             this.refreshSubject.next();
-            this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
+            this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
           },
-          (r) => {
-            this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+          error: (r) => {
+            this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
           }
-        );
+        });
     });
   }
 
-  resolveMediaItemById(_: number, item: RestMediaItem) {
-    return item.id;
+  resolveMediaItemById(_: number, item: ApiMediaItem) {
+    return item.mediaItemId;
   }
 
   /**
    * Builds the routerLink array for the given id
    */
-  private mediaUrlForItem(collectionId: string, id: string) {
-    const url = this.config.resolveApiUrl(`media/${collectionId}/${id}`);
+  private mediaUrlForItem(id: string) {
+    const url = this.config.resolveApiUrl(`media/${id}`);
     console.log(url);
     return url;
   }

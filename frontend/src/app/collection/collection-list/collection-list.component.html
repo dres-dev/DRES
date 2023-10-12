@@ -1,6 +1,6 @@
-<div style="display: flex">
+<div class="flex align-baseline">
   <app-back-button></app-back-button>
-  <div><h1>Media Collections</h1></div>
+  <h1>Media Collections</h1>
   <div class="spacer-flex"></div>
   <div>
     <button
@@ -34,7 +34,7 @@
         <button mat-icon-button aria-label="Edit collection." matTooltip="Edit collection." (click)="edit(row.id)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button aria-label="Delete collection." matTooltip="Delete competition." (click)="delete(row.id)">
+        <button mat-icon-button aria-label="Delete collection." matTooltip="Delete collection." (click)="delete(row.id)">
           <mat-icon>delete</mat-icon>
         </button>
       </td>

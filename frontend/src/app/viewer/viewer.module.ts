@@ -19,9 +19,11 @@ import { TaskViewerComponent } from './task-viewer.component';
 import { TeamsViewerComponent } from './teams-viewer.component';
 import { QueryObjectPreviewModule } from './query-object-preview/query-object-preview.module';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { CompetitionScoreboardViewerComponent } from './competition-scoreboard-viewer/competition-scoreboard-viewer.component';
+import { ScoreboardViewerComponent } from './scoreboard-viewer/scoreboard-viewer.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SharedModule } from '../shared/shared.module';
+import {FullscreenOverlayContainer, OverlayContainer, OverlayModule} from "@angular/cdk/overlay";
+import { EvaluationModule } from "../evaluation/evaluation.module";
 
 @NgModule({
   imports: [
@@ -45,9 +47,11 @@ import { SharedModule } from '../shared/shared.module';
     NgApexchartsModule,
     BrowserAnimationsModule,
     SharedModule,
+    OverlayModule,
+    EvaluationModule
   ],
   exports: [RunViewerComponent],
-  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, CompetitionScoreboardViewerComponent],
-  providers: [],
+  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent],
+  providers: [{provide: OverlayContainer, useClass: FullscreenOverlayContainer}],
 })
 export class ViewerModule {}

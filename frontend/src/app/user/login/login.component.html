@@ -1,18 +1,18 @@
-<mat-card>
+<mat-card appearance="outlined">
   <mat-card-title>Login</mat-card-title>
   <mat-card-content>
     <form [formGroup]="form" (ngSubmit)="submit()">
       <p>
-        <mat-form-field appearance="standard">
+        <mat-form-field>
           <mat-label>Username:</mat-label>
-          <input type="text" matInput placeholder="Username" formControlName="username" />
+          <input type="text" matInput placeholder="Username" formControlName="username" autocomplete="username" />
         </mat-form-field>
       </p>
 
       <p>
-        <mat-form-field appearance="standard">
+        <mat-form-field>
           <mat-label>Password:</mat-label>
-          <input type="password" matInput placeholder="Password" formControlName="password" />
+          <input type="password" matInput placeholder="Password" formControlName="password" autocomplete="current-password" />
         </mat-form-field>
       </p>
 

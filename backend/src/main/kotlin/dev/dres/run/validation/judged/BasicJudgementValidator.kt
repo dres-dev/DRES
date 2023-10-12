@@ -1,11 +1,15 @@
 package dev.dres.run.validation.judged
 
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
+import dev.dres.data.model.submissions.*
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.JudgementValidator
-import dev.dres.run.validation.interfaces.SubmissionJudgementValidator
+import dev.dres.run.validation.interfaces.AnswerSetValidator
+import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -14,65 +18,62 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /**
- * A validator class that checks, if a submission is correct based on a manual judgement by a user.
+ * An implementation of the [JudgementValidator] that checks, if a submission is correct based on a manual judgement by a user.
  *
- *
- * @author Luca Rossetto & Ralph Gasser
- * @version 1.0
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 2.0.0
  */
-open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()):
-    SubmissionJudgementValidator {
+open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, protected val store: TransientEntityStore, knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(),
+
+) : AnswerSetValidator, JudgementValidator {
 
     companion object {
         private val counter = AtomicInteger()
         private const val judgementTimeout = 60_000 //ms until a request is re-scheduled
     }
 
+    /** The [BasicJudgementValidator]'s ID is simply an auto-incrementing number. */
     override val id = "bjv${counter.incrementAndGet()}"
 
+    /** A [BasicJudgementValidator] is always deferring. */
+    override val deferring: Boolean = true
+
+    /** Internal lock on relevant data structures. */
     private val updateLock = ReentrantReadWriteLock()
 
-    /** Internal queue that keeps track of all the [Submission]s in need of a verdict. */
-    private val queue: Queue<Submission> = LinkedList()
+    /** Internal queue that keeps track of all the [AnswerSetId]s and associated [ItemRange]s that require judgement. */
+    private val queue: Queue<Pair<AnswerSetId,ItemRange>> = LinkedList()
 
-    private val queuedItemRanges: MutableMap<ItemRange, MutableList<Submission>> = HashMap()
+    /** Internal map of all [AnswerSetId]s and associated [ItemRange]s that have been retrieved by a judge and are pending a verdict. */
+    private val waiting = HashMap<String, Pair<AnswerSetId,ItemRange>>()
 
-    /** Internal map of all [Submission]s that have been retrieved by a judge and are pending a verdict. */
-    private val waiting = HashMap<String, Submission>()
+    /** Internal queue that keeps track of all the pending [ItemRange]s in need of judgement. */
+    private val queuedItemRanges: MutableMap<ItemRange, MutableList<AnswerSetId>> = HashMap()
 
     /** Helper structure to keep track when a request needs to be re-scheduled */
     private val timeouts = mutableListOf<Pair<Long, String>>()
 
-    /** Internal map of already judged [Submission]s, independent of their source. */
-    private val cache: MutableMap<ItemRange, SubmissionStatus> = ConcurrentHashMap()
+    /** Internal map of known [ItemRange]s to associated [DbVerdictStatus]. */
+    private val cache: MutableMap<ItemRange, DbVerdictStatus> = ConcurrentHashMap()
 
     init {
-        knownCorrectRanges.forEach { cache[it] = SubmissionStatus.CORRECT }
-        knownWrongRanges.forEach { cache[it] = SubmissionStatus.WRONG }
+        knownCorrectRanges.forEach { this.cache[it] = DbVerdictStatus.CORRECT }
+        knownWrongRanges.forEach { this.cache[it] = DbVerdictStatus.WRONG }
     }
 
-    private fun checkTimeOuts() = updateLock.write {
-        val now = System.currentTimeMillis()
-        val due = timeouts.filter { it.first <= now }
-        due.forEach {
-            val submission = waiting.remove(it.second)
-            if (submission != null) {
-                queue.offer(submission)
-            }
-        }
-        timeouts.removeAll(due)
-    }
-
-    /** Returns the number of [Submission]s that are currently pending a judgement. */
+    /** Returns the number of [DbSubmission]s that are currently pending a judgement. */
     override val pending: Int
         get() = updateLock.read { this.queue.size + this.waiting.size }
 
+    /** Returns the number of [DbAnswerSet]s pending judgement. */
     override val open: Int
-        get() = updateLock.read {
+        get() = this.updateLock.read {
             checkTimeOuts()
             return this.queue.size
         }
 
+    /** True, if there are [DbAnswerSet]s pending judgement. */
     override val hasOpen: Boolean
         get() = updateLock.read {
             checkTimeOuts()
@@ -80,55 +81,53 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
         }
 
     /**
-     * Enqueues a [Submission] with the internal judgment queue and updates its [SubmissionStatus]
-     * to [SubmissionStatus.INDETERMINATE].
+     * Validates the [DbAnswerSet]. For the [BasicJudgementValidator] this means that the [DbAnswerSet] is enqueued for judgement.
      *
-     * @param submission The [Submission] to validate.
+     * @param answerSet The [DbAnswerSet] to validate.
      */
-    override fun validate(submission: Submission) = updateLock.read {
-
-        //only validate submissions which are not already validated
-        if (submission.status != SubmissionStatus.INDETERMINATE){
-            return@read
-        }
-
-        //check cache first
-        val itemRange = ItemRange(submission)
-        val cachedStatus = this.cache[itemRange]
-        if (cachedStatus != null) {
-            submission.status = cachedStatus
-        } else if (itemRange !in queuedItemRanges.keys) {
-            updateLock.write {
-                this.queue.offer(submission)
-
-                submission.status = SubmissionStatus.INDETERMINATE
-                queuedItemRanges[itemRange] = mutableListOf(submission)
+    override fun validate(answerSet: DbAnswerSet) = this.updateLock.read {
+        this.store.transactional {
+            //only validate submissions which are not already validated
+            if (answerSet.status != DbVerdictStatus.INDETERMINATE) {
+                return@transactional
             }
-        } else {
-            updateLock.write {
-                queuedItemRanges[itemRange]!!.add(submission)
+
+            //check cache first
+            val itemRange = ItemRange(answerSet.answers.first()) //TODO reason about semantics
+            val cachedStatus = this.cache[itemRange]
+            if (cachedStatus != null) {
+                answerSet.status = cachedStatus
+            } else if (itemRange !in this.queuedItemRanges.keys) {
+                this.updateLock.write {
+                    this.queue.offer(answerSet.id to itemRange)
+                    this.queuedItemRanges[itemRange] = mutableListOf(answerSet.id)
+                }
+            } else {
+                this.updateLock.write {
+                    this.queuedItemRanges[itemRange]!!.add(answerSet.id)
+                }
             }
         }
     }
 
     /**
-     * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'
-     * internal queue. If such an element exists, then the [Submission] is returned alongside a
-     * unique token, that can be used to update the [Submission]'s [SubmissionStatus].
+     * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'s internal queue.
      *
-     * @return Optional [Pair] containing a string token and the [Submission] that should be judged.
+     * If such an element exists, then the [ApiAnswerSet] is returned alongside a unique token, that can be used to update
+     * the [ApiAnswerSet]'s [VerdictStatus].
+     *
+     * @return [Pair] containing a string token and the [ApiAnswerSet] that should be judged. Can be null!
      */
-    override fun next(queue: String): Pair<String, Submission>? = updateLock.write {
+    override fun next(): Pair<String, ApiAnswerSet>? = this.updateLock.write {
         checkTimeOuts()
-        val next = this.queue.poll()
-        return if (next != null) {
+        val next = this.queue.poll() ?: return@write null
+        return@write this.store.transactional(true) {
+            val answerSet = DbAnswerSet.query(DbAnswerSet::id eq next.first).singleOrNull() ?: return@transactional null
             val token = UUID.randomUUID().toString()
             this.waiting[token] = next
             this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
-            AuditLogger.prepareJudgement(this.id, token, next)
-            Pair(token, next)
-        } else {
-            null
+            AuditLogger.prepareJudgement(answerSet.toApi(), this, token)
+            token to answerSet.toApi()
         }
     }
 
@@ -138,35 +137,60 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
      * @param token The token used to identify the [Submission].
      * @param verdict The verdict of the judge.
      */
-    override fun judge(token: String, verdict: SubmissionStatus) {
-        processSubmission(token, verdict)?.status = verdict
-    }
-
-    internal fun processSubmission(token: String, verdict: SubmissionStatus) : Submission? = updateLock.write {
-        val submission = this.waiting[token] ?: throw JudgementTimeoutException("This JudgementValidator does not contain a submission for the token '$token'.") //submission with token not found TODO: this should be logged
-
-        val itemRange = ItemRange(submission)
-
-        //add to cache
-        this.cache[itemRange] = verdict
-
-        //remove from waiting map
-        this.waiting.remove(token)
-
-        //remove from queue set
-        val otherSubmissions = this.queuedItemRanges.remove(itemRange)
-        otherSubmissions?.forEach {
-            it.status = verdict
+    override fun judge(token: String, verdict: ApiVerdictStatus) {
+        this.updateLock.write {
+            this.judgeInternal(token, verdict)
         }
-
-        return@write submission
     }
+
+    /**
+     * Internal implementation for re-use of the judgement logic for re-use.
+     *
+     * @param token The token used to identify the [DbSubmission].
+     * @param verdict The verdict of the judge.
+     */
+    protected fun judgeInternal(token: String, verdict: ApiVerdictStatus): AnswerSetId {
+        val next = this.waiting.remove(token)
+            ?: throw JudgementTimeoutException("This JudgementValidator does not contain a submission for the token '$token'.") //submission with token not found TODO: this should be logged
+
+        /* Remove from queue set. */
+        val otherSubmissions = this.queuedItemRanges.remove(next.second) ?: emptyList()
+        this.store.transactional {
+            val dbVerdict = verdict.toDb()
+            for ((i, answerSetId) in (otherSubmissions + next.first).withIndex()) {
+                val answerSet = DbAnswerSet.query(DbAnswerSet::id eq answerSetId).singleOrNull()
+                if (answerSet != null) {
+                    answerSet.status = dbVerdict
+                    if (i == 0) {
+                        this.cache[ItemRange(answerSet.answers.first())] = dbVerdict //TODO reason about semantics
+                    }
+                }
+            }
+        }
+        return next.first
+    }
+
 
     /**
      * Clears this [JudgementValidator] and all the associated queues and maps.
      */
-    fun clear() = updateLock.write {
+    fun clear() = this.updateLock.write {
         this.waiting.clear()
         this.queue.clear()
+    }
+
+    /**
+     *
+     */
+    private fun checkTimeOuts() = this.updateLock.write {
+        val now = System.currentTimeMillis()
+        val due = timeouts.filter { it.first <= now }
+        due.forEach {
+            val submission = waiting.remove(it.second)
+            if (submission != null) {
+                queue.offer(submission)
+            }
+        }
+        timeouts.removeAll(due)
     }
 }

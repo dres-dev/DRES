@@ -1,33 +1,47 @@
 package dev.dres.run
 
-import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.run.websocket.ClientMessage
-import dev.dres.data.model.UID
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
-import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.run.RunProperties
-import dev.dres.data.model.run.interfaces.Task
+import dev.dres.api.rest.types.ViewerInfo
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
+import dev.dres.api.rest.types.template.ApiEvaluationTemplate
+import dev.dres.data.model.run.*
+import dev.dres.data.model.run.interfaces.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationRun
+import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.data.model.run.interfaces.TaskRun
+import dev.dres.data.model.submissions.*
+import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveSynchronousCompetition]s.
+ * A managing class for concrete executions of [DbEvaluationTemplate], i.e. [InteractiveSynchronousEvaluation]s.
  *
- * @see InteractiveSynchronousCompetition
+ * @see InteractiveSynchronousEvaluation
  *
  * @author Ralph Gasser
- * @version 1.5.0
+ * @version 2.0.0
  */
 interface RunManager : Runnable {
-    /** Unique, public, numeric ID for this [RunManager]. */
-    val id: UID
+
+    companion object {
+        /** The maximum number of errors that may occur in a run loop befor aborting execution. */
+        const val MAXIMUM_RUN_LOOP_ERROR_COUNT = 5
+    }
+
+
+    /** Unique, public [EvaluationId] for this [RunManager]. */
+    val id: EvaluationId
 
     /** A name for identifying this [RunManager]. */
     val name: String
 
-    /** The [CompetitionDescription] that is executed / run by this [RunManager]. */
-    val description: CompetitionDescription
+    /** The [DbEvaluation] instance that backs this [RunManager]. */
+    val evaluation: EvaluationRun
+
+    /** The [EvaluationTemplate] that is executed / run by this [RunManager]. */
+    val template: ApiEvaluationTemplate
 
     /** List of [Scoreboard]s for this [RunManager]. */
     val scoreboards: List<Scoreboard>
@@ -38,7 +52,11 @@ interface RunManager : Runnable {
     /** [JudgementValidator]s for all tasks that use them */
     val judgementValidators: List<JudgementValidator>
 
-    val runProperties: RunProperties
+    /** [JudgementValidator]s for all tasks that use them */
+    val runProperties: ApiRunProperties
+
+    /** The [TransientEntityStore] that backs this [InteractiveRunManager]. */
+    val store: TransientEntityStore
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to
@@ -64,40 +82,59 @@ interface RunManager : Runnable {
      */
     fun end(context: RunActionContext)
 
+    /**
+     * Updates the [ApiRunProperties] for this [RunManager].
+     *
+     * @param properties The new [ApiRunProperties]
+     */
+    fun updateProperties(properties: ApiRunProperties)
 
     /**
-     * Returns the number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager].
+     * Returns the number of [DbTask]s held by this [RunManager].
      *
      * @param context The [RunActionContext] for this invocation.
-     * @return The number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager]
+     * @return The number of [DbTask]s held by this [RunManager]
      */
     fun taskCount(context: RunActionContext): Int
 
     /**
-     * Returns a list of all [Task]s that took or are taking place in the scope of this [RunManager].
+     * Returns a list of all [TaskRun]s that took or are taking place in the scope of this [RunManager].
      *
      * @param context The [RunActionContext] for this invocation.
-     * @return List of [Task] that took place (are taking place).
+     * @return List of [TaskRun] that took place (are taking place).
      */
-    fun tasks(context: RunActionContext): List<Task>
+    fun tasks(context: RunActionContext): List<TaskRun>
 
     /**
-     * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.
+     * Invoked by an external caller to post a new [ApiSubmission] for the [TaskRun] that is currently being
+     * executed by this [InteractiveRunManager]. [ApiSubmission]s usually cause updates to the internal state and/or
+     * the [Scoreboard] of this [InteractiveRunManager].
      *
-     * @return List of viewer [WebSocketConnection]s for this [RunManager].
-     */
-    fun viewers(): Map<WebSocketConnection,Boolean>
-
-    /**
-     * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].
-     *
-     * This method does not throw an exception and instead returns false if a [Submission] was
+     * This method will not throw an exception and instead returns false if a [ApiSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
-     * @param connection The [WebSocketConnection] through which the message was received.
-     * @param message The [ClientMessage] that was received.
-     * @return True if [ClientMessage] was processed, false otherwise
+     * @param context: The [RunActionContext]
+     * @param submission The [ApiClientSubmission] to be posted.
+     *
+     * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean
+    fun postSubmission(context: RunActionContext, submission: ApiClientSubmission)
+
+    /**
+     * Returns a list of viewer [ViewerInfo]s for this [RunManager] alongside with their respective state.
+     *
+     * @return List of viewer [ViewerInfo]s for this [RunManager].
+     */
+    fun viewers(): Map<ViewerInfo,Boolean>
+
+    fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo)
+
+    fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo)
+
+
+    /**
+     * Triggers a re-scoring of submissions. Used by Judgement validation mechanism.
+     */
+    fun reScore(taskId: TaskId)
 }

@@ -1,18 +1,26 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, ErrorHandler, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { AppConfig } from '../app.config';
-import { JudgementRequest } from '../../../openapi';
+import { ApiAnswerType, ApiJudgementRequest } from "../../../openapi";
 
 @Component({
   selector: 'app-judgement-media-viewer',
   templateUrl: './judgement-media-viewer.component.html',
   styleUrls: ['./judgement-media-viewer.component.scss'],
+  providers: [
+    {provide: ErrorHandler, useClass: JudgementMediaViewerComponent}
+  ]
 })
-export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, AfterViewChecked {
+export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterViewChecked, ErrorHandler {
+
+  /**
+   * The zero-based index in the answerset to which this viewer is for
+   */
+  @Input() answerIndex = 0;
   /**
    * The observable holding the currently judged request (i.e. the submission to judge)
    */
-  @Input() req: Observable<JudgementRequest>;
+  @Input() req: Observable<ApiJudgementRequest>;
   /**
    * Padding to add, if the submission is too short
    * Will be added to the start and end, i.e. the actual played length will be
@@ -31,50 +39,56 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
   mediaUrl: Observable<string>;
   videoUrlDebug: Observable<string>;
   playtimeRelative: Observable<number>;
-  activeType: BehaviorSubject<string> = new BehaviorSubject<string>('undefined');
+  activeType: BehaviorSubject<ApiAnswerType> = new BehaviorSubject<ApiAnswerType>(null);
   /** Current text to display. */
   currentText: Observable<string>;
   /** Font size in em. TODO: Make configurable. */
   fontSize = 2.5;
+
+  hasTemporalPadding = false;
+
   private startInSeconds: number;
   private endInSeconds: number;
   private requestSub: Subscription;
-  private offset = 5;
-  private paddingEnabled: boolean;
   private startPaddingApplied: boolean;
   private relativePlaytimeSeconds = 0;
   private originalLengthInSeconds: number;
 
+
   constructor(public config: AppConfig) {}
+
+  handleError(error: Error): void {
+        if(error?.message?.includes("uncaught in Promise")){
+          // silently ignore
+        }else{
+          throw error;
+        }
+    }
 
   private static log(msg: string) {
     console.log(`[JudgeMedia] ${msg}`);
   }
 
-  private static detectType(req: JudgementRequest) {
-    if (req?.startTime) {
-      return 'segment';
-    } else {
-      return req.mediaType.toLowerCase();
-    }
+  private static detectType(req: ApiJudgementRequest, index: number): ApiAnswerType {
+    console.log("Detect type: ", index)
+    return req?.answerSet?.answers[index]?.type
   }
 
-  ngAfterViewInit(): void {
+  ngOnInit(): void {
     /* Handling request */
     this.requestSub = this.req.subscribe((req) => {
       if (req != null) {
         JudgementMediaViewerComponent.log(`Request=${JSON.stringify(req)}`);
-        this.activeType.next(JudgementMediaViewerComponent.detectType(req));
+        this.activeType.next(JudgementMediaViewerComponent.detectType(req, this.answerIndex));
         switch (this.activeType.value) {
-          case 'text':
-            this.initText(req);
+          case "ITEM":
+            this.initItem(req);
             break;
-          case 'segment':
+          case "TEMPORAL":
             this.initSegment(req);
             break;
-          case 'video':
-          case 'image':
-            this.initItem(req);
+          case "TEXT":
+            this.initText(req);
             break;
         }
       }
@@ -98,7 +112,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
 
   ngOnDestroy(): void {
     this.stop();
-    this.requestSub.unsubscribe();
+    this.requestSub?.unsubscribe();
   }
 
   togglePlaying() {
@@ -117,9 +131,9 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     }
   }
 
-  private initSegment(req: JudgementRequest) {
+  private initSegment(req: ApiJudgementRequest) {
     this.calculateTime(req);
-    const url = this.resolvePath(req);
+    const url = this.resolvePath(req, this.answerIndex);
     this.mediaUrl = new Observable<string>((sub) => sub.next(url));
     this.videoUrlDebug = new Observable<string>((sub) => sub.next(url)); // TODO Debug only
     this.initVideoPlayerHandling();
@@ -128,14 +142,14 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     );
   }
 
-  private initItem(req: JudgementRequest) {
-    const url = this.resolvePath(req, false);
+  private initItem(req: ApiJudgementRequest) {
+    const url = this.resolvePath(req, this.answerIndex, false);
     this.mediaUrl = new Observable<string>((sub) => sub.next(url));
     this.videoUrlDebug = new Observable<string>((sub) => sub.next(url)); // TODO Debug only
   }
 
-  private initText(req: JudgementRequest) {
-    this.currentText = new Observable<string>((sub) => sub.next(req.item));
+  private initText(req: ApiJudgementRequest) {
+    this.currentText = new Observable<string>((sub) => sub.next(req.answerSet.answers[this.answerIndex].text));
   }
 
   private initVideoPlayerHandling() {
@@ -150,7 +164,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
           this.relativePlaytimeSeconds = Math.round(this.video.nativeElement.currentTime) - this.startInSeconds;
           // JudgementMediaViewerComponent.log(`t=${this.relativePlaytimeSeconds}, ol=${this.originalLengthInSeconds}, ct=${this.video.nativeElement.currentTime}`);
           if (
-            this.paddingEnabled &&
+            this.hasTemporalPadding &&
             this.startPaddingApplied &&
             this.video.nativeElement.currentTime < this.startInSeconds + this.padding
           ) {
@@ -158,7 +172,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
             JudgementMediaViewerComponent.log('Start padding');
             this.addTemporalContextClass();
           } else if (
-            this.paddingEnabled &&
+            this.hasTemporalPadding &&
             this.video.nativeElement.currentTime >
               this.startInSeconds + (this.startPaddingApplied ? this.padding : 0) + this.originalLengthInSeconds
           ) {
@@ -183,8 +197,20 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
       /* custom handler to force-start when loaded. */
       this.video.nativeElement.addEventListener('loadeddata', () => {
         JudgementMediaViewerComponent.log('Event loadeddata fired.');
-        this.video.nativeElement.currentTime = this.startInSeconds;
-        this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired'));
+        if(this.startInSeconds === undefined){
+          this.req.subscribe((req) => {
+            this.calculateTime(req);
+            if(this?.video?.nativeElement){
+              this.video.nativeElement.currentTime = this.startInSeconds;
+              this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired, recalc done'))
+            }
+          })
+        }else{
+          if(this?.video?.nativeElement){
+            this.video.nativeElement.currentTime = this.startInSeconds;
+            this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired'));
+          }
+        }
       });
     }
   }
@@ -201,45 +227,49 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     }
   }
 
-  private calculateTime(req: JudgementRequest) {
+  private calculateTime(req: ApiJudgementRequest) {
     JudgementMediaViewerComponent.log('Calculating time');
     this.startInSeconds = 0;
     /* Parse start time, given in millis */
-    if (req.startTime) {
-      this.startInSeconds = Math.floor(Number.parseInt(req.startTime, 10) / 1000);
+    if (req.answerSet.answers[this.answerIndex].start) {
+      this.startInSeconds = Math.floor(req.answerSet.answers[this.answerIndex].start/ 1000);
     }
     /* Parse end time, given in millis */
-    if (req.endTime) {
-      this.endInSeconds = Math.ceil(Number.parseInt(req.endTime, 10) / 1000);
+    if (req.answerSet.answers[this.answerIndex].end) {
+      this.endInSeconds = Math.ceil(req.answerSet.answers[this.answerIndex].end / 1000);
     }
     this.originalLengthInSeconds = this.endInSeconds - this.startInSeconds;
     JudgementMediaViewerComponent.log(`Length: ${this.originalLengthInSeconds}, Threshold: ${this.tooShortThreshold}`);
     /* If only a frame is given OR too short is shown, add padding */
-    if (this.originalLengthInSeconds < this.tooShortThreshold) {
-      JudgementMediaViewerComponent.log(
-        `Start: ${this.startInSeconds}, Padding: ${this.padding}, diff: ${this.startInSeconds - this.padding}`
-      );
-      if (this.startInSeconds - this.padding < 0) {
-        this.startInSeconds = 0;
-      } else {
-        this.startInSeconds = this.startInSeconds - this.padding;
-        this.startPaddingApplied = true;
+    if(this.hasTemporalPadding){
+      if (this.originalLengthInSeconds < this.tooShortThreshold) {
+        JudgementMediaViewerComponent.log(
+          `Start: ${this.startInSeconds}, Padding: ${this.padding}, diff: ${this.startInSeconds - this.padding}`
+        );
+        if (this.startInSeconds - this.padding < 0) {
+          this.startInSeconds = 0;
+        } else {
+          this.startInSeconds = this.startInSeconds - this.padding;
+          this.startPaddingApplied = true;
+        }
+        this.endInSeconds = this.endInSeconds + this.padding;
       }
-      this.endInSeconds = this.endInSeconds + this.padding;
-      this.paddingEnabled = true;
-      JudgementMediaViewerComponent.log(`Padding: ${this.paddingEnabled}`);
     }
-    // JudgementMediaViewerComponent.log(`time=[${this.startInSeconds},${this.endInSeconds}] - original=${this.originalLengthInSeconds}`);
   }
 
-  private resolvePath(req: JudgementRequest, time = true): string {
+  onTemporalContextToggle(event){
+    /* Reload everything to correctly recalculate the temporal context (either if its enabled or disabled) */
+    this.stop();
+    this.ngOnInit();
+  }
+
+  private resolvePath(req: ApiJudgementRequest,index: number, time = true): string {
     const timeSuffix = time ? `#t=${this.startInSeconds},${this.endInSeconds}` : '';
-    return this.config.resolveApiUrl(`/media/${req.collection}/${req.item}${timeSuffix}`);
+    return this.config.resolveApiUrl(`/media/${req.answerSet.answers[index].item.mediaItemId}${timeSuffix}`);
   }
 
   ngAfterViewChecked(): void {
     if (!this.videoPlayerInitialized) {
-      console.log('Initializing video');
       this.initVideoPlayerHandling();
     }
   }

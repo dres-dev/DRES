@@ -6,7 +6,7 @@ buildscript {
 
 plugins {
     /// Download task for FFMPEG binaries download
-    id 'de.undercouch.download' version '4.0.4'
+    id 'de.undercouch.download' version '5.3.1'
 
     /// OpenAPI Generator for Frontend internal api generation
     id 'org.openapi.generator' version '5.2.0'
@@ -25,6 +25,7 @@ openApiGenerate {
     generateApiTests = false // No tests please
     generateModelTests = false // No tests please
     validateSpec = false // No validation please (as in command above)
+    skipValidateSpec = true
 
     generatorName = 'typescript-angular'
     inputSpec = oasFile
@@ -37,14 +38,14 @@ openApiGenerate {
     ]
 }
 
-task generateOAS(type: Download) {
+tasks.register('generateOAS', Download) {
     /* Requires DRES running on default port */
     def f = new File(oasFile)
     src fullOAS
     dest f
 }
 
-task generateClientOAS(type: Download){
+tasks.register('generateClientOAS', Download) {
     def f = new File(clientOasFile)
     src clientOAS
     dest f

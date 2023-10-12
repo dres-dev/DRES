@@ -3,18 +3,18 @@
     <app-back-button></app-back-button>
     <h1>Vote for Submission</h1>
 
-    <div fxLayout="row" fxLayoutAlign="space-between start" class="header-container">
-      <div fxFlex="100" class="header-main">
+    <div class="header-container flex flex-row content-between align-start">
+      <div class="header-main flex-100">
         <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{ judgementRequest?.taskDescription }}</p>
       </div>
     </div>
   </div>
   <div class="body">
-    <app-judgement-media-viewer id="judge-media-viewer" [req]="observableJudgementRequest"> </app-judgement-media-viewer>
+    <app-judgement-media-viewer *ngFor="let item of allAnswers(); let idx = index" id="judge-media-viewer" [req]="observableJudgementRequest" answerIndex="{{idx}}"></app-judgement-media-viewer>
 
     <br />
 
-    <div fxLayoutAlign="center" fxFlex="100">
+    <div class="align-center content-center flex-100" >
       <qrcode [qrdata]="voteClientPath | async" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
     </div>
   </div>

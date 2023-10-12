@@ -12,7 +12,7 @@
       <mat-form-field style="width: 100%">
         <mat-select placeholder="Type" [formControl]="form.get('type')">
           <mat-option *ngFor="let type of supportedTaskTypes" [value]="type">
-            {{ type.name }} ({{ type.targetType.option }} | {{ type.score.option }})
+            {{ type.name }} ({{ type.targetOption }} | {{ type.scoreOption }})
           </mat-option>
         </mat-select>
       </mat-form-field>

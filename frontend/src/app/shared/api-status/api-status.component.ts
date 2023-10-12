@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { CurrentTime, StatusService } from '../../../../openapi';
 import { BehaviorSubject, interval, Subscription } from 'rxjs';
 import { catchError, filter, switchMap } from 'rxjs/operators';
+import {CurrentTime, StatusService} from '../../../../openapi';
 
 @Component({
   selector: 'app-api-status',
@@ -23,7 +23,7 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap((_) => {
           this.now = Date.now();
-          return this.statusService.getApiV1StatusTime();
+          return this.statusService.getApiV2StatusTime();
         }),
         catchError((err) => {
           this.error = true;

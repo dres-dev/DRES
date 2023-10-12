@@ -10,6 +10,12 @@ import { DownloadButtonComponent } from './download-button/download-button.compo
 import { UploadJsonButtonComponent } from './upload-json-button/upload-json-button.component';
 import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { DynamicTableComponent } from './dynamic-table/dynamic-table.component';
+import {MatTableModule} from '@angular/material/table';
+import { ActionableDynamicTable } from './actionable-dynamic-table/actionable-dynamic-table.component';
+import { ServerInfoComponent } from './server-info/server-info.component';
+import { TargetMediaViewerComponent } from './target-media-viewer/target-media-viewer.component';
+import { MediaItemViewerComponent } from './media-item-viewer/media-item-viewer.component';
 
 @NgModule({
   declarations: [
@@ -18,6 +24,11 @@ import { MatDialogModule } from '@angular/material/dialog';
     DownloadButtonComponent,
     UploadJsonButtonComponent,
     ConfirmationDialogComponent,
+    DynamicTableComponent,
+    ActionableDynamicTable,
+    ServerInfoComponent,
+    TargetMediaViewerComponent,
+    MediaItemViewerComponent,
   ],
   exports: [
     BackButtonComponent,
@@ -27,7 +38,10 @@ import { MatDialogModule } from '@angular/material/dialog';
     ApiStatusComponent,
     DownloadButtonComponent,
     UploadJsonButtonComponent,
+    ActionableDynamicTable,
+    TargetMediaViewerComponent,
+    MediaItemViewerComponent
   ],
-  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule],
+  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule]
 })
 export class SharedModule {}

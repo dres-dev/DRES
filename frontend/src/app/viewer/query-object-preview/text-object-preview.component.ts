@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
-import { ContentElement } from '../../../../openapi';
+import { ApiContentElement } from '../../../../openapi';
 
 @Component({
   selector: 'app-text-object-preview',
@@ -16,7 +16,7 @@ import { ContentElement } from '../../../../openapi';
 })
 export class TextObjectPreviewComponent implements OnInit {
   /** Observable of current {@link QueryContentElement} that should be displayed. */
-  @Input() queryContent: Observable<ContentElement>;
+  @Input() queryContent: Observable<ApiContentElement>;
 
   /** Current text to display. */
   currentText: Observable<string>;

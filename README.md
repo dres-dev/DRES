@@ -96,7 +96,7 @@ DRES> user create -u admin -p password -r ADMIN
 ```
 
 Additional users are required in order to perform an evaluation. At least one user per participating system instance
-(i.e. with `-r PARTICIPANT`). To simply have a user to view competitions, but otherwise not interact with the system, 
+(i.e. with `-r PARTICIPANT`). To simply have a user to view evaluation runs, but otherwise not interact with the system, 
 we recommend to create a viewer user: `-r VIEWER`.
 
 ### Create Media Collection
@@ -117,30 +117,29 @@ DRES> collection scan -c first -vt mp4
 
 Obviously, for an image collection one would replace `-vt mp4` with `-it png` or `-it jpg`. For mixed collections, use both.
 
-### Create Competition
+### Create Evaluations
 
 **Below instructions require an admin user and are performed in the UI** |
 --------------------------------------------------------------------------
 
-The next step is to create a competition. This is done using the web frontend of DRES.
+The next step is to create an evaluation template. This is done using the web frontend of DRES.
 Using your browser, navigate to your DRES address and perform the login using the administrator user created previously.
 
-Then, navigate to _Competition Builder_ and create a new competition. Follow the instructions there.
+Then, navigate to _Evaluation Template Builder_ and create a new competition. Follow the instructions there.
 
 ### Create Competition Run
 
-A competiton serves as the template for one or more _competition runs_.
-Please keep in mind, that once a _run_ was created, changes on the competition are not reflected in the run.
+An evaluation template serves as the template for one or more _evaluation runs_.
+Please keep in mind, that once a _run_ was created, changes on the template are not reflected in the run.
 
-Competition runs are created from the _Competitoin Runs_ view, where one uses the "+" button to create a new one.
-Currently (DRES v0.3.2), only _SYNCHRONOUS_ runs are supported, so please chose this option.
+Evaluation runs are created from the _Evaluations_ view, where one uses the "+" button to create a new one.
 
 In a non distributed setting, it might be desirable, that participants cannot view the actual run from the frontend,
 but require an external source for the query hints (e.g. a large monitor). This could be achieved by unchecking the corresponding option in the dialog.
 
-### Runnig the competition
+### Runnig the evaluation
 
-As competition _operator_, one has to first start the run, then switch to a fitting task and ultimately start the task.
+As evaluation _operator_, one has to first start the run, then switch to a fitting task and ultimately start the task.
 Query hints are displayed as configured to all viewers, once they are all loaded (depending on the setup, this might take a breif moment).
 Viewers and participants are shown the message "_Waiting for host to start task_". In case this seems to take too long,
 the operator can switch to the admin view and force all participants to be ready, by clicking the red ones.

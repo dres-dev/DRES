@@ -4,11 +4,12 @@
   margin: 100px 0px;
 }
 
-.mat-form-field {
+.mat-mdc-form-field {
   width: 100%;
   min-width: 300px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
 mat-card-title,
 mat-card-content {
   display: flex;

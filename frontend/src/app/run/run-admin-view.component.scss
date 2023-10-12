@@ -41,7 +41,10 @@
 }
 
 .outline-white {
-  text-shadow: 1px 1px white, 1px -1px white, -1px 1px white, -1px -1px white;
+  font-weight: bold;
+  text-shadow: #fff 0px 0px 1px;
+  -webkit-font-smoothing: antialiased;
+
 }
 
 .p4 {

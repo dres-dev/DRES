@@ -1,0 +1,59 @@
+<div>
+  <div>
+    <div>
+      <mat-form-field style="width: 85%;">
+        <input
+          type="text"
+          matInput
+          [placeholder]="'External video path'"
+          [formControl]="pathControl"
+          [matAutocomplete]="autoGroup"
+        />
+        <mat-autocomplete #autoGroup="matAutocomplete">
+          <mat-option *ngFor="let path of this.formBuilder.dataSource('components.' + index + '.path') | async"
+                      [value]="path">
+            <span>{{ path }}</span>
+          </mat-option>
+          <mat-error *ngIf="pathControl.hasError('incorrect')">
+            Please select a valid media item, i.e., use the autocomplete to select a value.
+          </mat-error>
+        </mat-autocomplete>
+      </mat-form-field>
+      <button mat-icon-button aria-label="Toggle preview" matTooltip="Toggle preview"
+              (click)="showing = !showing; $event.stopPropagation()">
+        <mat-icon>visibility{{showing ? '_off' : ''}}</mat-icon>
+      </button>
+    </div>
+    <div>
+      <mat-form-field style="width: 25%">
+        <input
+          #descStart
+          [type]="'text'"
+          matInput
+          placeholder="Segment start"
+          [formControl]="startControl"
+        />
+      </mat-form-field>
+      <mat-form-field style="width: 25%">
+        <input
+          #descEnd
+          [type]="'text'"
+          matInput
+          placeholder="Segment end"
+          [formControl]="endControl"
+        />
+      </mat-form-field>
+      <mat-form-field style="width: 35%">
+        <mat-select
+          [formControl]="unitControl"
+          (selectionChange)="timeUnitChanged($event, descStart, descEnd)"
+        >
+          <mat-option *ngFor="let unit of units" [value]="unit">{{ unit }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+</div>
+<app-video-player-segment-builder *ngIf="showing" [showTitle]="false" [data]="segmentBuilderData()"
+                                  (rangeChange)="rangeChanged($event)"></app-video-player-segment-builder>

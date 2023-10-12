@@ -1,0 +1,74 @@
+<div class="flex flex-row header">
+    <div>
+        <button mat-icon-button (click)="back()">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>Edit evaluation template {{(builderService.templateAsObservable() | async)?.id}} <span *ngIf="(builderService.dirty() | async)" class="warn-color">(unsaved changes)</span></h1>
+    </div>
+
+    <div class="spacer-flex"></div>
+
+    <div>
+        <button  mat-icon-button aria-label="Save changes to evaluation template." matTooltip="Save changes to evaluation template."
+                (click)="save()" [disabled]="isSaving">
+            <mat-icon *ngIf="!isSaving">save</mat-icon>
+            <mat-spinner diameter="20" color="accent" *ngIf="isSaving"></mat-spinner>
+        </button>
+    </div>
+    <div>
+        <button mat-icon-button aria-label="Refresh evaluation template (changes will be lost)."
+                matTooltip="Refresh evaluation template (changes will be lost)." (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+        </button>
+    </div>
+    <div>
+        <app-download-button
+                [name]="''"
+                [fileName]="fileProvider"
+                [downloadProvider]="downloadProvider()"
+                [inline]="true"
+                matTooltip="Download the entire evaluation template as JSON"></app-download-button>
+    </div>
+    <div>
+        <app-upload-json-button #jsonUpload [name]="''"
+                                [multi]="false"
+                                [inline]="true"
+                                matTooltip="Upload an evaluation template as JSON to import from"></app-upload-json-button>
+    </div>
+    <div>
+        <button mat-icon-button
+                aria-label="Import from other evaluation templates"
+                matTooltip="Import from other evaluation templates"
+                (click)="import()">
+            <mat-icon>merge</mat-icon>
+        </button>
+    </div>
+</div>
+<div>
+    <mat-tab-group animationDuration="1ms" dynamicHeight>
+        <mat-tab bodyClass="p2e" label="General Information">
+            <app-template-information></app-template-information>
+        </mat-tab>
+        <mat-tab bodyClass="p2e" label="Teams & Judges">
+            <div class="tb-container-2col-2col-1col">
+                <app-teams-list class="content-left"></app-teams-list>
+                <app-teamgroups-list class="content-center"></app-teamgroups-list>
+                <app-judges-list class="content-right"></app-judges-list>
+            </div>
+        </mat-tab>
+        <mat-tab bodyClass="p2e" label="Task Types & Task Groups">
+            <div class="tb-container-4col-left">
+                <app-task-types-list class="content-left"></app-task-types-list>
+                <app-task-groups-list class="content-right"></app-task-groups-list>
+            </div>
+        </mat-tab>
+        <mat-tab bodyClass="p2e" label="Tasks">
+            <div class="tb-container-2col">
+                <app-task-templates-list [editorLauncher]="this" class="content-left"></app-task-templates-list>
+                <app-task-template-editor #taskTemplateEditor class="content-right"></app-task-template-editor>
+            </div>
+        </mat-tab>
+
+    </mat-tab-group>
+
+</div>

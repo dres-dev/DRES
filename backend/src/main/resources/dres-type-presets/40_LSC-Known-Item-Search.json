@@ -1,0 +1,20 @@
+{
+ "name": "LSC Known-Item Search",
+ "duration": 300,
+ "targetOption": "SINGLE_MEDIA_ITEM",
+ "hintOptions": [
+  "TEXT"
+ ],
+ "submissionOptions": [
+  "NO_DUPLICATES",
+  "LIMIT_CORRECT_PER_TEAM",
+  "ITEM_SUBMISSION"
+ ],
+ "taskOptions": [
+  "HIDDEN_RESULTS"
+ ],
+ "scoreOption": "KIS",
+ "configuration": {
+  "LIMIT_CORRECT_PER_TEAM.limit": "1"
+ }
+}

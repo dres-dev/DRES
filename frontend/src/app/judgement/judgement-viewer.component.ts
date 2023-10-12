@@ -1,6 +1,5 @@
 import {AfterViewInit, Component, HostListener, Input, OnDestroy, ViewChild} from '@angular/core';
 import {BehaviorSubject, interval, Observable, of, Subscription, timer} from 'rxjs';
-import {Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
@@ -10,6 +9,7 @@ import {animate, keyframes, state, style, transition, trigger} from '@angular/an
 import {MatDialog} from '@angular/material/dialog';
 import {JudgementDialogComponent} from './judgement-dialog/judgement-dialog.component';
 import {JudgementDialogContent} from './judgement-dialog/judgement-dialog-content.model';
+import {ApiJudgement, ApiJudgementRequest, ApiVerdictStatus, JudgementService} from '../../../openapi';
 
 /**
  * This component subscribes to the websocket for submissions.
@@ -44,8 +44,8 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     @Input() pollingFrequency = 1000;
     @Input() timeout = 60;
     @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
-    observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);
-    judgementRequest: JudgementRequest;
+    observableJudgementRequest: BehaviorSubject<ApiJudgementRequest> = new BehaviorSubject<ApiJudgementRequest>(null);
+    judgementRequest: ApiJudgementRequest;
     prevDescHash: number;
     noJudgementMessage = '';
     isJudgmentAvailable = false;
@@ -122,7 +122,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             .pipe(
                 withLatestFrom(this.runId),
                 switchMap(([i, runId]) => {
-                    return this.judgementService.getApiV1RunWithRunidJudgeStatus(runId).pipe(
+                    return this.judgementService.getApiV2EvaluationByEvaluationIdJudgeStatus(runId).pipe(
                         catchError((err) => {
                             console.log('Error in JudgeStatus');
                             console.log(err);
@@ -150,8 +150,8 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                 switchMap(([i, runId]) => {
                     /* Stop polling while judgment is ongooing */
                     if (this.runId && !this.isJudgmentAvailable) {
-                        return this.judgementService.getApiV1RunWithRunidJudgeNext(runId, 'response').pipe(
-                            map((req: HttpResponse<JudgementRequest>) => {
+                        return this.judgementService.getApiV2EvaluationByEvaluationIdJudgeNext(runId, 'response').pipe(
+                            map((req: HttpResponse<ApiJudgementRequest>) => {
                                 if (req.status === 202) {
                                     this.noJudgementMessage = 'There is currently no submission awaiting judgement.';
                                     /* Don't penalise if there's nothing to do*/
@@ -203,6 +203,10 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             });
     }
 
+    allAnswers(){
+        return this.observableJudgementRequest?.value?.answerSet?.answers || []
+    }
+
     /**
      *
      */
@@ -215,15 +219,15 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
         this.pendingSubmissions.next(Math.round(pending));
     }
 
-    public judge(status: SubmissionInfo.StatusEnum) {
+    public judge(status: ApiVerdictStatus) {
         this.deadMansSwitchTime = 0;
         const judgement = {
             token: this.judgementRequest.token,
             validator: this.judgementRequest.validator,
             verdict: status,
-        } as Judgement;
+        } as ApiJudgement;
         this.runId
-            .pipe(switchMap((runId) => this.judgementService.postApiV1RunWithRunidJudge(runId, judgement)),
+            .pipe(switchMap((runId) => this.judgementService.postApiV2EvaluationByEvaluationIdJudge(runId, judgement)),
                 catchError((err) => {
                     const httperr = err as HttpErrorResponse;
                     if (httperr) {

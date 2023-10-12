@@ -4,14 +4,6 @@ import { RunInfoOverviewTuple } from '../admin-run-list.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
-import {
-  CompetitionRunAdminService,
-  CompetitionRunScoresService,
-  CompetitionRunService,
-  CompetitionService,
-  DownloadService,
-  RunInfo,
-} from '../../../../openapi';
 import { MatDialog } from '@angular/material/dialog';
 import { take } from 'rxjs/operators';
 import {
@@ -19,6 +11,13 @@ import {
   ConfirmationDialogComponentData,
 } from '../../shared/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../services/navigation/navigation.service';
+import {
+  DownloadService,
+  EvaluationAdministratorService,
+  EvaluationScoresService,
+  EvaluationService,
+  TemplateService
+} from '../../../../openapi';
 
 @Component({
   selector: 'app-run-admin-toolbar',
@@ -26,18 +25,18 @@ import { NavigationService } from '../../services/navigation/navigation.service'
   styleUrls: ['./run-admin-toolbar.component.scss'],
 })
 export class RunAdminToolbarComponent implements OnInit {
-  @Input() runId: BehaviorSubject<string> = new BehaviorSubject<string>('');
+  @Input() runId: string;
   @Input() run: Observable<RunInfoOverviewTuple>;
-  @Input() update = new Subject();
+  @Input() refreshSubject: Subject<void> = new Subject();
 
   constructor(
     private router: Router,
     private activeRoute: ActivatedRoute,
     private config: AppConfig,
-    private runService: CompetitionRunService,
-    private competitionService: CompetitionService,
-    private runAdminService: CompetitionRunAdminService,
-    private scoreService: CompetitionRunScoresService,
+    private runService: EvaluationService,
+    private competitionService: TemplateService,
+    private runAdminService: EvaluationAdministratorService,
+    private scoreService: EvaluationScoresService,
     private downloadService: DownloadService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
@@ -45,10 +44,10 @@ export class RunAdminToolbarComponent implements OnInit {
   ) {}
 
   public start() {
-    const runId = this.runId.value;
-    this.runAdminService.postApiV1RunAdminWithRunidStart(runId).subscribe(
+    const runId = this.runId;
+    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdStart(runId).subscribe(
       (r) => {
-        this.update.next();
+        this.refreshSubject.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
       },
       (r) => {
@@ -68,12 +67,13 @@ export class RunAdminToolbarComponent implements OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          const runId = this.runId.value;
-          this.runAdminService.postApiV1RunAdminWithRunidTerminate(runId).subscribe(
+          const runId = this.runId;
+          this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
             (r) => {
-              this.update.next();
+              this.refreshSubject.complete()
+              this.refreshSubject.unsubscribe();
               this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-              this.navigation.back();
+              this.navigation.back(true)
             },
             (r) => {
               this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
@@ -84,11 +84,11 @@ export class RunAdminToolbarComponent implements OnInit {
   }
 
   public navigateToViewer() {
-    const runId = this.runId.value;
-
-    /* TODO: Setup depends on type of competition run. */
+    const runId = this.runId;
+    console.log("Navigate (Admin): ", runId)
+    /* TODO: Setup depends on type of evaluation run. */
     this.router.navigate([
-      '/run/viewer',
+      '/evaluation/viewer',
       runId,
       {
         center: 'player',
@@ -100,7 +100,7 @@ export class RunAdminToolbarComponent implements OnInit {
   }
 
   public navigateToJudgement() {
-    const runId = this.runId.value;
+    const runId = this.runId;
     this.router.navigate(['/judge', runId]);
   }
 
@@ -109,7 +109,7 @@ export class RunAdminToolbarComponent implements OnInit {
    *
    */
   public navigateToVoting() {
-    const runId = this.runId.value;
+    const runId = this.runId;
     this.router.navigate(['/vote', runId]);
   }
 
@@ -119,8 +119,8 @@ export class RunAdminToolbarComponent implements OnInit {
    * @param runId ID of the run to navigate to.
    */
   public navigateToAdmin() {
-    const runId = this.runId.value;
-    this.router.navigate(['/run/admin', runId]);
+    const runId = this.runId;
+    this.router.navigate(['/evaluation/admin', runId]);
   }
 
   /**
@@ -129,12 +129,12 @@ export class RunAdminToolbarComponent implements OnInit {
    * @param runId ID of the run to navigate to.
    */
   public navigateToScoreHistory() {
-    const runId = this.runId.value;
-    this.router.navigate(['/run/scores', runId]);
+    const runId = this.runId;
+    this.router.navigate(['/evaluation/scores', runId]);
   }
 
   public downloadScores(runId: string) {
-    this.downloadService.getApiV1DownloadRunWithRunidScores(runId).subscribe((scoresCSV) => {
+    this.downloadService.getApiV2DownloadEvaluationByEvaluationIdScores(runId).subscribe((scoresCSV) => {
       const csvBlob = new Blob([scoresCSV], { type: 'text/csv' });
       const fake = document.createElement('a');
       fake.href = URL.createObjectURL(csvBlob);
@@ -146,7 +146,8 @@ export class RunAdminToolbarComponent implements OnInit {
 
   scoreDownloadProvider = (runId: string) => {
     return this.downloadService
-      .getApiV1DownloadRunWithRunidScores(runId, 'body', false, { httpHeaderAccept: 'text/csv' })
+        // FIXME httpHeaderAccept was text/csv -- might have to adjust openapi info
+      .getApiV2DownloadEvaluationByEvaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' })
       .pipe(take(1));
   };
 
@@ -155,7 +156,7 @@ export class RunAdminToolbarComponent implements OnInit {
   };
 
   downloadProvider = (runId) => {
-    return this.downloadService.getApiV1DownloadRunWithRunid(runId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadEvaluationByEvaluationId(runId).pipe(take(1));
     // .toPromise();
   };
 

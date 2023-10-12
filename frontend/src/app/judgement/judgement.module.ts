@@ -4,7 +4,6 @@ import { JudgementViewerComponent } from './judgement-viewer.component';
 import { JudgementMediaViewerComponent } from './judgement-media-viewer.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { FlexModule } from '@angular/flex-layout';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -15,6 +14,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { SharedModule } from '../shared/shared.module';
 import { JudgementVotingViewerComponent } from './judgement-voting-viewer.component';
 import { QRCodeModule } from 'angularx-qrcode';
+import { MatSlideToggleModule } from "@angular/material/slide-toggle";
+import { FormsModule } from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -27,7 +28,6 @@ import { QRCodeModule } from 'angularx-qrcode';
     CommonModule,
     MatIconModule,
     MatButtonModule,
-    FlexModule,
     MatTooltipModule,
     BrowserAnimationsModule,
     MatBadgeModule,
@@ -36,6 +36,8 @@ import { QRCodeModule } from 'angularx-qrcode';
     MatDialogModule,
     SharedModule,
     QRCodeModule,
+    MatSlideToggleModule,
+    FormsModule
   ],
   exports: [JudgementViewerComponent],
 })

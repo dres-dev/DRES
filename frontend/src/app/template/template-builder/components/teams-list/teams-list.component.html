@@ -1,0 +1,53 @@
+<div class="flex flex-row align-center">
+  <h2>Teams</h2>
+  <div class="spacer-flex"></div>
+  <button mat-button
+          aria-label="Add new team."
+          matTooltip="Add new team."
+          (click)="addTeam()">
+    <mat-icon>add</mat-icon>
+    Add team
+  </button>
+</div>
+<table #teamTable mat-table [trackBy]="trackByTeamId" [dataSource]="(teams|async)" [style.width]="'100%'">
+  <ng-container matColumnDef="logo">
+    <th mat-header-cell *matHeaderCellDef>Logo</th>
+    <td mat-cell *matCellDef="let team">
+      <img src="{{ teamLogo(team) }}" [style.width]="'75px'" [style.height]="'75px'" [style.object-fit]="'contain'" alt="The {{team.name}}'s logo."/>
+    </td>
+  </ng-container>
+
+
+  <!-- Name Column -->
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef>Name</th>
+    <td mat-cell *matCellDef="let team" [style.color]="team.color">{{ team.name }}</td>
+  </ng-container>
+
+  <!-- Action Column -->
+  <ng-container matColumnDef="action">
+    <th mat-header-cell *matHeaderCellDef>Action</th>
+    <td mat-cell *matCellDef="let team" [style.color]="team.color">
+      <button
+        mat-icon-button
+        aria-label="Edit team."
+        matTooltip="Edit team."
+        (click)="editTeam(team)"
+      >
+        <mat-icon>edit</mat-icon>
+      </button>
+
+      <button
+        mat-icon-button
+        aria-label="Remove selected team."
+        matTooltip="Remove selected team."
+        (click)="removeTeam(team)"
+      >
+        <mat-icon>remove</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let judge; columns: displayedColumns"></tr>
+</table>

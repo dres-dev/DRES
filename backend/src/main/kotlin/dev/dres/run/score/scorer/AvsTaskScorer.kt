@@ -1,73 +1,99 @@
 package dev.dres.run.score.scorer
 
-import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.competition.TeamId
+
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
-import dev.dres.data.model.submissions.aspects.ItemAspect
-import dev.dres.run.score.ScoreEntry
-import dev.dres.run.score.TaskContext
-import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
-import dev.dres.run.score.interfaces.TeamTaskScorer
-import dev.dres.utilities.TimeUtil
+import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.template.team.TeamId
+import dev.dres.run.score.Scoreable
+import jetbrains.exodus.database.TransientEntityStore
+import java.lang.Double.max
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.math.abs
 
-class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
+/**
+ * The new AVS Scorer.
+ *
+ * @author Luca Rossetto
+ * @version 2.0.0
+ */
+class AvsTaskScorer(scoreable: Scoreable, private val penaltyConstant: Double, private val maxPointsPerTask: Double, store: TransientEntityStore?) : AbstractTaskScorer(scoreable, store) {
 
     private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
-    override fun computeScores(submissions: Collection<Submission>, context: TaskContext): Map<UID, Double> {
 
-        val correctSubmissions = submissions.filter { it.status == SubmissionStatus.CORRECT }
-        val wrongSubmissions = submissions.filter { it.status == SubmissionStatus.WRONG }
+    constructor(context: Scoreable, parameters: Map<String, String>, store: TransientEntityStore?) : this(
+        context,
+        abs(parameters.getOrDefault("penalty", "$defaultPenalty").toDoubleOrNull() ?: defaultPenalty),
+        parameters.getOrDefault("maxPointsPerTask", "$defaultMaxPointsPerTask").toDoubleOrNull() ?: defaultMaxPointsPerTask,
+        store
+    )
 
-        val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.teamId }
-        val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.teamId }
+    constructor(context: Scoreable, store: TransientEntityStore?) : this(context, defaultPenalty, defaultMaxPointsPerTask, store)
 
-        val totalCorrectQuantized = countQuantized(correctSubmissions).toDouble()
+    companion object {
+        const val defaultPenalty: Double = 0.2
+        private const val defaultMaxPointsPerTask: Double = 1000.0
 
-        lastScores = this.lastScoresLock.write {
-            context.teamIds.map { teamid ->
+        /**
+         * Sanitised team scores: Either the team has score 0.0 (no submission) or the calculated score
+         */
+        fun teamScoreMapSanitised(scores: Map<TeamId, Double>, teamIds: Collection<TeamId>): Map<TeamId, Double> {
 
-                val correctSubs = correctSubmissionsPerTeam[teamid] ?: return@map teamid to 0.0
+            val cleanMap = teamIds.associateWith { 0.0 }.toMutableMap()
 
-                val correct = correctSubs.size
+            scores.forEach { (teamId, score) ->
+                cleanMap[teamId] = max(0.0, score)
+            }
 
-                val wrong = wrongSubmissionsPerTeam[teamid]?.size ?: 0
-
-                teamid to 100.0 *
-                        (correct / (correct + wrong / 2.0)) *
-                        (countQuantized(correctSubs).toDouble() / totalCorrectQuantized)
-            }.toMap()
+            return cleanMap
         }
 
-
-        return teamScoreMap()
     }
 
-    private fun countQuantized(submissions: Collection<Submission>): Int {
+    /**
+     * Computes and returns the scores for this [KisTaskScorer] based on a [Sequence] of [Submission]s.
+     *
+     * The sole use of this method is to keep the implementing classes unit-testable (irrespective of the database).
+     *
+     * @param submissions A [Sequence] of [Submission]s to obtain scores for.
+     * @return A [Map] of [TeamId] to calculated task score.
+     */
+    override fun calculateScores(submissions: Sequence<Submission>): Map<TeamId, Double> {
+        /* Make necessary calculations. */
+        val distinctCorrectVideos = submissions.flatMap { submission ->
+            submission.answerSets().filter { it.status() == VerdictStatus.CORRECT && it.answers().firstOrNull()?.item != null }
+        }.mapNotNullTo(mutableSetOf()) { it.answers().firstOrNull()?.item }
+            .size
 
-        return submissions.filterIsInstance<ItemAspect>().groupBy { it.item }.map {
-            when(it.key) {
-                is MediaItem.ImageItem -> 1
-                is MediaItem.VideoItem -> {
-                    val ranges = it.value.map { s -> (s as Submission.Temporal).temporalRange }
-                    TimeUtil.merge(ranges, overlap = 1).size
-                }
+        //no correct submissions yet
+        if (distinctCorrectVideos == 0) {
+            lastScores = this.lastScoresLock.write {
+                teamScoreMapSanitised(mapOf(), this.scoreable.teams)
             }
-        }.sum()
+            this.lastScoresLock.read {
+                return lastScores
+            }
+        }
 
+        return teamScoreMapSanitised(submissions.groupBy { it.teamId }.map { submissionsPerTeam ->
+            val verdicts = submissionsPerTeam.value.sortedBy { it.timestamp }.flatMap {
+                it.answerSets()
+                    .filter { v -> v.answers().firstOrNull()?.item != null && (v.status() == VerdictStatus.CORRECT || v.status() == VerdictStatus.WRONG) }
+            }
+            submissionsPerTeam.key to
+                    max(0.0, //prevent negative total scores
+                        verdicts.groupBy { it.answers().firstOrNull()?.item!! }.map {
+                            val firstCorrectIdx = it.value.indexOfFirst { v -> v.status() == VerdictStatus.CORRECT }
+                            if (firstCorrectIdx < 0) { //no correct submissions, only penalty
+                                it.value.size * -penaltyConstant
+                            } else {  //apply penalty for everything before correct submission
+                                1.0 - firstCorrectIdx * penaltyConstant
+                            }
+                        }.sum() / distinctCorrectVideos * maxPointsPerTask //normalize
+                    )
+        }.toMap(), this.scoreable.teams)
     }
-
-    override fun teamScoreMap(): Map<TeamId, Double> = this.lastScoresLock.read { this.lastScores }
-
-    override fun scores(): List<ScoreEntry> = this.lastScoresLock.read {
-        this.lastScores.map { ScoreEntry(it.key, null, it.value) }
-    }
-
-
 }

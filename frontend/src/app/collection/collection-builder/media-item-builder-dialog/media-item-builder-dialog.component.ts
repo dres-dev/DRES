@@ -1,10 +1,10 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { RestMediaItem } from '../../../../../openapi';
+import {ApiMediaItem, ApiMediaType} from '../../../../../openapi';
 
 export interface MediaItemBuilderData {
-  item?: RestMediaItem;
+  item?: ApiMediaItem;
   collectionId: string;
 }
 
@@ -14,34 +14,34 @@ export interface MediaItemBuilderData {
   styleUrls: ['./media-item-builder-dialog.component.scss'],
 })
 export class MediaItemBuilderDialogComponent implements OnInit {
-  form: FormGroup;
+  form: UntypedFormGroup;
 
-  types = Object.values(RestMediaItem.TypeEnum).sort((a, b) => a.localeCompare(b));
+  types = Object.values(ApiMediaType).sort((a, b) => a.localeCompare(b));
 
   constructor(
     public dialogRef: MatDialogRef<MediaItemBuilderDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: MediaItemBuilderData
   ) {
-    this.form = new FormGroup({
-      id: new FormControl(data?.item?.id),
-      name: new FormControl(data?.item?.name, [Validators.required, Validators.minLength(3)]),
-      location: new FormControl(data?.item?.location, Validators.required),
-      type: new FormControl({ value: data?.item?.type, disabled: this.isEditing() }, [Validators.required]),
-      collectionId: new FormControl(data.collectionId),
+    this.form = new UntypedFormGroup({
+      id: new UntypedFormControl(data?.item?.mediaItemId),
+      name: new UntypedFormControl(data?.item?.name, [Validators.required, Validators.minLength(3)]),
+      location: new UntypedFormControl(data?.item?.location, Validators.required),
+      type: new UntypedFormControl({ value: data?.item?.type, disabled: this.isEditing() }, [Validators.required]),
+      collectionId: new UntypedFormControl(data.collectionId),
     });
-    if (data?.item?.type === RestMediaItem.TypeEnum.VIDEO) {
-      this.form.addControl('durationMs', new FormControl(data?.item?.durationMs, [Validators.required, Validators.min(1)]));
+    if (data?.item?.type === ApiMediaType.VIDEO) {
+      this.form.addControl('durationMs', new UntypedFormControl(data?.item?.durationMs, [Validators.required, Validators.min(1)]));
       this.form.addControl(
         'fps',
-        new FormControl(data?.item?.fps, [Validators.required, Validators.min(1), Validators.max(200)])
+        new UntypedFormControl(data?.item?.fps, [Validators.required, Validators.min(1), Validators.max(200)])
       ); // Arbitrarily limiting to 200 fps
     }
   }
 
   enableVideoItemControls(enable: boolean) {
     if (enable) {
-      this.form.addControl('durationMs', new FormControl(0, [Validators.required, Validators.min(1)]));
-      this.form.addControl('fps', new FormControl(0, [Validators.required, Validators.min(1), Validators.max(200)]));
+      this.form.addControl('durationMs', new UntypedFormControl(0, [Validators.required, Validators.min(1)]));
+      this.form.addControl('fps', new UntypedFormControl(0, [Validators.required, Validators.min(1), Validators.max(200)]));
     } else {
       this.form.removeControl('durationMs');
       this.form.removeControl('fps');
@@ -49,7 +49,7 @@ export class MediaItemBuilderDialogComponent implements OnInit {
   }
 
   isEditing(): boolean {
-    return this.data?.item?.id !== undefined;
+    return this.data?.item?.mediaItemId !== undefined;
   }
 
   ngOnInit(): void {}
@@ -72,19 +72,19 @@ export class MediaItemBuilderDialogComponent implements OnInit {
     console.log(this.asJson());
   }
 
-  private fetchFormData(): RestMediaItem {
+  private fetchFormData(): ApiMediaItem {
     const item = {
       name: this.form.get('name').value,
       location: this.form.get('location').value,
       type: this.form.get('type').value,
       collectionId: this.form.get('collectionId').value,
-    } as RestMediaItem;
+    } as ApiMediaItem;
     /* Are we editing ? */
     if (this.isEditing()) {
-      item.id = this.form.get('id').value;
+      item.mediaItemId = this.form.get('id').value;
     }
     /* only relevant for video */
-    if (item.type === RestMediaItem.TypeEnum.VIDEO) {
+    if (item.type === ApiMediaType.VIDEO) {
       item.durationMs = this.form.get('durationMs').value;
       item.fps = this.form.get('fps').value;
     }

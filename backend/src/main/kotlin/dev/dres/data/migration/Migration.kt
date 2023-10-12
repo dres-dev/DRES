@@ -1,7 +1,7 @@
 package dev.dres.data.migration
 
-import dev.dres.data.dbo.DataAccessLayer
-import dev.dres.data.model.Config
+import dev.dres.data.model.config.Config
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * General interface implemented by data migration scripts.
@@ -9,14 +9,14 @@ import dev.dres.data.model.Config
  * TODO: Extend
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1.0
  */
 interface Migration {
     /**
      * Performs data migration.
      *
      * @param config The global [Config] used for the data migration.
-     * @param data The [DataAccessLayer] used for data access.
+     * @param store The [TransientEntityStore] used for data access.
      */
-    fun migrate(config: Config, data: DataAccessLayer)
+    fun migrate(config: Config, store: TransientEntityStore)
 }

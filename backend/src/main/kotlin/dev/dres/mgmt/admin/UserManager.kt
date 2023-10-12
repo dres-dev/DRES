@@ -1,201 +1,152 @@
 package dev.dres.mgmt.admin
 
-import dev.dres.api.rest.handler.UserHandler
-import dev.dres.api.rest.handler.UserRequest
-import dev.dres.data.dbo.DAO
-import dev.dres.data.model.UID
+import dev.dres.api.rest.types.users.ApiRole
+import dev.dres.api.rest.types.users.ApiUser
+import dev.dres.api.rest.types.users.ApiUserRequest
 import dev.dres.data.model.admin.*
-import dev.dres.utilities.extensions.toPlainPassword
-import dev.dres.utilities.extensions.toUsername
+import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.*
+import java.util.*
 
 /**
- * User management of DRES.
- * Single access to DAO for users. Requires initialisation ONCE
+ * User management class of DRES. Requires transaction context.
  *
  * @author Loris Sauter
- * @version 1.0
+ * @version 2.0.1
  */
 object UserManager {
 
-    const val MIN_LENGTH_USERNAME = 4
-    const val MIN_LENGTH_PASSWORD = 6
+    private lateinit var store: TransientEntityStore
 
-    private lateinit var users: DAO<User>
-
-
-    fun init(users: DAO<User>) {
-        this.users = users
-    }
-
-    fun create(username: UserName, password: HashedPassword, role: Role): Boolean {
-        validateInitalised()
-        validateUsernameLengthOrEscalate(username)
-        validateUsernameUniqueOrEscalate(username)
-        val newUser = User(username = username, password = password, role = role)
-        return create(newUser)
-    }
-
-    fun create(username: UserName, password: PlainPassword, role: Role): Boolean {
-        validateInitalised()
-        validateUsernameLengthOrEscalate(username)
-        validateUsernameUniqueOrEscalate(username)
-        validatePasswordLengthOrEscalate(password)
-        val newUser = User(username = username, password = password.hash(), role = role)
-        return create(newUser)
-    }
-
-    private fun validateUsernameLengthOrEscalate(username: UserName){
-        if(username.length < MIN_LENGTH_USERNAME){
-            throw RuntimeException("Username is less than $MIN_LENGTH_USERNAME characters")
-        }
-    }
-
-    private fun validatePasswordLengthOrEscalate(password: PlainPassword){
-        if(password.length < MIN_LENGTH_PASSWORD){
-            throw RuntimeException("Password is less than $MIN_LENGTH_PASSWORD characters")
-        }
-    }
-
-    private fun validateUsernameUniqueOrEscalate(username: UserName){
-        if(username in users.map ( User::username )){
-            throw RuntimeException("Username is already taken: $username")
-        }
-    }
-
-    private fun create(user:User): Boolean{
-        for (existingUser in this.users) {
-            if (existingUser in users) {
-                return false
-            }
-        }
-        users.append(user)
-        return true
-    }
-
-    fun update(id: UID?, username: UserName?, password: HashedPassword?, role: Role?): Boolean {
-        validateInitalised()
-        val updateId = id(id, username)
-        if (updateId != null) {
-            val currentUser = users[updateId]
-            if (currentUser != null) {
-                val updatedUser = currentUser.copy(id = currentUser.id, username = username ?: currentUser.username, password = password ?: currentUser.password, role = role ?: currentUser.role)
-                users.update(updatedUser)
-                return true
-            }
-        }
-        return false
-    }
-
-    fun update(id: UID?, username: UserName?, password: PlainPassword?, role: Role?): Boolean {
-        validateInitalised()
-        val updateId = id(id, username)
-        if (updateId != null) {
-            val currentUser = users[updateId]
-            if (currentUser != null) {
-                val updatedUser = currentUser.copy(id = currentUser.id, username = username ?: currentUser.username, password = password?.hash()
-                        ?: currentUser.password, role = role ?: currentUser.role)
-                users.update(updatedUser)
-                return true
-            }
-        }
-        return false
-    }
-
-    fun delete(id: UID?, username: UserName?): Boolean {
-        validateInitalised()
-        val delId = id(id, username)
-        if (delId != null && exists(delId)) {
-            this.users.delete(delId)
-            return true
-        } else {
-            return false
-        }
-    }
-
-    fun delete(id:UID?):Boolean{
-        return delete(id=id,username = null)
-    }
-
-    fun list(): List<User> {
-        validateInitalised()
-        return users.toList()
-    }
-
-    fun exists(id: UID?, username: UserName?): Boolean {
-        validateInitalised()
-        val searchId = id(id, username)
-        return this.users.exists(searchId ?: UID.EMPTY)
-    }
-
-    fun exists(id: UID?): Boolean {
-        return exists(id = id, username = null)
-    }
-
-    fun exists(username: UserName?): Boolean {
-        return exists(id = null, username = username)
-    }
-
-    fun get(id: UID?, username: UserName?): User? {
-        validateInitalised()
-        val _id = id(id, username)
-        return if (exists(id = _id)) {
-            users[_id!!] // !! is safe here, because theres a nulll check in exists
-        } else {
-            null
-        }
-    }
-
-    fun get(id: UID?): User? {
-        return get(id = id, username = null)
-    }
-
-    fun get(username: UserName?): User? {
-        return get(id = null, username = username)
+    fun init(store: TransientEntityStore) {
+        this.store = store
     }
 
     /**
-     * Returns the id
-     *   if the id is not null
-     *   if the username is not null, the corresponding id
-     *   null if failed
+     * Creates a [DbUser] with the given [username], [password] and [role].
+     *
+     * @param username The name of the user. Must be unique.
+     * @param password The [Password.Hashed] of the user.
+     * @param role The [ApiRole] of the new user.
      */
-    fun id(id: UID?, username: UserName?): UID? {
-        return when {
-            id != null -> id
-            username != null -> users.find { it.username == username }?.id
-            else -> null
+    fun create(username: String, password: Password.Hashed, role: ApiRole): ApiUser =
+        this.store.transactional {
+            val dbUser =
+                DbUser.new {
+                    this.username = username.lowercase()
+                    this.password = password.password
+                    this.role = role.toDb() ?: throw IllegalArgumentException("Cannot create user with role '$role'")
+                }
+            return@transactional dbUser.toApi()
+        }
+
+    /**
+     * Updates a user with the given [UserId], [username], [password] and [role].
+     *
+     * @param id The [UserId] of the user to update.
+     * @param username The name of the user. Must be unique.
+     * @param password The [Password.Hashed] of the user.
+     * @param role The [ApiRole] of the new user.
+     */
+    fun update(id: UserId?, username: String?, password: Password.Hashed?, role: ApiRole?): ApiUser? =
+        this.store.transactional {
+            val user = if (id != null) {
+                DbUser.query(DbUser::id eq id).firstOrNull()
+            } else if (username != null) {
+                DbUser.query(DbUser::username eq username).firstOrNull()
+            } else {
+                null
+            }
+            if (user == null) return@transactional null
+            if (username != null) user.username = username.lowercase()
+            if (password != null) user.password = password.password
+            if (role != null) user.role = role.toDb() ?: throw IllegalArgumentException("Cannot update user to role '$role'")
+            return@transactional user.toApi()
+        }
+
+
+    /**
+     * Updates a user for the given [id] based o the [request].
+     *
+     * @param id The [UserId] of the user to update.
+     * @param request The [ApiUserRequest] detailing the update
+     * @return True on success, false otherwise.
+     */
+    fun update(id: UserId?, request: ApiUserRequest): ApiUser? = update(
+        id = id,
+        username = request.username,
+        password = request.password?.let { if (it.isNotBlank()) Password.Plain(it).hash() else null },
+        role = request.role
+    )
+
+    /**
+     * Deletes the [ApiUser] for the given [UserId].
+     *
+     * @param username The name of the [ApiUser] to delete.
+     * @return True on success, false otherwise.
+     */
+    fun delete(id: UserId? = null, username: String? = null): Boolean = this.store.transactional {
+        val user = if (id != null) {
+            DbUser.query(DbUser::id eq id).firstOrNull()
+        } else if (username != null) {
+            DbUser.query(DbUser::username eq username.lowercase()).firstOrNull()
+        } else {
+            null
+        }
+        return@transactional if (user != null) {
+            user.delete()
+            true
+        } else {
+            false
+        }
+    }
+
+    /**
+     * Lists all [DbUser] objects in DRES.
+     *
+     * @return List of all [DbUser]s.
+     */
+    fun list(): List<ApiUser> = this.store.transactional(true) { DbUser.all().toList().map { it.toApi() } }
+
+
+    /**
+     * Checks for the existence of the [ApiUser] with the given [EvaluationId].
+     *
+     * @param id [EvaluationId] to check.
+     * @return True if [ApiUser] exists, false otherwise.
+     */
+    fun exists(id: UserId? = null, username: String? = null): Boolean = this.store.transactional(true) {
+        if (id != null) {
+            DbUser.query(DbUser::id eq id).isNotEmpty
+        } else if (username != null) {
+            DbUser.query(DbUser::username eq username.lowercase()).isNotEmpty
+        } else {
+            throw IllegalArgumentException("Either user ID or username must be non-null!")
+        }
+    }
+
+    /**
+     * Returns the [ApiUser] for the given [EvaluationId] or null if [ApiUser] doesn't exist.
+     *
+     * @param id The [EvaluationId] of the [ApiUser] to fetch.
+     * @return [ApiUser] or null
+     */
+    fun get(id: UserId? = null, username: String? = null): ApiUser? = this.store.transactional(true) {
+        if (id != null) {
+            DbUser.query(DbUser::id eq id).firstOrNull()?.toApi()
+        } else if (username != null) {
+            // Note: during after create, the query below is empty within a readonly transaction (unexpected), but non-empty out of the transaction
+            DbUser.query(DbUser::username eq username.lowercase()).firstOrNull()?.toApi()
+        } else {
+            null
         }
     }
 
     /**
      * Either returns a user for this username/password tuple or null
      */
-    fun getMatchingUser(username: UserName, password: PlainPassword) : User?  {
-        val user = users.find { it.username == username } ?: return null
-        return if (user.password.check(password)) user else null
-    }
-
-    private fun validateInitalised() {
-        if (isInit().not()) {
-            throw RuntimeException("The UserManager was not initialised with a DAO")
-        }
-    }
-
-    private fun isInit(): Boolean {
-        return ::users.isInitialized
-    }
-
-    fun create(toCreate: UserRequest): Boolean {
-        return create(UserName(toCreate.username), if(toCreate.password != null){PlainPassword(toCreate.password)}else{
-            PlainPassword("")
-        }, toCreate.role!!)
-    }
-
-    fun updateEntirely(id:UID?, user: UserRequest): Boolean {
-        return update(id=id, username = user.username.toUsername(), password = user.password.toPlainPassword(), role = user.role)
-    }
-
-    fun update(id:UID?, user:UserRequest):Boolean{
-        return update(id=id, username = user.username.toUsername(), password = user.password?.toPlainPassword(), role=user.role)
+    fun getMatchingApiUser(username: String, password: Password.Plain): ApiUser? = this.store.transactional(true) {
+        val user = DbUser.query(DbUser::username eq username.lowercase()).firstOrNull()
+        if (user?.hashedPassword()?.check(password) == true) user.toApi() else null
     }
 }

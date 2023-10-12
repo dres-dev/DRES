@@ -176,27 +176,28 @@ object MediaCollectionManager {
      * Adds segments, returns the number of segments added
      */
     fun addSegments(collectionId: CollectionId, segments: Collection<ApiMediaSegment>): Int = this.store.transactional {
+        var counter = 0
         val collection =
             DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional 0
-        segments.groupBy { it.mediaItemName }.flatMap { entry ->
+        segments.groupBy { it.mediaItemName }.forEach { entry ->
             val videoItem = collection.items.filter { it.name eq entry.key }.firstOrNull()
-            entry.value.map { segment ->
-                if (videoItem != null) {
-                    videoItem.segments.addAll(
-                        segments.map {
+            if (videoItem != null) {
+
+                entry.value.filter { videoItem.segments.filter { db -> db.name eq it.segmentName }.isEmpty }
+                    .forEach { segment ->
+                        videoItem.segments.add(
                             DbMediaSegment.new {
                                 this.name = segment.segmentName
                                 this.start = segment.start
                                 this.end = segment.end
                             }
-                        }
-                    )
-                    segments.size
-                } else {
-                    0
-                }
+                        )
+                        ++counter
+                    }
+
             }
-        }.sum()
+        }
+        counter
     }
 
 }

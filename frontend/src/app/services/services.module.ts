@@ -22,6 +22,7 @@ import { FormatMediaItemPipe } from './pipes/format-media-item.pipe';
 import { OrderByPipe } from './pipes/order-by.pipe';
 import { FilterNotInPipe } from './pipes/filter-not-in.pipe';
 import { UnderscoreWordBreakPipe } from './pipes/underscore-wordbreak.pipe';
+import { SubmissionsOfPipe } from './pipes/submissions-of.pipe';
 
 /**
  * Provides the {@link AppConfig} reference.
@@ -57,7 +58,8 @@ export function initializeApiConfig(appConfig: AppConfig) {
     FormatMediaItemPipe,
     OrderByPipe,
     FilterNotInPipe,
-    UnderscoreWordBreakPipe
+    UnderscoreWordBreakPipe,
+    SubmissionsOfPipe
   ],
   declarations: [
     RoundPipePipe,
@@ -78,6 +80,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     OrderByPipe,
     FilterNotInPipe,
     UnderscoreWordBreakPipe,
+    SubmissionsOfPipe,
   ],
   providers: [
     AuthenticationService,

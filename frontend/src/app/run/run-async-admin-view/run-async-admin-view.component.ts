@@ -28,7 +28,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
   run: Observable<RunInfoOverviewTuple>;
   update = new Subject();
 
-  displayedColumnsTasks: string[] = ['name', 'comment', 'group', 'type', 'duration', 'past', 'action'];
+  displayedColumnsTasks: string[] = ['name', 'comment', 'group', 'type', 'duration', 'past'];
   displayedColumnsTeamTasks: string[] = ['name', 'comment', 'state', 'group', 'type', 'duration', 'past', 'action'];
   teams: Observable<ApiTeamInfo[]>;
   pastTasks = new BehaviorSubject<ApiTaskTemplateInfo[]>([]);

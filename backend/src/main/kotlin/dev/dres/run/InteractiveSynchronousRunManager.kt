@@ -208,8 +208,9 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             /* Update active task. */
             this.evaluation.goTo(index)
 
-//            /* Enqueue WS message for sending */
-//            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_UPDATE, this.evaluation.currentTask?.taskId))
+            /* Clear ready latch */
+            this.readyLatch.clear()
+
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
         } else {
             throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
@@ -457,11 +458,11 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
 
         if (taskTemplateId == currentTemplateId) {
-            this.store.transactional(true) {
+            //this.store.transactional(true) {
                 if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING) {
                     this.readyLatch.setReady(viewerInfo)
                 }
-            }
+            //}
         }
 
     }

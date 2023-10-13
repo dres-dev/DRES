@@ -42,7 +42,7 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
   @ViewChild("taskTable")
   taskTable: MatTable<ApiTaskTemplate>;
   tasks: Observable<ApiTaskTemplate[]>;
-  displayedColumns = ["name", "group", "type", "duration", "actions"];
+  displayedColumns = ["name", "comment", "group", "type", "duration", "actions"];
 
   groups: Observable<ApiTaskGroup[]>;
 

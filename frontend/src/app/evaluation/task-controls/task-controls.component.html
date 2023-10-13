@@ -11,7 +11,7 @@
   </button>
 
   <button
-    *ngIf="(runState | async)?.taskStatus === 'PREPARING' || (runState | async)?.taskStatus === 'RUNNING'"
+    *ngIf="!asynchronous && ((runState | async)?.taskStatus === 'PREPARING' || (runState | async)?.taskStatus === 'RUNNING')"
     mat-icon-button
     aria-label="End running task."
     matTooltip="End running task '{{ (runState | async)?.taskTemplateId }}'."
@@ -20,7 +20,7 @@
     <mat-icon>cancel</mat-icon>
   </button>
   <button
-    *ngIf="(runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
+    *ngIf="!asynchronous && ((runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING')"
     mat-icon-button
     aria-label="Previous task."
     matTooltip="Got to previous task."
@@ -29,7 +29,7 @@
     <mat-icon>skip_previous</mat-icon>
   </button>
   <button
-    *ngIf="(runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
+    *ngIf="asynchronous ? (runState | async)?.taskStatus === 'ENDED' : (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
     mat-icon-button
     aria-label="Next task."
     matTooltip="Got to next task."

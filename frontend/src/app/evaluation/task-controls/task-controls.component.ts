@@ -24,6 +24,8 @@ export class TaskControlsComponent implements OnInit{
 
   @Input() showTime: boolean = false;
 
+  @Input() asynchronous: boolean = false;
+
   @Input() runId?: Observable<string>;
   isAdmin: Observable<boolean>;
 

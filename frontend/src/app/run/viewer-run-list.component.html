@@ -1,6 +1,6 @@
 
 <div>
-  <table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
+  <table #table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
     <!-- Name Column -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Actions</th>
@@ -90,8 +90,8 @@
 
     <!-- Task Column -->
     <ng-container matColumnDef="currentTask">
-      <th mat-header-cell *matHeaderCellDef>Task</th>
-      <td mat-cell *matCellDef="let row">{{ row.currentTask }}</td>
+      <th mat-header-cell *matHeaderCellDef>Active Task</th>
+      <td mat-cell *matCellDef="let row">{{ row.currentTaskName }}</td>
     </ng-container>
 
     <!-- Task Column -->
@@ -109,7 +109,7 @@
     <!-- Name Column -->
     <ng-container matColumnDef="teamCount">
       <th mat-header-cell *matHeaderCellDef># Teams</th>
-      <td mat-cell *matCellDef="let row">{{ row.teams.length }}</td>
+      <td mat-cell *matCellDef="let row">{{ row.teams }}</td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

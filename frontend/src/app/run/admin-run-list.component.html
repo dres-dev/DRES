@@ -1,5 +1,5 @@
 <div>
-  <table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
+  <table #table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
     <!-- Name Column -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Actions</th>
@@ -117,7 +117,7 @@
         *matCellDef="let row"
         [matTooltip]="row.asynchronous ? 'Not available for async runs' : 'The currently active task'"
       >
-        {{ row.currentTask }}
+        {{ row.currentTaskName }}
       </td>
     </ng-container>
 
@@ -127,9 +127,9 @@
       <td
         mat-cell
         *matCellDef="let row"
-        [matTooltip]="row.asynchronous ? 'Not available for async runs' : 'The currently active task'"
+        [matTooltip]="row.asynchronous ? 'Not available for async runs' : 'Remaining time on this task in seconds'"
       >
-        {{ row.timeLeft }}
+        {{ row.timeLeft }}s
       </td>
     </ng-container>
 

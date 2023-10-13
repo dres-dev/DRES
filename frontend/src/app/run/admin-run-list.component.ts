@@ -1,4 +1,4 @@
-import { AfterViewInit, Component } from "@angular/core";
+import { AfterViewInit, Component, ViewChild } from "@angular/core";
 import { AbstractRunListComponent, RunInfoWithState } from './abstract-run-list.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -16,6 +16,7 @@ import {
   EvaluationScoresService,
   EvaluationService
 } from '../../../openapi';
+import { MatTable } from "@angular/material/table";
 
 export interface RunInfoOverviewTuple {
   runInfo: ApiEvaluationInfo;
@@ -27,6 +28,15 @@ export interface RunInfoOverviewTuple {
   templateUrl: './admin-run-list.component.html',
 })
 export class AdminRunListComponent extends AbstractRunListComponent implements AfterViewInit{
+
+  @ViewChild('table', {static: true}) table: MatTable<any>;
+
+  postRefresh: () => void = () => {
+    if(this.table){
+      this.table.renderRows()
+    }
+  };
+
   constructor(
     runService: EvaluationService,
     runAdminService: EvaluationAdministratorService,
@@ -118,18 +128,30 @@ export class AdminRunListComponent extends AbstractRunListComponent implements A
         runInfo.map((run) =>
           this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(run.id).pipe(
             map((overview) => {
-              return {
+              const infoState = {
                 id: run.id,
                 name: run.name,
                 description: run.templateDescription,
                 teams: run.teams.length,
                 runStatus: overview.state,
-                taskRunStatus: ApiTaskStatus.NO_TASK, // FIXME how to handle async and sync?,
+                taskRunStatus: null,
                 currentTask: 'n/a',
                 timeLeft: 'n/a',
                 asynchronous: run.type === 'ASYNCHRONOUS',
                 runProperties: run.properties,
               } as RunInfoWithState;
+
+              if(!infoState.asynchronous){
+                const teamOverview = overview?.teamOverviews[0]?.tasks[overview?.teamOverviews[0]?.tasks.length -1]
+                if(teamOverview){
+                  infoState.currentTaskName = teamOverview.name
+                  infoState.currentTask = teamOverview.id
+                  infoState.taskRunStatus = teamOverview?.status
+                  infoState.timeLeft = teamOverview?.status === ApiTaskStatus.RUNNING ? ''+  (teamOverview.duration -  Math.round(-1*((teamOverview.started - Date.now()) / 1000 ) )) : '0'
+                }
+              }
+
+              return infoState;
             })
           )
         )

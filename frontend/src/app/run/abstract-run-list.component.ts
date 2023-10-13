@@ -16,8 +16,9 @@ export interface RunInfoWithState {
   description?: string;
   teams: number;
   runStatus: RunManagerStatus;
-  taskRunStatus: ApiTaskStatus;
+  taskRunStatus?: ApiTaskStatus;
   currentTask?: string;
+  currentTaskName?: string;
   timeLeft: string;
   asynchronous: boolean;
   runProperties: ApiRunProperties;
@@ -28,6 +29,8 @@ export class AbstractRunListComponent {
   runs: Observable<RunInfoWithState[]>;
   updateInterval = 5000; /* TODO: Make configurable. */
   refreshSubject: Subject<void> = new Subject();
+
+  postRefresh: () => void = () => {};
 
   constructor(
     protected runService: EvaluationService,
@@ -105,32 +108,6 @@ export class AbstractRunListComponent {
     });
   }
 
-  /*
-  public nextTask(runId: string) {
-    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskNext(runId).subscribe({
-      next: (r) => {
-        this.refreshSubject.next();
-        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-      },
-      error: (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-      }
-    });
-  }
-
-  public startTask(runId: string) {
-    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskStart(runId).subscribe({
-      next: (r) => {
-        this.refreshSubject.next();
-        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-      },
-      error: (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-      }
-    });
-  }
-  */
-
   scoreDownloadProvider = (runId: string) => {
     return this.downloadService
       .getApiV2DownloadEvaluationByEvaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' }) // FIXME was text/css, might require openapi specs adjustment
@@ -156,6 +133,7 @@ export class AbstractRunListComponent {
 
   public refresh(){
     this.initStateUpdates();
+    this.postRefresh()
   }
 
   protected initStateUpdates() {
@@ -177,7 +155,9 @@ export class AbstractRunListComponent {
             runStatus: s.evaluationStatus,
             taskRunStatus: s.taskStatus,
             currentTask: s.taskTemplateId,
+            currentTaskName: v.taskTemplates.find(it => it.templateId === s.taskTemplateId)?.name,
             timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
+            timeElapsed: s.timeElapsed,
             asynchronous: v.type === 'ASYNCHRONOUS',
             runProperties: v.properties,
           } as RunInfoWithState;

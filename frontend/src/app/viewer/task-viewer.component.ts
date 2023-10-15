@@ -182,6 +182,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /* Map task target to representation used by viewer. */
     this.currentTargetContent = currentTaskTarget.pipe(
       mergeMap((h: ApiHintContent) => {
+        console.log("TARGET HINT, ", h)
         if (!h) {
           return from([]);
         }

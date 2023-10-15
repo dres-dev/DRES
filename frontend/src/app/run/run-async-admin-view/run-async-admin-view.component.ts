@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from "@angular/core";
 import { BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
@@ -21,7 +21,7 @@ import {
   templateUrl: './run-async-admin-view.component.html',
   styleUrls: ['./run-async-admin-view.component.scss'],
 })
-export class RunAsyncAdminViewComponent implements AfterViewInit {
+export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   @ViewChild(MatAccordion) accordion: MatAccordion;
 
   runId: BehaviorSubject<string> = new BehaviorSubject<string>('');
@@ -124,5 +124,9 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
   public closeAllTeamOverviews() {
     this.accordion.closeAll();
     this.nbOpenTeamOverviews = 0;
+  }
+
+  ngOnDestroy(): void {
+    this.update?.unsubscribe()
   }
 }

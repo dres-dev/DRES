@@ -39,7 +39,7 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
             const url = new URL(e.url)
             if(e.status === 401 && url.host.startsWith(this.config.endpoint.host)){
               let rt
-              if(this.router.url.startsWith("/login")){
+              if(this.router?.url?.startsWith("/login")){
                 rt = this.router.parseUrl(this.router.url)
               }else{
                 rt = this.router.parseUrl(`/login?returnUrl=${this.router.url}`)

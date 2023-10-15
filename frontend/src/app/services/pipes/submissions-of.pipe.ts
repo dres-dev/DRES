@@ -24,7 +24,7 @@ export class SubmissionsOfPipe implements PipeTransform {
           console.log("submissionsOf 1", e);
         }),
         filter((submissionInfos, idx) => {
-          return submissionInfos[idx].evaluationId === evaluationId;
+          return submissionInfos[idx]?.evaluationId === evaluationId || false;
         }),
         tap(e => {
           console.log("submissionsOf 2", e);

@@ -47,7 +47,10 @@ import kotlin.math.max
  * @version 3.0.0
  * @author Ralph Gasser
  */
-class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynchronousEvaluation, override val store: TransientEntityStore) : InteractiveRunManager, TransientStoreSessionListener {
+class InteractiveSynchronousRunManager(
+    override val evaluation: InteractiveSynchronousEvaluation,
+    override val store: TransientEntityStore
+) : InteractiveRunManager, TransientStoreSessionListener {
 
 
     companion object {
@@ -57,7 +60,12 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
     /** Generates and returns [ApiRunProperties] for this [InteractiveAsynchronousRunManager]. */
     override val runProperties: ApiRunProperties
-        get() = ApiRunProperties(this.evaluation.participantCanView, false, this.evaluation.allowRepeatedTasks, this.evaluation.limitSubmissionPreviews)
+        get() = ApiRunProperties(
+            this.evaluation.participantCanView,
+            false,
+            this.evaluation.allowRepeatedTasks,
+            this.evaluation.limitSubmissionPreviews
+        )
 
     /** [EvaluationId] of this [InteractiveSynchronousRunManager]. */
     override val id: EvaluationId
@@ -77,7 +85,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     } else {
         RunManagerStatus.CREATED
     }
-    private set
+        private set
 
     /** Returns list [JudgementValidator]s associated with this [InteractiveSynchronousRunManager]. May be empty*/
     override val judgementValidators: List<JudgementValidator>
@@ -288,6 +296,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             ApiTaskStatus.PREPARING,
             ApiTaskStatus.RUNNING,
             ApiTaskStatus.ENDED -> this.evaluation.currentTaskRun
+
             else -> null
         }
     }
@@ -340,12 +349,15 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         checkContext(context)
 
         /* Obtain task and perform sanity check. */
-        val task = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
+        val task = this.currentTask(context)
+            ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
         check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
 
         /* Adjust duration. */
         val newDuration = task.duration + s
-        if((newDuration * 1000L - (System.currentTimeMillis() - task.started!!)) < 0) { throw IllegalArgumentException( "New duration $s can not be applied because too much time has already elapsed.") }
+        if ((newDuration * 1000L - (System.currentTimeMillis() - task.started!!)) < 0) {
+            throw IllegalArgumentException("New duration $s can not be applied because too much time has already elapsed.")
+        }
         task.duration = newDuration
         return (task.duration * 1000L - (System.currentTimeMillis() - task.started!!))
     }
@@ -459,9 +471,9 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
         if (taskTemplateId == currentTemplateId) {
             //this.store.transactional(true) {
-                if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING) {
-                    this.readyLatch.setReady(viewerInfo)
-                }
+            if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING) {
+                this.readyLatch.setReady(viewerInfo)
+            }
             //}
         }
 
@@ -481,8 +493,9 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) = this.stateLock.read {
 
         /* Phase 1: Basic lookups required for validation (read-only). */
-        val task = this.store.transactional(true) {
-            val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager.")
+        val (task, transformedSubmission) = this.store.transactional(true) {
+            val task =
+                this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager.")
             check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running." }
 
             /* Update submission with contextual information. */
@@ -492,18 +505,19 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 it.taskId = task.taskId /* All answers are explicitly associated with the running task. */
             }
 
+            /* Apply transformer(s) to submission. */
+            val transformedSubmission = task.transformer.transform(submission)
+
+
             /* Run submission through all the filters. */
-            task.filter.acceptOrThrow(submission)
-            task
+            task.filter.acceptOrThrow(transformedSubmission)
+            task to transformedSubmission
         }
 
         /* Phase 2: Create DbSubmission, apply transformers and validate it. */
         this.store.transactional {
             /* Convert submission to database representation. */
-            val db = submission.toNewDb()
-
-            /* Apply transformer(s) to submission. */
-            task.transformer.transform(db)
+            val db = transformedSubmission.toNewDb()
 
             /* Check if there are answers left after transformation */
             if (db.answerSets.isEmpty) {
@@ -525,7 +539,11 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @param submissionId The [EvaluationId] of the [DbSubmission] to update.
      * @return True on success, false otherwise.
      */
-    override fun updateSubmission(context: RunActionContext, submissionId: SubmissionId, submissionStatus: ApiVerdictStatus): Boolean = this.stateLock.read {
+    override fun updateSubmission(
+        context: RunActionContext,
+        submissionId: SubmissionId,
+        submissionStatus: ApiVerdictStatus
+    ): Boolean = this.stateLock.read {
         val (taskId, status) = this.store.transactional {
             val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull()
                 ?: throw IllegalArgumentException("Could not find submission with ID ${submissionId}.")
@@ -593,7 +611,10 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 LOGGER.info("Interrupted SynchronousRunManager, exiting")
                 return
             } catch (e: Throwable) {
-                LOGGER.error("Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!", e)
+                LOGGER.error(
+                    "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
+                    e
+                )
                 LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
 
                 // oh shit, something went horribly, horribly wrong
@@ -622,7 +643,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * Invokes all [Updatable]s registered with this [InteractiveSynchronousRunManager].
      */
     private fun invokeUpdatables() {
-        val runStatus =  this.status
+        val runStatus = this.status
         val taskStatus = this.evaluation.currentTaskRun?.status
         this.updatables.forEach {
             if (it.shouldBeUpdated(runStatus, taskStatus)) {
@@ -640,7 +661,13 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             this.stateLock.write {
                 this.evaluation.currentTaskRun!!.start()
-                AuditLogger.taskStart(this.id, this.evaluation.currentTaskRun!!.taskId, this.evaluation.getCurrentTaskTemplate(), AuditLogSource.INTERNAL, null)
+                AuditLogger.taskStart(
+                    this.id,
+                    this.evaluation.currentTaskRun!!.taskId,
+                    this.evaluation.getCurrentTaskTemplate(),
+                    AuditLogSource.INTERNAL,
+                    null
+                )
             }
 
 //            /* Enqueue WS message for sending */
@@ -651,7 +678,10 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
             this.stateLock.write {
                 val task = this.evaluation.currentTaskRun!!
-                val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
+                val timeLeft = max(
+                    0L,
+                    task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                )
                 if (timeLeft <= 0) {
                     task.end()
                     AuditLogger.taskEnd(this.id, this.evaluation.currentTaskRun!!.taskId, AuditLogSource.INTERNAL, null)
@@ -669,13 +699,15 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      */
     private fun registerOptionalUpdatables() {
         /* Determine if any task should be prolonged upon submission. */
-        val prolongOnSubmit = this.template.taskTypes.flatMap { it.taskOptions }.contains(ApiTaskOption.PROLONG_ON_SUBMISSION)
+        val prolongOnSubmit =
+            this.template.taskTypes.flatMap { it.taskOptions }.contains(ApiTaskOption.PROLONG_ON_SUBMISSION)
         if (prolongOnSubmit) {
             this.updatables.add(ProlongOnSubmitUpdatable(this))
         }
 
         /* Determine if any task should be ended once submission threshold per team is reached. */
-        val endOnSubmit = this.template.taskTypes.flatMap { it.submissionOptions }.contains(ApiSubmissionOption.LIMIT_CORRECT_PER_TEAM) //FIXME should take into account all limits
+        val endOnSubmit = this.template.taskTypes.flatMap { it.submissionOptions }
+            .contains(ApiSubmissionOption.LIMIT_CORRECT_PER_TEAM) //FIXME should take into account all limits
         if (endOnSubmit) {
             this.updatables.add(EndOnSubmitUpdatable(this))
         }
@@ -717,14 +749,17 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      */
     private fun RunActionContext.teamId(): TeamId {
         val userId = this.userId
-       return this@InteractiveSynchronousRunManager.template.teams.singleOrNull { t -> t.users.any { it.id == userId } }?.teamId
+        return this@InteractiveSynchronousRunManager.template.teams.singleOrNull { t -> t.users.any { it.id == userId } }?.teamId
             ?: throw IllegalArgumentException("Could not find matching team for user, which is required for interaction with this run manager.")
     }
 
     /**
      * [TransientStoreSessionListener] implementation: Currently has no effect.
      */
-    override fun afterConstraintsFail(session: TransientStoreSession, exceptions: Set<DataIntegrityViolationException>) {
+    override fun afterConstraintsFail(
+        session: TransientStoreSession,
+        exceptions: Set<DataIntegrityViolationException>
+    ) {
         /* No op. */
     }
 
@@ -734,16 +769,19 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @param session The [TransientStoreSession] that triggered the invocation.
      * @param changedEntities The [TransientEntityChange]s for the transaction.
      */
-    override fun beforeFlushBeforeConstraints(session: TransientStoreSession, changedEntities: Set<TransientEntityChange>) {
+    override fun beforeFlushBeforeConstraints(
+        session: TransientStoreSession,
+        changedEntities: Set<TransientEntityChange>
+    ) {
         /* No op. */
     }
 
     /**
-    * [TransientStoreSessionListener] implementation: Reacts to changes to the [DbAnswerSet] entity and invalidates [Scoreboard]s and [Scorer]s if necessary.
+     * [TransientStoreSessionListener] implementation: Reacts to changes to the [DbAnswerSet] entity and invalidates [Scoreboard]s and [Scorer]s if necessary.
      *
      * @param session The [TransientStoreSession] that triggered the invocation.
      * @param changedEntities The [TransientEntityChange]s for the transaction.
-    */
+     */
     override fun flushed(session: TransientStoreSession, changedEntities: Set<TransientEntityChange>) {
         if (!session.isReadonly) {
             for (c in changedEntities) {

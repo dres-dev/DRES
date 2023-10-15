@@ -48,7 +48,14 @@ data class ApiClientAnswer(
      */
     fun toNewDb(): DbAnswer = DbAnswer.new {
         this.type = this@ApiClientAnswer.tryDetermineType()
-        this.item = when {
+        this.item = this@ApiClientAnswer.getDbItem()
+        this.text = this@ApiClientAnswer.text
+        this.start = this@ApiClientAnswer.start
+        this.end = this@ApiClientAnswer.end
+    }
+
+    fun getDbItem() : DbMediaItem? {
+        return when {
             this@ApiClientAnswer.mediaItemId != null ->
                 DbMediaItem.filter { it.id eq mediaItemId }.singleOrNull()
                     ?: throw IllegalArgumentException("Could not find media item with ID ${this@ApiClientAnswer.mediaItemId}.")
@@ -56,12 +63,9 @@ data class ApiClientAnswer(
                 DbMediaItem.filter { (it.name eq mediaItemName) and (it.collection.name eq this@ApiClientAnswer.mediaItemCollectionName) }.singleOrNull()
                     ?: throw IllegalArgumentException("Could not find media item with name '${this@ApiClientAnswer.mediaItemName}' in collection '${this@ApiClientAnswer.mediaItemCollectionName}'.")
             this@ApiClientAnswer.mediaItemName != null -> DbMediaItem.filter { it.name eq mediaItemName}.singleOrNull()
-                    ?: throw IllegalArgumentException("Could not find media item with name '${this@ApiClientAnswer.mediaItemName}'. Maybe collection name is required.")
+                ?: throw IllegalArgumentException("Could not find media item with name '${this@ApiClientAnswer.mediaItemName}'. Maybe collection name is required.")
             else -> null
         }
-        this.text = this@ApiClientAnswer.text
-        this.start = this@ApiClientAnswer.start
-        this.end = this@ApiClientAnswer.end
     }
 
     /**

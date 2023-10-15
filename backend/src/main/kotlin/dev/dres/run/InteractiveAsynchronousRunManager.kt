@@ -522,7 +522,7 @@ class InteractiveAsynchronousRunManager(
     override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) = this.stateLock.read {
 
         /* Phase 1: Basic lookups required for validation (read-only). */
-        val task = this.store.transactional(true) {
+        val (task, transformedSubmission) = this.store.transactional(true) {
             val teamId = context.teamId()
 
             require(teamHasRunningTask(teamId)) { "No running task for Team ${teamId}" }
@@ -539,18 +539,19 @@ class InteractiveAsynchronousRunManager(
                 it.taskId = task.taskId /* All answers are explicitly associated with the running task. */
             }
 
-            /* Check if ApiSubmission meets formal requirements. */
-            task.filter.acceptOrThrow(submission)
-            task
+            /* Apply transformer(s) to submission. */
+            val transformedSubmission = task.transformer.transform(submission)
+
+
+            /* Run submission through all the filters. */
+            task.filter.acceptOrThrow(transformedSubmission)
+            task to transformedSubmission
         }
 
         /* Phase 2: Create DbSubmission, apply transformers and validate it. */
         this.store.transactional {
             /* Convert submission to database representation. */
-            val db = submission.toNewDb()
-
-            /* Apply transformer(s) to submission. */
-            task.transformer.transform(db)
+            val db = transformedSubmission.toNewDb()
 
             /* Check if there are answers left after transformation */
             if (db.answerSets.isEmpty) {

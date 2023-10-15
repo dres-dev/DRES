@@ -23,7 +23,7 @@ import java.util.UUID
  * @author Luca Rossetto
  * @version 1.0.0
  */
- class ApiClientSubmission(val answerSets: List<ApiClientAnswerSet>) {
+ data class ApiClientSubmission(val answerSets: List<ApiClientAnswerSet>) {
 
     /** The [UserId] associated with the submission. Is usually added as contextual information by the receiving endpoint. */
     @JsonIgnore

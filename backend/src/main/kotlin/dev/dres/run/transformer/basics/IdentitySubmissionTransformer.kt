@@ -1,5 +1,6 @@
 package dev.dres.run.transformer.basics
 
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.data.model.submissions.DbSubmission
 
 /**
@@ -13,7 +14,5 @@ object IdentitySubmissionTransformer : SubmissionTransformer {
      *
      * @param submission [DbSubmission] to transform.
      */
-    override fun transform(submission: DbSubmission) {
-        /* No op. */
-    }
+    override fun transform(submission: ApiClientSubmission) : ApiClientSubmission = submission
 }

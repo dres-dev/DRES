@@ -1,5 +1,6 @@
 package dev.dres.run.transformer.basics
 
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.data.model.submissions.DbSubmission
 
 /**
@@ -16,9 +17,11 @@ class CombiningSubmissionTransformer(private val transformers: List<SubmissionTr
      *
      * @param submission [DbSubmission] to transform.
      */
-    override fun transform(submission: DbSubmission) {
+    override fun transform(submission: ApiClientSubmission) : ApiClientSubmission {
+        var sub = submission
         for (transformer in transformers) {
-            transformer.transform(submission)
+            sub = transformer.transform(sub)
         }
+        return sub
     }
 }

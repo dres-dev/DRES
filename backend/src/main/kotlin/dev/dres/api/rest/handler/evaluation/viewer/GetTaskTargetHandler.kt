@@ -117,12 +117,15 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
         var cummulativeOffset = 0L
         val sequence = DbTaskTemplate.filter{it.templateId eq this@toTaskTarget.id}.firstOrNull()?.targets?.asSequence()?.flatMap {
             val qce = it.toQueryContentElement()
-            val out = listOf(
-                ApiContentElement(qce.contentType, qce.content, cummulativeOffset),
-                ApiContentElement(ApiContentType.EMPTY, null, cummulativeOffset+1L)
-            )
+            /* The content */
+            val content = ApiContentElement(qce.contentType, qce.content, cummulativeOffset)
+            /* Calculate offset of pause */
             cummulativeOffset += Math.floorDiv(it.range?.durationMs() ?: 10000L, 1000L) + 1L
-            return@flatMap out
+            /* Pause at the end of the content's length (or 10s for non-temporal content */
+            val pause = ApiContentElement(ApiContentType.EMPTY, null, cummulativeOffset)
+            /* Expand cummulativeOffset by one second (pause) */
+            cummulativeOffset += 1L
+            listOf(content, pause)
         }?.toList() ?: emptyList()
         return ApiTargetContent(this.id!!, sequence)
     }

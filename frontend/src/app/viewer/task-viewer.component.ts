@@ -188,7 +188,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         }
         return from(h.sequence).pipe(
           delayWhen<ApiContentElement>((c: ApiContentElement) => interval(1000 * c.offset)),
-          repeat(1)
+          repeat({delay: 1000}) /* we **want** an infinite loop here, so we do not limit the repetitions (but delay by 1s */
         );
       })
     );

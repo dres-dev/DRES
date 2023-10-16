@@ -2,6 +2,7 @@ package dev.dres.run
 
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.run.score.scoreboard.Scoreboard
@@ -147,7 +148,7 @@ class NonInteractiveRunManager(
     /**
      *
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) {
+    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) : ApiSubmission {
 
 
         TODO("Not yet implemented")

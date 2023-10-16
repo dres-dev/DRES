@@ -206,8 +206,6 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
             val collection =
                 runManager.currentTaskTemplate(rac).collectionId /* TODO: Do we need the option to explicitly set the collection name? */
             val taskType = runManager.currentTaskTemplate(rac).taskType
-            val mapToSegment =
-                runManager.template.taskTypes.find { it.name == taskType }?.taskOptions?.contains(ApiTaskOption.MAP_TO_SEGMENT) == true
             val item = DbMediaCollection.query(DbMediaCollection::id eq collection)
                 .firstOrNull()?.items?.filter { it.name eq itemParam }?.firstOrNull()
                 ?: throw ErrorStatusException(404, "Item '$PARAMETER_NAME_ITEM' not found'", ctx)
@@ -236,20 +234,9 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
                             ),
                         fps
                     )
-                    if (mapToSegment) {
-                        DbMediaSegment.findContaining(
-                            item,
-                            time
-                        )?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
-                            ?: throw ErrorStatusException(
-                                400,
-                                "No matching segments found for item '${item.name}'.",
-                                ctx
-                            )
-                    } else {
-                        val ms = time.toMilliseconds()
-                        ms to ms
-                    }
+                    val ms = time.toMilliseconds()
+                    ms to ms
+
                 }
 
                 map.containsKey(PARAMETER_NAME_TIMECODE) -> {
@@ -264,20 +251,9 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
                                     ctx
                                 )
                         )
-                    if (mapToSegment) {
-                        DbMediaSegment.findContaining(
-                            item,
-                            time
-                        )?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
-                            ?: throw ErrorStatusException(
-                                400,
-                                "No matching segments found for item '${item.name}'.",
-                                ctx
-                            )
-                    } else {
-                        val ms = time.toMilliseconds()
-                        ms to ms
-                    }
+                    val ms = time.toMilliseconds()
+                    ms to ms
+
                 }
 
                 else -> null

@@ -32,7 +32,8 @@ import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.transactional
 import org.slf4j.LoggerFactory
 
-class SubmissionHandler(private val store: TransientEntityStore): PostRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
+class SubmissionHandler(private val store: TransientEntityStore) : PostRestHandler<SuccessfulSubmissionsStatus>,
+    AccessManagedRestHandler {
 
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
 
@@ -49,18 +50,35 @@ class SubmissionHandler(private val store: TransientEntityStore): PostRestHandle
         operationId = OpenApiOperation.AUTO_GENERATE,
         requestBody = OpenApiRequestBody([OpenApiContent(ApiClientSubmission::class)], required = true),
         pathParams = [
-            OpenApiParam("evaluationId", String::class, "The ID of the evaluation the submission belongs to.", required = true),
+            OpenApiParam(
+                "evaluationId",
+                String::class,
+                "The ID of the evaluation the submission belongs to.",
+                required = true
+            ),
         ],
         queryParams = [
             OpenApiParam("session", String::class, "Session Token")
         ],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(SuccessfulSubmissionsStatus::class)], description = "The submission was accepted by the server and there was a verdict"),
-            OpenApiResponse("202", [OpenApiContent(SuccessfulSubmissionsStatus::class)],description = "The submission was accepted by the server and there has not yet been a verdict available"),
+            OpenApiResponse(
+                "200",
+                [OpenApiContent(SuccessfulSubmissionsStatus::class)],
+                description = "The submission was accepted by the server and there was a verdict"
+            ),
+            OpenApiResponse(
+                "202",
+                [OpenApiContent(SuccessfulSubmissionsStatus::class)],
+                description = "The submission was accepted by the server and there has not yet been a verdict available"
+            ),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
-            OpenApiResponse("412", [OpenApiContent(ErrorStatus::class)], description = "The submission was rejected by the server")
+            OpenApiResponse(
+                "412",
+                [OpenApiContent(ErrorStatus::class)],
+                description = "The submission was rejected by the server"
+            )
         ],
         tags = ["Submission"]
     )
@@ -78,7 +96,7 @@ class SubmissionHandler(private val store: TransientEntityStore): PostRestHandle
             ?: throw ErrorStatusException(404, "Evaluation with ID '${rac.evaluationId}' could not be found.", ctx)
 
         /* Post submission. */
-        try {
+        val apiSubmission = try {
             runManager.postSubmission(rac, apiClientSubmission)
         } catch (e: SubmissionRejectedException) {
             throw ErrorStatusException(412, e.message ?: "Submission rejected by submission filter.", ctx)
@@ -87,39 +105,62 @@ class SubmissionHandler(private val store: TransientEntityStore): PostRestHandle
             throw ErrorStatusException(400, "Run manager is in wrong state and cannot accept any more submission.", ctx)
         } catch (e: IllegalTeamIdException) {
             logger.info("Submission with unknown team id '${apiClientSubmission.teamId}' was received.")
-            throw ErrorStatusException(400, "Run manager does not know the given teamId ${apiClientSubmission.teamId}.", ctx)
+            throw ErrorStatusException(
+                400,
+                "Run manager does not know the given teamId ${apiClientSubmission.teamId}.",
+                ctx
+            )
         } finally {
-            AuditLogger.submission(apiClientSubmission, rac.evaluationId!!, AuditLogSource.REST, ctx.sessionToken(), ctx.ip())
+            AuditLogger.submission(
+                apiClientSubmission,
+                rac.evaluationId!!,
+                AuditLogSource.REST,
+                ctx.sessionToken(),
+                ctx.ip()
+            )
         }
 
 
         /* Return status. */
-        return this.store.transactional(readonly = true) {
-            var correct = 0
-            var wrong = 0
-            var undcidable = 0
-            var indeterminate = 0
-            DbSubmission.filter { it.id eq apiClientSubmission.submissionId }.firstOrNull()?.answerSets()?.map { it.status() }?.forEach {
-                when(it){
-                    VerdictStatus.CORRECT -> correct++
-                    VerdictStatus.WRONG -> wrong++
-                    VerdictStatus.INDETERMINATE -> indeterminate++
-                    VerdictStatus.UNDECIDABLE -> undcidable++
-                }
-            }
-            val max = listOf(correct,wrong,undcidable,indeterminate).max()
-            when( max){
-                0 -> throw ErrorStatusException(500, "No verdict information available ${apiClientSubmission.submissionId}. This is a serious bug and should be reported!", ctx)
-                correct -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct, well done!")
-                wrong -> SuccessfulSubmissionsStatus(ApiVerdictStatus.WRONG, "Submission wrong, try again!")
-                undcidable -> SuccessfulSubmissionsStatus(ApiVerdictStatus.UNDECIDABLE, "Submission undecidable, try again!")
-                indeterminate -> {
-                    ctx.status(202)
-                    SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received, awaiting verdict!")
-                }
 
-                else -> throw ErrorStatusException(500, "Error while calculating submission verdict for submission ${apiClientSubmission.submissionId}. This is a serious bug and should be reported!", ctx)
+        var correct = 0
+        var wrong = 0
+        var undcidable = 0
+        var indeterminate = 0
+        apiSubmission.answers.map { it.status() }.forEach {
+            when (it) {
+                VerdictStatus.CORRECT -> correct++
+                VerdictStatus.WRONG -> wrong++
+                VerdictStatus.INDETERMINATE -> indeterminate++
+                VerdictStatus.UNDECIDABLE -> undcidable++
             }
         }
+        val max = listOf(correct, wrong, undcidable, indeterminate).max()
+        return when (max) {
+            0 -> throw ErrorStatusException(
+                500,
+                "No verdict information available ${apiClientSubmission.submissionId}. This is a serious bug and should be reported!",
+                ctx
+            )
+
+            correct -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct, well done!")
+            wrong -> SuccessfulSubmissionsStatus(ApiVerdictStatus.WRONG, "Submission wrong, try again!")
+            undcidable -> SuccessfulSubmissionsStatus(
+                ApiVerdictStatus.UNDECIDABLE,
+                "Submission undecidable, try again!"
+            )
+
+            indeterminate -> {
+                ctx.status(202)
+                SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received, awaiting verdict!")
+            }
+
+            else -> throw ErrorStatusException(
+                500,
+                "Error while calculating submission verdict for submission ${apiClientSubmission.submissionId}. This is a serious bug and should be reported!",
+                ctx
+            )
+        }
+
     }
 }

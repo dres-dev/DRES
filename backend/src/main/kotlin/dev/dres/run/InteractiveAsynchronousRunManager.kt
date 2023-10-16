@@ -549,7 +549,7 @@ class InteractiveAsynchronousRunManager(
         }
 
         /* Phase 2: Create DbSubmission, apply transformers and validate it. */
-        this.store.transactional {
+        return@read this.store.transactional {
             /* Convert submission to database representation. */
             val db = transformedSubmission.toNewDb()
 
@@ -562,6 +562,8 @@ class InteractiveAsynchronousRunManager(
             db.answerSets.asSequence().forEach {
                 task.validator.validate(it)
             }
+
+            db.toApi()
         }
     }
 

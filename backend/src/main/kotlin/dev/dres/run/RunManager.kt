@@ -119,7 +119,7 @@ interface RunManager : Runnable {
      *
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun postSubmission(context: RunActionContext, submission: ApiClientSubmission)
+    fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) : ApiSubmission
 
     /**
      * Returns a list of viewer [ViewerInfo]s for this [RunManager] alongside with their respective state.

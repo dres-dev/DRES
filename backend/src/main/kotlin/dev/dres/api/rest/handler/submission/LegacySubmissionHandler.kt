@@ -37,7 +37,8 @@ import org.slf4j.LoggerFactory
  * @author Loris Sauter
  * @version 2.0.0
  */
-class LegacySubmissionHandler(private val store: TransientEntityStore, private val cache: CacheManager): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
+class LegacySubmissionHandler(private val store: TransientEntityStore, private val cache: CacheManager) :
+    GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
 
     /** [LegacySubmissionHandler] requires [ApiRole.PARTICIPANT]. */
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
@@ -122,7 +123,7 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         }
 
         /* Post submission. */
-        try {
+        val apiSubmission = try {
             run.postSubmission(rac, submission)
         } catch (e: SubmissionRejectedException) {
             throw ErrorStatusException(412, e.message ?: "Submission rejected by submission filter.", ctx)
@@ -135,18 +136,26 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         }
 
         /* Lookup verdict for submission and return it. */
-        return this.store.transactional(true) {
-            when (DbSubmission.filter { it.id eq submission.submissionId }.firstOrNull()?.answerSets?.first()?.status) {
-                DbVerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct!")
-                DbVerdictStatus.WRONG -> SuccessfulSubmissionsStatus(ApiVerdictStatus.WRONG, "Submission incorrect! Try again")
-                DbVerdictStatus.INDETERMINATE -> {
-                    ctx.status(202) /* HTTP Accepted. */
-                    SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
-                }
-                DbVerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(ApiVerdictStatus.UNDECIDABLE, "Submission undecidable. Try again!")
-                else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
+        return when (apiSubmission.answers.first().status) {
+            ApiVerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct!")
+            ApiVerdictStatus.WRONG -> SuccessfulSubmissionsStatus(
+                ApiVerdictStatus.WRONG,
+                "Submission incorrect! Try again"
+            )
+
+            ApiVerdictStatus.INDETERMINATE -> {
+                ctx.status(202) /* HTTP Accepted. */
+                SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
             }
+
+            ApiVerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(
+                ApiVerdictStatus.UNDECIDABLE,
+                "Submission undecidable. Try again!"
+            )
+
+            else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
         }
+
     }
 
     /**
@@ -156,11 +165,20 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
      * @param ctx The current [Context].
      */
     private fun getEligibleRunManager(rac: RunActionContext, ctx: Context): InteractiveRunManager {
-        val managers = AccessManager.getRunManagerForUser(rac.userId).filterIsInstance(InteractiveRunManager::class.java).filter {
-            it.currentTask(rac)?.isRunning == true
-        }
-        if (managers.isEmpty()) throw ErrorStatusException(404, "There is currently no eligible evaluation with an active task.", ctx)
-        if (managers.size > 1) throw ErrorStatusException(409, "More than one possible evaluation found: ${managers.joinToString { it.template.name }}", ctx)
+        val managers =
+            AccessManager.getRunManagerForUser(rac.userId).filterIsInstance(InteractiveRunManager::class.java).filter {
+                it.currentTask(rac)?.isRunning == true
+            }
+        if (managers.isEmpty()) throw ErrorStatusException(
+            404,
+            "There is currently no eligible evaluation with an active task.",
+            ctx
+        )
+        if (managers.size > 1) throw ErrorStatusException(
+            409,
+            "More than one possible evaluation found: ${managers.joinToString { it.template.name }}",
+            ctx
+        )
         return managers.first()
     }
 
@@ -171,7 +189,11 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
      * @param runManager The [InteractiveRunManager]
      * @param ctx The HTTP [Context]
      */
-    private fun toSubmission(rac: RunActionContext, runManager: InteractiveRunManager, ctx: Context): ApiClientSubmission {
+    private fun toSubmission(
+        rac: RunActionContext,
+        runManager: InteractiveRunManager,
+        ctx: Context
+    ): ApiClientSubmission {
         val map = ctx.queryParamMap()
 
         /* If text is supplied, it supersedes other parameters */
@@ -181,16 +203,24 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         val answer = if (textParam != null) {
             ApiClientAnswer(text = textParam)
         } else if (itemParam != null) {
-            val collection = runManager.currentTaskTemplate(rac).collectionId /* TODO: Do we need the option to explicitly set the collection name? */
+            val collection =
+                runManager.currentTaskTemplate(rac).collectionId /* TODO: Do we need the option to explicitly set the collection name? */
             val taskType = runManager.currentTaskTemplate(rac).taskType
-            val mapToSegment = runManager.template.taskTypes.find { it.name == taskType }?.taskOptions?.contains(ApiTaskOption.MAP_TO_SEGMENT) == true
-            val item = DbMediaCollection.query(DbMediaCollection::id eq collection).firstOrNull()?.items?.filter { it.name eq itemParam }?.firstOrNull()
+            val mapToSegment =
+                runManager.template.taskTypes.find { it.name == taskType }?.taskOptions?.contains(ApiTaskOption.MAP_TO_SEGMENT) == true
+            val item = DbMediaCollection.query(DbMediaCollection::id eq collection)
+                .firstOrNull()?.items?.filter { it.name eq itemParam }?.firstOrNull()
                 ?: throw ErrorStatusException(404, "Item '$PARAMETER_NAME_ITEM' not found'", ctx)
             val range: Pair<Long, Long>? = when {
                 map.containsKey(PARAMETER_NAME_SHOT) && item.type == DbMediaType.VIDEO -> {
                     val shot = map[PARAMETER_NAME_SHOT]?.first()!!
-                    val time = item.segments.filter { it.name eq shot }.firstOrNull()?.range?.toMilliseconds()//TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item.segments.toList())
-                        ?: throw ErrorStatusException(400, "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.", ctx)
+                    val time = item.segments.filter { it.name eq shot }
+                        .firstOrNull()?.range?.toMilliseconds()//TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item.segments.toList())
+                        ?: throw ErrorStatusException(
+                            400,
+                            "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.",
+                            ctx
+                        )
                     time.first to time.second
                 }
 
@@ -199,12 +229,23 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
                         ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
                     val time = TemporalPoint.Frame(
                         map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull()
-                            ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx),
+                            ?: throw ErrorStatusException(
+                                400,
+                                "Parameter '$PARAMETER_NAME_FRAME' must be a number.",
+                                ctx
+                            ),
                         fps
                     )
                     if (mapToSegment) {
-                        DbMediaSegment.findContaining(item, time)?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
-                            ?: throw ErrorStatusException(400, "No matching segments found for item '${item.name}'.", ctx)
+                        DbMediaSegment.findContaining(
+                            item,
+                            time
+                        )?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
+                            ?: throw ErrorStatusException(
+                                400,
+                                "No matching segments found for item '${item.name}'.",
+                                ctx
+                            )
                     } else {
                         val ms = time.toMilliseconds()
                         ms to ms
@@ -212,19 +253,33 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
                 }
 
                 map.containsKey(PARAMETER_NAME_TIMECODE) -> {
-                    val fps = item.fps ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
+                    val fps = item.fps
+                        ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
                     val time =
-                        TemporalPoint.Millisecond(TemporalPoint.Timecode.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, fps)
-                            ?: throw ErrorStatusException(400, "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code", ctx)
+                        TemporalPoint.Millisecond(
+                            TemporalPoint.Timecode.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, fps)
+                                ?: throw ErrorStatusException(
+                                    400,
+                                    "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code",
+                                    ctx
+                                )
                         )
                     if (mapToSegment) {
-                        DbMediaSegment.findContaining(item, time)?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
-                            ?: throw ErrorStatusException(400, "No matching segments found for item '${item.name}'.", ctx)
+                        DbMediaSegment.findContaining(
+                            item,
+                            time
+                        )?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
+                            ?: throw ErrorStatusException(
+                                400,
+                                "No matching segments found for item '${item.name}'.",
+                                ctx
+                            )
                     } else {
                         val ms = time.toMilliseconds()
                         ms to ms
                     }
                 }
+
                 else -> null
             }
 
@@ -250,7 +305,9 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
     private fun generatePreview(answerSet: AnswerSet) {
         if (answerSet.answers().firstOrNull()?.type() != AnswerType.TEMPORAL) return
         if (answerSet.answers().firstOrNull()?.item == null) return
-        val item = DbMediaItem.query((DbMediaItem::id eq answerSet.answers().firstOrNull()?.item!!.mediaItemId)).firstOrNull() ?: return
+        val item =
+            DbMediaItem.query((DbMediaItem::id eq answerSet.answers().firstOrNull()?.item!!.mediaItemId)).firstOrNull()
+                ?: return
         this.cache.asyncPreviewImage(item, answerSet.answers().firstOrNull()?.start ?: 0)
     }
 }

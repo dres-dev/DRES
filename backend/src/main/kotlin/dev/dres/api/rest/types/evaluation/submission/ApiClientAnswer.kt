@@ -54,6 +54,8 @@ data class ApiClientAnswer(
         this.end = this@ApiClientAnswer.end
     }
 
+    @JsonIgnore
+    @OpenApiIgnore
     fun getDbItem() : DbMediaItem? {
         return when {
             this@ApiClientAnswer.mediaItemId != null ->

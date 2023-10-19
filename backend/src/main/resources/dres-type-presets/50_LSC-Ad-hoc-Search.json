@@ -1,0 +1,16 @@
+{
+ "name": "LSC Ad-hoc Search",
+ "duration": 180,
+ "targetOption": "JUDGEMENT",
+ "hintOptions": [
+  "TEXT"
+ ],
+ "submissionOptions": [
+  "NO_DUPLICATES",
+  "ITEM_SUBMISSION"
+ ],
+ "taskOptions": [],
+ "scoreOption": "AVS",
+ "configuration": {
+ }
+}

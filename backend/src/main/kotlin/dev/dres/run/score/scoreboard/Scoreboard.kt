@@ -1,31 +1,28 @@
 package dev.dres.run.score.scoreboard
 
-import dev.dres.data.model.UID
-import dev.dres.data.model.competition.Team
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.AbstractInteractiveTask
+import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.TaskId
-import dev.dres.run.score.interfaces.TaskScorer
+import dev.dres.data.model.template.team.TeamId
+import dev.dres.run.score.scorer.TaskScorer
 
 /**
- * Container for [Scoreboard].
- */
-data class Score(val teamId: String, val score: Double)
-
-data class ScoreOverview(val name: String, val taskGroup: String?, val scores: List<Score>)
-
-/**
- * A [Scoreboard] tracks the [Score]s for different [Team]s
+ * A [Scoreboard] tracks the [Score]s for different [DbTeam]s
  *
  * @author Ralph Gasser
- * @version 1.0.1
+ * @version 2.0.0
  */
 interface Scoreboard {
 
-    /**
-     * Returns the name of the [Scoreboard]
-     */
+    /** The [EvaluationRun] this [Scoreboard] instance belongs to. */
+    val run: EvaluationRun
+
+    /** * Returns the name of the [Scoreboard] */
     val name: String
+
+    /** Flag indicating, that this [Scoreboard] is dirty and needs re-calculation. */
+    val dirty: Boolean
 
     /**
      * Returns all overall [Score]s tracked by this [Scoreboard].
@@ -33,26 +30,20 @@ interface Scoreboard {
     fun scores(): List<Score>
 
     /**
-     * Retrieves and returns the score of the given [Team] [UID]
+     * Retrieves and returns the score of the given [TeamId]
      *
-     * @param teamId The [Team]'s [UID].
-     * @return The score for the given [Team].
+     * @param teamId The [TeamId] to retrieve the score for.
+     * @return The score for the given [TeamId].
      */
     fun score(teamId: TeamId): Double
-
-    /**
-     * Updates the [Scoreboard].
-     */
-    fun update(runs: List<AbstractInteractiveTask>)
-
-    /**
-     * Updates using a map of the [TaskRun] ids to the corresponding [TaskScorer]s
-     */
-    fun update(scorers: Map<TaskId, TaskScorer>)
 
     /**
      * Returns a summary of all current scores in a [ScoreOverview]
      */
     fun overview(): ScoreOverview
 
+    /**
+     * Invalidates this [Scoreboard] and marks its content as dirty.
+     */
+    fun invalidate()
 }

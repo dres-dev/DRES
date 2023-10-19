@@ -1,39 +1,41 @@
-import { combineLatest, merge, Observable, Subject, timer } from 'rxjs';
-import {
-  CompetitionRunAdminService,
-  CompetitionRunScoresService,
-  CompetitionRunService,
-  DownloadService,
-  RunProperties,
-  RunState,
-} from '../../../openapi';
-import { flatMap, map, take } from 'rxjs/operators';
+import {combineLatest, merge, mergeMap, Observable, Subject, timer} from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import {
+  ApiRunProperties,
+  ApiTaskStatus, DownloadService,
+  EvaluationAdministratorService,
+  EvaluationScoresService,
+  EvaluationService, RunManagerStatus
+} from "../../../openapi";
 
 export interface RunInfoWithState {
   id: string;
   name: string;
   description?: string;
   teams: number;
-  runStatus: RunState.RunStatusEnum;
-  taskRunStatus: RunState.TaskRunStatusEnum;
+  runStatus: RunManagerStatus;
+  taskRunStatus?: ApiTaskStatus;
   currentTask?: string;
+  currentTaskName?: string;
   timeLeft: string;
   asynchronous: boolean;
-  runProperties: RunProperties;
+  runProperties: ApiRunProperties;
 }
 
 export class AbstractRunListComponent {
   displayedColumns = ['actions', 'id', 'name', 'status', 'currentTask', 'timeLeft', 'description', 'teamCount'];
   runs: Observable<RunInfoWithState[]>;
   updateInterval = 5000; /* TODO: Make configurable. */
-  update = new Subject();
+  refreshSubject: Subject<void> = new Subject();
+
+  postRefresh: () => void = () => {};
 
   constructor(
-    protected runService: CompetitionRunService,
-    protected runAdminService: CompetitionRunAdminService,
-    protected scoreService: CompetitionRunScoresService,
+    protected runService: EvaluationService,
+    protected runAdminService: EvaluationAdministratorService,
+    protected scoreService: EvaluationScoresService,
     protected downloadService: DownloadService,
     protected router: Router,
     protected snackBar: MatSnackBar
@@ -47,9 +49,10 @@ export class AbstractRunListComponent {
    * @param runId ID of the run to navigate to.
    */
   public navigateToViewer(runId: string) {
+    console.log("Navigate (AbstractList): ", runId)
     /* TODO: Setup depends on type of competition run. */
     this.router.navigate([
-      '/run/viewer',
+      '/evaluation/viewer',
       runId,
       {
         center: 'player',
@@ -82,7 +85,7 @@ export class AbstractRunListComponent {
    * Navigates to admin viewer (for admins).
    */
   public navigateToAdmin(runId: string, async: boolean = false) {
-    this.router.navigate([`/run/admin${async ? '/async' : ''}`, runId]);
+    this.router.navigate([`/evaluation/admin${async ? '/async' : ''}`, runId]);
   }
 
   /**
@@ -91,11 +94,11 @@ export class AbstractRunListComponent {
    * @param runId ID of the run to navigate to.
    */
   public navigateToScoreHistory(runId: string) {
-    this.router.navigate(['/run/scores', runId]);
+    this.router.navigate(['/evaluation/scores', runId]);
   }
 
   public downloadScores(runId: string) {
-    this.downloadService.getApiV1DownloadRunWithRunidScores(runId).subscribe((scoresCSV) => {
+    this.downloadService.getApiV2DownloadEvaluationByEvaluationIdScores(runId).subscribe((scoresCSV) => {
       const csvBlob = new Blob([scoresCSV], { type: 'text/csv' });
       const fake = document.createElement('a');
       fake.href = URL.createObjectURL(csvBlob);
@@ -105,33 +108,9 @@ export class AbstractRunListComponent {
     });
   }
 
-  public nextTask(runId: string) {
-    this.runAdminService.postApiV1RunAdminWithRunidTaskNext(runId).subscribe(
-      (r) => {
-        this.update.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-      },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      }
-    );
-  }
-
-  public startTask(runId: string) {
-    this.runAdminService.postApiV1RunAdminWithRunidTaskStart(runId).subscribe(
-      (r) => {
-        this.update.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-      },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      }
-    );
-  }
-
   scoreDownloadProvider = (runId: string) => {
     return this.downloadService
-      .getApiV1DownloadRunWithRunidScores(runId, 'body', false, { httpHeaderAccept: 'text/csv' })
+      .getApiV2DownloadEvaluationByEvaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' }) // FIXME was text/css, might require openapi specs adjustment
       .pipe(take(1));
   };
 
@@ -140,7 +119,7 @@ export class AbstractRunListComponent {
   };
 
   downloadProvider = (runId) => {
-    return this.downloadService.getApiV1DownloadRunWithRunid(runId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadEvaluationByEvaluationId(runId).pipe(take(1));
     // .toPromise();
   };
 
@@ -152,26 +131,33 @@ export class AbstractRunListComponent {
     return item.id;
   }
 
+  public refresh(){
+    this.initStateUpdates();
+    this.postRefresh()
+  }
+
   protected initStateUpdates() {
     /**
      * Creates a combined observable that updates the state in a regular interval and the info +
      * state whenever a manual update is triggered.
      */
-    const query = combineLatest([this.runService.getApiV1RunInfoList(), this.runService.getApiV1RunStateList()]);
-    this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
-      flatMap((t) => query),
+    const query = combineLatest([this.runService.getApiV2EvaluationInfoList(), this.runService.getApiV2EvaluationStateList()]);
+    this.runs = merge(timer(0, this.updateInterval), this.refreshSubject).pipe(
+      mergeMap((t) => query),
       map(([info, state]) => {
         return info.map((v, i) => {
-          const s = state.find((_) => _.id === v.id);
+          const s = state.find((_) => _.evaluationId === v.id);
           return {
             id: v.id,
             name: v.name,
-            description: v.description,
+            description: v.templateDescription,
             teams: v.teams.length,
-            runStatus: s.runStatus,
-            taskRunStatus: s.taskRunStatus,
-            currentTask: s.currentTask?.name,
+            runStatus: s.evaluationStatus,
+            taskRunStatus: s.taskStatus,
+            currentTask: s.taskTemplateId,
+            currentTaskName: v.taskTemplates.find(it => it.templateId === s.taskTemplateId)?.name,
             timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
+            timeElapsed: s.timeElapsed,
             asynchronous: v.type === 'ASYNCHRONOUS',
             runProperties: v.properties,
           } as RunInfoWithState;

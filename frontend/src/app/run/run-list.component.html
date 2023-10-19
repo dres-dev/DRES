@@ -1,4 +1,18 @@
-<app-admin-run-list *ngIf="hasAccessFor(adminGroup); else viewer"></app-admin-run-list>
+<div class="flex flex-row align-baseline">
+  <app-back-button></app-back-button>
+  <h1>Ongoing Evaluations</h1>
+  <div class="spacer-flex"></div>
+  <div>
+    <button mat-icon-button
+            aria-label="Refresh list of evaluations."
+            matTooltip="Refresh list of evaluations."
+            (click)="refresh()"
+    >
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+</div>
+<app-admin-run-list  #runList *ngIf="hasAccessFor(adminGroup); else viewer"></app-admin-run-list>
 <ng-template #viewer>
   <app-viewer-run-list></app-viewer-run-list>
 </ng-template>

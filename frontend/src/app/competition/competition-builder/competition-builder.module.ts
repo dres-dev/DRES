@@ -12,7 +12,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { CompetitionBuilderComponent } from './competition-builder.component';
-import { CompetitionBuilderTeamDialogComponent } from './competition-builder-team-dialog/competition-builder-team-dialog.component';
 import { CompetitionBuilderTaskDialogComponent } from './competition-builder-task-dialog/competition-builder-task-dialog.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSelectModule } from '@angular/material/select';
@@ -23,7 +22,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { VideoPlayerSegmentBuilderComponent } from './competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { FlexModule } from '@angular/flex-layout';
 import { MatSliderModule } from '@angular/material/slider';
 import { ServicesModule } from '../../services/services.module';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -33,7 +31,6 @@ import { AdvancedBuilderDialogComponent } from './competition-builder-task-dialo
 import { SharedModule } from '../../shared/shared.module';
 import { VideoPlayerSegmentBuilderDialogComponent } from './competition-builder-task-dialog/video-player-segment-builder-dialog/video-player-segment-builder-dialog.component';
 import { ColorPickerModule } from 'ngx-color-picker';
-import { NgxSliderModule } from '@angular-slider/ngx-slider';
 
 @NgModule({
   imports: [
@@ -57,19 +54,16 @@ import { NgxSliderModule } from '@angular-slider/ngx-slider';
     MatSlideToggleModule,
     MatButtonToggleModule,
     MatGridListModule,
-    NgxSliderModule,
     ServicesModule,
-    FlexModule,
     FormsModule,
     ReactiveFormsModule,
     CommonModule,
     SharedModule,
     ColorPickerModule,
   ],
-  exports: [CompetitionBuilderComponent],
+  exports: [CompetitionBuilderComponent, VideoPlayerSegmentBuilderComponent],
   declarations: [
     CompetitionBuilderComponent,
-    CompetitionBuilderTeamDialogComponent,
     CompetitionBuilderTaskDialogComponent,
     CompetitionBuilderTaskGroupDialogComponent,
     CompetitionBuilderTaskTypeDialogComponent,

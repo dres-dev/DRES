@@ -1,0 +1,66 @@
+<app-actionable-dynamic-table
+  #typesTable
+  [dataSource]="types | async"
+  [columnSchema]="columns"
+  [displayedColumns]="displayedColumns"
+  [onRemove]="remove"
+  [onDownload]="download"
+  tableTitle="Task types"
+  style="min-width: 100%;"
+>
+  <ng-container addbtn>
+    <button mat-button aria-label="Add new task type." matTooltip="Add new task type."
+            [matMenuTriggerFor]="taskTypeMenu">
+      <mat-icon>add</mat-icon>
+      Add task type
+    </button>
+    <mat-menu #taskTypeMenu="matMenu">
+      <button mat-menu-item (click)="addTaskType()">New ...</button>
+      <button mat-menu-item [matMenuTriggerFor]="taskTypePresets">Presets</button>
+    </mat-menu>
+
+    <mat-menu #taskTypePresets="matMenu">
+      <button *ngFor="let p of (presets | async)" mat-menu-item (click)="addTaskType(p)">{{p.name}}</button>
+    </mat-menu>
+  </ng-container>
+  <ng-container matColumnDef="hints">
+    <th mat-header-cell *matHeaderCellDef>Hint Options</th>
+    <td mat-cell *matCellDef="let element">
+      <ng-container *ngIf="element.hintOptions.length > 1; else singleHint">
+        <ul>
+          <li *ngFor="let hint of element.hintOptions" >{{hint | underscoreWordBreak}}</li>
+        </ul>
+      </ng-container>
+      <ng-template #singleHint>
+        <span>{{element.hintOptions[0] | underscoreWordBreak}}</span>
+      </ng-template>
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="submissions">
+    <th mat-header-cell *matHeaderCellDef>Submission Options</th>
+    <td mat-cell *matCellDef="let element">
+      <ng-container *ngIf="element.submissionOptions.length > 1; else singleSubmission">
+        <ul>
+          <li *ngFor="let elem of element.submissionOptions">{{elem | underscoreWordBreak}}</li>
+        </ul>
+      </ng-container>
+      <ng-template #singleSubmission>
+        <span>{{element.submissionOptions[0] | underscoreWordBreak}}</span>
+      </ng-template>
+
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="tasks">
+    <th mat-header-cell *matHeaderCellDef>Task Options</th>
+    <td mat-cell *matCellDef="let element">
+      <ng-container *ngIf="element.taskOptions.length > 1; else singleTask">
+        <ul>
+          <li *ngFor="let hint of element.taskOptions">{{hint}}</li>
+        </ul>
+      </ng-container>
+      <ng-template #singleTask>
+        <span >{{element.taskOptions[0] | underscoreWordBreak}}</span>
+      </ng-template>
+    </td>
+  </ng-container>
+</app-actionable-dynamic-table>

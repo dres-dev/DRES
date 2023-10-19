@@ -1,31 +1,23 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
-import {
-  CompetitionRunAdminService,
-  CompetitionRunService,
-  CompetitionService,
-  PastTaskInfo,
-  RestDetailedTeam,
-  RunInfo,
-  RunState,
-  TaskInfo,
-  TaskRunSubmissionInfo,
-  ViewerInfo,
-} from '../../../openapi';
-import { BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer } from 'rxjs';
-import { catchError, filter, flatMap, map, shareReplay, switchMap } from 'rxjs/operators';
+import { combineLatest, merge, mergeMap, Observable, of, Subject, timer} from 'rxjs';
+import { catchError, filter, map, shareReplay, switchMap } from "rxjs/operators";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  ConfirmationDialogComponent,
-  ConfirmationDialogComponentData,
-} from '../shared/confirmation-dialog/confirmation-dialog.component';
 import { RunInfoOverviewTuple } from './admin-run-list.component';
+import {
+    ApiEvaluationInfo,
+    ApiEvaluationState, ApiSubmissionInfo, ApiTaskTemplateInfo, ApiTeam,
+    ApiViewerInfo,
+    EvaluationAdministratorService,
+    EvaluationService,
+    TemplateService
+} from '../../../openapi';
 
 export interface CombinedRun {
-  info: RunInfo;
-  state: RunState;
+  info: ApiEvaluationInfo;
+  state: ApiEvaluationState;
 }
 
 @Component({
@@ -34,14 +26,18 @@ export interface CombinedRun {
   styleUrls: ['./run-admin-view.component.scss'],
 })
 export class RunAdminViewComponent {
+
+  private static VIEWER_POLLING_FREQUENCY = 3 * 1000; //ms
+  private static STATE_POLLING_FREQUENCY = 1 * 1000; //ms
+  private static OVERVIEW_POLLING_FREQUENCY = 5 * 1000; //ms
+
   runId: Observable<string>;
-  runIdAsSubject: BehaviorSubject<string> = new BehaviorSubject<string>('');
   run: Observable<CombinedRun>;
   runOverview: Observable<RunInfoOverviewTuple>;
-  viewers: Observable<ViewerInfo[]>;
-  update = new Subject();
-  displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
-  teams: Observable<RestDetailedTeam[]>;
+  viewers: Observable<ApiViewerInfo[]>;
+  refreshSubject: Subject<void> = new Subject();
+  displayedColumnsTasks: string[] = ['name', 'comment', 'group', 'type', 'duration', 'past', 'action'];
+  teams: Observable<ApiTeam[]>;
   submissionsForPastTasks: Observable<Map<string,number>>;
   submissionsForCurrentTask: Observable<Map<string,number>>;
 
@@ -49,18 +45,17 @@ export class RunAdminViewComponent {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private config: AppConfig,
-    private runService: CompetitionRunService,
-    private competitionService: CompetitionService,
-    private runAdminService: CompetitionRunAdminService,
+    private runService: EvaluationService,
+    private competitionService: TemplateService,
+    private runAdminService: EvaluationAdministratorService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {
     this.runId = this.activeRoute.params.pipe(map((a) => a.runId));
-    this.runId.subscribe(this.runIdAsSubject);
     this.run = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
-          this.runService.getApiV1RunWithRunidInfo(runId).pipe(
+          this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
             catchError((err, o) => {
               console.log(
                 `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
@@ -69,13 +64,13 @@ export class RunAdminViewComponent {
                 duration: 5000,
               });
               if (err.status === 404) {
-                this.router.navigate(['/competition/list']);
+                this.router.navigate(['/template/list']);
               }
               return of(null);
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 1000), this.update).pipe(switchMap((index) => this.runService.getApiV1RunWithRunidState(runId))),
+          merge(timer(0, RunAdminViewComponent.STATE_POLLING_FREQUENCY), this.refreshSubject).pipe(switchMap((index) => this.runService.getApiV2EvaluationByEvaluationIdState(runId))),
         ])
       ),
       map(([i, s]) => {
@@ -86,46 +81,48 @@ export class RunAdminViewComponent {
 
     /** Observable for list of past tasks. */
     this.submissionsForPastTasks = this.run.pipe(
-        switchMap(s => this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(s.info.id).pipe(
+        switchMap(s => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(s.info.id).pipe(
             catchError((err, o) => {
               console.log(`[RunAdminViewComponent] There was an error while loading the past task list: ${err?.message}`);
               return of(null);
             }),
-            filter(((pastTasks: Array<PastTaskInfo>) => pastTasks != null)),
-            map((pastTasks: Array<PastTaskInfo>) => {
+            filter(((pastTasks: Array<ApiTaskTemplateInfo>) => pastTasks != null)),
+            map((pastTasks: Array<ApiTaskTemplateInfo>) => {
               const map = new Map<string,number>();
               for (let p of pastTasks) {
-                map.set(p.descriptionId, p.numberOfSubmissions);
+                map.set(p.templateId, 0);
               }
               return map;
             })
-        ))
+        )),
+        shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
 
     /** Observable for list of submissions for current task. */
     this.submissionsForCurrentTask = this.run.pipe(
-        switchMap(s => this.runAdminService.getApiV1RunAdminWithRunidSubmissionListWithTaskid(s.info.id, s.state.currentTask.id).pipe(
+        switchMap(s => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(s.info.id, s.state.taskTemplateId).pipe(
             catchError((err, o) => {
               console.log(`[RunAdminViewComponent] There was an error while submissions for the running task: ${err?.message}`);
               return of(null);
             }),
             filter((q) => q != null),
-            map((submissions: Array<TaskRunSubmissionInfo>) => {
+            map((submissions: Array<ApiSubmissionInfo>) => {
               const map = new Map<string,number>();
               if (submissions.length > 0) {
-                map.set(s.state.currentTask.id, submissions[submissions.length - 1].submissions.length);
+                map.set(s.state.taskTemplateId, submissions[submissions.length - 1].submissions.length);
               } else {
-                map.set(s.state.currentTask.id, 0);
+                map.set(s.state.taskTemplateId, 0);
               }
               return map;
             })
-        ))
+        )),
+        shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     )
 
     this.runOverview = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
-          this.runService.getApiV1RunWithRunidInfo(runId).pipe(
+          this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
             catchError((err, o) => {
               console.log(
                 `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
@@ -134,14 +131,14 @@ export class RunAdminViewComponent {
                 duration: 5000,
               });
               if (err.status === 404) {
-                this.router.navigate(['/competition/list']);
+                this.router.navigate(['/template/list']);
               }
               return of(null);
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 1000), this.update).pipe(
-            switchMap((index) => this.runAdminService.getApiV1RunAdminWithRunidOverview(runId))
+          merge(timer(0, RunAdminViewComponent.OVERVIEW_POLLING_FREQUENCY), this.refreshSubject).pipe(
+            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
           ),
         ])
       ),
@@ -152,79 +149,28 @@ export class RunAdminViewComponent {
     );
 
     this.viewers = this.runId.pipe(
-      flatMap((runId) => timer(0, 1000).pipe(switchMap((i) => this.runAdminService.getApiV1RunAdminWithRunidViewerList(runId))))
+      mergeMap((runId) => timer(0, RunAdminViewComponent.VIEWER_POLLING_FREQUENCY).pipe(switchMap((i) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
     );
+
 
     this.teams = this.run.pipe(
       switchMap((runAndInfo) => {
-        return this.competitionService.getApiV1CompetitionWithCompetitionidTeamListDetails(runAndInfo.info.competitionId);
+        //return runAndInfo.info.teams
+        return this.competitionService.getApiV2TemplateByTemplateIdTeamList(runAndInfo.info.templateId);
       }),
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
-
-  public nextTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV1RunAdminWithRunidTaskNext(id))).subscribe(
-      (r) => {
-        this.update.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-      },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      }
-    );
+  stateFromCombined(combined: Observable<CombinedRun>): Observable<ApiEvaluationState>{
+    return combined.pipe(map((c) => c.state))
   }
 
-  public previousTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV1RunAdminWithRunidTaskPrevious(id))).subscribe(
-      (r) => {
-        this.update.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-      },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      }
-    );
-  }
 
-  public startTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV1RunAdminWithRunidTaskStart(id))).subscribe(
-      (r) => {
-        this.update.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-      },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      }
-    );
-  }
-
-  public abortTask() {
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-      data: {
-        text: 'Really abort the task?',
-        color: 'warn',
-      } as ConfirmationDialogComponentData,
-    });
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.runId.pipe(switchMap((id) => this.runAdminService.postApiV1RunAdminWithRunidTaskAbort(id))).subscribe(
-          (r) => {
-            this.update.next();
-            this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-          },
-          (r) => {
-            this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-          }
-        );
-      }
-    });
-  }
 
   public switchTask(idx: number) {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV1RunAdminWithRunidTaskSwitchWithIdx(id, idx))).subscribe(
+    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskSwitchByIdx(id, idx))).subscribe(
       (r) => {
-        this.update.next();
+        this.refreshSubject.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
       },
       (r) => {
@@ -234,31 +180,18 @@ export class RunAdminViewComponent {
   }
 
   public submissionsOf(task) {
+    console.log(task);
     this.runId.subscribe((r) => {
-      this.router.navigateByUrl(`run/admin/submissions/${r}/${task.id}`);
+      this.router.navigateByUrl(`evaluation/admin/submissions/${r}/${task.templateId}`);
     });
-  }
-
-  public adjustDuration(duration: number) {
-    this.runId
-      .pipe(switchMap((id) => this.runAdminService.postApiV1RunAdminWithRunidAdjustWithDuration(id, duration)))
-      .subscribe(
-        (r) => {
-          this.update.next();
-          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-        },
-        (r) => {
-          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-        }
-      );
   }
 
   public forceViewer(viewerId: string) {
     this.runId
-      .pipe(switchMap((id) => this.runAdminService.postApiV1RunAdminWithRunidViewerListWithVieweridForce(id, viewerId)))
+      .pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdViewerListByViewerIdForce(id, viewerId)))
       .subscribe(
         (r) => {
-          this.update.next();
+          this.refreshSubject.next();
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
         },
         (r) => {
@@ -267,25 +200,15 @@ export class RunAdminViewComponent {
       );
   }
 
-  public toFormattedTime(sec: number): string {
-    const hours = Math.floor(sec / 3600);
-    const minutes = Math.floor(sec / 60) % 60;
-    const seconds = sec % 60;
-
-    return [hours, minutes, seconds]
-      .map((v) => (v < 10 ? '0' + v : v))
-      .filter((v, i) => v !== '00' || i > 0)
-      .join(':');
-  }
 
   /**
    * Generates a URL for the logo of the team.
    */
-  public teamLogo(team: RestDetailedTeam): string {
-    return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
+  public teamLogo(team: ApiTeam): string {
+    return this.config.resolveApiUrl(`/template/logo/${team.id}`);
   }
 
-  resolveTeamByName(idx: number, item: RestDetailedTeam) {
+  resolveTeamByName(idx: number, item: ApiTeam) {
     return item.name;
   }
 
@@ -293,11 +216,11 @@ export class RunAdminViewComponent {
     return item.info.id;
   }
 
-  resolveTaskById(_: number, item: TaskInfo) {
-    return item.id;
+  resolveTaskById(_: number, item: ApiTaskTemplateInfo) {
+    return item.templateId;
   }
 
-  resolveViewerById(_: number, item: ViewerInfo) {
+  resolveViewerById(_: number, item: ApiViewerInfo) {
     return item.viewersId;
   }
 }

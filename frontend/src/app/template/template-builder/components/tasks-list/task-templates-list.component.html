@@ -1,0 +1,59 @@
+<div class="flex flex-row content-between align-start">
+  <h2>Tasks</h2>
+  <div class="spacer-flex"></div>
+  <mat-menu #taskMenu="matMenu">
+    <button *ngFor="let group of (groups | async)" mat-menu-item (click)="addTask(group)">
+      {{ group.name }}
+    </button>
+  </mat-menu>
+
+  <button mat-button aria-label="Add new task." matTooltip="Add new task." [matMenuTriggerFor]="taskMenu">
+    <mat-icon>add</mat-icon>
+    Add task
+  </button>
+</div>
+<table #taskTable mat-table [dataSource]="tasks | async" [style.width]="'100%'" cdkDropList (cdkDropListDropped)="dropTable($event)">
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef>Name</th>
+    <td mat-cell *matCellDef="let task">{{ task.name }}</td>
+  </ng-container>
+  <ng-container matColumnDef="comment">
+    <th mat-header-cell *matHeaderCellDef>Comment</th>
+    <td mat-cell *matCellDef="let task">{{ task.comment }}</td>
+  </ng-container>
+
+  <!-- Name Column -->
+  <ng-container matColumnDef="group">
+    <th mat-header-cell *matHeaderCellDef>Group</th>
+    <td mat-cell *matCellDef="let task">{{ task.taskGroup }}</td>
+  </ng-container>
+
+  <!-- Weight Column -->
+  <ng-container matColumnDef="type">
+    <th mat-header-cell *matHeaderCellDef>Type</th>
+    <td mat-cell *matCellDef="let task">{{ task.taskType }}</td>
+  </ng-container>
+
+  <!-- Symbol Column -->
+  <ng-container matColumnDef="duration">
+    <th mat-header-cell *matHeaderCellDef>Duration [s]</th>
+    <td mat-cell *matCellDef="let task">{{ task.duration }}</td>
+  </ng-container>
+
+  <!-- Symbol Column -->
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef>Action</th>
+    <td mat-cell *matCellDef="let task; let i = index">
+      <button mat-icon-button aria-label="Edit task." matTooltip="Edit task." (click)="editTask(task)">
+        <mat-icon>edit</mat-icon>
+      </button>
+      <button mat-icon-button aria-label="Remove task." matTooltip="Remove task." (click)="removeTask(task)">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row [class.dres-selected-row]="selection.isSelected(task)" *matRowDef="let task; columns: displayedColumns" cdkDrag>
+  </tr>
+</table>

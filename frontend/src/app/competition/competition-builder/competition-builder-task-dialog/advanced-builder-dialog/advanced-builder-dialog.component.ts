@@ -8,6 +8,10 @@ export class AdvancedBuilderDialogData {
   builder: CompetitionFormBuilder;
 }
 
+// TODO rewrite
+/**
+ * @deprecated This has to be replaced by a proper, more sophisticated component.
+ */
 @Component({
   selector: 'app-advanced-builder-dialog',
   templateUrl: './advanced-builder-dialog.component.html',

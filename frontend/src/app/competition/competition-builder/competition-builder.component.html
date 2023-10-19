@@ -3,17 +3,19 @@
     <button mat-icon-button (click)="back()">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h1 *ngIf="!dirty">Edit competition {{ competitionId }}</h1>
-    <h1 *ngIf="dirty">Edit competition {{ competitionId }} <span class="warn-color">(unsaved changes)</span></h1>
+  </div>
+  <div>
+    <h1>Edit evaluation template {{ competitionId }}
+      <span *ngIf="dirty" class="warn-color">(unsaved changes)</span>
+    </h1>
   </div>
 
   <div class="spacer-flex"></div>
 
   <div>
-    <button
-      mat-icon-button
-      aria-label="Save changes to competition."
-      matTooltip="Save changes to competition."
+    <button mat-icon-button
+      aria-label="Save changes to evaluation template."
+      matTooltip="Save changes to evaluation template."
       (click)="save()"
     >
       <mat-icon>save</mat-icon>
@@ -22,8 +24,8 @@
   <div>
     <button
       mat-icon-button
-      aria-label="Refresh competition (changes will be lost)."
-      matTooltip="Refresh competition (changes will be lost)."
+      aria-label="Refresh evaluation template (changes will be lost)."
+      matTooltip="Refresh evaluation template (changes will be lost)."
       (click)="refresh()"
     >
       <mat-icon>refresh</mat-icon>
@@ -34,16 +36,16 @@
       [name]="''"
       [fileName]="fileProvider"
       [downloadProvider]="downloadProvider()"
-      matTooltip="Download the entire competition as JSON"
+      matTooltip="Download the template as JSON"
     ></app-download-button>
   </div>
 </div>
 
 <div *ngIf="competition">
-  <div fxLayout="column" fxLayoutAlign="space-between stretch">
-    <div fxLayoutAlign="space-between" style="display: flex; flex-direction: row">
+  <div class="flex flex-column content-between align-stretch">
+    <div class="flex flex-row content-between">
       <!-- Judges and Competition Description -->
-      <div fxFlex="70" style="flex: 1 1 100%">
+      <div class="flex-70">
         <!-- Competition  Description -->
         <form [formGroup]="form">
           <p>
@@ -63,10 +65,10 @@
             Task types
             <mat-menu #taskTypeMenu="matMenu">
               <button mat-menu-item (click)="addTaskType()">New...</button>
-              <button mat-menu-item (click)="addTaskType(tkisTemplate)">Template: Textual KIS</button>
+              <!--<button mat-menu-item (click)="addTaskType(tkisTemplate)">Template: Textual KIS</button>
               <button mat-menu-item (click)="addTaskType(vkisTemplate)">Template: Visual KIS</button>
               <button mat-menu-item (click)="addTaskType(avsTemplate)">Template: AVS</button>
-              <button mat-menu-item (click)="addTaskType(lscTemplate)">Template: LSC</button>
+              <button mat-menu-item (click)="addTaskType(lscTemplate)">Template: LSC</button>-->
             </mat-menu>
 
             <button
@@ -80,18 +82,18 @@
             </button>
 
             <mat-list style="display: inline-block">
-              <mat-chip-list>
-                <mat-chip
+              <mat-chip-listbox>
+                <mat-chip-option
                   *ngFor="let taskType of competition.taskTypes"
                   [removable]="true"
                   (removed)="removeTaskType(taskType)"
                   [matTooltip]="summariseTaskType(taskType)"
                   (click)="addTaskType(taskType)"
                 >
-                  {{ taskType.name }} ({{ taskType.targetType.option }} | {{ taskType.score.option }})
+                  {{ taskType.name }} ({{ taskType.targetOption }} | {{ taskType.scoreOption }})
                   <mat-icon matChipRemove>cancel</mat-icon>
-                </mat-chip>
-              </mat-chip-list>
+                </mat-chip-option>
+              </mat-chip-listbox>
             </mat-list>
           </h2>
           <h2>
@@ -102,8 +104,8 @@
             </button>
 
             <mat-list style="display: inline-block">
-              <mat-chip-list>
-                <mat-chip
+              <mat-chip-listbox>
+                <mat-chip-option
                   *ngFor="let group of competition.taskGroups"
                   [removable]="true"
                   (removed)="removeTaskGroup(group)"
@@ -113,15 +115,15 @@
                 >
                   {{ group.name }}
                   <mat-icon matChipRemove>cancel</mat-icon>
-                </mat-chip>
-              </mat-chip-list>
+                </mat-chip-option>
+              </mat-chip-listbox>
             </mat-list>
           </h2>
         </form>
       </div>
       <!-- END Competition Description -->
 
-      <div fxFlex="25" style="flex: 1 1 100%">
+      <div class="flex-25">
         <!-- Judges Table -->
         <div style="display: flex; align-items: center">
           <h2>Judges</h2>
@@ -179,9 +181,9 @@
       <!-- END Judges Table -->
     </div>
     <!-- END Judges and Competition Description -->
-    <div fxLayoutAlign="space-between" style="display: flex; flex-direction: row">
+    <div class="flex flex-row content-between" style="display: flex; flex-direction: row">
       <!-- Teams and Tasks -->
-      <div fxFlex="30" style="flex: 1 1 100%">
+      <div style="flex: 1 1 100%">
         <!-- Teams -->
         <div style="display: flex; align-items: center">
           <h2>Teams</h2>
@@ -232,7 +234,7 @@
       </div>
       <!-- END Teams -->
 
-      <div fxFlex="65" style="flex: 1 1 100%">
+      <div style="flex: 1 1 100%">
         <!-- Tasks -->
         <div style="display: flex; align-items: center">
           <h2>Tasks</h2>

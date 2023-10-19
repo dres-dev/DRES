@@ -1,0 +1,19 @@
+table {
+  width: 100%;
+}
+
+tr.submissions-detail-row {
+  height: 0;
+}
+tr.submissions-element-row:not(.submissions-expanded-row):hover {
+  background: rgba(255,255,255,0.1);
+}
+tr.submissions-element-row:not(.submissions-expanded-row):active {
+  background: rgba(255,255,255,0.2);
+}
+
+.submissions-element-row td {
+  border-bottom-width: 0;
+}
+
+

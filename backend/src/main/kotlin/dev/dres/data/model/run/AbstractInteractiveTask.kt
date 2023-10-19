@@ -1,81 +1,73 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.competition.*
-import dev.dres.data.model.competition.options.TargetOption
-import dev.dres.data.model.run.interfaces.Task
-import dev.dres.data.model.submissions.Submission
-import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.validation.MediaItemsSubmissionValidator
-import dev.dres.run.validation.TemporalOverlapSubmissionValidator
-import dev.dres.run.validation.TextValidator
-import dev.dres.run.validation.interfaces.SubmissionValidator
+import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.data.model.template.task.options.DbTargetOption
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.run.validation.*
+import dev.dres.run.validation.interfaces.AnswerSetValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
 import dev.dres.run.validation.judged.BasicVoteValidator
 import dev.dres.run.validation.judged.ItemRange
-import java.util.concurrent.ConcurrentLinkedQueue
+import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.*
 
 /**
- * An abstract [Task] implementation for interactive [Task], i.e. [Task]s that rely on human interaction, such as [Submission]s
+ * An abstract [DbTask] implementation for interactive [DbTask], i.e. [DbTask]s that rely on human interaction, such as [DbSubmission]s
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractInteractiveTask: AbstractTaskRun(), Task {
-    /** List of [Submission]s* registered for this [Task]. */
-    val submissions: ConcurrentLinkedQueue<Submission> = ConcurrentLinkedQueue<Submission>()
-
-    /** The total duration in milliseconds of this task. Usually determined by the [TaskDescription] but can be adjusted! */
-    abstract var duration: Long
-
-    /** The [SubmissionFilter] used to filter [Submission]s. */
-    abstract val filter: SubmissionFilter
-
-    /** The [SubmissionValidator] used to validate [Submission]s. */
-    abstract val validator: SubmissionValidator
+abstract class AbstractInteractiveTask(store: TransientEntityStore, task: DbTask) : AbstractTask(store, task) {
 
 
-    /**
-     * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
-     * on the implementation, the returned instance is a new instance or being re-use.
-     *
-     * @return [SubmissionValidator].
-     */
-    internal fun newValidator(): SubmissionValidator = when(description.taskType.targetType.option){
-        TargetOption.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((description.target as TaskDescriptionTarget.MediaItemTarget).item))
-        TargetOption.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(description.target as TaskDescriptionTarget.VideoSegmentTarget)
-        TargetOption.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((description.target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
-        TargetOption.JUDGEMENT -> BasicJudgementValidator(knownCorrectRanges =
-        (description.target as TaskDescriptionTarget.JudgementTaskDescriptionTarget).targets.map {
-            if (it.second == null) {
-                ItemRange(it.first)
-            } else {
-                val item = it.first
-                val range = it.second!!.toMilliseconds()
-                ItemRange(item, range.first, range.second)
-            } })
-        TargetOption.VOTE -> BasicVoteValidator(
-            knownCorrectRanges =
-            (description.target as TaskDescriptionTarget.VoteTaskDescriptionTarget).targets.map {
-                if (it.second == null) {
-                    ItemRange(it.first)
-                } else {
-                    val item = it.first
-                    val range = it.second!!.toMilliseconds()
-                    ItemRange(item, range.first, range.second)
-                } },
-            parameters = description.taskType.targetType.parameters
+    /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
+    abstract override var duration: Long
 
-        )
-        TargetOption.TEXT -> TextValidator((description.target as TaskDescriptionTarget.TextTaskDescriptionTarget).targets)
+    /** The [AnswerSetValidator] used to validate [DbSubmission]s. */
+    final override val validator: AnswerSetValidator
+
+    init {
+        this.validator = this.store.transactional(true) {
+            val template = task.template
+            when (val targetOption = template.taskGroup.type.target) {
+                DbTargetOption.MEDIA_ITEM -> MediaItemsAnswerSetValidator(template.targets.filter { it.item ne null }
+                    .mapDistinct { it.item }.toSet())
+
+                DbTargetOption.MEDIA_SEGMENT -> {
+                    val target =
+                        template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }
+                            .asSequence().map { TransientMediaSegment(it.item!!, it.range!!) }.toSet()
+                    TemporalContainmentAnswerSetValidator(target)
+                }
+
+                DbTargetOption.TEXT -> TextAnswerSetValidator(
+                    template.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList()
+                )
+
+                DbTargetOption.JUDGEMENT -> {
+                    val knownRanges =
+                        template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }
+                            .asSequence().map {
+                                ItemRange(it.item?.name!!, it.start!!, it.end!!)
+                            }.toSet()
+                    BasicJudgementValidator(template.toApi(), this.store, knownCorrectRanges = knownRanges)
+                }
+
+                DbTargetOption.VOTE -> {
+                    val knownRanges =
+                        template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }
+                            .asSequence().map {
+                                ItemRange(it.item?.name!!, it.start!!, it.end!!)
+                            }.toSet()
+                    val parameters =
+                        template.taskGroup.type.configurations.filter { it.key eq targetOption.description }
+                            .asSequence().associate { it.key to it.value }
+                    BasicVoteValidator(template.toApi(), this.store, knownCorrectRanges = knownRanges, parameters = parameters)
+                }
+
+                else -> throw IllegalStateException("The provided target option ${targetOption.description} is not supported by interactive tasks.")
+            }
+        }
     }
 
-    abstract fun addSubmission(submission: Submission)
-
-    val teamGroupAggregators: Map<TeamGroupId, TeamAggregator> by lazy {
-        this.competition.description.teamGroups.associate { it.uid to it.newAggregator() }
-    }
-
-    fun updateTeamAggregation(teamScores: Map<TeamId, Double>) {
-        this.teamGroupAggregators.values.forEach { it.aggregate(teamScores) }
-    }
 }

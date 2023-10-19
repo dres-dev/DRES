@@ -1,134 +1,23 @@
 {
-  "openapi" : "3.0.1",
+  "openapi" : "3.0.3",
   "info" : {
-    "title" : "DRES API",
-    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 1.0",
-    "version" : "1.0"
+    "title" : "DRES Client API",
+    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0",
+    "version" : "2.0.0"
   },
   "paths" : {
-    "/api/v1/login" : {
-      "post" : {
-        "tags" : [ "User" ],
-        "summary" : "Sets roles for session based on user account and returns a session cookie.",
-        "operationId" : "postApiV1Login",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/LoginRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/UserDetails"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/logout" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Clears all user roles of the current session.",
-        "operationId" : "getApiV1Logout",
-        "parameters" : [ {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/user" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Get information about the current user.",
-        "operationId" : "getApiV1User",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/UserDetails"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/submit" : {
       "get" : {
         "tags" : [ "Submission" ],
         "summary" : "Endpoint to accept submissions",
+        "description" : "This has been the submission endpoint for version 1. Please refrain from using it and migrate to the v2 endpoint.",
         "operationId" : "getApiV1Submit",
         "parameters" : [ {
           "name" : "collection",
           "in" : "query",
           "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
+          "required" : false,
+          "deprecated" : false,
           "allowEmptyValue" : true,
           "schema" : {
             "type" : "string"
@@ -137,6 +26,9 @@
           "name" : "item",
           "in" : "query",
           "description" : "Identifier for the actual media object or media file.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
@@ -144,6 +36,8 @@
           "name" : "text",
           "in" : "query",
           "description" : "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.",
+          "required" : false,
+          "deprecated" : false,
           "allowEmptyValue" : true,
           "schema" : {
             "type" : "string"
@@ -151,7 +45,9 @@
         }, {
           "name" : "frame",
           "in" : "query",
-          "description" : "Frame number for media with temporal progression (e.g. video).",
+          "description" : "Frame number for media with temporal progression (e.g., video).",
+          "required" : false,
+          "deprecated" : false,
           "allowEmptyValue" : true,
           "schema" : {
             "type" : "integer",
@@ -160,7 +56,9 @@
         }, {
           "name" : "shot",
           "in" : "query",
-          "description" : "Shot number for media with temporal progression (e.g. video).",
+          "description" : "Shot number for media with temporal progression (e.g., video).",
+          "required" : false,
+          "deprecated" : false,
           "allowEmptyValue" : true,
           "schema" : {
             "type" : "integer",
@@ -169,7 +67,9 @@
         }, {
           "name" : "timecode",
           "in" : "query",
-          "description" : "Timecode for media with temporal progression (e.g. video).",
+          "description" : "Timecode for media with temporal progression (e.g,. video).",
+          "required" : false,
+          "deprecated" : false,
           "allowEmptyValue" : true,
           "schema" : {
             "type" : "string"
@@ -178,6 +78,9 @@
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
@@ -243,49 +146,44 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : true,
+        "security" : [ ]
       }
     },
-    "/api/v1/submit/{runId}" : {
-      "post" : {
-        "tags" : [ "Batch Submission" ],
-        "summary" : "Endpoint to accept batch submissions in JSON format",
-        "operationId" : "postApiV1SubmitWithRunid",
+    "/api/v2/client/evaluation/currentTask/{evaluationId}" : {
+      "get" : {
+        "tags" : [ "Evaluation Client" ],
+        "summary" : "Returns an overview of the currently active task for a run.",
+        "operationId" : "getApiV2ClientEvaluationCurrentTaskByEvaluationId",
         "parameters" : [ {
-          "name" : "runId",
+          "name" : "evaluationId",
           "in" : "path",
-          "description" : "Competition Run ID",
+          "description" : "The evaluation ID.",
           "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/RunResult"
-              }
-            }
-          }
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
+                  "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
                 }
               }
             }
@@ -310,19 +208,262 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     },
-    "/api/v1/log/query" : {
+    "/api/v2/client/evaluation/list" : {
+      "get" : {
+        "tags" : [ "Evaluation Client" ],
+        "summary" : "Lists an overview of all evaluation runs visible to the current client.",
+        "operationId" : "getApiV2ClientEvaluationList",
+        "parameters" : [ {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiEvaluationInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/info/list" : {
+      "get" : {
+        "tags" : [ "Evaluation" ],
+        "summary" : "Lists an overview of all evaluations visible to the current user.",
+        "operationId" : "getApiV2EvaluationInfoList",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiEvaluationInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/state/list" : {
+      "get" : {
+        "tags" : [ "Evaluation" ],
+        "summary" : "Lists an overview of all evaluation visible to the current user.",
+        "operationId" : "getApiV2EvaluationStateList",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiEvaluationState"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/{evaluationId}/info" : {
+      "get" : {
+        "tags" : [ "Evaluation" ],
+        "summary" : "Returns basic information about a specific evaluation.",
+        "operationId" : "getApiV2EvaluationByEvaluationIdInfo",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiEvaluationInfo"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/{evaluationId}/state" : {
+      "get" : {
+        "tags" : [ "Evaluation" ],
+        "summary" : "Returns the state of a specific evaluation.",
+        "operationId" : "getApiV2EvaluationByEvaluationIdState",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiEvaluationState"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/log/query" : {
       "post" : {
         "tags" : [ "Log" ],
         "summary" : "Accepts query logs from participants",
-        "operationId" : "postApiV1LogQuery",
+        "operationId" : "postApiV2LogQuery",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
           "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
@@ -334,7 +475,8 @@
                 "$ref" : "#/components/schemas/QueryEventLog"
               }
             }
-          }
+          },
+          "required" : false
         },
         "responses" : {
           "200" : {
@@ -367,19 +509,23 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     },
-    "/api/v1/log/result" : {
+    "/api/v2/log/result" : {
       "post" : {
         "tags" : [ "Log" ],
-        "summary" : "Accepts result logs from participants",
-        "operationId" : "postApiV1LogResult",
+        "summary" : "Accepts result logs from participants.",
+        "operationId" : "postApiV2LogResult",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
           "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
@@ -391,7 +537,8 @@
                 "$ref" : "#/components/schemas/QueryResultLog"
               }
             }
-          }
+          },
+          "required" : false
         },
         "responses" : {
           "200" : {
@@ -424,14 +571,111 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     },
-    "/api/v1/status/time" : {
+    "/api/v2/login" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Sets roles for session based on user account and returns a session cookie.",
+        "operationId" : "postApiV2Login",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/logout" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Clears all user roles of the current session.",
+        "operationId" : "getApiV2Logout",
+        "parameters" : [ {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/status/time" : {
       "get" : {
         "tags" : [ "Status" ],
         "summary" : "Returns the current time on the server.",
-        "operationId" : "getApiV1StatusTime",
+        "operationId" : "getApiV2StatusTime",
+        "parameters" : [ ],
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -443,104 +687,23 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     },
-    "/api/v1/status/info" : {
-      "get" : {
-        "tags" : [ "Status" ],
-        "summary" : "Returns an overview of the server properties.",
-        "operationId" : "getApiV1StatusInfo",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/DresInfo"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/status/info/admin" : {
-      "get" : {
-        "tags" : [ "Status" ],
-        "summary" : "Returns an extensive overview of the server properties.",
-        "operationId" : "getApiV1StatusInfoAdmin",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/DresAdminInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/client/run/info/list" : {
-      "get" : {
-        "tags" : [ "Client Run Info" ],
-        "summary" : "Lists an overview of all competition runs visible to the current client",
-        "operationId" : "getApiV1ClientRunInfoList",
+    "/api/v2/submit/{evaluationId}" : {
+      "post" : {
+        "tags" : [ "Submission" ],
+        "summary" : "Endpoint to accept submissions.",
+        "operationId" : "postApiV2SubmitByEvaluationId",
         "parameters" : [ {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ClientRunInfoList"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/client/run/info/currentTask/{runId}" : {
-      "get" : {
-        "tags" : [ "Client Run Info" ],
-        "summary" : "Returns an overview of the currently active task for a run",
-        "operationId" : "getApiV1ClientRunInfoCurrenttaskWithRunid",
-        "parameters" : [ {
-          "name" : "runId",
+          "name" : "evaluationId",
           "in" : "path",
+          "description" : "The ID of the evaluation the submission belongs to.",
           "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
@@ -548,66 +711,40 @@
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
-          "required" : true,
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiClientSubmission"
+              }
+            }
+          },
+          "required" : true
+        },
         "responses" : {
           "200" : {
-            "description" : "OK",
+            "description" : "The submission was accepted by the server and there was a verdict",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ClientTaskInfo"
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
                 }
               }
             }
           },
-          "401" : {
-            "description" : "Unauthorized",
+          "202" : {
+            "description" : "The submission was accepted by the server and there has not yet been a verdict available",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/download/run/{runId}" : {
-      "get" : {
-        "tags" : [ "Download" ],
-        "summary" : "Provides a JSON download of the entire competition run structure.",
-        "operationId" : "getApiV1DownloadRunWithRunid",
-        "parameters" : [ {
-          "name" : "runId",
-          "in" : "path",
-          "description" : "Competition run ID",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "string"
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
                 }
               }
             }
@@ -641,37 +778,51 @@
                 }
               }
             }
+          },
+          "412" : {
+            "description" : "The submission was rejected by the server",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     },
-    "/api/v1/download/run/{runId}/scores" : {
-      "get" : {
-        "tags" : [ "Download" ],
-        "summary" : "Provides a CSV download with the scores for a given competition run.",
-        "operationId" : "getApiV1DownloadRunWithRunidScores",
-        "parameters" : [ {
-          "name" : "runId",
-          "in" : "path",
-          "description" : "Competition run ID",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
+    "/api/v2/user" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
+        "operationId" : "postApiV2User",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiUserRequest"
+              }
+            }
+          },
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
             "content" : {
-              "text/csv" : {
+              "application/json" : {
                 "schema" : {
-                  "type" : "string"
+                  "$ref" : "#/components/schemas/ApiUser"
                 }
               }
             }
           },
           "400" : {
-            "description" : "Bad Request",
+            "description" : "If the username is already taken",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -680,8 +831,182 @@
               }
             }
           },
-          "401" : {
-            "description" : "Unauthorized",
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get information about the current user.",
+        "operationId" : "getApiV2User",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/user/session" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get current sessionId",
+        "operationId" : "getApiV2UserSession",
+        "parameters" : [ {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "text/plain" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/user/{userId}" : {
+      "delete" : {
+        "tags" : [ "User" ],
+        "summary" : "Deletes the specified user. Requires ADMIN privileges",
+        "operationId" : "deleteApiV2UserByUserId",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User ID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "If the user could not be found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "patch" : {
+        "tags" : [ "User" ],
+        "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
+        "operationId" : "patchApiV2UserByUserId",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User ID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiUserRequest"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -699,20 +1024,32 @@
                 }
               }
             }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
           }
-        }
-      }
-    },
-    "/api/v1/download/competition/{competitionId}" : {
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
       "get" : {
-        "tags" : [ "Download" ],
-        "summary" : "Provides a JSON download of the entire competition description structure.",
-        "operationId" : "getApiV1DownloadCompetitionWithCompetitionid",
+        "tags" : [ "User" ],
+        "summary" : "Gets details of the user with the given id.",
+        "operationId" : "getApiV2UserByUserId",
         "parameters" : [ {
-          "name" : "competitionId",
+          "name" : "userId",
           "in" : "path",
-          "description" : "Competition ID",
+          "description" : "User's UID",
           "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
@@ -723,33 +1060,23 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "string"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
+                  "$ref" : "#/components/schemas/ApiUser"
                 }
               }
             }
           },
           "404" : {
-            "description" : "Not Found",
+            "description" : "If the user could not be found.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -758,15 +1085,17 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     }
   },
   "components" : {
     "schemas" : {
       "LoginRequest" : {
-        "required" : [ "password", "username" ],
         "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
           "username" : {
             "type" : "string"
@@ -774,252 +1103,780 @@
           "password" : {
             "type" : "string"
           }
-        }
+        },
+        "required" : [ "username", "password" ]
       },
-      "UserDetails" : {
-        "required" : [ "id", "role", "username" ],
+      "ApiMediaCollection" : {
         "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
           "id" : {
             "type" : "string"
           },
-          "username" : {
+          "name" : {
             "type" : "string"
-          },
-          "role" : {
-            "type" : "string",
-            "enum" : [ "ADMIN", "JUDGE", "VIEWER", "PARTICIPANT" ]
-          },
-          "sessionId" : {
-            "type" : "string"
-          }
-        }
-      },
-      "ErrorStatus" : {
-        "required" : [ "description", "status" ],
-        "type" : "object",
-        "properties" : {
-          "description" : {
-            "type" : "string"
-          },
-          "status" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "SuccessStatus" : {
-        "required" : [ "description", "status" ],
-        "type" : "object",
-        "properties" : {
-          "description" : {
-            "type" : "string"
-          },
-          "status" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "SuccessfulSubmissionsStatus" : {
-        "required" : [ "description", "status", "submission" ],
-        "type" : "object",
-        "properties" : {
-          "submission" : {
-            "type" : "string",
-            "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
           },
           "description" : {
             "type" : "string"
           },
-          "status" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "ResultElement" : {
-        "type" : "object",
-        "properties" : {
-          "item" : {
+          "basePath" : {
             "type" : "string"
           },
-          "text" : {
-            "type" : "string"
-          },
-          "startTimeCode" : {
-            "type" : "string"
-          },
-          "endTimeCode" : {
-            "type" : "string"
-          },
-          "index" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "rank" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "weight" : {
-            "type" : "number",
-            "format" : "float"
-          }
-        }
-      },
-      "RunResult" : {
-        "required" : [ "tasks", "timeStamp" ],
-        "type" : "object",
-        "properties" : {
-          "tasks" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/TaskResult"
-            }
-          },
-          "timeStamp" : {
+          "itemCount" : {
             "type" : "integer",
             "format" : "int32"
           }
-        }
+        },
+        "required" : [ "name", "itemCount" ]
       },
-      "TaskResult" : {
-        "required" : [ "resultName", "results", "task" ],
+      "ApiMediaItem" : {
         "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
-          "task" : {
+          "mediaItemId" : {
             "type" : "string"
           },
-          "resultName" : {
+          "name" : {
             "type" : "string"
           },
-          "resultType" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ApiMediaType"
+          },
+          "collectionId" : {
             "type" : "string"
           },
-          "results" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ResultElement"
-            }
-          }
-        }
-      },
-      "QueryEvent" : {
-        "required" : [ "category", "timestamp", "type", "value" ],
-        "type" : "object",
-        "properties" : {
-          "timestamp" : {
+          "location" : {
+            "type" : "string"
+          },
+          "durationMs" : {
             "type" : "integer",
             "format" : "int64"
           },
-          "category" : {
-            "type" : "string",
-            "enum" : [ "TEXT", "IMAGE", "SKETCH", "FILTER", "BROWSING", "COOPERATION", "OTHER" ]
+          "fps" : {
+            "type" : "number",
+            "format" : "float"
           },
-          "type" : {
+          "metadata" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiMediaItemMetaDataEntry"
+            }
+          }
+        },
+        "required" : [ "mediaItemId", "name", "type", "collectionId", "location", "metadata" ]
+      },
+      "ApiMediaItemMetaDataEntry" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "key" : {
             "type" : "string"
           },
           "value" : {
             "type" : "string"
           }
-        }
+        },
+        "required" : [ "key", "value" ]
       },
-      "QueryEventLog" : {
-        "required" : [ "events", "timestamp" ],
+      "ApiMediaType" : {
+        "type" : "string",
+        "enum" : [ "IMAGE", "VIDEO", "TEXT" ]
+      },
+      "ApiPopulatedMediaCollection" : {
         "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
-          "timestamp" : {
+          "collection" : {
+            "$ref" : "#/components/schemas/ApiMediaCollection"
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiMediaItem"
+            }
+          }
+        },
+        "required" : [ "collection", "items" ]
+      },
+      "ApiTemporalPoint" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "value" : {
+            "type" : "string"
+          },
+          "unit" : {
+            "$ref" : "#/components/schemas/ApiTemporalUnit"
+          }
+        },
+        "required" : [ "value", "unit" ]
+      },
+      "ApiTemporalRange" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "start" : {
+            "$ref" : "#/components/schemas/ApiTemporalPoint"
+          },
+          "end" : {
+            "$ref" : "#/components/schemas/ApiTemporalPoint"
+          }
+        },
+        "required" : [ "start", "end" ]
+      },
+      "ApiTemporalUnit" : {
+        "type" : "string",
+        "enum" : [ "FRAME_NUMBER", "SECONDS", "MILLISECONDS", "TIMECODE" ]
+      },
+      "ApiEvaluation" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "evaluationId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/ApiEvaluationType"
+          },
+          "template" : {
+            "$ref" : "#/components/schemas/ApiEvaluationTemplate"
+          },
+          "created" : {
             "type" : "integer",
             "format" : "int64"
           },
-          "events" : {
+          "started" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ended" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "tasks" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/QueryEvent"
+              "$ref" : "#/components/schemas/ApiTask"
             }
           }
-        }
+        },
+        "required" : [ "evaluationId", "name", "type", "template", "created", "tasks" ]
       },
-      "QueryResult" : {
-        "required" : [ "item" ],
+      "ApiEvaluationInfo" : {
         "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
-          "item" : {
+          "id" : {
             "type" : "string"
           },
-          "segment" : {
-            "type" : "integer",
-            "format" : "int32"
+          "name" : {
+            "type" : "string"
           },
-          "frame" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ApiEvaluationType"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/ApiEvaluationStatus"
+          },
+          "properties" : {
+            "$ref" : "#/components/schemas/ApiRunProperties"
+          },
+          "templateId" : {
+            "type" : "string"
+          },
+          "templateDescription" : {
+            "type" : "string"
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeamInfo"
+            }
+          },
+          "taskTemplates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
+            }
+          }
+        },
+        "required" : [ "id", "name", "type", "status", "properties", "templateId", "teams", "taskTemplates" ]
+      },
+      "ApiEvaluationOverview" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "state" : {
+            "$ref" : "#/components/schemas/RunManagerStatus"
+          },
+          "teamOverviews" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeamTaskOverview"
+            }
+          }
+        },
+        "required" : [ "state", "teamOverviews" ]
+      },
+      "ApiEvaluationState" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "evaluationId" : {
+            "type" : "string"
+          },
+          "evaluationStatus" : {
+            "$ref" : "#/components/schemas/ApiEvaluationStatus"
+          },
+          "taskId" : {
+            "type" : "string"
+          },
+          "taskStatus" : {
+            "$ref" : "#/components/schemas/ApiTaskStatus"
+          },
+          "taskTemplateId" : {
+            "type" : "string"
+          },
+          "timeLeft" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int64"
+          },
+          "timeElapsed" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "evaluationId", "evaluationStatus", "taskStatus", "timeLeft", "timeElapsed" ]
+      },
+      "ApiEvaluationStatus" : {
+        "type" : "string",
+        "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
+      },
+      "ApiEvaluationType" : {
+        "type" : "string",
+        "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS", "NON_INTERACTIVE" ]
+      },
+      "ApiOverrideAnswerSetVerdictDto" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "verdict" : {
+            "$ref" : "#/components/schemas/ApiVerdictStatus"
+          }
+        },
+        "required" : [ "verdict" ]
+      },
+      "ApiSubmissionInfo" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "evaluationId" : {
+            "type" : "string"
+          },
+          "taskId" : {
+            "type" : "string"
+          },
+          "submissions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiSubmission"
+            }
+          }
+        },
+        "required" : [ "evaluationId", "taskId", "submissions" ]
+      },
+      "ApiTask" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "templateId" : {
+            "type" : "string"
+          },
+          "started" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ended" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "submissions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiAnswerSet"
+            }
+          }
+        },
+        "required" : [ "taskId", "templateId", "submissions" ]
+      },
+      "ApiTaskOverview" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "group" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "taskId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/ApiTaskStatus"
+          },
+          "started" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ended" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "id", "name", "type", "group", "duration", "taskId", "status" ]
+      },
+      "ApiTaskStatus" : {
+        "type" : "string",
+        "enum" : [ "NO_TASK", "CREATED", "PREPARING", "RUNNING", "ENDED", "IGNORED" ]
+      },
+      "ApiTaskTemplateInfo" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "templateId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "comment" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "taskType" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "templateId", "name", "taskGroup", "taskType", "duration" ]
+      },
+      "ApiTeamInfo" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "name", "color" ]
+      },
+      "ApiTeamTaskOverview" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "teamId" : {
+            "type" : "string"
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTaskOverview"
+            }
+          }
+        },
+        "required" : [ "teamId", "tasks" ]
+      },
+      "ApiViewerInfo" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "viewersId" : {
+            "type" : "string"
+          },
+          "username" : {
+            "type" : "string"
+          },
+          "host" : {
+            "type" : "string"
+          },
+          "ready" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "viewersId", "username", "host", "ready" ]
+      },
+      "ApiScore" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "teamId" : {
+            "type" : "string"
           },
           "score" : {
             "type" : "number",
             "format" : "double"
+          }
+        },
+        "required" : [ "teamId", "score" ]
+      },
+      "ApiScoreOverview" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "type" : "string"
           },
-          "rank" : {
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "scores" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiScore"
+            }
+          }
+        },
+        "required" : [ "name", "scores" ]
+      },
+      "ApiScoreSeries" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "team" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "points" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiScoreSeriesPoint"
+            }
+          }
+        },
+        "required" : [ "team", "name", "points" ]
+      },
+      "ApiScoreSeriesPoint" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "score" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "timestamp" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int64"
+          }
+        },
+        "required" : [ "score", "timestamp" ]
+      },
+      "ApiTeamGroupValue" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "required" : [ "name", "value" ]
+      },
+      "ApiAnswer" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ApiAnswerType"
+          },
+          "item" : {
+            "$ref" : "#/components/schemas/ApiMediaItem"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "start" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "temporalRange" : {
+            "$ref" : "#/components/schemas/TemporalRange"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "ApiAnswerSet" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/ApiVerdictStatus"
+          },
+          "taskId" : {
+            "type" : "string"
+          },
+          "answers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiAnswer"
+            }
+          }
+        },
+        "required" : [ "id", "status", "taskId", "answers" ]
+      },
+      "ApiAnswerType" : {
+        "type" : "string",
+        "enum" : [ "ITEM", "TEMPORAL", "TEXT" ]
+      },
+      "ApiClientAnswer" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "text" : {
+            "type" : "string"
+          },
+          "mediaItemName" : {
+            "type" : "string"
+          },
+          "mediaItemCollectionName" : {
+            "type" : "string"
+          },
+          "start" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "integer",
+            "format" : "int64"
           }
         }
       },
-      "QueryResultLog" : {
-        "required" : [ "events", "resultSetAvailability", "results", "sortType", "timestamp" ],
+      "ApiClientAnswerSet" : {
         "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "taskName" : {
+            "type" : "string"
+          },
+          "answers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiClientAnswer"
+            }
+          }
+        },
+        "required" : [ "answers" ]
+      },
+      "ApiClientSubmission" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "answerSets" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiClientAnswerSet"
+            }
+          }
+        },
+        "required" : [ "answerSets" ]
+      },
+      "ApiSubmission" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "submissionId" : {
+            "type" : "string"
+          },
+          "teamId" : {
+            "type" : "string"
+          },
+          "memberId" : {
+            "type" : "string"
+          },
+          "teamName" : {
+            "type" : "string"
+          },
+          "memberName" : {
+            "type" : "string"
+          },
           "timestamp" : {
             "type" : "integer",
             "format" : "int64"
           },
-          "sortType" : {
-            "type" : "string"
-          },
-          "resultSetAvailability" : {
-            "type" : "string"
-          },
-          "results" : {
+          "answers" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/QueryResult"
-            }
-          },
-          "events" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/QueryEvent"
+              "$ref" : "#/components/schemas/ApiAnswerSet"
             }
           }
-        }
+        },
+        "required" : [ "submissionId", "teamId", "memberId", "teamName", "memberName", "timestamp", "answers" ]
+      },
+      "ApiVerdictStatus" : {
+        "type" : "string",
+        "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
+      },
+      "ApiJudgement" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "token" : {
+            "type" : "string"
+          },
+          "validator" : {
+            "type" : "string"
+          },
+          "verdict" : {
+            "$ref" : "#/components/schemas/ApiVerdictStatus"
+          }
+        },
+        "required" : [ "token", "validator", "verdict" ]
+      },
+      "ApiJudgementRequest" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "token" : {
+            "type" : "string"
+          },
+          "validator" : {
+            "type" : "string"
+          },
+          "taskDescription" : {
+            "type" : "string"
+          },
+          "answerSet" : {
+            "$ref" : "#/components/schemas/ApiAnswerSet"
+          }
+        },
+        "required" : [ "validator", "taskDescription", "answerSet" ]
+      },
+      "ApiJudgementValidatorStatus" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "validatorName" : {
+            "type" : "string"
+          },
+          "pending" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "open" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "validatorName", "pending", "open" ]
+      },
+      "ApiVote" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "verdict" : {
+            "$ref" : "#/components/schemas/ApiVerdictStatus"
+          }
+        },
+        "required" : [ "verdict" ]
+      },
+      "ErrorStatus" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "status" : {
+            "type" : "boolean"
+          },
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "status", "description" ]
+      },
+      "SuccessStatus" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "status" : {
+            "type" : "boolean"
+          },
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "status", "description" ]
+      },
+      "SuccessfulSubmissionsStatus" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "status" : {
+            "type" : "boolean"
+          },
+          "submission" : {
+            "$ref" : "#/components/schemas/ApiVerdictStatus"
+          },
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "status", "submission", "description" ]
       },
       "CurrentTime" : {
-        "required" : [ "timeStamp" ],
         "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
           "timeStamp" : {
             "type" : "integer",
             "format" : "int64"
           }
-        }
+        },
+        "required" : [ "timeStamp" ]
       },
       "DresInfo" : {
-        "required" : [ "startTime", "uptime", "version" ],
         "type" : "object",
-        "properties" : {
-          "version" : {
-            "type" : "string"
-          },
-          "startTime" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "uptime" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        }
-      },
-      "DresAdminInfo" : {
-        "required" : [ "args", "availableSeverThreads", "cores", "freeMemory", "jvm", "load", "os", "startTime", "totalMemory", "uptime", "version" ],
-        "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
           "version" : {
             "type" : "string"
@@ -1061,11 +1918,65 @@
             "type" : "integer",
             "format" : "int32"
           }
-        }
+        },
+        "required" : [ "version", "startTime", "uptime" ]
       },
-      "ClientRunInfo" : {
-        "required" : [ "id", "name", "status" ],
+      "ApiContentElement" : {
         "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "contentType" : {
+            "$ref" : "#/components/schemas/ApiContentType"
+          },
+          "content" : {
+            "type" : "string"
+          },
+          "offset" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "contentType", "offset" ]
+      },
+      "ApiContentType" : {
+        "type" : "string",
+        "enum" : [ "EMPTY", "TEXT", "VIDEO", "IMAGE" ]
+      },
+      "ApiCreateEvaluation" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "description" ]
+      },
+      "ApiEvaluationStartMessage" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "templateId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/ApiEvaluationType"
+          },
+          "properties" : {
+            "$ref" : "#/components/schemas/ApiRunProperties"
+          }
+        },
+        "required" : [ "templateId", "name", "type", "properties" ]
+      },
+      "ApiEvaluationTemplate" : {
+        "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
           "id" : {
             "type" : "string"
@@ -1076,27 +1987,194 @@
           "description" : {
             "type" : "string"
           },
-          "status" : {
-            "type" : "string",
-            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
-          }
-        }
-      },
-      "ClientRunInfoList" : {
-        "required" : [ "runs" ],
-        "type" : "object",
-        "properties" : {
-          "runs" : {
+          "created" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "modified" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "taskTypes" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/ClientRunInfo"
+              "$ref" : "#/components/schemas/ApiTaskType"
+            }
+          },
+          "taskGroups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTaskGroup"
+            }
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTaskTemplate"
+            }
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeam"
+            }
+          },
+          "teamGroups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeamGroup"
+            }
+          },
+          "judges" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
             }
           }
-        }
+        },
+        "required" : [ "id", "name", "taskTypes", "taskGroups", "tasks", "teams", "teamGroups", "judges" ]
       },
-      "ClientTaskInfo" : {
-        "required" : [ "id", "name", "remainingTime", "running", "taskGroup" ],
+      "ApiEvaluationTemplateOverview" : {
         "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "taskCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "teamCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "id", "name", "taskCount", "teamCount" ]
+      },
+      "ApiHint" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ApiHintType"
+          },
+          "start" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          },
+          "dataType" : {
+            "type" : "string"
+          },
+          "mediaItem" : {
+            "type" : "string"
+          },
+          "mediaItemName" : {
+            "type" : "string"
+          },
+          "range" : {
+            "$ref" : "#/components/schemas/ApiTemporalRange"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "ApiHintContent" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "sequence" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiContentElement"
+            }
+          },
+          "loop" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "taskId", "sequence", "loop" ]
+      },
+      "ApiHintType" : {
+        "type" : "string",
+        "enum" : [ "EMPTY", "TEXT", "VIDEO", "IMAGE" ]
+      },
+      "ApiTarget" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ApiTargetType"
+          },
+          "target" : {
+            "type" : "string"
+          },
+          "range" : {
+            "$ref" : "#/components/schemas/ApiTemporalRange"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "ApiTargetContent" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "sequence" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiContentElement"
+            }
+          }
+        },
+        "required" : [ "taskId", "sequence" ]
+      },
+      "ApiTargetType" : {
+        "type" : "string",
+        "enum" : [ "JUDGEMENT", "JUDGEMENT_WITH_VOTE", "MEDIA_ITEM", "MEDIA_ITEM_TEMPORAL_RANGE", "TEXT" ]
+      },
+      "ApiTaskGroup" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "type" ]
+      },
+      "ApiTaskTemplate" : {
+        "type" : "object",
+        "additionalProperties" : false,
         "properties" : {
           "id" : {
             "type" : "string"
@@ -1107,15 +2185,341 @@
           "taskGroup" : {
             "type" : "string"
           },
-          "remainingTime" : {
+          "taskType" : {
+            "type" : "string"
+          },
+          "duration" : {
             "type" : "integer",
             "format" : "int64"
           },
-          "running" : {
-            "type" : "boolean"
+          "collectionId" : {
+            "type" : "string"
+          },
+          "targets" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTarget"
+            }
+          },
+          "hints" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiHint"
+            }
+          },
+          "comment" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints" ]
+      },
+      "ApiTaskType" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "targetOption" : {
+            "$ref" : "#/components/schemas/ApiTargetOption"
+          },
+          "hintOptions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiHintOption"
+            }
+          },
+          "submissionOptions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiSubmissionOption"
+            }
+          },
+          "taskOptions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTaskOption"
+            }
+          },
+          "scoreOption" : {
+            "$ref" : "#/components/schemas/ApiScoreOption"
+          },
+          "configuration" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "name", "duration", "targetOption", "hintOptions", "submissionOptions", "taskOptions", "scoreOption", "configuration" ]
+      },
+      "ApiHintOption" : {
+        "type" : "string",
+        "enum" : [ "IMAGE_ITEM", "VIDEO_ITEM_SEGMENT", "TEXT", "EXTERNAL_IMAGE", "EXTERNAL_VIDEO" ]
+      },
+      "ApiScoreOption" : {
+        "type" : "string",
+        "enum" : [ "KIS", "AVS", "LEGACY_AVS" ]
+      },
+      "ApiSubmissionOption" : {
+        "type" : "string",
+        "enum" : [ "NO_DUPLICATES", "LIMIT_CORRECT_PER_TEAM", "LIMIT_WRONG_PER_TEAM", "LIMIT_TOTAL_PER_TEAM", "LIMIT_CORRECT_PER_MEMBER", "TEMPORAL_SUBMISSION", "TEXTUAL_SUBMISSION", "ITEM_SUBMISSION", "MINIMUM_TIME_GAP" ]
+      },
+      "ApiTargetOption" : {
+        "type" : "string",
+        "enum" : [ "SINGLE_MEDIA_ITEM", "SINGLE_MEDIA_SEGMENT", "JUDGEMENT", "VOTE", "TEXT" ]
+      },
+      "ApiTaskOption" : {
+        "type" : "string",
+        "enum" : [ "HIDDEN_RESULTS", "MAP_TO_SEGMENT", "PROLONG_ON_SUBMISSION" ]
+      },
+      "ApiTeam" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "users" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiUser"
+            }
+          },
+          "logoData" : {
+            "type" : "string"
+          },
+          "teamId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "users", "teamId" ]
+      },
+      "ApiTeamAggregatorType" : {
+        "type" : "string",
+        "enum" : [ "MIN", "MAX", "MEAN", "LAST" ]
+      },
+      "ApiTeamGroup" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeam"
+            }
+          },
+          "aggregation" : {
+            "$ref" : "#/components/schemas/ApiTeamAggregatorType"
+          }
+        },
+        "required" : [ "teams", "aggregation" ]
+      },
+      "ApiRole" : {
+        "type" : "string",
+        "enum" : [ "ANYONE", "VIEWER", "PARTICIPANT", "JUDGE", "ADMIN" ]
+      },
+      "ApiUser" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "username" : {
+            "type" : "string"
+          },
+          "role" : {
+            "$ref" : "#/components/schemas/ApiRole"
+          },
+          "sessionId" : {
+            "type" : "string"
           }
         }
+      },
+      "ApiUserRequest" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "username" : {
+            "type" : "string"
+          },
+          "password" : {
+            "type" : "string"
+          },
+          "role" : {
+            "$ref" : "#/components/schemas/ApiRole"
+          }
+        },
+        "required" : [ "username" ]
+      },
+      "QueryEvent" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "timestamp" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "category" : {
+            "$ref" : "#/components/schemas/QueryEventCategory"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "timestamp", "category", "type", "value" ]
+      },
+      "QueryEventCategory" : {
+        "type" : "string",
+        "enum" : [ "TEXT", "IMAGE", "SKETCH", "FILTER", "BROWSING", "COOPERATION", "OTHER" ]
+      },
+      "QueryEventLog" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "timestamp" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "events" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueryEvent"
+            }
+          }
+        },
+        "required" : [ "timestamp", "events" ]
+      },
+      "QueryResult" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "item" : {
+            "type" : "string"
+          },
+          "segment" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "frame" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "score" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "rank" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "item" ]
+      },
+      "QueryResultLog" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "timestamp" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "sortType" : {
+            "type" : "string"
+          },
+          "resultSetAvailability" : {
+            "type" : "string"
+          },
+          "results" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueryResult"
+            }
+          },
+          "events" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueryEvent"
+            }
+          }
+        },
+        "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events" ]
+      },
+      "TemporalPoint" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : { }
+      },
+      "TemporalRange" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "start" : {
+            "$ref" : "#/components/schemas/TemporalPoint"
+          },
+          "end" : {
+            "$ref" : "#/components/schemas/TemporalPoint"
+          },
+          "center" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "start", "end", "center" ]
+      },
+      "ApiRunProperties" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "participantCanView" : {
+            "type" : "boolean"
+          },
+          "shuffleTasks" : {
+            "type" : "boolean"
+          },
+          "allowRepeatedTasks" : {
+            "type" : "boolean"
+          },
+          "limitSubmissionPreviews" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "participantCanView", "shuffleTasks", "allowRepeatedTasks", "limitSubmissionPreviews" ]
+      },
+      "RunManagerStatus" : {
+        "type" : "string",
+        "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
+      }
+    },
+    "securitySchemes" : {
+      "CookieAuth" : {
+        "in" : "cookie",
+        "name" : "SESSIONID",
+        "type" : "apiKey"
       }
     }
-  }
+  },
+  "servers" : [ ],
+  "security" : [ ]
 }

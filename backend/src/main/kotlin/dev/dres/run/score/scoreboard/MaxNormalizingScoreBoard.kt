@@ -9,7 +9,10 @@ import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.ScoreUpdateEvent
 import dev.dres.utilities.extensions.convertWriteLock
 import dev.dres.utilities.extensions.write
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.concurrent.locks.StampedLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.math.max
 
 /**
@@ -22,7 +25,7 @@ import kotlin.math.max
 class MaxNormalizingScoreBoard(override val name: String, override val run: EvaluationRun, private val teamIds: List<TeamId>, private val taskFilter: (ApiTaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
 
     /** A [StampedLock] to synchronise access to this [MaxNormalizingScoreBoard]. */
-    private val lock = StampedLock()
+    private val lock = ReentrantReadWriteLock()
 
     /** Tracks the score per [TeamId]. */
     @Volatile
@@ -39,15 +42,11 @@ class MaxNormalizingScoreBoard(override val name: String, override val run: Eval
      * @return List of [Score] for this [MaxNormalizingScoreBoard].
      */
     override fun scores(): List<Score> {
-        var stamp = this.lock.readLock()
-        try {
+        this.lock.read {
             if (this.dirty) {
-                stamp = this.lock.convertWriteLock(stamp)
                 this.recalculate()
             }
             return this.teamIds.map { Score(it, this.scores[it] ?: 0.0) }
-        } finally {
-            this.lock.unlock(stamp)
         }
     }
 
@@ -58,15 +57,11 @@ class MaxNormalizingScoreBoard(override val name: String, override val run: Eval
      * @return The score for the given [TeamId].
      */
     override fun score(teamId: TeamId): Double {
-        var stamp = this.lock.readLock()
-        try {
+        this.lock.read {
             if (this.dirty) {
-                stamp = this.lock.convertWriteLock(stamp)
-                recalculate()
+                this.recalculate()
             }
             return this.scores[teamId] ?: 0.0
-        } finally {
-            this.lock.unlock(stamp)
         }
     }
 
@@ -103,8 +98,10 @@ class MaxNormalizingScoreBoard(override val name: String, override val run: Eval
         val maxScore = max(1.0, scoreSums.values.maxOrNull() ?: return)
 
         /* Update local score map. */
-        this.scores = scoreSums.mapValues { it.value * maxScoreNormalized / maxScore }
-        this.dirty = false
+        this.lock.write {
+            this.scores = scoreSums.mapValues { it.value * maxScoreNormalized / maxScore }
+            this.dirty = false
+        }
 
         /* Emit event */
         EventStreamProcessor.event(ScoreUpdateEvent(this.run.id, this.name, this.scores))

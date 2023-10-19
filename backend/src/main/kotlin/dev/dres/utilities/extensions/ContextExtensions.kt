@@ -167,3 +167,8 @@ fun Context.isJudge(): Boolean {
     val roles = AccessManager.rolesOfSession(this.sessionToken())
     return roles.contains(ApiRole.JUDGE) && !roles.contains(ApiRole.ADMIN)
 }
+
+/**
+ * Returns the remote IP address of a context, taking forwarding headers into account
+ */
+fun Context.realIP(): String = this.header("X-Forwarded-For") ?: this.ip()

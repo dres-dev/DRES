@@ -470,11 +470,10 @@ class InteractiveSynchronousRunManager(
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
 
         if (taskTemplateId == currentTemplateId) {
-            //this.store.transactional(true) {
             if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING) {
+                this.readyLatch.register(viewerInfo) //avoid redying previously untracked viewers
                 this.readyLatch.setReady(viewerInfo)
             }
-            //}
         }
 
     }

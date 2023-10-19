@@ -38,18 +38,27 @@ class ViewerReadyHandler : AbstractEvaluationViewerHandler(), GetRestHandler<Suc
     )
     override fun doGet(ctx: Context): SuccessStatus {
 
-        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
-        val rac = ctx.runActionContext()
-        val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-            throw ErrorStatusException(403, "Access denied!", ctx)
-        }
+        try {
+            val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(
+                400,
+                "Parameter 'taskId' not specified.",
+                ctx
+            )
+            val rac = ctx.runActionContext()
+            val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
+            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+                throw ErrorStatusException(403, "Access denied!", ctx)
+            }
 
-        if (ctx.isParticipant() || ctx.isAdmin()) {
-            manager.viewerReady(taskId, rac, ViewerInfo(ctx.sessionToken()!!, ctx.ip()))
-        }
+            if (ctx.isParticipant() || ctx.isAdmin()) {
+                manager.viewerReady(taskId, rac, ViewerInfo(ctx))
+            }
 
-        return SuccessStatus("ready received")
+            return SuccessStatus("ready received")
+        }catch (e: Exception) {
+            e.printStackTrace()
+            throw ErrorStatusException(500, e.message ?: "???", ctx)
+        }
 
 
     }

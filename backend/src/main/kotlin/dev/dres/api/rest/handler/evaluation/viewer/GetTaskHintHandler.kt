@@ -1,9 +1,7 @@
 import dev.dres.DRES
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.handler.evaluation.viewer.AbstractEvaluationViewerHandler
 import dev.dres.api.rest.types.ViewerInfo
-import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.template.tasks.ApiHintContent
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -19,8 +17,7 @@ import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.*
-import dev.dres.utilities.extensions.isAdmin
-import dev.dres.utilities.extensions.sessionToken
+import dev.dres.utilities.extensions.*
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -104,7 +101,7 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
                 }
 
                 if (ctx.isParticipant() || ctx.isAdmin()) {
-                    this.viewerPreparing(taskTemplateId, rac, ViewerInfo(ctx.sessionToken()!!, ctx.ip()))
+                    this.viewerPreparing(taskTemplateId, rac, ViewerInfo(ctx))
                 }
             }
             else -> { /* No op */ }

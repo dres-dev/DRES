@@ -26,6 +26,11 @@ import {
 import { TemplateImportTreeBranch } from "./components/template-import-tree/template-import-tree.component";
 import { instanceOfEvaluation, instanceOfTemplate } from "../../utilities/api.utilities";
 import { UploadJsonButtonComponent } from "../../shared/upload-json-button/upload-json-button.component";
+import {
+  ConfirmationDialogComponent,
+  ConfirmationDialogComponentData
+} from "../../shared/confirmation-dialog/confirmation-dialog.component";
+import { InformationDialogComponent } from "../../shared/information-dialog/information-dialog.component";
 
 @Component({
   selector: 'app-template-builder',
@@ -133,7 +138,10 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
   }
 
   public save(){
-    // FIXME re-enable form validation. possibly on the form-builder?
+    if(!this.taskEditor?.isFormValid()){
+      this.dialg.open(InformationDialogComponent, {width: '600px', data: {text: "There are validation errors on the task builder, please fix them before saving."} as ConfirmationDialogComponentData})
+      return;
+    }
     this.isSaving = true;
     console.log("save")
     this.templateService.patchApiV2TemplateByTemplateId(this.builderService.getTemplate().id, this.builderService.getTemplateCleaned()).subscribe((s) => {

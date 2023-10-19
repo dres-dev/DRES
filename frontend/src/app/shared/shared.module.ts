@@ -16,6 +16,7 @@ import { ActionableDynamicTable } from './actionable-dynamic-table/actionable-dy
 import { ServerInfoComponent } from './server-info/server-info.component';
 import { TargetMediaViewerComponent } from './target-media-viewer/target-media-viewer.component';
 import { MediaItemViewerComponent } from './media-item-viewer/media-item-viewer.component';
+import { InformationDialogComponent } from './information-dialog/information-dialog.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { MediaItemViewerComponent } from './media-item-viewer/media-item-viewer.
     ServerInfoComponent,
     TargetMediaViewerComponent,
     MediaItemViewerComponent,
+    InformationDialogComponent,
   ],
   exports: [
     BackButtonComponent,

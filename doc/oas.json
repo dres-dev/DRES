@@ -5894,7 +5894,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "templateId", "name", "comment", "taskGroup", "taskType", "duration" ]
+        "required" : [ "templateId", "name", "taskGroup", "taskType", "duration" ]
       },
       "ApiTeamInfo" : {
         "type" : "object",
@@ -6625,7 +6625,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints", "comment" ]
+        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints" ]
       },
       "ApiTaskType" : {
         "type" : "object",

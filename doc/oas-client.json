@@ -1466,6 +1466,9 @@
           "name" : {
             "type" : "string"
           },
+          "comment" : {
+            "type" : "string"
+          },
           "taskGroup" : {
             "type" : "string"
           },
@@ -2208,7 +2211,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints", "comment" ]
+        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints" ]
       },
       "ApiTaskType" : {
         "type" : "object",

@@ -61,9 +61,14 @@ class GetExternalMediaHandler : GetRestHandler<Any>, AccessManagedRestHandler {
         val path = DRES.EXTERNAL_ROOT.resolve(Path(file))
         if (!Files.exists(path)) {
             ctx.errorResponse(404, "External file with name $file was not found")
+            return
         }
 
-        ctx.contentType(ContentType.getContentTypeByExtension(path.toFile().extension)!!)
+        if (!Files.isReadable(path)) {
+            ctx.errorResponse(403, "External file with name $file cannot be read")
+            return
+        }
+
         try {
             ctx.streamFile(path)
         } catch (e: org.eclipse.jetty.io.EofException) {

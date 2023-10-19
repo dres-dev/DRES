@@ -203,16 +203,15 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         val answer = if (textParam != null) {
             ApiClientAnswer(text = textParam)
         } else if (itemParam != null) {
-            val collection =
-                runManager.currentTaskTemplate(rac).collectionId /* TODO: Do we need the option to explicitly set the collection name? */
-            val item = DbMediaCollection.query(DbMediaCollection::id eq collection)
-                .firstOrNull()?.items?.filter { it.name eq itemParam }?.firstOrNull()
-                ?: throw ErrorStatusException(404, "Item '$PARAMETER_NAME_ITEM' not found'", ctx)
+            val collection = map[PARAMETER_NAME_COLLECTION]?.first().let { name -> DbMediaCollection.filter { it.name eq name }.firstOrNull()?.id } ?:
+                runManager.currentTaskTemplate(rac).collectionId
+            val item = DbMediaItem.filter { (it.name eq itemParam) and (it.collection.id eq collection) }.singleOrNull()
+                ?: throw ErrorStatusException(404, "Item '$itemParam' not found'", ctx)
             val range: Pair<Long, Long>? = when {
                 map.containsKey(PARAMETER_NAME_SHOT) && item.type == DbMediaType.VIDEO -> {
                     val shot = map[PARAMETER_NAME_SHOT]?.first()!!
                     val time = item.segments.filter { it.name eq shot }
-                        .firstOrNull()?.range?.toMilliseconds()//TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item.segments.toList())
+                        .firstOrNull()?.range?.toMilliseconds()
                         ?: throw ErrorStatusException(
                             400,
                             "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.",

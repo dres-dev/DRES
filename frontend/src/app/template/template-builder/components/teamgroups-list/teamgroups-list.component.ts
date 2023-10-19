@@ -78,7 +78,7 @@ export class TeamgroupsListComponent extends AbstractTemplateBuilderComponent im
   }
 
   public add(){
-    const dialogRef = this.dialog.open(TeamgroupsDialogComponent, {width: '600px'});
+    const dialogRef = this.dialog.open(TeamgroupsDialogComponent, {width: '600px',closeOnNavigation: false});
     dialogRef.afterClosed().pipe(filter((t) => t != null)).subscribe((t) => {
       this.builderService.getTemplate().teamGroups.push(t);
       this.builderService.update();
@@ -89,7 +89,7 @@ export class TeamgroupsListComponent extends AbstractTemplateBuilderComponent im
   public editTeamGroup(teamGroup: ApiTeamGroup){
     const index = this.builderService.getTemplate().teamGroups.indexOf(teamGroup);
     if(index > -1){
-      const dialogRef = this.dialog.open(TeamgroupsDialogComponent, {data: teamGroup, width: '600px'});
+      const dialogRef = this.dialog.open(TeamgroupsDialogComponent, {data: teamGroup, width: '600px', closeOnNavigation: false});
       dialogRef.afterClosed().pipe(filter((t) => t != null)).subscribe((t) => {
         this.builderService.getTemplate().teamGroups[index] = t;
         this.builderService.update();

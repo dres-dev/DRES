@@ -88,7 +88,7 @@ export class TaskGroupsListComponent extends AbstractTemplateBuilderComponent im
       data: {
         types: this.builderService.getTemplate().taskTypes,
         group: null
-      } as CompetitionBuilderTaskGroupDialogData, width: "600px"
+      } as CompetitionBuilderTaskGroupDialogData, width: "600px", closeOnNavigation: false
     });
     dialogRef.afterClosed().pipe(filter((g) => g != null)).subscribe((g) => {
       this.builderService.getTemplate().taskGroups.push(g);

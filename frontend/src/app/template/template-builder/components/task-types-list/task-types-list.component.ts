@@ -79,7 +79,7 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
 
 
   public addTaskType(type?: ApiTaskType) {
-    const dialogRef = this.dialog.open(CompetitionBuilderTaskTypeDialogComponent, { data: type ?? null, width: "750px" });
+    const dialogRef = this.dialog.open(CompetitionBuilderTaskTypeDialogComponent, { data: type ?? null, width: "750px", closeOnNavigation: false });
     dialogRef.afterClosed()
       .pipe(filter((t) => t != null))
       .subscribe((t) => {

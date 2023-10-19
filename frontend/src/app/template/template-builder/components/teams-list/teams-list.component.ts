@@ -73,7 +73,7 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
   }
 
   public addTeam(){
-    const dialogRef = this.dialog.open(TeamBuilderDialogComponent, {width: '600px'});
+    const dialogRef = this.dialog.open(TeamBuilderDialogComponent, {width: '600px',closeOnNavigation: false});
     dialogRef.afterClosed().pipe(filter((t) => t != null)).subscribe((t) => {
       this.builderService.getTemplate().teams.push(t);
       this.builderService.update();
@@ -84,7 +84,7 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
   public editTeam(team: ApiTeam){
     const index = this.builderService.getTemplate().teams.indexOf(team);
     if(index > -1){
-      const dialogRef = this.dialog.open(TeamBuilderDialogComponent, {data: team, width: '600px'});
+      const dialogRef = this.dialog.open(TeamBuilderDialogComponent, {data: team, width: '600px',closeOnNavigation: false});
       dialogRef.afterClosed().pipe(filter((t) => t != null)).subscribe((t)=>{
         this.builderService.getTemplate().teams[index] = t;
         this.builderService.update();

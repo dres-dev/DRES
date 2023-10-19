@@ -205,7 +205,6 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         } else if (itemParam != null) {
             val collection =
                 runManager.currentTaskTemplate(rac).collectionId /* TODO: Do we need the option to explicitly set the collection name? */
-            val taskType = runManager.currentTaskTemplate(rac).taskType
             val item = DbMediaCollection.query(DbMediaCollection::id eq collection)
                 .firstOrNull()?.items?.filter { it.name eq itemParam }?.firstOrNull()
                 ?: throw ErrorStatusException(404, "Item '$PARAMETER_NAME_ITEM' not found'", ctx)

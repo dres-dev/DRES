@@ -1,7 +1,7 @@
 <div class="flex-inline">
 
   <button
-    *ngIf="(runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
+    *ngIf="asynchronous ? ((runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING' && (runState | async)?.taskStatus !== 'ENDED' ) : (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
     mat-icon-button
     aria-label="Start task."
     matTooltip="Start task '{{ (runState | async)?.taskTemplateId }}'."

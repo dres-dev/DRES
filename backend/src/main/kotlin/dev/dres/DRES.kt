@@ -42,7 +42,7 @@ import kotlin.system.exitProcess
  */
 object DRES {
     /** Version of DRES. */
-    const val VERSION = "2.0.0"
+    const val VERSION = "2.0.0-RC1"
 
     /** Application root; should be relative to JAR file or classes path. */
     val APPLICATION_ROOT: Path =

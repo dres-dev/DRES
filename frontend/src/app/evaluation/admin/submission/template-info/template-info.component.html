@@ -1,0 +1,53 @@
+<h2>Target Information</h2>
+<div class="flex flex-row content-between pb1e">
+  <div class="flex-66">
+    <div class="pb1e">
+      <span class="strong">Task Type:</span> {{template.taskType}}, <span class="strong">Task Group:</span> {{template.taskGroup}}</div>
+    <table mat-table [dataSource]="template.targets">
+      <ng-container matColumnDef="type">
+        <th mat-header-cell *matHeaderCellDef>Type</th>
+        <td mat-cell *matCellDef="let element">{{element.type}}</td>
+      </ng-container>
+      <ng-container matColumnDef="target">
+        <th mat-header-cell *matHeaderCellDef>Target</th>
+        <td mat-cell *matCellDef="let element">
+          <ng-container [ngSwitch]="element.type">
+            <span *ngSwitchCase="'MEDIA_ITEM'">
+              {{(element.target | resolveMediaItem | async)?.name}} ({{element.target.substring(0,8)}})
+            </span>
+            <span *ngSwitchCase="'MEDIA_ITEM_TEMPORAL_RANGE'">
+              {{(element.target | resolveMediaItem | async)?.name}} ({{element.target.substring(0,8)}})
+            </span>
+            <span *ngSwitchCase="'TEXT'">
+              {{element.target}}
+            </span>
+            <span *ngSwitchDefault>
+              {{element?.target ?? 'N/A'}}
+            </span>
+          </ng-container>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="aux">
+        <th mat-header-cell *matHeaderCellDef>Auxiliary Information</th>
+        <td mat-cell *matCellDef="let element">
+          <span *ngIf="element.type === 'MEDIA_ITEM_TEMPORAL_RANGE'">
+            {{element?.range?.start | formatTemporalPoint}} &ndash; {{element?.range?.end | formatTemporalPoint}}
+          </span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="show">
+        <th mat-header-cell *matHeaderCellDef>Target</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button matTooltip="Show this target in media viewer" (click)="(shownElement = shownElement === element ? null : element); $event.stopPropagation()">
+            <mat-icon>{{shownElement !== element ? 'visibility' : 'visibility_off'}}</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="['type', 'target', 'aux', 'show']"></tr>
+      <tr mat-row *matRowDef="let row; columns: ['type', 'target', 'aux', 'show']"></tr>
+    </table>
+  </div>
+  <div class="flex-33">
+    <app-target-media-viewer [target]="shownElement" style="max-width: 100%; max-height: 8em;"></app-target-media-viewer>
+  </div>
+</div>

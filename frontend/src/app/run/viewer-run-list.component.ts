@@ -1,16 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from "@angular/core";
 import { AbstractRunListComponent, RunInfoWithState } from './abstract-run-list.component';
-import {
-  CompetitionRunAdminService,
-  DownloadService,
-  CompetitionRunScoresService,
-  CompetitionRunService,
-} from '../../../openapi';
 import { Router } from '@angular/router';
 import { AccessChecking } from '../model/access-checking.interface';
 import { UserGroup } from '../model/user-group.model';
 import { AccessRoleService } from '../services/session/access-role.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import {DownloadService, EvaluationAdministratorService, EvaluationScoresService, EvaluationService} from '../../../openapi';
+import { MatTable } from "@angular/material/table";
 
 @Component({
   selector: 'app-viewer-run-list',
@@ -21,10 +17,18 @@ export class ViewerRunListComponent extends AbstractRunListComponent implements 
   viewerGroup = AccessRoleService.VIEWER_GROUP;
   participantGroup = AccessRoleService.PARTICIPANT_GROUP;
 
+  @ViewChild('table', {static: true}) table: MatTable<any>;
+
+  postRefresh: () => void = () => {
+    if(this.table){
+      this.table.renderRows()
+    }
+  };
+
   constructor(
-    runService: CompetitionRunService,
-    runAdminService: CompetitionRunAdminService,
-    scoreService: CompetitionRunScoresService,
+    runService: EvaluationService,
+    runAdminService: EvaluationAdministratorService,
+    scoreService: EvaluationScoresService,
     downloadService: DownloadService,
     router: Router,
     snackBar: MatSnackBar,

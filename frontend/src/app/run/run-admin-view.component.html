@@ -1,66 +1,10 @@
-<app-run-admin-toolbar [runId]="runIdAsSubject" [run]="runOverview" [update]="update">
-  <button
-    *ngIf="(run | async)?.state.taskRunStatus != 'PREPARING' && (run | async)?.state.taskRunStatus != 'RUNNING'"
-    mat-icon-button
-    aria-label="Start task."
-    matTooltip="Start task '{{ (run | async)?.state.currentTask.name }}'."
-    (click)="startTask()"
-  >
-    <mat-icon>play_circle_outline</mat-icon>
-  </button>
-
-  <button
-    *ngIf="(run | async)?.state.taskRunStatus == 'PREPARING' || (run | async)?.state.taskRunStatus == 'RUNNING'"
-    mat-icon-button
-    aria-label="Abort running task."
-    matTooltip="Abort running task '{{ (run | async)?.state.currentTask.name }}'."
-    (click)="abortTask()"
-  >
-    <mat-icon>cancel</mat-icon>
-  </button>
-  <button
-    *ngIf="(run | async)?.state.taskRunStatus != 'PREPARING' && (run | async)?.state.taskRunStatus != 'RUNNING'"
-    mat-icon-button
-    aria-label="Previous task."
-    matTooltip="Got to previous task."
-    (click)="previousTask()"
-  >
-    <mat-icon>skip_previous</mat-icon>
-  </button>
-  <button
-    *ngIf="(run | async)?.state.taskRunStatus != 'PREPARING' && (run | async)?.state.taskRunStatus != 'RUNNING'"
-    mat-icon-button
-    aria-label="Next task."
-    matTooltip="Got to next task."
-    (click)="nextTask()"
-  >
-    <mat-icon>skip_next</mat-icon>
-  </button>
-  <span *ngIf="(run | async)?.state.timeLeft > 0" class="mat-body"
-    >Time left: {{ toFormattedTime((run | async)?.state.timeLeft) }}</span
-  >
-  <button
-    *ngIf="(run | async)?.state.taskRunStatus == 'RUNNING'"
-    mat-icon-button
-    aria-label="Adjust duration."
-    matTooltip="Adjust duration of task '{{ (run | async)?.state.currentTask.name }}'."
-    [matMenuTriggerFor]="menu"
-  >
-    <mat-icon>alarm_add</mat-icon>
-  </button>
-  <mat-menu #menu="matMenu">
-    <button mat-menu-item (click)="adjustDuration(5)">+5s</button>
-    <button mat-menu-item (click)="adjustDuration(10)">+10s</button>
-    <button mat-menu-item (click)="adjustDuration(30)">+30s</button>
-    <button mat-menu-item (click)="adjustDuration(-5)">-5s</button>
-    <button mat-menu-item (click)="adjustDuration(-10)">-10s</button>
-    <button mat-menu-item (click)="adjustDuration(-30)">-30s</button>
-  </mat-menu>
+<app-run-admin-toolbar [runId]="(runId | async)" [run]="runOverview" [refreshSubject]="refreshSubject">
+  <app-task-controls [showTime]="true" [runState]="stateFromCombined(run)" [runId]="runId"></app-task-controls>
 </app-run-admin-toolbar>
 <div class="grid">
   <div class="body">
     <div class="left">
-      <mat-card>
+      <mat-card appearance="outlined">
         <mat-card-header>
           <mat-card-title>Active viewers</mat-card-title>
         </mat-card-header>
@@ -68,15 +12,16 @@
           <mat-action-list>
             <mat-list-item
               *ngFor="let viewer of viewers | async; let i = index; trackBy: resolveViewerById"
-              [style.color]="viewer.ready ? 'darkgreen' : 'darkred'"
               (click)="forceViewer(viewer.viewersId)"
-              class="outline-white"
             >
-              <div class="p4" mat-line>
-                <strong>{{ viewer.viewersId }}</strong>
+              <mat-icon matListItemIcon>
+                {{viewer.ready ? 'link' : 'link_off'}}
+              </mat-icon>
+              <div class="p4" matListItemTitle>
+                <span class="outline-white" [style.color]="viewer.ready ? 'darkgreen' : 'darkred'">{{ viewer.username }}</span>
               </div>
-              <div class="p4" mat-line>
-                <strong>User:</strong> {{ viewer.username }}, <strong>Address:</strong> {{ viewer.host }}
+              <div class="p4" matListItemLine>
+                <span>Address:</span> {{ viewer.host }}
               </div>
             </mat-list-item>
           </mat-action-list>
@@ -85,7 +30,7 @@
     </div>
 
     <div class="main">
-      <mat-card>
+      <mat-card appearance="outlined">
         <mat-card-header>
           <mat-card-title>Tasks</mat-card-title>
         </mat-card-header>
@@ -93,7 +38,7 @@
           <table
             #taskTable
             mat-table
-            [dataSource]="(run | async)?.info.tasks"
+            [dataSource]="(run | async)?.info.taskTemplates"
             [style.width]="'100%'"
             [trackBy]="resolveTaskById"
           >
@@ -101,6 +46,11 @@
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Name</th>
               <td mat-cell *matCellDef="let task">{{ task.name }}</td>
+            </ng-container>
+            <!-- Comment Column -->
+            <ng-container matColumnDef="comment">
+              <th mat-header-cell *matHeaderCellDef>Comment</th>
+              <td mat-cell *matCellDef="let task">{{ task.comment }}</td>
             </ng-container>
 
             <!-- Task Group Column -->
@@ -126,19 +76,19 @@
               <th mat-header-cell *matHeaderCellDef>Submissions</th>
               <td mat-cell *matCellDef="let task">
                 <ng-container *ngIf="(this.submissionsForCurrentTask | async)?.has(task.id); else noRunningTaskTask">
-                  {{(this.submissionsForCurrentTask | async)?.get(task.id)}}
+                  {{ (this.submissionsForCurrentTask | async)?.get(task.id) }}
                 </ng-container>
 
-                <ng-template #noRunningTaskTask>{{(this.submissionsForPastTasks | async)?.get(task.id)}}</ng-template>
+                <ng-template #noRunningTaskTask>{{ (this.submissionsForPastTasks | async)?.get(task.id) }}</ng-template>
               </td>
             </ng-container>
 
             <!-- Actions Column -->
             <ng-container matColumnDef="action">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let task; let i = index">
+              <td mat-cell *matCellDef="let taskTemplate; let i = index">
                 <button
-                  *ngIf="task.name !== (run | async).state.currentTask.name && (run | async)?.state.status != 'RUNNING_TASK'"
+                  *ngIf="taskTemplate.templateId !== (run | async).state.taskTemplateId && (run | async)?.state.taskStatus !== 'RUNNING_TASK'"
                   mat-icon-button
                   aria-label="Switch to task."
                   matTooltip="Switch to task."
@@ -146,11 +96,12 @@
                 >
                   <mat-icon>directions</mat-icon>
                 </button>
-                <button *ngIf="(this.submissionsForCurrentTask | async)?.has(task.id) || (this.submissionsForPastTasks | async)?.has(task.id)"
+                <!-- <button *ngIf="(this.submissionsForCurrentTask | async)?.has(task.id) || (this.submissionsForPastTasks | async)?.has(task.id)" -->
+                <button
                   mat-icon-button
                   aria-label="See submissions"
                   matTooltip="See submissions"
-                  (click)="submissionsOf(task)"
+                  (click)="submissionsOf(taskTemplate)"
                 >
                   <mat-icon>assignment_turned_in</mat-icon>
                 </button>
@@ -160,8 +111,8 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumnsTasks"></tr>
             <tr
               mat-row
-              *matRowDef="let task; columns: displayedColumnsTasks"
-              [style.font-weight]="task.name === (run | async).state.currentTask.name ? 'bold' : ''"
+              *matRowDef="let taskTemplate; columns: displayedColumnsTasks"
+              [style.font-weight]="taskTemplate.templateId === (run | async).state.taskTemplateId ? 'bold' : ''"
             ></tr>
           </table>
         </mat-card-content>
@@ -169,27 +120,25 @@
     </div>
 
     <div class="right">
-      <mat-card>
+      <mat-card appearance="outlined">
         <mat-card-header>
           <mat-card-title>Teams</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <mat-list dense>
-            <mat-list-item
-              *ngFor="let team of teams | async; let i = index; trackBy: resolveTeamByName"
-              [style.color]="team.color"
-            >
+            <mat-list-item *ngFor="let team of teams | async; let i = index; trackBy: resolveTeamByName">
               <img
-                matListAvatar
+                matListItemIcon
                 src="{{ teamLogo(team) }}"
                 [style.width]="'50%'"
+                [style.height]="'100%'"
                 [style.background-color]="team.color"
                 class="alt-list-avatar image-fit-to-container"
                 alt="{{ team.name }}'s logo"
               />
-              <h3 matLine>{{ team.name }}</h3>
-              <p matLine>{{ team.users.length }} member(s)</p>
-              <p matLine *ngFor="let user of team.users">
+              <h3 matListItemTitle [style.color]="team.color">{{ team.name }}</h3>
+              <p matListItemLine>{{ team.users.length }} member(s)</p>
+              <p matListItemLine *ngFor="let user of team.users">
                 <!-- <mat-icon>person</mat-icon>-->
                 &bull; {{ user.username }}
               </p>

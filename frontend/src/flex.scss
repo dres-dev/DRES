@@ -1,0 +1,149 @@
+/**
+Reusable classed to mimic functionality formerly provided by fxFlex
+ */
+
+/**
+Flex containers
+ */
+.flex {
+  display: flex;
+}
+
+.flex-inline{
+  display: inline-flex;
+}
+
+.flex-row {
+  flex-flow: row;
+}
+
+.flex-column {
+  flex-flow: column;
+}
+
+.flex-nowrap{
+  flex-wrap: nowrap;
+}
+
+.content-start{
+  justify-content: flex-start;
+}
+.content-end{
+  justify-content: flex-end;
+}
+
+.content-center{
+  justify-content: center;
+}
+
+.content-between {
+  justify-content: space-between;
+}
+
+.content-around {
+  justify-content: space-around;
+}
+
+.content-evenly{
+  justify-content: space-evenly;
+}
+
+.align-start{
+  align-items: flex-start;
+}
+
+.align-end {
+  align-items: flex-end;
+}
+
+.align-center{
+  align-items: center;
+}
+
+.align-stretch{
+  align-items: stretch;
+}
+
+.align-baseline{
+  align-items: baseline;
+}
+/**
+Flex items
+ */
+.flex-grow {
+  flex: 1 1 100%;
+}
+
+.flex-default {
+  flex: 0 1 auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+.flex-auto {
+  flex: 1 1 auto;
+}
+
+.flex-initial {
+  flex: 0 1 auto;
+}
+
+.fill {
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
+  min-width: 100%;
+}
+
+.flex-tiny-gap {
+  gap: 0.25em;
+}
+
+.flex-small-gap {
+  gap: 0.5em;
+}
+
+.flex-gap {
+  gap: 1em;
+}
+
+.flex-large-gap {
+  gap: 2em;
+}
+
+$growFlex: 1,2,3,4,5;
+
+@each $f in $growFlex {
+  .flex-#{$f} {
+    flex: $f 1 0;
+  }
+}
+
+$basisFlex: 5,10,15,20,22,25,28,30,35,40,45,48,50,55,60,65,68,70,75,80,85,90,95,100;
+
+@each $f in $basisFlex {
+  .flex-#{$f}{
+    flex: 0 1 percentage(calc($f / 100));
+  }
+}
+
+.flex-33{
+  flex: 0 1 percentage(calc(1 / 3));
+}
+.flex-66{
+  flex: 0 1 percentage(calc(2 / 3));
+}
+
+.self-flex-start {
+  align-self: flex-start;
+}
+
+.self-flex-end{
+  align-self: flex-end;
+}
+
+.self-flex-center {
+  align-self: center;
+}

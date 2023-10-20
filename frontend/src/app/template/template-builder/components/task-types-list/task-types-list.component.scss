@@ -1,0 +1,7 @@
+ul {
+  padding-inline-start: 16px; /* 16px seems to line up bullet point with cell begin */
+}
+
+.mat-column-submissions {
+  width: 17%; /* those are the longest cells, hence manually setting the width */
+}

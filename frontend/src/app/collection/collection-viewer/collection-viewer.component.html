@@ -1,4 +1,4 @@
-<div style="display: flex">
+<div class="flex">
   <app-back-button></app-back-button>
   <div>
     <h1>Media collection: "{{ (collection | async)?.collection.name }}" ({{ (collectionId | async).substr(0, 8) }})</h1>
@@ -18,15 +18,23 @@
     </button>
   </div>
 </div>
-<div style="display: flex">
+<div class="flex">
   <div>
     <b>Description: </b>{{ (collection | async)?.collection?.description }}<br />
     <b>Base Path: </b>{{ (collection | async)?.collection?.basePath }}
   </div>
 </div>
 <div>
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+
+  <!-- Filter -->
+  <mat-form-field style="width: 100%;">
+    <mat-label>Filter</mat-label>
+    <input matInput (keyup)="applyFilter($event)" #filterInput style="width: 100%;">
+  </mat-form-field>
+
   <!-- Pagination -->
-  <mat-paginator [pageSizeOptions]="[50, 100, 250]" showFirstLastButtons></mat-paginator>
+  <mat-paginator #paginator [pageSizeOptions]="[50, 100, 250]" showFirstLastButtons></mat-paginator>
 
   <table
     mat-table
@@ -42,13 +50,13 @@
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Actions</th>
       <td mat-cell *matCellDef="let row">
-        <button mat-icon-button aria-label="Show media item." matTooltip="Show media item" (click)="show(row.id)">
+        <button mat-icon-button aria-label="Show media item." matTooltip="Show media item" (click)="show(row.mediaItemId)">
           <mat-icon>visibility</mat-icon>
         </button>
-        <button mat-icon-button aria-label="Edit media item." matTooltip="Edit media item." (click)="edit(row.id)">
+        <button mat-icon-button aria-label="Edit media item." matTooltip="Edit media item." (click)="edit(row.mediaItemId)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button aria-label="Delete media item." matTooltip="Delete media item." (click)="delete(row.id)">
+        <button mat-icon-button aria-label="Delete media item." matTooltip="Delete media item." (click)="delete(row.mediaItemId)">
           <mat-icon>delete</mat-icon>
         </button>
       </td>
@@ -57,8 +65,8 @@
     <!-- Id column -->
     <ng-container matColumnDef="id">
       <th mat-header-cell *matHeaderCellDef>ID</th>
-      <td mat-cell *matCellDef="let row" matTooltip="Click to copy to clipboard id: {{ row.id }}" [cdkCopyToClipboard]="row.id">
-        {{ row.id.substring(0, 8) }}
+      <td mat-cell *matCellDef="let row" matTooltip="Click to copy to clipboard id: {{ row.mediaItemId }}" [cdkCopyToClipboard]="row.mediaItemId">
+        {{ row.mediaItemId.substring(0, 8) }}
       </td>
     </ng-container>
 
@@ -82,13 +90,13 @@
 
     <!-- durationMs column -->
     <ng-container matColumnDef="durationMs">
-      <th mat-header-cell *matHeaderCellDef>Duration [ms]</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Duration [ms]</th>
       <td mat-cell *matCellDef="let row">{{ row?.durationMs }}</td>
     </ng-container>
 
     <!-- FPS column -->
     <ng-container matColumnDef="fps">
-      <th mat-header-cell *matHeaderCellDef>FPS</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>FPS</th>
       <td mat-cell *matCellDef="let row">{{ row?.fps }}</td>
     </ng-container>
 
@@ -96,4 +104,5 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
+
 </div>

@@ -1,0 +1,54 @@
+<h1 mat-dialog-title>DRES Server Information</h1>
+<div mat-dialog-content>
+  <div class="flex flex-column content-between">
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>DRES version:</b></span>
+      <span class="flex-75">{{(info | async )?.version}}</span>
+    </div>
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>Start time:</b></span>
+      <span class="flex-75">{{(info | async )?.startTime}}</span>
+    </div>
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>Uptime:</b></span>
+      <span class="flex-75">{{(info | async )?.uptime}}</span>
+    </div>
+  </div>
+  <ng-container *ngIf="isAdmin">
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>JVM:</b></span>
+      <span class="flex-75">{{(info | async )?.jvm}}</span>
+    </div>
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>OS:</b></span>
+      <span class="flex-75">{{(info | async )?.os}}</span>
+    </div>
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>Cores:</b></span>
+      <span class="flex-75">{{(info | async )?.cores}}</span>
+    </div>
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>Server threads:</b></span>
+      <span class="flex-75">{{(info | async )?.availableSeverThreads}}</span>
+    </div>
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>Total memory:</b></span>
+      <span class="flex-75">{{(info | async )?.totalMemory}}</span>
+    </div>
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>Free memory:</b></span>
+      <span class="flex-75">{{(info | async )?.freeMemory}}</span>
+    </div>
+    <div class="flex flex-row content-between">
+      <span class="flex-22"><b>Load:</b></span>
+      <span class="flex-75">{{(info | async )?.load}}</span>
+    </div>
+    <div class="flex flex-row content-between align-start">
+      <span class="flex-22"><b>Start arguments:</b></span>
+      <pre class="flex-75" style="overflow-x: scroll; margin: 0;">{{(info | async )?.args | spaceToNewline}}</pre>
+    </div>
+  </ng-container>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close cdkFocusInitial>OK</button>
+</div>

@@ -1,65 +1,36 @@
 package dev.dres.data.model.submissions
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.time.TemporalPoint
-import dev.dres.data.model.basics.time.TemporalRange
-import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.submissions.aspects.BaseSubmissionAspect
-import dev.dres.data.model.submissions.aspects.ItemAspect
-import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
-import dev.dres.data.model.submissions.aspects.TextAspect
+import dev.dres.data.model.admin.UserId
+import dev.dres.data.model.template.team.TeamId
 
+typealias SubmissionId = String
 
 /**
- * A [Submission] as received by a competition participant.
+ * A [Submission] as issued by a DRES user.
+ * Essentially a proposed solution to a certain task. The task's reference is linked via the answer sets.
  *
- * @author Ralph Gasser & Luca Rossetto
- * @version 1.1.0
+ * This abstraction is mainly required to enable testability of implementations.
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @author Loris Sauter
+ * @version 2.0.0
  */
-sealed class Submission : BaseSubmissionAspect {
+interface Submission {
+    /** The ID of this [Submission]. */
+    val submissionId: SubmissionId
 
-    /** The [AbstractInteractiveTask] this [Submission] belongs to. */
-    @JsonIgnore
-    override var task: AbstractInteractiveTask? = null
+    /** The ID of the user who issued this [Submission]. */
+    val memberId: UserId
 
-    /** The [SubmissionStatus] of this [Submission]. */
-    override var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
+    /** The ID of the team, the user belongs to. */
+    val teamId: TeamId
 
-    /**
-     *
-     */
-    data class Item(
-        override val teamId: UID,
-        override val memberId: UID,
-        override val timestamp: Long,
-        override val item: MediaItem,
-        override val uid: UID = UID()
-    ) : Submission(), ItemAspect
+    /** The timestamp of this [Submission]. */
+    val timestamp: Long
 
     /**
-     *
+     * Returns a [Sequence] of [AnswerSet]s.
      */
-    data class Temporal(
-        override val teamId: UID,
-        override val memberId: UID,
-        override val timestamp: Long,
-        override val item: MediaItem,
-        override val start: Long, //in ms
-        override val end: Long, //in ms
-        override val uid: UID = UID()
-    ) : Submission(), ItemAspect, TemporalSubmissionAspect {
-
-        override val temporalRange: TemporalRange
-            get() = TemporalRange(TemporalPoint.Millisecond(start), TemporalPoint.Millisecond(end))
-    }
-
-    data class Text(
-        override val teamId: UID,
-        override val memberId: UID,
-        override val timestamp: Long,
-        override val text: String,
-        override val uid: UID = UID()
-    ) : Submission(), TextAspect
+    fun answerSets(): Sequence<AnswerSet>
 }

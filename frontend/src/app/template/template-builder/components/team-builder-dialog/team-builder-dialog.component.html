@@ -1,0 +1,101 @@
+<h1 mat-dialog-title>Add team</h1>
+<div mat-dialog-content>
+  <form [formGroup]="form">
+    <div class="team-grid">
+      <div class="grid-element-logo">
+        <span style="text-align: center" [style.text-align]="'center'">
+            <img [src]="teamLogo()" alt="The logo of the team" style="max-height: 75px; max-width: 150px"  [style.width]="'100px'" [style.height]="'100px'" [style.object-fit]="'contain'"/>
+        </span>
+        <input hidden type="file" #logoInput (change)="processImage($event)" />
+        <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
+      </div>
+      <div class="grid-element-form">
+        <mat-form-field [style.width]="'100%'">
+          <mat-label>Team Name</mat-label>
+          <input type="text" matInput placeholder="Name" formControlName="name" />
+          <mat-error *ngIf="form.get('name')?.invalid">Name must consist of at least three characters.</mat-error>
+        </mat-form-field>
+
+        <!--
+        <mat-form-field class="user-chip-list" [style.width]="'100%'">
+          <mat-label>Team Members (Users)</mat-label>
+          <mat-chip-grid #chipList aria-label="Users">
+            <mat-chip-row *ngFor="let user of form.get('users').value | orderBy:'asc':sortUsersByName" [removable]="true" (removed)="removeUser(user)">
+              {{ user.username }}
+              <mat-icon matChipRemove>cancel</mat-icon>
+            </mat-chip-row>
+            <input placeholder="New user..." #userInput
+                   [formControlName]="'userInput'" [matAutocomplete]="auto" [matChipInputFor]="chipList"
+                   [matChipInputSeparatorKeyCodes]="separatorKeyCodes"
+            />
+          </mat-chip-grid>
+          <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption (optionSelected)="selectedUser($event)">
+            <mat-option *ngFor="let user of availableUsers | async | orderBy:'asc':sortUsersByName" [value]="user">
+              {{ user.username }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
+        -->
+        <p [style.width]="'100%'">
+          <label>Team Color</label> <br />
+          <!-- Has been a span before: https://github.com/dres-dev/DRES/blob/a01889625c069256b7645fef95563feb1f4ce12a/frontend/src/app/competition/competition-builder/competition-builder-team-dialog/competition-builder-team-dialog.component.html -->
+          <span [style.background]="form.get('color').value"
+                [style.width]="'100%'"
+                [style.height]="'20px'"
+                [style.display]="'inline-block'"
+                [colorPicker]="form.get('color').value"
+                [cpPresetLabel]="'Color Palette'"
+                [cpPresetColors]="colorPalette"
+                [cpPosition]="'top-right'"
+                (colorPickerChange)="onColorChange($event)" ></span>
+        </p>
+        <div>
+          <div class="member-list-container">
+            <h3>Users in Team
+            <mat-icon matTooltip="To add users to this team, drag'n'drop them from the available users list. To remove users from this team, dragn'n'drop them to the available users list.">help</mat-icon>
+            </h3>
+            <div
+              cdkDropList
+              #memberList="cdkDropList"
+              [cdkDropListData]="form.get('users').value"
+              [cdkDropListConnectedTo]="[userList]"
+              class="member-list"
+              (cdkDropListDropped)="drop($event)">
+              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of form.get('users').value" cdkDrag>
+                <mat-card-content>{{user.username}}</mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+          <div class="member-list-container">
+            <h3>Users Available
+              <mat-icon matTooltip="To add users to the team, drag'n'drop them from this list. To remove users from the team, dragn'n'drop them to the this list.">help</mat-icon>
+            </h3>
+            <div
+              cdkDropList
+              #userList="cdkDropList"
+              [cdkDropListData]="users"
+              [cdkDropListConnectedTo]="[memberList]"
+              class="member-list"
+              (cdkDropListDropped)="drop($event)">
+              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of users" cdkDrag>
+                <mat-card-content>{{user.username}}</mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-button (click)="save()">Save</button>
+  <!-- Disabled until proper import / export functionality exists
+    <app-download-button
+        [name]="'Download'"
+        [fileName]="fileProvider"
+        [downloadable]="downloadProvider"
+        matTooltip="Download the team as JSON"></app-download-button>
+        -->
+</div>

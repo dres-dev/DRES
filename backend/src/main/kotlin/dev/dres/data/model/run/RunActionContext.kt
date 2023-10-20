@@ -2,42 +2,42 @@ package dev.dres.data.model.run
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.UID
-import dev.dres.data.model.admin.Role
+import dev.dres.api.rest.types.users.ApiRole
+import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.admin.UserId
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.run.interfaces.EvaluationId
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 
 /**
  * The [RunActionContext] captures and encapsulates information usually required during the interaction with a [RunManager].
  * It exposes information available to the OpenAPI facility (e.g., through session management) to the [RunManager].
  *
- * @author Luca Rossetto & Ralph Gasser
- * @version 1.0.0
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 2.0.0
  */
-data class RunActionContext(val userId: UserId, val teamId: TeamId?, val roles: Set<Role>) {
+open class RunActionContext(val userId: UserId, var evaluationId: EvaluationId?, val roles: Set<ApiRole>) {
 
-    /** True if the user associated with this [RunActionContext] acts as [Role.ADMIN]*/
+    /** True if the user associated with this [RunActionContext] acts as [DbRole.ADMIN]*/
     val isAdmin: Boolean
-        get() = this.roles.contains(Role.ADMIN)
+        get() = this.roles.contains(ApiRole.ADMIN)
 
     companion object {
-        /** A static [RunActionContext] used for internal invocations by DRES. Always acts as an implicit [Role.ADMIN]. */
-        val INTERNAL = RunActionContext(UID.EMPTY, UID.EMPTY, setOf(Role.ADMIN))
+        /** A static [RunActionContext] used for internal invocations by DRES. Always acts as an implicit [DbRole.ADMIN]. */
+        val INTERNAL = RunActionContext("SYSTEM",null, setOf(ApiRole.ADMIN))
 
         /**
-         * Constructs a [RunActionContext] from a [Context] and a [RunManager].
+         * Constructs a [RunActionContext] from this [Context].
          *
-         * @param ctx The Javalin [Context] to construct the [RunActionContext] from.
-         * @param runManager The [RunManager] to construct the [RunActionContext] for.
+         * @return ctx [RunActionContext]
          */
-        fun runActionContext(ctx: Context, runManager: RunManager) : RunActionContext {
-            val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(403, "Unauthorized user.", ctx)
-            val roles = AccessManager.rolesOfSession(ctx.sessionId()).map { Role.fromRestRole(it) }.toSet()
-            val teamId = runManager.description.teams.find { it.users.contains(userId) }?.uid
-            return RunActionContext(userId, teamId, roles)
-        }
+        fun Context.runActionContext() = RunActionContext(
+            AccessManager.userIdForSession(this.sessionToken()) ?: throw ErrorStatusException(403, "Unauthorized user.", this),
+            this.pathParamMap()["evaluationId"],
+            AccessManager.rolesOfSession(this.sessionToken()).toSet()
+        )
     }
 }

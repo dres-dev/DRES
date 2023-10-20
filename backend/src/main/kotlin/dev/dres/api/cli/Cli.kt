@@ -1,14 +1,13 @@
 package dev.dres.api.cli
 
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.NoOpCliktCommand
-import com.github.ajalt.clikt.core.context
-import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.output.CliktHelpFormatter
+import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.output.HelpFormatter
-import dev.dres.data.dbo.DataAccessLayer
-import dev.dres.data.model.Config
+import com.github.ajalt.clikt.output.MordantHelpFormatter
+import com.github.ajalt.mordant.rendering.Widget
+import dev.dres.data.model.config.Config
+import dev.dres.mgmt.cache.CacheManager
+import jetbrains.exodus.database.TransientEntityStore
 import org.jline.builtins.Completers
 import org.jline.builtins.Completers.TreeCompleter.node
 import org.jline.reader.*
@@ -20,31 +19,35 @@ import java.util.*
 import java.util.regex.Pattern
 import kotlin.system.exitProcess
 
-
+/**
+ * This is a singleton instance of the [Cli].
+ *
+ * @version 1.0.1
+ * @author Loris Sauter
+ */
 object Cli {
 
     private const val PROMPT = "DRES> "
 
-    private lateinit var clikt:CliktCommand
+    private lateinit var clikt: CliktCommand
 
     /**
-     * blocking call
+     * Blocking call that executes the CLI subsystem.
+     *
+     * @param config The [Config] with which DRES was started.
+     * @param store The [TransientEntityStore] instance used to access persistent data.
+     * @param cache The [CacheManager] instance used to access the media cache.
      */
-    fun loop(dataAccessLayer: DataAccessLayer, config: Config) {
+    fun loop(config: Config, store: TransientEntityStore, cache: CacheManager) {
 
         clikt = DRESBaseCommand().subcommands(
-            CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config),
+            EvaluationTemplateCommand(cache),
             UserCommand(),
-            MediaCollectionCommand(
-                dataAccessLayer.collections,
-                dataAccessLayer.mediaItems,
-                dataAccessLayer.mediaItemPathIndex,
-                dataAccessLayer.mediaItemCollectionIndex,
-                dataAccessLayer.mediaSegments
-            ),
-            CompetitionRunCommand(dataAccessLayer.runs),
+            MediaCollectionCommand(config),
+            EvaluationCommand(store),
             OpenApiCommand(),
-            ExecutionCommand()
+            ExecutionCommand(),
+            ConfigCommand()
         )
 
         val terminal = try {
@@ -62,20 +65,14 @@ object Cli {
                 // Based on https://github.com/jline/jline3/wiki/Completion
                 // However, this is not working as subcommands are not completed
                 Completers.TreeCompleter(
-                        clikt.registeredSubcommands().map {
-                            if(it.registeredSubcommands().isNotEmpty()){
-                                node(it.commandName, node(*it.registeredSubcommandNames().toTypedArray()))
-                            }else{
-                                node(it.commandName)
-                            }
+                    clikt.registeredSubcommands().map {
+                        if(it.registeredSubcommands().isNotEmpty()){
+                            node(it.commandName, node(*it.registeredSubcommandNames().toTypedArray()))
+                        }else{
+                            node(it.commandName)
                         }
+                    }
                 ),
-                // Pseudo-solution. Not ideal, as all subcommands are flattened
-                /*AggregateCompleter(
-                    StringsCompleter(clikt.registeredSubcommandNames()),
-                    StringsCompleter(
-                        clikt.registeredSubcommands().flatMap { it.registeredSubcommandNames() })
-                ),*/
                 Completers.FileNameCompleter()
             )
         )
@@ -88,11 +85,12 @@ object Cli {
         while (true) {
             try {
                 val line = lineReader.readLine(PROMPT).trim()
-                if (line.toLowerCase() == "exit" || line.toLowerCase() == "quit") {
+                if (line.lowercase() == "exit" || line.lowercase() == "quit") {
                     break
                 }
-                if (line.toLowerCase() == "help") {
-                    println(clikt.getFormattedHelp()) //TODO overwrite with something more useful in a cli context
+                if (line.lowercase() == "help") {
+                    println(clikt.getFormattedHelp())
+                    lineReader.printAbove(PROMPT)
                     continue
                 }
                 if (line.isBlank()) {
@@ -103,13 +101,14 @@ object Cli {
                     execute(line)
                 } catch (e: Exception) {
                     when (e) {
-                        is com.github.ajalt.clikt.core.NoSuchSubcommand -> println("command not found")
-                        is com.github.ajalt.clikt.core.PrintHelpMessage -> println(e.command.getFormattedHelp())
-                        is com.github.ajalt.clikt.core.UsageError -> println("invalid command")
-//                        is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
-                        is com.github.ajalt.clikt.core.NoSuchOption -> println(e.localizedMessage)
+                        is NoSuchSubcommand -> println("command not found")
+                        is PrintHelpMessage -> println(e.context?.command?.getFormattedHelp())
+                        is MissingArgument -> println(e.localizedMessage)
+                        is NoSuchOption -> println(e.localizedMessage)
+                        is UsageError -> println("invalid command: ${e.localizedMessage}")
                         else -> e.printStackTrace()
                     }
+                    lineReader.printAbove(PROMPT)
                 }
             } catch (e: EndOfFileException) {
                 System.err.println("Could not read from terminal due to EOF. If you're running DRES in Docker, try running the container in interactive mode.")
@@ -155,7 +154,7 @@ object Cli {
     class DRESBaseCommand : NoOpCliktCommand(name = "dres") {
 
         init {
-            context { helpFormatter = CliHelpFormatter() }
+            context { helpFormatter = {CliHelpFormatter(it)} }
         }
 
     }
@@ -174,17 +173,26 @@ object Cli {
         }
     }
 
-    class CliHelpFormatter : CliktHelpFormatter() {
-        override fun formatHelp(
+    class CliHelpFormatter(context: Context) : MordantHelpFormatter(context) {
+
+
+
+        override fun collectHelpParts(
+            error: UsageError?,
             prolog: String,
             epilog: String,
             parameters: List<HelpFormatter.ParameterHelp>,
-            programName: String
-        ) = buildString {
-            addOptions(parameters)
-            addArguments(parameters)
-            addCommands(parameters)
+            programName: String,
+        ): List<Widget> = buildList {
+            if (error == null) {
+                if (prolog.isNotEmpty()) add(renderProlog(prolog))
+                if (parameters.isNotEmpty()) add(renderParameters(parameters))
+                if (epilog.isNotEmpty()) add(renderEpilog(epilog))
+            } else {
+                add(renderError(parameters, error))
+            }
         }
+
     }
 
 }

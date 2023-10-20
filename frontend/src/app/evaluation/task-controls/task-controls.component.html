@@ -1,0 +1,65 @@
+<div class="flex-inline">
+
+  <button
+    *ngIf="asynchronous ? ((runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING' && (runState | async)?.taskStatus !== 'ENDED' ) : (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
+    mat-icon-button
+    aria-label="Start task."
+    matTooltip="Start task '{{ (runState | async)?.taskTemplateId }}'."
+    (click)="startTask()"
+  >
+    <mat-icon>play_circle_outline</mat-icon>
+  </button>
+
+  <button
+    *ngIf="!asynchronous && ((runState | async)?.taskStatus === 'PREPARING' || (runState | async)?.taskStatus === 'RUNNING')"
+    mat-icon-button
+    aria-label="End running task."
+    matTooltip="End running task '{{ (runState | async)?.taskTemplateId }}'."
+    (click)="abortTask()"
+  >
+    <mat-icon>cancel</mat-icon>
+  </button>
+  <button
+    *ngIf="!asynchronous && ((runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING')"
+    mat-icon-button
+    aria-label="Previous task."
+    matTooltip="Got to previous task."
+    (click)="previousTask()"
+  >
+    <mat-icon>skip_previous</mat-icon>
+  </button>
+  <button
+    *ngIf="asynchronous ? (runState | async)?.taskStatus === 'ENDED' : (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
+    mat-icon-button
+    aria-label="Next task."
+    matTooltip="Got to next task."
+    (click)="nextTask()"
+  >
+    <mat-icon>skip_next</mat-icon>
+  </button>
+  <ng-container *ngIf="showTime">
+    <div #timer
+         *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING'"
+         class="mat-body" style="align-self: center;"
+    >
+      Time left: {{ (runState | async)?.timeLeft | formatTime:false }}
+    </div>
+    <button
+      *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING'"
+      mat-icon-button
+      aria-label="Adjust duration."
+      matTooltip="Adjust duration of task '{{ (runState | async)?.taskTemplateId }}'."
+      [matMenuTriggerFor]="menu"
+    >
+      <mat-icon>alarm_add</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="adjustDuration(5)">+5s</button>
+      <button mat-menu-item (click)="adjustDuration(10)">+10s</button>
+      <button mat-menu-item (click)="adjustDuration(30)">+30s</button>
+      <button mat-menu-item (click)="adjustDuration(-5)">-5s</button>
+      <button mat-menu-item (click)="adjustDuration(-10)">-10s</button>
+      <button mat-menu-item (click)="adjustDuration(-30)">-30s</button>
+    </mat-menu>
+  </ng-container>
+</div>

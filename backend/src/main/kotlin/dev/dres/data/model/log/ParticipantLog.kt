@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSetter
 import com.fasterxml.jackson.annotation.Nulls
+import io.javalin.openapi.OpenApiIgnore
 
 enum class QueryEventCategory {
     TEXT, IMAGE, SKETCH, FILTER, BROWSING, COOPERATION, OTHER
@@ -24,6 +25,7 @@ data class QueryEventLog internal constructor(
     val events: List<QueryEvent> = emptyList(),
     @field:JsonIgnore
     @get:JsonIgnore
+    @get:OpenApiIgnore
     internal val serverTimeStamp: Long = System.currentTimeMillis()
 )
 
@@ -47,5 +49,6 @@ data class QueryResultLog internal constructor(
     val events: List<QueryEvent> = emptyList(),
     @field:JsonIgnore
     @get:JsonIgnore
+    @get:OpenApiIgnore
     internal val serverTimeStamp: Long = System.currentTimeMillis()
 )

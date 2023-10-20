@@ -1,4 +1,4 @@
-<mat-card>
+<mat-card appearance="outlined">
   <div class="task-preview">
     <!-- VIEWER_UNKNOWN -->
     <div *ngIf="(viewerState | async) === 0">
@@ -7,17 +7,17 @@
 
     <!-- VIEWER_WAITING_FOR_TASK -->
     <div *ngIf="(viewerState | async) === 1">
-      <h2 class="header">{{ (taskChanged | async)?.name }} (Waiting for host to start task)</h2>
+      <h2 class="header">{{ currentTaskName | async }} (Waiting for host to start task)</h2>
     </div>
 
     <!-- VIEWER_SYNC -->
     <div *ngIf="(viewerState | async) === 2">
-      <h2 class="header">{{ (taskChanged | async)?.name }} (Waiting for other viewers)</h2>
+      <h2 class="header">{{ currentTaskName | async }} (Waiting for other viewers)</h2>
     </div>
 
     <!-- VIEWER_COUNTDOWN -->
     <div *ngIf="(viewerState | async) === 3">
-      <h2 class="header">{{ (taskChanged | async)?.name }} (Task is about to start!)</h2>
+      <h2 class="header">{{ currentTaskName | async }} (Task is about to start!)</h2>
       <p *ngIf="taskCountdown | async" class="countdown">
         {{ taskCountdown | async }}
       </p>
@@ -25,26 +25,28 @@
 
     <!-- VIEWER_PLAYBACK -->
     <div *ngIf="(viewerState | async) === 4">
-      <h2 style="text-align: center">{{ (taskChanged | async)?.name }} ({{ toFormattedTime(timeLeft | async) }})</h2>
+      <h2 style="text-align: center">{{ currentTaskName | async }} ({{ toFormattedTime(timeLeft | async) }})</h2>
       <div *ngIf="currentTaskHint | async">
-        <app-video-object-preview
-          [queryObject]="currentTaskHint"
-          [muted]="(config.configAsObservable | async).effects.mute"
-        ></app-video-object-preview>
-        <app-image-object-preview [queryContent]="currentTaskHint"></app-image-object-preview>
-        <app-text-object-preview [queryContent]="currentTaskHint"></app-text-object-preview>
+        <app-text-object-preview [queryContent]="currentHintContent"></app-text-object-preview>
+        <app-video-object-preview [queryObject]="currentHintContent" [muted]="(config.configAsObservable | async).effects.mute"></app-video-object-preview>
+        <app-image-object-preview [queryContent]="currentHintContent"></app-image-object-preview>
       </div>
     </div>
 
     <!-- VIEWER_TASK_ENDED -->
     <div *ngIf="(viewerState | async) === 5">
-      <h2 class="header">{{ (taskChanged | async)?.name }} (Task complete)</h2>
-      <div *ngIf="(currentTaskTarget | async)">
-        <app-video-object-preview [queryObject]="currentTaskTarget" [muted]="true"></app-video-object-preview>
-        <app-image-object-preview [queryContent]="currentTaskTarget"></app-image-object-preview>
+      <h2 class="header">{{ currentTaskName | async }} (Task complete)</h2>
+      <div *ngIf="currentTargetContent | async">
+        <app-text-object-preview [queryContent]="currentTargetContent"></app-text-object-preview>
+        <app-video-object-preview [queryObject]="currentTargetContent" [muted]="true"></app-video-object-preview>
+        <app-image-object-preview [queryContent]="currentTargetContent"></app-image-object-preview>
       </div>
     </div>
 
-    <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+    <audio #audio_beep_1 src="/immutable/assets/audio/beep_1.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+    <audio #audio_beep_2 src="/immutable/assets/audio/beep_2.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+    <audio #audio_ding src="/immutable/assets/audio/ding.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+    <audio #audio_glass src="/immutable/assets/audio/glass.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+
   </div>
 </mat-card>

@@ -6,9 +6,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.kittinunf.fuel.Fuel
-import dev.dres.api.rest.OpenApiEndpointOptions
-import dev.dres.api.rest.RestApi
-import io.swagger.util.Json
+
 import java.io.File
 
 class OpenApiCommand : CliktCommand(name="openapi",help =  "Generates and writes the OpenAPI Specifications") {
@@ -23,15 +21,15 @@ class OpenApiCommand : CliktCommand(name="openapi",help =  "Generates and writes
     override fun run() {
         // Do we download the client lib as well?
         if(!internalOnly){
-            downloadOas(OpenApiEndpointOptions.dresSubmittingClientOptions, output)
+            downloadOas("swagger-docs", output)
         }
-        downloadOas(OpenApiEndpointOptions.dresDefaultOptions, output)
+        downloadOas("client-oas", output)
     }
 
-    private fun downloadOas(oas: OpenApiEndpointOptions, dir: File){
-        val src = "http://localhost:8080"+oas.oasPath
+    private fun downloadOas(path: String, dir: File){
+        val src = "http://localhost:8080/$path"
         vprintln("Downloading from $src")
-        val fileName = oas.oasPath.substring(1)+".json" // Remove "/" from name and add ".json"
+        val fileName = "${path}.json"
         Fuel.download(src)
             .fileDestination { _, _ -> dir.resolve(fileName) }
             .progress{readBytes, totalBytes ->

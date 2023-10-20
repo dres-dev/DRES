@@ -1,33 +1,39 @@
 package dev.dres.run
 
-import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.run.websocket.ClientMessage
-import dev.dres.api.rest.types.run.websocket.ClientMessageType
-import dev.dres.api.rest.types.run.websocket.ServerMessage
-import dev.dres.api.rest.types.run.websocket.ServerMessageType
-import dev.dres.data.model.UID
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.competition.options.ConfiguredOption
-import dev.dres.data.model.competition.options.Option
-import dev.dres.data.model.competition.options.SimpleOption
-import dev.dres.data.model.competition.options.SimpleOptionParameters
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
-import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.run.RunProperties
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.types.ViewerInfo
+import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
+import dev.dres.api.rest.types.template.tasks.options.ApiSubmissionOption
+import dev.dres.api.rest.types.template.tasks.options.ApiTaskOption
+import dev.dres.data.model.run.*
+import dev.dres.data.model.run.interfaces.EvaluationId
+import dev.dres.data.model.run.interfaces.TaskRun
+import dev.dres.data.model.submissions.*
+import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.data.model.template.task.TaskTemplateId
+import dev.dres.data.model.template.task.options.DbSubmissionOption
+import dev.dres.data.model.template.task.options.DbTaskOption
+import dev.dres.data.model.template.task.options.Defaults.VIEWER_TIMEOUT_DEFAULT
+import dev.dres.data.model.template.team.TeamId
+import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
+import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
-import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
 import dev.dres.run.exceptions.IllegalRunStateException
-import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
-import dev.dres.utilities.extensions.UID
+import jetbrains.exodus.database.*
+import jetbrains.exodus.database.exceptions.DataIntegrityViolationException
+import kotlinx.dnq.query.*
+import kotlinx.dnq.util.findById
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -36,101 +42,64 @@ import kotlin.math.max
 
 /**
  * An implementation of [RunManager] aimed at distributed execution having a single DRES Server instance and multiple
- * viewers connected via WebSocket. Before starting a [InteractiveSynchronousCompetition.Task], all viewer instances are synchronized.
+ * viewers connected via WebSocket. Before starting a [DbTask], all viewer instances are synchronized.
  *
- * @version 2.1.0
+ * @version 3.0.0
  * @author Ralph Gasser
  */
 class InteractiveSynchronousRunManager(
-    val run: InteractiveSynchronousCompetition
-) : InteractiveRunManager {
+    override val evaluation: InteractiveSynchronousEvaluation,
+    override val store: TransientEntityStore
+) : InteractiveRunManager, TransientStoreSessionListener {
 
-    private val VIEWER_TIME_OUT = 30L //TODO make configurable
 
-    private val SCOREBOARD_UPDATE_INTERVAL_MS = 1000L // TODO make configurable
+    companion object {
+        /** The [Logger] instance used by [InteractiveSynchronousRunManager]. */
+        private val LOGGER = LoggerFactory.getLogger(InteractiveSynchronousRunManager::class.java)
+    }
 
-    private val LOGGER = LoggerFactory.getLogger(this.javaClass)
+    /** Generates and returns [ApiRunProperties] for this [InteractiveAsynchronousRunManager]. */
+    override val runProperties: ApiRunProperties
+        get() = ApiRunProperties(
+            this.evaluation.participantCanView,
+            false,
+            this.evaluation.allowRepeatedTasks,
+            this.evaluation.limitSubmissionPreviews
+        )
 
-    /** Number of consecutive errors which have to occur within the main execution loop before it tries to gracefully terminate */
-    private val maxErrorCount = 5
-
-    /**
-     * Alternative constructor from existing [InteractiveSynchronousCompetition].
-     */
-    constructor(description: CompetitionDescription, name: String, runProperties: RunProperties) : this(
-        InteractiveSynchronousCompetition(UID.EMPTY, name, description, runProperties).apply {
-            RunExecutor.runs.append(this)
-        }
-    )
-
-    override val runProperties: RunProperties
-    get() = run.properties
-
-    /** Run ID of this [InteractiveSynchronousRunManager]. */
-    override val id: UID
-        get() = this.run.id
+    /** [EvaluationId] of this [InteractiveSynchronousRunManager]. */
+    override val id: EvaluationId
+        get() = this.evaluation.id
 
     /** Name of this [InteractiveSynchronousRunManager]. */
     override val name: String
-        get() = this.run.name
+        get() = this.evaluation.name
 
-    /** The [CompetitionDescription] executed by this [InteractiveSynchronousRunManager]. */
-    override val description: CompetitionDescription
-        get() = this.run.description
-
-    /** The list of all [Submission]s tracked ever received by this [InteractiveSynchronousRunManager]. */
-    override val allSubmissions: List<Submission>
-        get() = this.stateLock.read {
-            this.run.tasks.flatMap { it.submissions }
-        }
+    /** The [ApiEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
+    override val template = this.evaluation.template
 
     /** The status of this [RunManager]. */
     @Volatile
-    override var status: RunManagerStatus = if (this.run.hasStarted) {
+    override var status: RunManagerStatus = if (this.evaluation.hasStarted) {
         RunManagerStatus.ACTIVE
     } else {
         RunManagerStatus.CREATED
     }
-        get() = this.stateLock.read {
-            return field
-        }
         private set
 
     /** Returns list [JudgementValidator]s associated with this [InteractiveSynchronousRunManager]. May be empty*/
     override val judgementValidators: List<JudgementValidator>
-        get() = this.run.tasks.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
+        get() = this.evaluation.taskRuns.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
 
     /** List of [Scoreboard]s for this [InteractiveSynchronousRunManager]. */
     override val scoreboards: List<Scoreboard>
-        get() = this.scoreboardsUpdatable.scoreboards
+        get() = this.evaluation.scoreboards
 
-    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time. */
-    override val scoreHistory: List<ScoreTimePoint>
-        get() = this.scoreboardsUpdatable.timeSeries
-
-    /** Internal data structure that tracks all [WebSocketConnection]s and their ready state (for [RunManagerStatus.PREPARING_TASK]) */
-    private val readyLatch = ReadyLatch<WebSocketConnection>()
-
-    /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable =
-        ScoreboardsUpdatable(this.description.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
-
-    /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
-    private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
-
-    /** The internal [DAOUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
-    private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
-
-    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable =
-        ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable, this.daoUpdatable)
-
-    /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
-    private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL)
+    /** Internal data structure that tracks all [WebSocketConnection]s and their ready state. */
+    private val readyLatch = ReadyLatch<ViewerInfo>()
 
     /** List of [Updatable] held by this [InteractiveSynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
-
 
     /** A lock for state changes to this [InteractiveSynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -141,33 +110,24 @@ class InteractiveSynchronousRunManager(
     }
 
     init {
-        /* Register relevant Updatables. */
-        this.updatables.add(this.scoresUpdatable)
-        this.updatables.add(this.scoreboardsUpdatable)
-        this.updatables.add(this.messageQueueUpdatable)
-        this.updatables.add(this.daoUpdatable)
-        this.updatables.add(this.endTaskUpdatable)
+        /* Loads optional updatable. */
+        this.registerOptionalUpdatables()
 
-
-        /** End ongoing runs upon initialization (in case server crashed during task execution). */
-        if (this.run.currentTask?.isRunning == true) {
-            this.run.currentTask?.end()
-        }
-
-        /** Re-enqueue pending submissions (if any). */
-        this.run.tasks.forEach { run ->
-            run.submissions.filter { it.status == SubmissionStatus.INDETERMINATE }.forEach {
-                run.validator.validate(it)
+        /* End ongoing tasks upon initialization (in case server crashed during task execution). */
+        for (task in this.evaluation.taskRuns) {
+            if (task.isRunning || task.status == ApiTaskStatus.RUNNING) {
+                task.end()
             }
         }
 
-        /** Re-calculate all the relevant scores. */
-        this.run.tasks.forEach { run ->
-            run.submissions.forEach { sub ->
-                this.scoresUpdatable.enqueue(Pair(run, sub))
+        /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
+        this.evaluation.taskRuns.forEach { task ->
+            task.getDbSubmissions().forEach { sub ->
+                sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.asSequence().forEach {
+                    task.validator.validate(it)
+                }
             }
         }
-        this.scoresUpdatable.update(this.status)
     }
 
     override fun start(context: RunActionContext) = this.stateLock.write {
@@ -175,18 +135,14 @@ class InteractiveSynchronousRunManager(
         checkContext(context)
 
         /* Start the run. */
-        this.run.start()
+        this.evaluation.start()
 
-        /* Update status. */
-        this.status = RunManagerStatus.ACTIVE
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_START))
 
-        /* Mark DAO for update. */
-        this.daoUpdatable.dirty = true
-
-        /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.COMPETITION_START))
-
+        /* Log and update status. */
         LOGGER.info("SynchronousRunManager ${this.id} started")
+        this.status = RunManagerStatus.ACTIVE
     }
 
     override fun end(context: RunActionContext) = this.stateLock.write {
@@ -194,31 +150,45 @@ class InteractiveSynchronousRunManager(
         checkContext(context)
 
         /* End the run. */
-        this.run.end()
+        this.evaluation.end()
 
         /* Update status. */
         this.status = RunManagerStatus.TERMINATED
 
-        /* Mark DAO for update. */
-        this.daoUpdatable.dirty = true
-
-        /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.COMPETITION_END))
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_END))
 
         LOGGER.info("SynchronousRunManager ${this.id} terminated")
     }
 
-    override fun currentTaskDescription(context: RunActionContext): TaskDescription = this.stateLock.write {
-        checkStatus(
-            RunManagerStatus.CREATED,
-            RunManagerStatus.ACTIVE/*, RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED*/
-        )
-        this.run.currentTaskDescription
+    /**
+     * Updates the [ApiRunProperties] for the [InteractiveSynchronousEvaluation] backing this [InteractiveSynchronousRunManager].
+     *
+     * @param properties The set of new [ApiRunProperties]
+     */
+    override fun updateProperties(properties: ApiRunProperties) {
+        store.transactional {
+            this.evaluation.allowRepeatedTasks = properties.allowRepeatedTasks
+            this.evaluation.limitSubmissionPreviews = properties.limitSubmissionPreviews
+            this.evaluation.participantCanView = properties.participantCanView
+        }
+    }
+
+    /**
+     * Returns the [DbTaskTemplate] this [InteractiveAsynchronousRunManager] is currently pointing to.
+     *
+     * Requires an active database transaction.
+     *
+     * @return [DbTaskTemplate]
+     */
+    override fun currentTaskTemplate(context: RunActionContext): ApiTaskTemplate = this.stateLock.write {
+        checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE)
+        this.evaluation.getCurrentTaskTemplate()
     }
 
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
-        val newIndex = this.description.tasks.indexOf(this.run.currentTaskDescription) - 1
+        val newIndex = this.evaluation.templateIndex - 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -229,7 +199,7 @@ class InteractiveSynchronousRunManager(
 
     override fun next(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
-        val newIndex = this.description.tasks.indexOf(this.run.currentTaskDescription) + 1
+        val newIndex = this.evaluation.templateIndex + 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -241,20 +211,13 @@ class InteractiveSynchronousRunManager(
     override fun goTo(context: RunActionContext, index: Int) {
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
-        if (index >= 0 && index < this.description.tasks.size) {
-
+        this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING }
+        if (index >= 0 && index < this.template.tasks.size) {
             /* Update active task. */
-            this.run.goTo(index)
+            this.evaluation.goTo(index)
 
-            //FIXME since task run and competition run states are separated, this is not actually a state change
-//            /* Update RunManager status. */
-//            this.status = RunManagerStatus.ACTIVE
-
-            /* Mark scoreboards for update. */
-            this.scoreboardsUpdatable.dirty = true
-
-            /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.COMPETITION_UPDATE))
+            /* Clear ready latch */
+            this.readyLatch.clear()
 
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
         } else {
@@ -267,135 +230,147 @@ class InteractiveSynchronousRunManager(
         assureNoRunningTask()
         checkContext(context)
 
-        val currentTaskDescription = this.currentTaskDescription(context)
-
-        /* Check for duplicate task runs */
-        if (!runProperties.allowRepeatedTasks && this.run.tasks.any { it.description.id == currentTaskDescription.id }) {
-            throw IllegalStateException("Task '${currentTaskDescription.name}' has already been used")
+        val currentTaskTemplate = this.currentTaskTemplate(context)
+        if (!this.evaluation.allowRepeatedTasks && this.evaluation.taskRuns.any { it.template.id == currentTaskTemplate.id }) {
+            throw IllegalStateException("Task '${currentTaskTemplate.name}' has already been used.")
         }
 
-        /* Create and prepare pipeline for submission. */
-        this.run.Task(taskDescriptionId = currentTaskDescription.id)
+        val dbTask = this.store.transactional {
 
-        /* Update status. */
-        //this.status = RunManagerStatus.PREPARING_TASK
-        this.run.currentTask!!.prepare()
+            val dbTaskTemplate = DbTaskTemplate.filter { it.id eq currentTaskTemplate.id!! }.first()
 
-        /* Mark scoreboards and dao for update. */
-        this.scoreboardsUpdatable.dirty = true
-        this.daoUpdatable.dirty = true
+            /* create task, needs to be persisted before run can be created */
+            val dbTask = DbTask.new {
+                status = DbTaskStatus.CREATED
+                evaluation = this@InteractiveSynchronousRunManager.evaluation.dbEvaluation
+                template = dbTaskTemplate
+            }
 
-        /* Reset the ReadyLatch. */
-        this.readyLatch.reset(VIEWER_TIME_OUT)
+            dbTask
+        }
 
-        /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_PREPARE))
+        this.store.transactional {
 
-        LOGGER.info("SynchronousRunManager ${this.id} started task task ${this.run.currentTaskDescription}")
+            /* Create and prepare pipeline for submission. */
+            this.evaluation.ISTaskRun(dbTask)
+
+            /* Update status. */
+            this.evaluation.currentTaskRun!!.prepare()
+
+            /* Reset the ReadyLatch. */
+            this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
+        }
+
+
+        LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.currentTaskRun?.taskId} with task template ${this.evaluation.getCurrentTaskTemplate().id}.")
+
+        this.evaluation.currentTaskRun!!.taskId
     }
 
     override fun abortTask(context: RunActionContext) = this.stateLock.write {
-        //checkStatus(RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK)
         checkStatus(RunManagerStatus.ACTIVE)
-        assureTaskPreparingOrRunning()
+        assertTaskPreparingOrRunning()
         checkContext(context)
 
-        /* End TaskRun and persist. */
-        this.currentTask(context)?.end()
-
-//        /* Update state. */
-//        this.status = RunManagerStatus.TASK_ENDED
-
-        /* Mark scoreboards and dao for update. */
-        this.scoreboardsUpdatable.dirty = true
-        this.daoUpdatable.dirty = true
-
-        /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_END))
-
-        LOGGER.info("SynchronousRunManager ${this.id} aborted task task ${this.run.currentTaskDescription}")
-    }
-
-    /** List of [InteractiveSynchronousCompetition.Task] for this [InteractiveSynchronousRunManager]. */
-    override fun tasks(context: RunActionContext): List<InteractiveSynchronousCompetition.Task> = this.run.tasks
-
-    /**
-     * Returns the currently active [InteractiveSynchronousCompetition.Task]s or null, if no such task is active.
-     *
-     * @param context The [RunActionContext] used for the invocation.
-     * @return [InteractiveSynchronousCompetition.Task] or null
-     */
-    override fun currentTask(context: RunActionContext) = this.stateLock.read {
-//        when (this.status) {
-//            RunManagerStatus.PREPARING_TASK,
-//            RunManagerStatus.RUNNING_TASK,
-//            RunManagerStatus.TASK_ENDED -> this.run.lastTask
-//            else -> null
-//        }
-
-        when (this.run.currentTask?.status) {
-            TaskRunStatus.PREPARING,
-            TaskRunStatus.RUNNING,
-            TaskRunStatus.ENDED -> this.run.currentTask
-            else -> null
+        this.store.transactional {
+            /* End TaskRun and persist. */
+            this.currentTask(context)?.end()
         }
 
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.currentTask(context)?.taskId))
+        LOGGER.info("SynchronousRunManager ${this.id} aborted task ${this.evaluation.currentTaskRun?.taskId} with task template ${this.evaluation.getCurrentTaskTemplate().id}.")
+    }
+
+    /** List of [DbTask] for this [InteractiveSynchronousRunManager]. */
+    override fun tasks(context: RunActionContext): List<AbstractInteractiveTask> = this.evaluation.taskRuns
+
+    /**
+     * Returns the currently active [DbTask]s or null, if no such task is active.
+     *
+     * @param context The [RunActionContext] used for the invocation.
+     * @return [DbTask] or null
+     */
+    override fun currentTask(context: RunActionContext) = this.stateLock.read {
+        when (this.evaluation.currentTaskRun?.status) {
+            ApiTaskStatus.PREPARING,
+            ApiTaskStatus.RUNNING,
+            ApiTaskStatus.ENDED -> this.evaluation.currentTaskRun
+
+            else -> null
+        }
     }
 
     /**
-     * Returns [InteractiveSynchronousCompetition.Task]s for a specific task [UID]. May be empty.
+     * Returns [DbTask]s for a specific task [EvaluationId]. May be empty.
      *
-     * @param taskId The [UID] of the [InteractiveSynchronousCompetition.Task].
+     * @param taskId The [EvaluationId] of the [TaskRun].
      */
-    override fun taskForId(context: RunActionContext, taskId: UID): InteractiveSynchronousCompetition.Task? =
-        this.run.tasks.find { it.uid == taskId }
+    override fun taskForId(context: RunActionContext, taskId: EvaluationId) =
+        this.evaluation.taskRuns.find { it.taskId == taskId }
 
     /**
-     * Returns the [Submission]s for all currently active [InteractiveSynchronousCompetition.Task]s or an empty [List], if no such task is active.
+     * List of all [DbSubmission]s for this [InteractiveAsynchronousRunManager], irrespective of the [DbTask] it belongs to.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return List of [Submission]s for the currently active [InteractiveSynchronousCompetition.Task]
+     * @return List of [DbSubmission]s.
      */
-    override fun submissions(context: RunActionContext): List<Submission> =
-        this.currentTask(context)?.submissions?.toList() ?: emptyList()
+    override fun allSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
+        this.evaluation.taskRuns.flatMap { it.getDbSubmissions() }
+    }
 
     /**
-     * Returns the number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager].
+     * Returns the [DbSubmission]s for all currently active [DbTask]s or an empty [List], if no such task is active.
      *
-     * @return The number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager]
+     * @param context The [RunActionContext] used for the invocation.
+     * @return List of [DbSubmission]s for the currently active [DbTask]
      */
-    override fun taskCount(context: RunActionContext): Int = this.run.tasks.size
+    override fun currentSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
+        this.currentTask(context)?.getDbSubmissions()?.toList() ?: emptyList()
+    }
 
     /**
-     * Adjusts the duration of the current [InteractiveSynchronousCompetition.Task] by the specified amount. Amount can be either positive or negative.
+     * Returns the number of [DbTask]s held by this [RunManager].
+     *
+     * @return The number of [DbTask]s held by this [RunManager]
+     */
+    override fun taskCount(context: RunActionContext): Int = this.evaluation.taskRuns.size
+
+    /**
+     * Adjusts the duration of the current [DbTask] by the specified amount. Amount can be either positive or negative.
      *
      * @param s The number of seconds to adjust the duration by.
      * @return Time remaining until the task will end in milliseconds
      *
      * @throws IllegalArgumentException If the specified correction cannot be applied.
-     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
+     * @throws IllegalStateException If [RunManager] was not in wrong [RunManagerStatus].
      */
     override fun adjustDuration(context: RunActionContext, s: Int): Long = this.stateLock.read {
-        assureTaskRunning()
         checkContext(context)
 
-        val currentTaskRun = this.currentTask(context)
+        /* Obtain task and perform sanity check. */
+        val task = this.currentTask(context)
             ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
-        val newDuration = currentTaskRun.duration + s
-        check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
-        currentTaskRun.duration = newDuration
-        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
+        check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
+
+        /* Adjust duration. */
+        val newDuration = task.duration + s
+        if ((newDuration * 1000L - (System.currentTimeMillis() - task.started!!)) < 0) {
+            throw IllegalArgumentException("New duration $s can not be applied because too much time has already elapsed.")
+        }
+        task.duration = newDuration
+        return (task.duration * 1000L - (System.currentTimeMillis() - task.started!!))
     }
 
     /**
-     * Returns the time in milliseconds that is left until the end of the current [InteractiveSynchronousCompetition.Task].
-     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running,
+     * Returns the time in milliseconds that is left until the end of the current [DbTask].
+     * Only works if the [RunManager] is in wrong [RunManagerStatus]. If no task is running,
      * this method returns -1L.
      *
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
-        return if (this.run.currentTask?.status == TaskRunStatus.RUNNING) {
+        return if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             max(
@@ -408,13 +383,13 @@ class InteractiveSynchronousRunManager(
     }
 
     /**
-     * Returns the time in milliseconds that has elapsed since the start of the current [InteractiveSynchronousCompetition.Task].
-     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running, this method returns -1L.
+     * Returns the time in milliseconds that has elapsed since the start of the current [DbTask].
+     * Only works if the [RunManager] is in wrong [RunManagerStatus]. If no task is running, this method returns -1L.
      *
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
-        return if (this.run.currentTask?.status == TaskRunStatus.RUNNING) {
+        return if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
@@ -428,7 +403,7 @@ class InteractiveSynchronousRunManager(
      *
      * @return Map of session ID to ready state.
      */
-    override fun viewers(): HashMap<WebSocketConnection, Boolean> = this.readyLatch.state()
+    override fun viewers(): HashMap<ViewerInfo, Boolean> = this.readyLatch.state()
 
     /**
      * Can be used to manually override the READY state of a viewer. Can be used in case a viewer hangs in the PREPARING_TASK phase.
@@ -436,13 +411,12 @@ class InteractiveSynchronousRunManager(
      * @param viewerId The ID of the viewer's WebSocket session.
      */
     override fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean = this.stateLock.read {
-        //checkStatus(RunManagerStatus.PREPARING_TASK)
         checkStatus(RunManagerStatus.ACTIVE)
-        assureTaskPreparingOrRunning()
+        assertTaskPreparingOrRunning()
         checkContext(context)
 
         return try {
-            val viewer = this.readyLatch.state().keys.find { it.sessionId == viewerId }
+            val viewer = this.readyLatch.state().keys.find { it.sessionToken == viewerId }
             if (viewer != null) {
                 this.readyLatch.setReady(viewer)
                 true
@@ -454,130 +428,185 @@ class InteractiveSynchronousRunManager(
         }
     }
 
-    /**
-     * Processes WebSocket [ClientMessage] received by the [RunExecutor].
-     *
-     * @param connection The [WebSocketConnection] through which the message was received.
-     * @param message The [ClientMessage] received.
-     */
-    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean =
-        this.stateLock.read {
-            when (message.type) {
-                ClientMessageType.ACK -> {
-                    if (this.run.currentTask?.status == TaskRunStatus.PREPARING) {
-                        this.readyLatch.setReady(connection)
-                    }
-                }
-                ClientMessageType.REGISTER -> this.readyLatch.register(connection)
-                ClientMessageType.UNREGISTER -> this.readyLatch.unregister(connection)
-                ClientMessageType.PING -> {
-                } //handled in [RunExecutor]
+//    /**
+//     * Processes WebSocket [ClientMessage] received by the [RunExecutor].
+//     *
+//     * @param connection The [WebSocketConnection] through which the message was received.
+//     * @param message The [ClientMessage] received.
+//     */
+//    override fun wsMessageReceived(
+//        connection: WebSocketConnection,
+//        message: ClientMessage
+//    ): Boolean =
+//        this.stateLock.read {
+//            when (message.type) {
+//                ClientMessageType.ACK -> {
+//                    this.store.transactional(true) {
+//                        if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING) {
+//                            this.readyLatch.setReady(connection)
+//                        }
+//                    }
+//                }
+//                ClientMessageType.REGISTER -> this.readyLatch.register(connection)
+//                ClientMessageType.UNREGISTER -> this.readyLatch.unregister(connection)
+//                ClientMessageType.PING -> {
+//                } //handled in [RunExecutor]
+//            }
+//            return true
+//        }
+
+    override fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+
+        val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
+
+        if (taskTemplateId == currentTemplateId) {
+            this.readyLatch.register(viewerInfo)
+        }
+
+    }
+
+    override fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+
+        val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
+
+        if (taskTemplateId == currentTemplateId) {
+            if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING) {
+                this.readyLatch.register(viewerInfo) //avoid redying previously untracked viewers
+                this.readyLatch.setReady(viewerInfo)
             }
-            return true
         }
 
-    /**
-     * Processes incoming [Submission]s. If a [InteractiveSynchronousCompetition.Task] is running then that [Submission] will usually
-     * be associated with that [InteractiveSynchronousCompetition.Task].
-     *
-     * This method will not throw an exception and instead return false if a [Submission] was
-     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
-     * this method again.
-     *
-     * @param context The [RunActionContext] used for the invocation
-     * @param sub [Submission] that should be registered.
-     */
-    override fun postSubmission(context: RunActionContext, sub: Submission): SubmissionStatus = this.stateLock.read {
-        assureTaskRunning()
-
-        /* Register submission. */
-        val task = this.currentTask(context)
-            ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
-        task.addSubmission(sub)
-
-        /** Checks for the presence of the [SimpleOption.PROLONG_ON_SUBMISSION] and applies it. */
-        val option = task.description.taskType.options.find { it.option == SimpleOption.PROLONG_ON_SUBMISSION }
-        if (option != null) {
-            this.prolongOnSubmit(context, option, sub)
-        }
-
-        /* Mark DAO for update. */
-        this.daoUpdatable.dirty = true
-
-        /* Enqueue submission for post-processing. */
-        this.scoresUpdatable.enqueue(Pair(task, sub))
-
-        /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED))
-
-        return sub.status
     }
 
     /**
-     * Processes incoming [Submission]s. If a [InteractiveSynchronousCompetition.Task] is running then that [Submission] will usually
-     * be associated with that [InteractiveSynchronousCompetition.Task].
+     * Processes incoming [ApiSubmission]s. If a [DbTask] is running then that [ApiSubmission] will usually
+     * be associated with that [DbTask].
      *
-     * This method will not throw an exception and instead return false if a [Submission] was
+     * This method will not throw an exception and instead return false if a [ApiSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
-     * @param context The [RunActionContext] used for the invocation
-     * @param submissionId The [UID] of the [Submission] to update.
-     * @param submissionStatus The new [SubmissionStatus]
+     * @param context The [RunActionContext] used for the invocation.
+     * @param submission [ApiSubmission] that should be registered.
+     */
+    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) = this.stateLock.read {
+
+        /* Phase 1: Basic lookups required for validation (read-only). */
+        val (task, transformedSubmission) = this.store.transactional(true) {
+            val task =
+                this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager.")
+            check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running." }
+
+            /* Update submission with contextual information. */
+            submission.userId = context.userId
+            submission.teamId = context.teamId()
+            submission.answerSets.forEach {
+                it.taskId = task.taskId /* All answers are explicitly associated with the running task. */
+            }
+
+            /* Apply transformer(s) to submission. */
+            val transformedSubmission = task.transformer.transform(submission)
+
+
+            /* Run submission through all the filters. */
+            task.filter.acceptOrThrow(transformedSubmission)
+            task to transformedSubmission
+        }
+
+        /* Phase 2: Create DbSubmission, apply transformers and validate it. */
+        return@read this.store.transactional {
+            /* Convert submission to database representation. */
+            val db = transformedSubmission.toNewDb()
+
+            /* Check if there are answers left after transformation */
+            if (db.answerSets.isEmpty) {
+                throw IllegalStateException("Submission contains no valid answer sets.")
+            }
+
+            /* Apply validators to each answer set. */
+            db.answerSets.asSequence().forEach {
+                task.validator.validate(it)
+            }
+
+            db.toApi()
+        }
+    }
+
+    /**
+     * Processes incoming [DbSubmission]s. If a [DbTask] is running then that [DbSubmission] will usually
+     * be associated with that [DbTask].
+     *
+     * @param context The [RunActionContext] used for the invocation.
+     * @param submissionId The [EvaluationId] of the [DbSubmission] to update.
      * @return True on success, false otherwise.
      */
     override fun updateSubmission(
         context: RunActionContext,
-        submissionId: UID,
-        submissionStatus: SubmissionStatus
+        submissionId: SubmissionId,
+        submissionStatus: ApiVerdictStatus
     ): Boolean = this.stateLock.read {
-        /* Sanity check. */
-        val found = this.allSubmissions.find { it.uid == submissionId } ?: return false
+        val (taskId, status) = this.store.transactional {
+            val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull()
+                ?: throw IllegalArgumentException("Could not find submission with ID ${submissionId}.")
 
-        /* Actual update - currently, only status update is allowed */
-        if (found.status != submissionStatus) {
-            found.status = submissionStatus
-
-            /* Mark DAO for update. */
-            this.daoUpdatable.dirty = true
-
-            /* Enqueue submission for post-processing. */
-            this.scoresUpdatable.enqueue(Pair(found.task!!, found))
-
-            /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED))
-
-            return true
+            /* Actual update - currently, only status update is allowed */
+            val newStatus = submissionStatus.toDb()
+            if (answerSet.status != newStatus) {
+                answerSet.status = newStatus
+                answerSet.task.id to true
+            } else {
+                answerSet.task.id to false
+            }
         }
-
-        return false
+        return status
     }
 
     /**
-     * Internal method that orchestrates the internal progression of the [InteractiveSynchronousCompetition].
+     *
+     */
+    override fun reScore(taskId: TaskId) {
+        val task = evaluation.taskRuns.find { it.taskId == taskId }
+        task?.scorer?.invalidate()
+    }
+
+    /**
+     * Method that orchestrates the internal progression of the [InteractiveSynchronousEvaluation].
+     *
+     * Implements the main run-loop.
      */
     override fun run() {
-        /** Sort list of by [Phase] in ascending order. */
-        this.updatables.sortBy { it.phase }
+        /* Preparation . */
+        this.stateLock.read {
+            this.store.transactional {
+                this.updatables.sortBy { it.phase } /* Sort list of by [Phase] in ascending order. */
+                AccessManager.registerRunManager(this) /* Register the run manager with the access manager. */
+            }
+        }
 
+        /** Add this InteractiveSynchronousRunManager as a listener for changes to the data store. */
+        this.store.addListener(this)
+
+        /* Initialize error counter. */
         var errorCounter = 0
 
-        /** Start [InteractiveSynchronousRunManager] . */
+        /* Start [InteractiveSynchronousRunManager]; main run-loop. */
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
                 /* Obtain lock on current state. */
                 this.stateLock.read {
-                    /* 2) Invoke all relevant [Updatable]s. */
-                    this.invokeUpdatables()
+                    this.store.transactional {
+                        /* 1) Invoke all relevant [Updatable]s. */
+                        this.invokeUpdatables()
 
-                    /* 3) Process internal state updates (if necessary). */
-                    this.internalStateUpdate()
+                        /* 2) Process internal state updates (if necessary). */
+                        this.internalStateUpdate()
+                    }
                 }
 
                 /* 3) Yield to other threads. */
-                Thread.sleep(10)
+                Thread.sleep(500)
 
-                /* Reset error counter. */
+                /* 4) Reset error counter and yield to other threads. */
                 errorCounter = 0
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted SynchronousRunManager, exiting")
@@ -587,20 +616,25 @@ class InteractiveSynchronousRunManager(
                     "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
                     e
                 )
-                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $maxErrorCount errors")
+                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
 
                 // oh shit, something went horribly, horribly wrong
-                if (errorCounter >= maxErrorCount) {
+                if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
                     LOGGER.error("Reached maximum consecutive error count, terminating loop")
-                    RunExecutor.dump(this.run)
                     break //terminate loop
                 }
             }
         }
 
-        /** Invoke [Updatable]s one last time. */
+        /* Remove this InteractiveSynchronousRunManager as a listener for changes to the data store. */
+        this.store.removeListener(this)
+
+        /* Finalization. */
         this.stateLock.read {
-            this.invokeUpdatables()
+            this.store.transactional {
+                this.invokeUpdatables() /* Invoke [Updatable]s one last time. */
+                AccessManager.deregisterRunManager(this) /* De-register this run manager with the access manager. */
+            }
         }
 
         LOGGER.info("SynchronousRunManager ${this.id} reached end of run logic.")
@@ -610,16 +644,11 @@ class InteractiveSynchronousRunManager(
      * Invokes all [Updatable]s registered with this [InteractiveSynchronousRunManager].
      */
     private fun invokeUpdatables() {
+        val runStatus = this.status
+        val taskStatus = this.evaluation.currentTaskRun?.status
         this.updatables.forEach {
-            if (it.shouldBeUpdated(this.status)) {
-                try {
-                    it.update(this.status)
-                } catch (e: Throwable) {
-                    LOGGER.error(
-                        "Uncaught exception while updating ${it.javaClass.simpleName} for competition run ${this.id}. Loop will continue to work but this error should be handled!",
-                        e
-                    )
-                }
+            if (it.shouldBeUpdated(runStatus, taskStatus)) {
+                it.update(runStatus, taskStatus)
             }
         }
     }
@@ -630,65 +659,58 @@ class InteractiveSynchronousRunManager(
      */
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
-        if (this.run.currentTask?.status == TaskRunStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
+        if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             this.stateLock.write {
-                this.run.currentTask!!.start()
-                //this.status = RunManagerStatus.RUNNING_TASK
-                AuditLogger.taskStart(this.id, this.run.currentTask!!.uid, this.run.currentTaskDescription, LogEventSource.INTERNAL, null)
+                this.evaluation.currentTaskRun!!.start()
+                AuditLogger.taskStart(
+                    this.id,
+                    this.evaluation.currentTaskRun!!.taskId,
+                    this.evaluation.getCurrentTaskTemplate(),
+                    AuditLogSource.INTERNAL,
+                    null
+                )
             }
 
-            /* Mark DAO for update. */
-            this.daoUpdatable.dirty = true
-
-            /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_START))
+//            /* Enqueue WS message for sending */
+//            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_START, this.evaluation.currentTask?.taskId))
         }
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
-        if (this.run.currentTask?.status == TaskRunStatus.RUNNING) {
-            val task = this.run.currentTask!!
-            val timeLeft = max(
-                0L,
-                task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
-            )
-            if (timeLeft <= 0) {
-                this.stateLock.write {
+        if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
+            this.stateLock.write {
+                val task = this.evaluation.currentTaskRun!!
+                val timeLeft = max(
+                    0L,
+                    task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                )
+                if (timeLeft <= 0) {
                     task.end()
-                    //this.status = RunManagerStatus.TASK_ENDED
-                    AuditLogger.taskEnd(this.id, this.run.currentTask!!.uid, this.run.currentTaskDescription, LogEventSource.INTERNAL, null)
-                    EventStreamProcessor.event(TaskEndEvent(this.id, task.uid))
+                    AuditLogger.taskEnd(this.id, this.evaluation.currentTaskRun!!.taskId, AuditLogSource.INTERNAL, null)
+                    EventStreamProcessor.event(TaskEndEvent(this.id, task.taskId))
+
+//                    /* Enqueue WS message for sending */
+//                    RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.evaluation.currentTask?.taskId))
                 }
-
-                /* Mark DAO for update. */
-                this.daoUpdatable.dirty = true
-
-                /* Enqueue WS message for sending */
-                this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_END))
             }
         }
     }
 
     /**
-     * Applies the [SimpleOption.PROLONG_ON_SUBMISSION] [Option].
-     *
-     * @param context [RunActionContext] used for invocation.
-     * @param option The [ConfiguredOption<SimpleOption>] option.
-     * @param sub The [Submission] to apply the [Option] for.
+     * Applies the [DbTaskOption.PROLONG_ON_SUBMISSION] and [DbSubmissionOption.LIMIT_CORRECT_PER_TEAM] options.
      */
-    private fun prolongOnSubmit(context: RunActionContext, option: ConfiguredOption<SimpleOption>, sub: Submission) {
-        require(option.option == SimpleOption.PROLONG_ON_SUBMISSION) { "Cannot process ${option.option} in prolongOnSubmit()." }
-        val limit = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM)
-            ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT
-        val prolongBy = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_BY_PARAM)
-            ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_BY_DEFAULT
-        val correctOnly = option.getAsBool(SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM)
-            ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
-        if (correctOnly && sub.status != SubmissionStatus.CORRECT) {
-            return
+    private fun registerOptionalUpdatables() {
+        /* Determine if any task should be prolonged upon submission. */
+        val prolongOnSubmit =
+            this.template.taskTypes.flatMap { it.taskOptions }.contains(ApiTaskOption.PROLONG_ON_SUBMISSION)
+        if (prolongOnSubmit) {
+            this.updatables.add(ProlongOnSubmitUpdatable(this))
         }
-        val timeLeft = Math.floorDiv(this.timeLeft(context), 1000)
-        if (timeLeft in 0 until limit) {
-            this.adjustDuration(context, prolongBy)
+
+        /* Determine if any task should be ended once submission threshold per team is reached. */
+        val endOnSubmit = this.template.taskTypes.flatMap { it.submissionOptions }
+            .contains(ApiSubmissionOption.LIMIT_CORRECT_PER_TEAM) //FIXME should take into account all limits
+        if (endOnSubmit) {
+            this.updatables.add(EndOnSubmitUpdatable(this))
         }
     }
 
@@ -701,16 +723,82 @@ class InteractiveSynchronousRunManager(
         if (this.status !in status) throw IllegalRunStateException(this.status)
     }
 
-    private fun assureTaskRunning() {
-        if (this.run.currentTask?.status != TaskRunStatus.RUNNING) throw IllegalStateException("Task not running")
+    /**
+     * Internal assertion method that makes sure that a task is either preparing or running.
+     *
+     * @throws IllegalArgumentException If task is neither preparing nor running.
+     */
+    private fun assertTaskPreparingOrRunning() {
+        val status = this.evaluation.currentTaskRun?.status
+        if (status != ApiTaskStatus.RUNNING && status != ApiTaskStatus.PREPARING) throw IllegalStateException("Task is neither preparing nor running.")
     }
 
-    private fun assureTaskPreparingOrRunning() {
-        val status = this.run.currentTask?.status
-        if (status != TaskRunStatus.RUNNING && status != TaskRunStatus.PREPARING) throw IllegalStateException("Task not preparing or running")
-    }
-
+    /**
+     * Internal assertion method that makes sure that no task is running.
+     *
+     * @throws IllegalArgumentException If task is neither preparing nor running.
+     */
     private fun assureNoRunningTask() {
-        if (this.run.tasks.any { it.status == TaskRunStatus.RUNNING }) throw IllegalStateException("Task running!")
+        if (this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING }) throw IllegalStateException("Task is already running!")
+    }
+
+    /**
+     * Convenience method: Tries to find a matching [TeamId] in the context of this [InteractiveSynchronousRunManager]
+     * for the user associated with the current [RunActionContext].
+     *
+     * @return [TeamId]
+     */
+    private fun RunActionContext.teamId(): TeamId {
+        val userId = this.userId
+        return this@InteractiveSynchronousRunManager.template.teams.singleOrNull { t -> t.users.any { it.id == userId } }?.teamId
+            ?: throw IllegalArgumentException("Could not find matching team for user, which is required for interaction with this run manager.")
+    }
+
+    /**
+     * [TransientStoreSessionListener] implementation: Currently has no effect.
+     */
+    override fun afterConstraintsFail(
+        session: TransientStoreSession,
+        exceptions: Set<DataIntegrityViolationException>
+    ) {
+        /* No op. */
+    }
+
+    /**
+     * [TransientStoreSessionListener] implementation: Currently has no effect.
+     *
+     * @param session The [TransientStoreSession] that triggered the invocation.
+     * @param changedEntities The [TransientEntityChange]s for the transaction.
+     */
+    override fun beforeFlushBeforeConstraints(
+        session: TransientStoreSession,
+        changedEntities: Set<TransientEntityChange>
+    ) {
+        /* No op. */
+    }
+
+    /**
+     * [TransientStoreSessionListener] implementation: Reacts to changes to the [DbAnswerSet] entity and invalidates [Scoreboard]s and [Scorer]s if necessary.
+     *
+     * @param session The [TransientStoreSession] that triggered the invocation.
+     * @param changedEntities The [TransientEntityChange]s for the transaction.
+     */
+    override fun flushed(session: TransientStoreSession, changedEntities: Set<TransientEntityChange>) {
+        if (!session.isReadonly) {
+            for (c in changedEntities) {
+                if (c.transientEntity.persistentEntity.type == "DbAnswerSet") {
+                    val xdId = c.transientEntity.persistentEntity.id.toString()
+                    val task = DbAnswerSet.findById(xdId).task
+                    if (this.evaluation.id == task.evaluation.id) {
+                        val t = this.taskForId(RunActionContext.INTERNAL, task.id)
+                        if (t != null) {
+                            t.scorer.invalidate()
+                            this.scoreboards.forEach { it.invalidate() }
+//                            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.id))
+                        }
+                    }
+                }
+            }
+        }
     }
 }

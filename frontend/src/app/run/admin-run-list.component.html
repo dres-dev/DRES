@@ -1,18 +1,13 @@
-<div style="display: flex">
-  <app-back-button></app-back-button>
-  <div><h1>Ongoing runs</h1></div>
-</div>
-
 <div>
-  <table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
+  <table #table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
     <!-- Name Column -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Actions</th>
       <td mat-cell *matCellDef="let row">
         <button
           mat-icon-button
-          aria-label="Go to competition viewer."
-          matTooltip="Go to competition viewer."
+          aria-label="Go to evaluation viewer."
+          matTooltip="Go to evaluation viewer."
           (click)="navigateToViewer(row.id)"
         >
           <mat-icon>visibility</mat-icon>
@@ -56,11 +51,21 @@
         <button
           *ngIf="row.runStatus == 'CREATED'"
           mat-icon-button
-          aria-label="Start the competition run."
-          matTooltip="Start the competition run."
+          aria-label="Start the evaluation run."
+          matTooltip="Start the evaluation run."
           (click)="start(row.id)"
         >
           <mat-icon>play_arrow</mat-icon>
+        </button>
+
+        <button
+          *ngIf="row.runStatus == 'CREATED' || row.runStatus == 'ACTIVE'"
+          mat-icon-button
+          aria-label="Terminate evaluation run."
+          matTooltip="Terminate evaluation run."
+          (click)="terminate(row.id)"
+        >
+          <mat-icon>stop</mat-icon>
         </button>
 
         <app-download-button
@@ -74,55 +79,8 @@
         >
         </app-download-button>
 
-        <button
-          *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'"
-          mat-icon-button
-          aria-label="Previous task."
-          matTooltip="Got to previous task."
-          (click)="previousTask(row.id)"
-        >
-          <mat-icon>skip_previous</mat-icon>
-        </button>
 
-        <button
-          *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'"
-          mat-icon-button
-          aria-label="Next task."
-          matTooltip="Go to next task."
-          (click)="nextTask(row.id)"
-        >
-          <mat-icon>skip_next</mat-icon>
-        </button>
 
-        <button
-          *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'"
-          mat-icon-button
-          aria-label="Start task."
-          matTooltip="Start task."
-          (click)="startTask(row.id)"
-        >
-          <mat-icon>play_circle_outline</mat-icon>
-        </button>
-
-        <button
-          *ngIf="row.taskRunStatus == 'PREPARING' || row.taskRunStatus == 'RUNNING'"
-          mat-icon-button
-          aria-label="Abort running task."
-          matTooltip="Abort running task '{{ row.currentTask.name }}'."
-          (click)="abortTask(row.id)"
-        >
-          <mat-icon>cancel</mat-icon>
-        </button>
-
-        <button
-          *ngIf="row.runStatus == 'CREATED' || row.runStatus == 'ACTIVE'"
-          mat-icon-button
-          aria-label="Terminate competition run."
-          matTooltip="Terminate competition run."
-          (click)="terminate(row.id)"
-        >
-          <mat-icon>stop</mat-icon>
-        </button>
         <app-download-button
           [name]="''"
           [fileName]="fileProvider(row.name)"
@@ -159,7 +117,7 @@
         *matCellDef="let row"
         [matTooltip]="row.asynchronous ? 'Not available for async runs' : 'The currently active task'"
       >
-        {{ row.currentTask }}
+        {{ row.currentTaskName }}
       </td>
     </ng-container>
 
@@ -169,9 +127,9 @@
       <td
         mat-cell
         *matCellDef="let row"
-        [matTooltip]="row.asynchronous ? 'Not available for async runs' : 'The currently active task'"
+        [matTooltip]="row.asynchronous ? 'Not available for async runs' : 'Remaining time on this task in seconds'"
       >
-        {{ row.timeLeft }}
+        {{ row.timeLeft }}s
       </td>
     </ng-container>
 

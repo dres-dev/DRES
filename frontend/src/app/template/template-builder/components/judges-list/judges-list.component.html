@@ -1,0 +1,55 @@
+<div class="flex flex-row align-center">
+    <h2>Judges</h2>
+    <div class="spacer-flex"></div>
+    <button mat-button [matMenuTriggerFor]="judgesSelection"
+            aria-label="Add new judge."
+            matTooltip="Add new judge."
+            (click)="refreshAvailableJudges()">
+        <mat-icon>add</mat-icon>
+        Add judge
+    </button>
+
+    <mat-menu #judgesSelection overlapTrigger="true">
+        <div style="padding: 0.5em">
+            <mat-form-field appearance="fill">
+                <mat-label>Judge Selection</mat-label>
+                <input
+                        type="text"
+                        placeholder="Judge"
+                        arial-label="Judge"
+                        matInput
+                        [matAutocomplete]="judgesAutocomplete"
+                        (click)="$event.stopPropagation()"
+                />
+                <mat-autocomplete
+                    #judgesAutocomplete="matAutocomplete"
+                    (optionSelected)="addJudge($event)"
+                    [displayWith]="displayJudge"
+                >
+                    <mat-option *ngFor="let judge of availableJudges | async" [value]="judge">
+                        {{ judge.username }}
+                    </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+        </div>
+    </mat-menu>
+</div>
+<table #judgesTable mat-table [dataSource]="(judges|async)" [style.width]="'100%'">
+    <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let judge">{{ (judgeForId(judge) | async)?.username }}</td>
+    </ng-container>
+
+    <!-- Action Column -->
+    <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef>Action</th>
+        <td mat-cell *matCellDef="let judge">
+            <button mat-icon-button aria-label="Remove Judge." matTooltip="Remove Judge." (click)="removeJudge(judge)">
+                <mat-icon>remove</mat-icon>
+            </button>
+        </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let judge; columns: displayedColumns"></tr>
+</table>

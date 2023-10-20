@@ -1,10 +1,6 @@
 import { NgModule } from '@angular/core';
-import { DefaultUrlSerializer, RouterModule, Routes, UrlSerializer } from '@angular/router';
-import { CompetitionBuilderComponent } from './competition/competition-builder/competition-builder.component';
-import { CompetitionListComponent } from './competition/competition-list/competition-list.component';
+import {RouterModule, Routes, UrlSerializer} from '@angular/router';
 import { LoginComponent } from './user/login/login.component';
-import { AuthenticationGuard } from './services/session/authentication.guard';
-import { UserDetails } from '../../openapi';
 import { RunViewerComponent } from './viewer/run-viewer.component';
 import { ProfileComponent } from './user/profile/profile.component';
 import { AdminUserListComponent } from './user/admin-user-list/admin-user-list.component';
@@ -13,120 +9,121 @@ import { RunListComponent } from './run/run-list.component';
 import { RunAdminViewComponent } from './run/run-admin-view.component';
 import { CollectionListComponent } from './collection/collection-list/collection-list.component';
 import { CollectionViewerComponent } from './collection/collection-viewer/collection-viewer.component';
-import { AdminAuditlogOverviewComponent } from './auditlog/admin-auditlog-overview/admin-auditlog-overview.component';
 import { CanDeactivateGuard } from './services/can-deactivate.guard';
-import { RunAdminSubmissionsListComponent } from './run/run-admin-submissions-list/run-admin-submissions-list.component';
 import { RunScoreHistoryComponent } from './run/score-history/run-score-history.component';
 import { JudgementVotingViewerComponent } from './judgement/judgement-voting-viewer.component';
-import RoleEnum = UserDetails.RoleEnum;
 import { RunAsyncAdminViewComponent } from './run/run-async-admin-view/run-async-admin-view.component';
-import { NonescapingUrlserializerClass } from './nonescaping-urlserializer.class';
+import {TemplateBuilderComponent} from './template/template-builder/template-builder.component';
+import { TemplateListComponent } from "./template/template-list/template-list.component";
+import { SubmissionsListComponent } from "./evaluation/admin/submission/submissions-list/submissions-list.component";
+import {
+  canActivateAdministrator,
+  canActivateAnyRole,
+  canActivateJudge,
+  canActivatePublicVote
+} from "./services/session/guard";
+import {NonescapingUrlserializerClass} from "./nonescaping-urlserializer.class";
+import {ForbiddenComponent} from "./error/forbidden.component";
+import {NotFoundComponent} from "./error/not-found.component";
+
+/**
+ * The ROUTE for evaluation templates.
+ * Formerly 'competition'
+ */
+const TEMPLATE_ROUTE = 'template';
+/**
+ * The ROUTE for evaluation instances / runs
+ * Formerly 'run'
+ */
+const EVALUATION_ROUTE = 'evaluation';
 
 const routes: Routes = [
   {
-    path: 'competition/list',
-    component: CompetitionListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] },
+    path: TEMPLATE_ROUTE + '/list',
+    component: TemplateListComponent,
+    canActivate: [canActivateAdministrator]
   },
   {
-    path: 'competition/builder/:competitionId',
-    component: CompetitionBuilderComponent,
-    canActivate: [AuthenticationGuard],
-    canDeactivate: [CanDeactivateGuard],
-    data: { roles: [RoleEnum.ADMIN] },
+    path: TEMPLATE_ROUTE+'/builder/:templateId',
+    component: TemplateBuilderComponent,
+    canActivate: [canActivateAdministrator],
+    canDeactivate: [CanDeactivateGuard]
   },
   {
-    path: 'run/list',
+    path: EVALUATION_ROUTE+'/list',
     component: RunListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT, RoleEnum.JUDGE] },
+    canActivate: [canActivateAnyRole]
   },
   {
-    path: 'run/admin/:runId',
+    path: EVALUATION_ROUTE+'/admin/:runId',
     component: RunAdminViewComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
-    path: 'run/scores/:runId',
+    path: EVALUATION_ROUTE+'/scores/:runId',
     component: RunScoreHistoryComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
-    path: 'run/admin/async/:runId',
+    path: EVALUATION_ROUTE+'/admin/async/:runId',
     component: RunAsyncAdminViewComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
-    path: 'run/admin/submissions/:runId/:taskId',
-    component: RunAdminSubmissionsListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] },
+    path: EVALUATION_ROUTE+'/admin/submissions/:runId/:taskId',
+    component: SubmissionsListComponent,
+    canActivate: [canActivateAdministrator]
   },
   {
-    path: 'run/viewer/:runId',
+    path: EVALUATION_ROUTE+'/viewer/:runId',
     component: RunViewerComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT, RoleEnum.JUDGE] },
+    canActivate: [canActivateAnyRole]
   },
   {
     path: 'judge/:runId',
     component: JudgementViewerComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN, RoleEnum.JUDGE] },
+    canActivate: [canActivateJudge]
   },
   {
     path: 'vote/:runId',
     component: JudgementVotingViewerComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN, RoleEnum.JUDGE, RoleEnum.VIEWER] },
+    canActivate: [canActivatePublicVote]
   },
-
-  { path: 'login', component: LoginComponent },
 
   {
     path: 'user',
     component: ProfileComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.JUDGE, RoleEnum.PARTICIPANT] },
+    canActivate: [canActivateAnyRole]
   },
 
   {
     path: 'user/list',
     component: AdminUserListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
     path: 'collection/list',
     component: CollectionListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
     path: 'collection/:collectionId',
     component: CollectionViewerComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
 
-  {
-    path: 'logs/list',
-    component: AdminAuditlogOverviewComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] },
-  },
+  /* The login + forbidden page is always accessible. */
+  { path: 'login', component: LoginComponent },
+  { path: 'forbidden', component: ForbiddenComponent},
 
-  // otherwise redirect to home
-  { path: '**', redirectTo: '' },
+  /* Two important 'catch-all's. */
+  { path: '', redirectTo: 'evaluation/list', pathMatch: 'full' },
+  { path: '**', component: NotFoundComponent, title: "404 - Not Found!" }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy', enableTracing: false })], // enable tracing for debugging
+  imports: [RouterModule.forRoot(routes, { enableTracing: false })], // enable tracing for debugging
   exports: [RouterModule],
-  providers: [{ provide: UrlSerializer, useClass: NonescapingUrlserializerClass }],
+  providers: [{ provide: UrlSerializer, useClass: NonescapingUrlserializerClass }]
 })
 export class AppRoutingModule {}

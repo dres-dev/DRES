@@ -1,0 +1,295 @@
+<ng-container *ngIf="!task; then inactive; else active">
+</ng-container>
+<ng-template #inactive>
+  <p>Currently no task selected</p>
+</ng-template>
+<ng-template #active>
+  <form [formGroup]="form">
+    <div class="flex flex-row content-between align-start">
+      <div class="flex-1">
+        <div class="flex flex-column content-between align-stretch">
+          <div class="flex-grow"><p *ngIf="form.get('id').value"><strong>UID: </strong>{{ form.get('id').value }}</p></div>
+          <div class="flex-grow">
+            <div class="flex flex-row content-between align-start"></div>
+            <p class="flex-48"><strong>Task type: </strong>{{taskType.name}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex-none">
+        <button mat-icon-button aria-label="Close the editor" matTooltip="Close the editor" (click)="close()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <p class="flex flex-row content-between align-stretch">
+      <mat-form-field class="flex-100">
+        <mat-select
+                [placeholder]="'Task Group'"
+                [formControl]="form.get('taskGroup')"
+        >
+          <mat-option *ngFor="let group of taskGroupOptions" [value]="group.name">
+            <span>{{ group.name }}</span>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </p>
+
+    <p class="flex flex-row content-between align-stretch">
+      <mat-form-field class="flex-40">
+        <mat-label>Name</mat-label>
+        <input type="text" matInput placeholder="Name" [formControl]="form.get('name')"/>
+      </mat-form-field>
+      <mat-form-field matTooltip="Comment only visible for administrators, not during the evaluation" class="flex-40">
+        <mat-label>Comment</mat-label>
+        <input type="text" matInput placeholder="Comment" [formControl]="form.get('comment')"/>
+      </mat-form-field>
+
+      <mat-form-field class="flex-40" *ngIf="form.get('mediaCollection')">
+        <mat-select
+          [placeholder]="(taskType.targetOption === 'JUDGEMENT' ? 'Default ' : '') + 'Media Collection'"
+          [formControl]="form.get('mediaCollection')"
+        >
+          <mat-option *ngFor="let mediaCollection of mediaCollectionSource | async"
+                      [value]="mediaCollection.id">
+            <span>{{ mediaCollection.name }}</span> (ID: {{ mediaCollection.id }})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="flex-20">
+        <mat-label>Duration [s]</mat-label>
+        <input type="number" matInput placeholder="Duration" [formControl]="form.get('duration')"/>
+      </mat-form-field>
+    </p>
+
+    <div *ngIf="form.get('mediaCollection').value && !(taskType.targetOption === 'JUDGEMENT' || taskType.targetOption === 'VOTE')">
+      <h2>
+        Target
+        <button
+          mat-button
+          matTooltip="Add {{taskType.targetOption === 'TEXT' ? 'target text': 'query target'}}"
+          (click)="addQueryTarget(taskType.targetOption)"
+        >
+          <mat-icon>add</mat-icon>
+        </button>
+        <!-- TODO Properly re-add
+        <mat-button-toggle-group
+          #group="matButtonToggleGroup"
+          [(value)]="viewLayout"
+        >
+          <mat-button-toggle value="list" aria-label="Display targets as list">
+            <mat-icon>list</mat-icon>
+          </mat-button-toggle>
+          <mat-button-toggle value="grid" aria-label="Display targets as grid">
+            <mat-icon>grid_on</mat-icon>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        -->
+        <!--
+        TODO Properly re-add
+        <button
+          mat-button
+          aria-label="Batch Target Add"
+          matTooltip="Batch Target Add"
+          (click)="batchAddTargets()"
+        >
+          <mat-icon>library_add</mat-icon>
+        </button>
+        -->
+      </h2>
+      <div *ngIf="viewLayout === 'list'">
+        <div *ngFor="let target of form.get('target')['controls']; let i = index"
+          class="flex flex-row content-between align-stretch"
+        >
+          <!-- follwing must not be flex, otherwise messes up layout heavily -->
+          <div class="flex-90 flex-row content-between align-stretch" style="width: 100%;">
+            <p [class]="target.get('mediaItem') && taskType.targetOption == 'TEXT' ? 'flex-100' : 'flex-33'">
+              <mat-form-field
+                *ngIf="target.get('mediaItem') && taskType.targetOption != 'TEXT'"
+                [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 90%;' : 'width: 100%;'"
+              >
+                <input
+                  type="text"
+                  matInput
+                  placeholder="Media item"
+                  [formControl]="target.get('mediaItem')"
+                  [matAutocomplete]="autoGroup"
+                />
+                <mat-autocomplete autoActiveFirstOption #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
+                  <mat-option
+                    *ngFor="let mediaItem of this.formBuilder.dataSource('target.' + i + '.mediaItem') | async | filterNotIn:formBuilder.getTargetMediaItems():'name' | orderBy:'asc':sortMediaItemByName"
+                    [value]="mediaItem"
+                  >
+                    <span>{{ mediaItem.name }}</span> |
+                    <small>Type: {{ mediaItem.type }}</small>
+                  </mat-option>
+                </mat-autocomplete>
+                <button
+                  mat-icon-button
+                  matSuffix
+                  [attr.aria-label]="'Pick random media item'"
+                  matTooltip="Random Media Item from collection"
+                  (click)="pickRandomMediaItem(form.get('mediaCollection').value, target.get('mediaItem'))"
+                >
+                  <mat-icon>shuffle</mat-icon>
+                </button
+                ><!-- or 'casino' for a dice -->
+                <mat-error *ngIf="target.controls['mediaItem'].hasError('incorrect')">
+                  Please select a valid media item i.e. use the autocomplete to select a value.
+                </mat-error>
+              </mat-form-field>
+              <mat-form-field
+                *ngIf="target.get('mediaItem') && taskType.targetOption == 'TEXT'"
+                style="width: 100%"
+              >
+                <input
+                  type="text"
+                  matInput
+                  [matTooltip]="renderTextTargetTooltip()"
+                  placeholder="Target Text"
+                  [formControl]="target.get('mediaItem')"
+                />
+              </mat-form-field>
+              <button
+                *ngIf="target.get('mediaItem') && isImageMediaItem(target.get('mediaItem').value)"
+                class="flex-none"
+                mat-icon-button
+                aria-label="Show media item."
+                matTooltip="Show media item."
+                (click)="togglePreview(i)"
+              >
+                <mat-icon>{{ isPreviewActive(i) ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </p>
+
+            <p class="flex-66" *ngIf="target.get('segment_start') && target.get('segment_end')" style="max-width: 100%;">
+              <span class="flex-inline flex-row content-between align-stretch">
+                <mat-form-field class="flex-30">
+                <input
+                  #targetListStart
+                  [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
+                  matInput
+                  placeholder="Segment start"
+                  [formControl]="target.get('segment_start')"
+                />
+              </mat-form-field>
+              <mat-form-field class="flex-30">
+                <input
+                  #targetListEnd
+                  [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
+                  matInput
+                  placeholder="Segment end"
+                  [formControl]="target.get('segment_end')"
+                />
+              </mat-form-field>
+              <mat-form-field class="flex-30">
+                <mat-select
+                  [formControl]="target.get('segment_time_unit')"
+                  (selectionChange)="timeUnitChanged($event, targetListStart, targetListEnd)"
+                >
+                  <mat-option *ngFor="let unit of units" [value]="unit">{{ unit }}</mat-option>
+                </mat-select>
+                <span matSuffix>
+                  <button
+                    mat-icon-button
+                    aria-label="Randomise segment start and end."
+                    matTooltip="Randomise segment start and end."
+                    [disabled]="!target.get('mediaItem').value"
+                    (click)="
+                      pickRandomSegment(
+                        target.get('mediaItem').value,
+                        target.get('segment_start'),
+                        target.get('segment_end'),
+                        target.get('segment_time_unit')
+                      )
+                    "
+                  >
+                    <mat-icon>shuffle</mat-icon>
+                  </button>
+                </span>
+              </mat-form-field>
+              <span class="spacer-flex"></span>
+                <button
+
+                mat-icon-button
+                aria-label="Show media item."
+                matTooltip="Show media item."
+                (click)="
+                  toggleVideoPlayer(
+                    target.get('mediaItem').value,
+                    target.get('segment_start'),
+                    target.get('segment_end'),
+                    target.get('segment_time_unit')
+                  )
+                "
+              >
+                <mat-icon>remove_red_eye</mat-icon>
+              </button>
+              </span>
+
+            </p>
+            <p *ngIf="isPreviewActive(i)" style="width: 100%">
+              <img
+                style="max-width: 100%"
+                [src]="target.get('mediaItem').value | resolveMediaItemUrl"
+                [alt]="'Preview of ' + target.get('mediaItem').value?.name"
+              />
+            </p>
+            <div *ngIf="showVideo">
+              <app-video-player-segment-builder
+                [data]="this.videoSegmentData"
+                (rangeChange)="
+                  onRangeChange($event, target.get('segment_start'), target.get('segment_end'), target.get('segment_time_unit'))
+                "
+              ></app-video-player-segment-builder>
+            </div>
+          </div>
+          <div class="spacer-flex"></div>
+          <div class="flex-none">
+            <button
+              mat-icon-button
+              (click)="removeQueryTarget(i)"
+              aria-label="Remove query target."
+              matTooltip="Remove query target."
+            >
+              <mat-icon>remove</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="form.get('mediaCollection').value">
+      <h2>
+        Query description
+        <button
+          mat-button
+          aria-label="Add query description component."
+          matTooltip="Add query description component."
+          [matMenuTriggerFor]="componentsMenu"
+        >
+          <mat-icon>add</mat-icon>
+        </button>
+        <mat-menu #componentsMenu="matMenu">
+          <button *ngFor="let compType of taskType.hintOptions" mat-menu-item
+                  (click)="addQueryComponent(compType)">
+            Add {{ compType.replaceAll('_', ' ') | titlecase }}
+          </button>
+        </mat-menu>
+      </h2>
+      <div *ngIf="form.get('components').invalid" class="validation-error">
+        <div *ngIf="form.get('components').errors?.required">At least one query component is required!</div>
+      </div>
+      <div *ngFor="let description of form.get('components')['controls']; let i = index" style="min-width: 100%;">
+        <app-query-description-form-field class="flex flex-row content-between align-stretch"
+          [index]="i" [typeControl]="description.get('type')" [itemControl]="description.get('mediaItem')" [descriptionControl]="description.get('description')"
+          [formBuilder]="formBuilder" [pathControl]="description.get('path')" [startControl]="description.get('start')" [endControl]="description.get('end')" [externalControl]="description.get('external')"
+          [segmentStartControl]="description.get('segment_start')" [segmentEndControl]="description.get('segment_end')" [unitControl]="description.get('segment_time_unit')"
+        ></app-query-description-form-field>
+      </div>
+    </div>
+  </form>
+</ng-template>
+
+

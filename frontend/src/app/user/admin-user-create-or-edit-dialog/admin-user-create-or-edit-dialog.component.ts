@@ -1,8 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { UserDetails, UserRequest } from '../../../../openapi';
-import { FormControl, FormGroup } from '@angular/forms';
-import RoleEnum = UserDetails.RoleEnum;
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { ApiRole, ApiUser, ApiUserRequest } from "../../../../openapi";
 
 @Component({
   selector: 'app-admin-user-create-or-edit-dialog',
@@ -10,19 +9,19 @@ import RoleEnum = UserDetails.RoleEnum;
   styleUrls: ['./admin-user-create-or-edit-dialog.component.scss'],
 })
 export class AdminUserCreateOrEditDialogComponent {
-  form: FormGroup = new FormGroup({
-    username: new FormControl(''),
-    password: new FormControl(''),
-    role: new FormControl(''),
+  form: UntypedFormGroup = new UntypedFormGroup({
+    username: new UntypedFormControl(''),
+    password: new UntypedFormControl(''),
+    role: new UntypedFormControl(''),
   });
 
-  roles = [RoleEnum.ADMIN, RoleEnum.JUDGE, RoleEnum.PARTICIPANT, RoleEnum.VIEWER];
+  roles = [ApiRole.ADMIN, ApiRole.JUDGE, ApiRole.PARTICIPANT, ApiRole.VIEWER];
 
-  defaultRole: RoleEnum = RoleEnum.VIEWER;
+  defaultRole: ApiRole = ApiRole.VIEWER;
 
   constructor(
     public dialogRef: MatDialogRef<AdminUserCreateOrEditDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public usr?: UserDetails
+    @Inject(MAT_DIALOG_DATA) public usr?: ApiUser
   ) {
     this.init();
   }
@@ -46,7 +45,7 @@ export class AdminUserCreateOrEditDialogComponent {
   }
 
   uploaded = (userData: string) => {
-    this.usr = JSON.parse(userData) as UserDetails;
+    this.usr = JSON.parse(userData) as ApiUser;
     this.init();
   };
 
@@ -56,17 +55,17 @@ export class AdminUserCreateOrEditDialogComponent {
     }
   }
 
-  fetchData(): UserRequest {
+  fetchData(): ApiUserRequest {
     return {
       username: this.form.controls.username.value,
       password: this.form.controls.password.value,
       role: this.form.controls.role.value,
-    } as UserRequest;
+    } as ApiUserRequest;
   }
 
   asJson(): string {
     const user = this.fetchData();
-    return JSON.stringify({ id: this?.usr?.id, username: user.username, role: user.role } as UserDetails);
+    return JSON.stringify({ id: this?.usr?.id, username: user.username, role: user.role } as ApiUser);
   }
 
   public close(): void {

@@ -1,0 +1,55 @@
+<div class="flex-80">
+<p class="flex flex-row content-between align-baseline">
+  <!-- Start / end inputs for hint -->
+  <mat-form-field class="flex-10">
+    <input type="number" matInput placeholder="Start" matTooltip="Start of the query description in seconds" [formControl]="startControl" />
+  </mat-form-field>
+  <mat-form-field class="flex-10">
+    <input type="number" matInput placeholder="End" matTooltip="End of the query description in seconds" [formControl]="endControl" />
+  </mat-form-field>
+  <ng-container [ngSwitch]="typeControl.value">
+    <!-- textual hint -->
+    <app-query-description-text-form-field *ngSwitchCase="'TEXT'" class="flex-80" [control]="descriptionControl"></app-query-description-text-form-field>
+    <!-- video hint -->
+    <ng-container *ngSwitchCase="'VIDEO'">
+      <!-- media item video hint -->
+      <app-query-description-media-item-video-form-field *ngIf="!externalControl" class="flex-80"
+      [itemControl]="itemControl" [startControl]="segmentStartControl" [endControl]="segmentEndControl" [unitControl]="unitControl" [index]="index" [formBuilder]="formBuilder"
+      ></app-query-description-media-item-video-form-field>
+      <!-- external video hint -->
+      <app-query-description-external-video-form-field *ngIf="externalControl" class="flex-80"
+      [pathControl]="pathControl" [startControl]="segmentStartControl" [endControl]="segmentEndControl" [unitControl]="unitControl" [index]="index" [formBuilder]="formBuilder"
+      ></app-query-description-external-video-form-field>
+    </ng-container>
+    <!-- image hint -->
+    <ng-container *ngSwitchCase="'IMAGE'">
+      <!-- media item image hint -->
+      <app-query-description-media-item-image-form-field *ngIf="!externalControl" class="flex-80"
+      [itemControl]="itemControl" [index]="index" [formBuilder]="formBuilder"
+      ></app-query-description-media-item-image-form-field>
+      <!-- external hint -->
+      <app-query-description-external-image-form-field *ngIf="externalControl" class="flex-80"
+      [pathControl]="pathControl" [index]="index" [formBuilder]="formBuilder"
+      ></app-query-description-external-image-form-field>
+    </ng-container>
+  </ng-container>
+</p>
+</div>
+<div class="spacer-flex"></div>
+<!-- add / remove hint -->
+<div class="flex-10">
+  <button mat-icon-button
+          (click)="addQueryComponent(typeControl.value, index)"
+          aria-label="Add query hint AFTER this hint."
+          matTooltip="Add query hint AFTER this hint.">
+    <mat-icon>more_time</mat-icon>
+  </button>
+</div>
+<div class="flex-10">
+  <button mat-icon-button
+          (click)="removeQueryComponent(index)"
+          aria-label="Remove query hint."
+          matTooltip="Remove query hint.">
+    <mat-icon>remove</mat-icon>
+  </button>
+</div>

@@ -1,5 +1,5 @@
-<mat-toolbar color="primary">
-  <div>DRES</div>
+<mat-toolbar *ngIf="!(noUi | async)" color="primary">
+  <button mat-flat-button color="primary" (click)="openInfoDialog()" matTooltip="Click for server information"><h2 style="margin: 0;">DRES</h2></button>
   <div class="spacer-small"></div>
   <app-api-status></app-api-status>
 
@@ -8,15 +8,15 @@
   <button
     *ngIf="isAdmin | async"
     mat-button
-    aria-label="Competition builder and overview"
-    matTooltip="Competition builder and overview"
-    routerLink="/competition/list"
+    aria-label="Evaluation template builder and overview"
+    matTooltip="Evaluation template builder and overview"
+    routerLink="/template/list"
   >
-    <mat-icon>build</mat-icon> Competition Builder
+    <mat-icon>build</mat-icon> Evaluation Template Builder
   </button>
 
-  <button *ngIf="loggedIn | async" mat-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/run/list">
-    <mat-icon>directions_run</mat-icon> Competition Runs
+  <button *ngIf="loggedIn | async" mat-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/evaluation/list">
+    <mat-icon>directions_run</mat-icon> Evaluations
   </button>
 
   <button *ngIf="isAdmin | async" mat-button aria-label="User Management" matTooltip="User Management" routerLink="/user/list">
@@ -31,10 +31,6 @@
     routerLink="/collection/list"
   >
     <mat-icon>perm_media</mat-icon> Media Collection Management
-  </button>
-
-  <button *ngIf="isAdmin | async" mat-button aria-label="Audit Logs" matTooltip="Audit logs overview" routerLink="/logs/list">
-    <mat-icon>view_headline</mat-icon> Audit Logs
   </button>
 
   <div class="spacer-flex"></div>
@@ -53,14 +49,14 @@
   <div *ngIf="!(loggedIn | async)">
     <button mat-button routerLink="/login">Login</button>
   </div>
-  <div *ngIf="loggedIn | async">
+  <div *ngIf="(loggedIn | async)">
     <mat-menu #userMenu="matMenu">
       <button mat-menu-item (click)="profile()">User profile</button>
       <button mat-menu-item (click)="logout()">Logout</button>
     </mat-menu>
     <button mat-button [matMenuTriggerFor]="userMenu">
       <mat-icon>person</mat-icon>
-      {{ (user | async).username }}
+      {{ (user | async)?.username }}
     </button>
   </div>
 </mat-toolbar>

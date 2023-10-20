@@ -2,8 +2,8 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 
 export interface ConfirmationDialogComponentData {
-  text: string;
-  color: string;
+  text?: string;
+  color?: string;
 }
 
 @Component({
@@ -12,5 +12,8 @@ export interface ConfirmationDialogComponentData {
   styleUrls: ['./confirmation-dialog.component.scss'],
 })
 export class ConfirmationDialogComponent {
+
+  color = this.data?.color || 'warn';
+
   constructor(public dialog: MatDialog, @Inject(MAT_DIALOG_DATA) public data: ConfirmationDialogComponentData) {}
 }

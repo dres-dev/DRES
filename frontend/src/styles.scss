@@ -11,6 +11,11 @@ body {
 
 @import '@angular/material/prebuilt-themes/purple-green.css';
 
+.overlay {
+  background-color: black;
+  opacity: 0.75;
+}
+
 /* */
 #container {
   margin-top: 25px; /* Previous 100px seems far too much */
@@ -49,11 +54,12 @@ body {
 }
 
 /* Hack for progressbar */
+/* TODO(mdc-migration): The following rule targets internal classes of progress-bar that may no longer apply for the MDC version. */
 app-judgement-media-viewer .mat-progress-bar-buffer {
   background-color: #e1bee7 !important; /* Not sure why this has to be done manually: https://material.angular.io/components/progress-bar/overview */
 }
 
-@import '~@angular/material/theming';
+@import '@angular/material/theming';
 @include mat-core();
 
 $primary: mat-palette($mat-purple);
@@ -71,4 +77,48 @@ $warn: mat-palette($mat-red, 500);
 
 .warn-color {
   color: mat-color($warn) !important;
+}
+
+.p1r {
+  padding: 1rem;
+}
+
+.p2r {
+  padding: 2rem;
+}
+
+.p1e {
+  padding: 1em;
+}
+
+.p2e {
+  padding: 2em;
+}
+
+.pt2e {
+  padding-top: 2em;
+}
+
+.pt1e {
+  padding-top: 1em;
+}
+
+.pt1r {
+  padding-top: 1rem;
+}
+
+.pt2r {
+  padding-top: 2rem;
+}
+
+.pb1e {
+  padding-bottom: 1em;
+}
+
+.width-full {
+  width: 100%;
+}
+
+.strong {
+  font-weight: bold;
 }

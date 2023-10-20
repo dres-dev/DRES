@@ -21,7 +21,7 @@ export class AnswerComponent {
    */
   public transformToRange(answer: ApiAnswer): ApiTemporalRange | null {
     if (answer.type == ApiAnswerType.TEMPORAL) {
-      if (answer.start && answer.end) {
+      if (answer.start !== undefined && answer.end !== undefined) {
         return {
           start: { value: "" + answer.start, unit: ApiTemporalUnit.MILLISECONDS } as ApiTemporalPoint,
           end: { value: "" + answer.end, unit: ApiTemporalUnit.MILLISECONDS } as ApiTemporalPoint

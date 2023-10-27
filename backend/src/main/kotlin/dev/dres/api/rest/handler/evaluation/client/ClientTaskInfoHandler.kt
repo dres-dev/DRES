@@ -22,7 +22,7 @@ import jetbrains.exodus.database.TransientEntityStore
  */
 class ClientTaskInfoHandler : AbstractEvaluationClientHandler(),
     GetRestHandler<ApiTaskTemplateInfo> {
-    override val route = "client/evaluation/currentTask/{runId}"
+    override val route = "client/evaluation/currentTask/{evaluationId}"
 
     @OpenApi(
         summary = "Returns an overview of the currently active task for a run.",

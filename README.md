@@ -84,8 +84,8 @@ The backend looks for a file named `config.json` at the location from where it i
 
 ## First Steps
 
-Using the DRES CLI, the `help` command lists available commands and their usage. If one would like to know more about a certain command, use the argument `-h`.
-Following the first steps towards a successful installment of a (distributed) retrieval evaluation campagn. A prerequisit is the previous deployment, see [Setup](#setup) and a running DRES instance.
+Using the DRES CLI, the `help` command lists available commands and their usage. If one would like to know more about a certain command `$cmd`, use the argument `-h`: `DRES> $cmd -h`
+Following the first steps towards a successful installment of a (distributed) retrieval evaluation campaign. A prerequisit is the previous deployment, see [Setup](#setup) and a running DRES instance.
 
 ### Create User
 
@@ -130,17 +130,18 @@ Then, navigate to _Evaluation Template Builder_ and create a new competition. Fo
 ### Create Competition Run
 
 An evaluation template serves as the template for one or more _evaluation runs_.
-Please keep in mind, that once a _run_ was created, changes on the template are not reflected in the run.
+Please keep in mind, that once a _run_ was created, changes on the template are not reflected in that run.
 
-Evaluation runs are created from the _Evaluations_ view, where one uses the "+" button to create a new one.
+Evaluation runs are created from the _Evaluation Template Overview_ view, where one uses the "Exit" (a running person) button to create a new one.
 
 In a non distributed setting, it might be desirable, that participants cannot view the actual run from the frontend,
 but require an external source for the query hints (e.g. a large monitor). This could be achieved by unchecking the corresponding option in the dialog.
+A run must be of either type `SYNCHRONOUS` or `ASYNCHRONOUS`. The former has task presentation and task execution syncrhonised for all participants and the latter enables task execution individually per participant.
 
 ### Runnig the evaluation
 
 As evaluation _operator_, one has to first start the run, then switch to a fitting task and ultimately start the task.
-Query hints are displayed as configured to all viewers, once they are all loaded (depending on the setup, this might take a breif moment).
+Query hints are displayed as configured to all viewers, once they are all loaded (depending on the setup, this might take a brief moment).
 Viewers and participants are shown the message "_Waiting for host to start task_". In case this seems to take too long,
 the operator can switch to the admin view and force all participants to be ready, by clicking the red ones.
 
@@ -152,6 +153,9 @@ It is recommended that all programmatic interaction with the DRES server is done
 ## Submission
 
 **Notice:** We strongly recommend the usage of the [client OpenApi Specification](doc/oas-client.json) to generate the code to submit (and generally interact with the server)!
+
+**Notice:** With version 2.0.0, we provide a new POST submission endpoint which is more flexible than the legacy GET one.
+That is, for version 2.0.0 the legacy submission endpoint remains in the API version 1 and is deprecated. We highly encourage to move to the new POST-based endpoint.
 
 ---
 

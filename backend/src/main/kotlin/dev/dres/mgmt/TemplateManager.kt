@@ -386,12 +386,16 @@ object TemplateManager {
                 }
             }
         }
+
+        println("start rendering ${segmentTasks.size} videos")
+
         await.all {
             try {
-                it.get(60, TimeUnit.SECONDS)
+                val result = it.get(3, TimeUnit.MINUTES)
+                println("completed rendering of $result")
                 true
             } catch (e: Throwable) {
-                throw IllegalStateException("Required media file could not be prepared.")
+                throw IllegalStateException("Required media file could not be prepared: ${e.message}")
             }
         }
 

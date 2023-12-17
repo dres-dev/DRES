@@ -106,7 +106,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   }
 
   public isFormValid(){
-    return this.form.valid;
+    return this.form == undefined || this.form.valid;
   }
 
   public fetchData(){

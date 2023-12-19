@@ -2,7 +2,7 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES API",
-    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0",
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0-RC2",
     "contact" : {
       "name" : "The DRES Dev Team",
       "url" : "https://dres.dev"
@@ -10,7 +10,7 @@
     "license" : {
       "name" : "MIT"
     },
-    "version" : "2.0.0"
+    "version" : "2.0.0-RC2"
   },
   "paths" : {
     "/api/v1/submit" : {
@@ -244,7 +244,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/ApiEvaluationInfo"
+                    "$ref" : "#/components/schemas/ApiClientEvaluationInfo"
                   }
                 }
               }
@@ -5641,6 +5641,63 @@
       "ApiTemporalUnit" : {
         "type" : "string",
         "enum" : [ "FRAME_NUMBER", "SECONDS", "MILLISECONDS", "TIMECODE" ]
+      },
+      "ApiClientEvaluationInfo" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/ApiEvaluationType"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/ApiEvaluationStatus"
+          },
+          "templateId" : {
+            "type" : "string"
+          },
+          "templateDescription" : {
+            "type" : "string"
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "taskTemplates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiClientTaskTemplateInfo"
+            }
+          }
+        },
+        "required" : [ "id", "name", "type", "status", "templateId", "teams", "taskTemplates" ]
+      },
+      "ApiClientTaskTemplateInfo" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "taskType" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "name", "taskGroup", "taskType", "duration" ]
       },
       "ApiEvaluation" : {
         "type" : "object",

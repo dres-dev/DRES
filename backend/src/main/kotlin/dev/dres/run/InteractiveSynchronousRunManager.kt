@@ -102,7 +102,7 @@ class InteractiveSynchronousRunManager(
     private val updatables = mutableListOf<Updatable>()
 
     /** A lock for state changes to this [InteractiveSynchronousRunManager]. */
-    //private val stateLock = ReentrantReadWriteLock()
+    private val stateLock = ReentrantReadWriteLock()
 
     private fun checkContext(context: RunActionContext) {
         if (!context.isAdmin)
@@ -130,7 +130,7 @@ class InteractiveSynchronousRunManager(
         }
     }
 
-    override fun start(context: RunActionContext) = synchronized(this.status) {
+    override fun start(context: RunActionContext) = this.stateLock.write {
         checkStatus(RunManagerStatus.CREATED)
         checkContext(context)
 
@@ -145,7 +145,7 @@ class InteractiveSynchronousRunManager(
         this.status = RunManagerStatus.ACTIVE
     }
 
-    override fun end(context: RunActionContext) = synchronized(this.status) {
+    override fun end(context: RunActionContext) = this.stateLock.write {
         checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE /*RunManagerStatus.TASK_ENDED*/)
         checkContext(context)
 
@@ -186,7 +186,7 @@ class InteractiveSynchronousRunManager(
         return this.evaluation.getCurrentTaskTemplate()
     }
 
-    override fun previous(context: RunActionContext): Boolean {
+    override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
         val newIndex = this.evaluation.templateIndex - 1
         return try {
@@ -197,7 +197,7 @@ class InteractiveSynchronousRunManager(
         }
     }
 
-    override fun next(context: RunActionContext): Boolean {
+    override fun next(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
         val newIndex = this.evaluation.templateIndex + 1
         return try {
@@ -208,7 +208,7 @@ class InteractiveSynchronousRunManager(
         }
     }
 
-    override fun goTo(context: RunActionContext, index: Int) = synchronized(this) {
+    override fun goTo(context: RunActionContext, index: Int) = this.stateLock.write {
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
         this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING }
@@ -225,7 +225,7 @@ class InteractiveSynchronousRunManager(
         }
     }
 
-    override fun startTask(context: RunActionContext) = synchronized(this) {
+    override fun startTask(context: RunActionContext) = this.stateLock.write {
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
         checkContext(context)
@@ -267,7 +267,7 @@ class InteractiveSynchronousRunManager(
         this.evaluation.currentTaskRun!!.taskId
     }
 
-    override fun abortTask(context: RunActionContext) = synchronized(this) {
+    override fun abortTask(context: RunActionContext) = this.stateLock.write {
         checkStatus(RunManagerStatus.ACTIVE)
         assertTaskPreparingOrRunning()
         checkContext(context)
@@ -315,7 +315,9 @@ class InteractiveSynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @return List of [DbSubmission]s.
      */
-    override fun allSubmissions(context: RunActionContext): List<DbSubmission> = this.evaluation.taskRuns.flatMap { it.getDbSubmissions() }
+    override fun allSubmissions(context: RunActionContext): List<DbSubmission> =
+        this.evaluation.taskRuns.flatMap { it.getDbSubmissions() }
+
 
     /**
      * Returns the [DbSubmission]s for all currently active [DbTask]s or an empty [List], if no such task is active.
@@ -323,7 +325,8 @@ class InteractiveSynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @return List of [DbSubmission]s for the currently active [DbTask]
      */
-    override fun currentSubmissions(context: RunActionContext): List<DbSubmission> = this.currentTask(context)?.getDbSubmissions()?.toList() ?: emptyList()
+    override fun currentSubmissions(context: RunActionContext): List<DbSubmission> =
+        this.currentTask(context)?.getDbSubmissions()?.toList() ?: emptyList()
 
 
     /**
@@ -342,7 +345,7 @@ class InteractiveSynchronousRunManager(
      * @throws IllegalArgumentException If the specified correction cannot be applied.
      * @throws IllegalStateException If [RunManager] was not in wrong [RunManagerStatus].
      */
-    override fun adjustDuration(context: RunActionContext, s: Int): Long = synchronized(this) {
+    override fun adjustDuration(context: RunActionContext, s: Int): Long = this.stateLock.write {
         checkContext(context)
 
         /* Obtain task and perform sanity check. */
@@ -541,8 +544,7 @@ class InteractiveSynchronousRunManager(
         context: RunActionContext,
         submissionId: SubmissionId,
         submissionStatus: ApiVerdictStatus
-    ): Boolean {
-        val (taskId, status) = this.store.transactional {
+    ): Boolean = this.store.transactional {
             val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull()
                 ?: throw IllegalArgumentException("Could not find submission with ID ${submissionId}.")
 
@@ -550,13 +552,13 @@ class InteractiveSynchronousRunManager(
             val newStatus = submissionStatus.toDb()
             if (answerSet.status != newStatus) {
                 answerSet.status = newStatus
-                answerSet.task.id to true
+                true
             } else {
-                answerSet.task.id to false
+                false
             }
-        }
-        return status
     }
+
+
 
     /**
      *
@@ -573,12 +575,12 @@ class InteractiveSynchronousRunManager(
      */
     override fun run() {
         /* Preparation . */
-        //this.stateLock.read {
+        this.stateLock.read {
             this.store.transactional {
                 this.updatables.sortBy { it.phase } /* Sort list of by [Phase] in ascending order. */
                 AccessManager.registerRunManager(this) /* Register the run manager with the access manager. */
             }
-        //}
+        }
 
         /** Add this InteractiveSynchronousRunManager as a listener for changes to the data store. */
         this.store.addListener(this)
@@ -590,7 +592,7 @@ class InteractiveSynchronousRunManager(
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
                 /* Obtain lock on current state. */
-                //this.stateLock.read {
+                this.stateLock.read {
                     this.store.transactional {
                         /* 1) Invoke all relevant [Updatable]s. */
                         this.invokeUpdatables()
@@ -598,7 +600,7 @@ class InteractiveSynchronousRunManager(
                         /* 2) Process internal state updates (if necessary). */
                         this.internalStateUpdate()
                     }
-               // }
+                }
 
                 /* 3) Yield to other threads. */
                 Thread.sleep(500)
@@ -627,12 +629,12 @@ class InteractiveSynchronousRunManager(
         this.store.removeListener(this)
 
         /* Finalization. */
-        //this.stateLock.read {
+        this.stateLock.read {
             this.store.transactional {
                 this.invokeUpdatables() /* Invoke [Updatable]s one last time. */
                 AccessManager.deregisterRunManager(this) /* De-register this run manager with the access manager. */
             }
-        //}
+        }
 
         LOGGER.info("SynchronousRunManager ${this.id} reached end of run logic.")
     }
@@ -657,7 +659,7 @@ class InteractiveSynchronousRunManager(
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
         if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
-            //this.stateLock.write {
+            this.stateLock.write {
                 this.evaluation.currentTaskRun!!.start()
                 AuditLogger.taskStart(
                     this.id,
@@ -666,7 +668,7 @@ class InteractiveSynchronousRunManager(
                     AuditLogSource.INTERNAL,
                     null
                 )
-            //}
+            }
 
 //            /* Enqueue WS message for sending */
 //            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_START, this.evaluation.currentTask?.taskId))
@@ -674,7 +676,7 @@ class InteractiveSynchronousRunManager(
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
         if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
-            //this.stateLock.write {
+            this.stateLock.write {
                 val task = this.evaluation.currentTaskRun!!
                 val timeLeft = max(
                     0L,
@@ -688,7 +690,7 @@ class InteractiveSynchronousRunManager(
 //                    /* Enqueue WS message for sending */
 //                    RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.evaluation.currentTask?.taskId))
                 }
-            //}
+            }
         }
     }
 

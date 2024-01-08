@@ -5,11 +5,13 @@ import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.NonInteractiveRunManager
 import dev.dres.run.RunManager
+import kotlinx.serialization.Serializable
 
 /**
  * Contains the basic and most importantly static information about a [RunManager] that is relevant to a participant.
  *
  */
+@Serializable
 data class ApiClientEvaluationInfo(
     val id: String,
     val name: String,

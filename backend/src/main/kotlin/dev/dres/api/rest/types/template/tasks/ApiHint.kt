@@ -2,6 +2,7 @@ package dev.dres.api.rest.types.template.tasks
 
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
 import dev.dres.data.model.template.*
+import kotlinx.serialization.Serializable
 
 /**
  * The RESTful API equivalent for [TaskDescriptionHint].
@@ -9,6 +10,7 @@ import dev.dres.data.model.template.*
  * @author Luca Rossetto & Ralph Gasser & Loris Sauter
  * @version 2.1.0
  */
+@Serializable
 data class ApiHint(
         /**
          * The type of this component

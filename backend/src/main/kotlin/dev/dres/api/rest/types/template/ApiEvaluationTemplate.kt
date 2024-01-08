@@ -10,6 +10,7 @@ import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.TemplateId
 import io.javalin.openapi.OpenApiIgnore
+import kotlinx.serialization.Serializable
 
 /**
  * The RESTful API equivalent for [DbEvaluationTemplate].
@@ -18,6 +19,7 @@ import io.javalin.openapi.OpenApiIgnore
  * @author Luca Rossetto & Ralph Gasser
  * @version 2.0.0
  */
+@Serializable
 data class ApiEvaluationTemplate(
     val id: TemplateId,
     val name: String,

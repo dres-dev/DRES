@@ -7,10 +7,7 @@ import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.TemplateId
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.ScoreUpdateEvent
-import dev.dres.utilities.extensions.convertWriteLock
-import dev.dres.utilities.extensions.write
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.concurrent.locks.StampedLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.math.max
@@ -24,7 +21,7 @@ import kotlin.math.max
  */
 class MaxNormalizingScoreBoard(override val name: String, override val run: EvaluationRun, private val teamIds: List<TeamId>, private val taskFilter: (ApiTaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
 
-    /** A [StampedLock] to synchronise access to this [MaxNormalizingScoreBoard]. */
+    /** A [ReentrantReadWriteLock] to synchronise access to this [MaxNormalizingScoreBoard]. */
     private val lock = ReentrantReadWriteLock()
 
     /** Tracks the score per [TeamId]. */

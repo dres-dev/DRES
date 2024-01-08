@@ -1,7 +1,9 @@
 package dev.dres.api.rest.types.evaluation
 
 import dev.dres.data.model.run.interfaces.TaskRun
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ApiTaskOverview(
     val id: String,
     val name: String,

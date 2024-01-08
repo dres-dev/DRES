@@ -4,6 +4,7 @@ import dev.dres.api.rest.types.template.team.ApiTeam
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.template.team.TeamId
+import kotlinx.serialization.Serializable
 
 /**
  * Basic and most importantly static information about the [DbTeam] partaking in a [InteractiveSynchronousEvaluation].
@@ -13,6 +14,8 @@ import dev.dres.data.model.template.team.TeamId
  * @author Ralph Gasser
  * @version 1.1.0
  */
+
+@Serializable
 data class ApiTeamInfo(val id: TeamId, val name: String, val color: String) {
     constructor(team: ApiTeam) : this(team.id!!, team.name!!, team.color!!)
 }

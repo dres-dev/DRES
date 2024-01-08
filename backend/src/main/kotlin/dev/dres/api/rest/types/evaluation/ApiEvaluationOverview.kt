@@ -1,7 +1,9 @@
 package dev.dres.api.rest.types.evaluation
 
 import dev.dres.run.*
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ApiEvaluationOverview(val state: RunManagerStatus, val teamOverviews: List<ApiTeamTaskOverview>) {
     companion object {
         fun of(manager: InteractiveRunManager): ApiEvaluationOverview {

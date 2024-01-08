@@ -2,6 +2,7 @@ package dev.dres.api.rest.types.evaluation
 
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.*
+import kotlinx.serialization.Serializable
 
 /**
  * Contains the information about the state of an [InteractiveRunManager].
@@ -10,6 +11,7 @@ import dev.dres.run.*
  *
  * @version 1.3.0
  */
+@Serializable
 data class ApiEvaluationState(
     val evaluationId: String,
     val evaluationStatus: ApiEvaluationStatus,

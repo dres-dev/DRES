@@ -226,6 +226,9 @@ object RestApi {
         )
 
         javalin = Javalin.create {
+
+            it.jsonMapper(KotlinxJsonMapper)
+
             it.plugins.enableCors { cors ->
                 cors.add { corsPluginConfig ->
                     corsPluginConfig.reflectClientOrigin =
@@ -381,8 +384,8 @@ object RestApi {
 
 
     private val pool = QueuedThreadPool(
-        min(Runtime.getRuntime().availableProcessors() * 2, 8),
-        8,
+        32,
+        10,
         60000,
         -1,
         null,

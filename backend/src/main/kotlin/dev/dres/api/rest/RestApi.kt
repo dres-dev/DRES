@@ -51,6 +51,7 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
+import kotlin.math.min
 
 /**
  * This is a singleton instance of the RESTful API
@@ -101,8 +102,14 @@ object RestApi {
             UserDetailsHandler(),
 
             // Media
-            PreviewImageHandler(store, cache), /* [PreviewImageHandler] vs [PreviewImageTimelessHandler]: Optional path parameters are not allowed in OpenApi. [PreviewImageHandler] has timestamp as path parameter and must be initialised first */
-            PreviewImageTimelessHandler(store,cache), /* [PreviewImageHandler] vs [PreviewImageTimelessHandler]: Optional path parameters are not allowed in OpenApi */
+            PreviewImageHandler(
+                store,
+                cache
+            ), /* [PreviewImageHandler] vs [PreviewImageTimelessHandler]: Optional path parameters are not allowed in OpenApi. [PreviewImageHandler] has timestamp as path parameter and must be initialised first */
+            PreviewImageTimelessHandler(
+                store,
+                cache
+            ), /* [PreviewImageHandler] vs [PreviewImageTimelessHandler]: Optional path parameters are not allowed in OpenApi */
             PreviewVideoHandler(store, cache),
             GetExternalMediaHandler(), // Must be registered before GetMediaHandler, as route is similar
             GetMediaHandler(store),
@@ -120,16 +127,16 @@ object RestApi {
             ShowMediaItemHandler(),
             ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
             ListMediaItemHandler(),
-            if(DRES.CONFIG.externalMediaEndpointsEnabled){
+            if (DRES.CONFIG.externalMediaEndpointsEnabled) {
                 UploadExternalItemHandler()
-            }else{
+            } else {
                 null
             },
             ListExternalItemHandler(),
             FindExternalItemHandler(),
-            if(DRES.CONFIG.externalMediaEndpointsEnabled){
+            if (DRES.CONFIG.externalMediaEndpointsEnabled) {
                 DeleteExternalItemHandler()
-            }else{
+            } else {
                 null
             }, // Must be last of external/ route
 
@@ -221,7 +228,8 @@ object RestApi {
         javalin = Javalin.create {
             it.plugins.enableCors { cors ->
                 cors.add { corsPluginConfig ->
-                    corsPluginConfig.reflectClientOrigin = true // anyHost() has similar implications and might be used in production? I'm not sure how to cope with production and dev here simultaneously
+                    corsPluginConfig.reflectClientOrigin =
+                        true // anyHost() has similar implications and might be used in production? I'm not sure how to cope with production and dev here simultaneously
                     corsPluginConfig.allowCredentials = true
                 }
             }
@@ -234,7 +242,8 @@ object RestApi {
                             u.withOpenApiInfo { t ->
                                 t.title = "DRES API"
                                 t.version = DRES.VERSION
-                                t.description = "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
+                                t.description =
+                                    "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
                                 val contact = OpenApiContact()
                                 contact.url = "https://dres.dev"
                                 contact.name = "The DRES Dev Team"
@@ -244,8 +253,9 @@ object RestApi {
                                 // license.identifier = "MIT"
                                 t.license = license
                             }
-                            u.withSecurity(SecurityComponentConfiguration()
-                                .withSecurityScheme("CookieAuth", CookieAuth(AccessManager.SESSION_COOKIE_NAME))
+                            u.withSecurity(
+                                SecurityComponentConfiguration()
+                                    .withSecurityScheme("CookieAuth", CookieAuth(AccessManager.SESSION_COOKIE_NAME))
                             )
                         }
 
@@ -294,7 +304,13 @@ object RestApi {
             //check for session cookie
             val cookieId = ctx.cookie(AccessManager.SESSION_COOKIE_NAME)
             if (cookieId != null) {
-                val cookie = Cookie(AccessManager.SESSION_COOKIE_NAME, cookieId, maxAge = AccessManager.SESSION_COOKIE_LIFETIME, secure = true, sameSite = SameSite.NONE)
+                val cookie = Cookie(
+                    AccessManager.SESSION_COOKIE_NAME,
+                    cookieId,
+                    maxAge = AccessManager.SESSION_COOKIE_LIFETIME,
+                    secure = true,
+                    sameSite = SameSite.NONE
+                )
                 ctx.cookie(cookie) //update cookie lifetime
                 ctx.attribute("session", cookieId) //store id in attribute for later use
             }
@@ -365,7 +381,13 @@ object RestApi {
 
 
     private val pool = QueuedThreadPool(
-        1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")
+        min(Runtime.getRuntime().availableProcessors() * 2, 8),
+        8,
+        60000,
+        -1,
+        null,
+        null,
+        NamedThreadFactory("JavalinPool")
     )
 
     val readyThreadCount: Int

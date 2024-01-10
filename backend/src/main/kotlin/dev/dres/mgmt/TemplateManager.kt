@@ -197,7 +197,13 @@ object TemplateManager {
 
             /* Conditional updating of parameters that do!. */
             if (task.isNew || task.collection.id != apiTask.collectionId) {
-                task.collection = DbMediaCollection.query(DbMediaCollection::id eq apiTask.collectionId).first()
+                try {
+                    task.collection =
+                        DbMediaCollection.query(DbMediaCollection::id eq apiTask.collectionId)
+                            .first()
+                }catch(ex: NoSuchElementException){
+                    throw IllegalArgumentException("The provided collection could not be found. CollectionId: ${apiTask.collectionId}")
+                }
             }
 
             if (task.isNew || task.taskGroup.name != apiTask.taskGroup) {

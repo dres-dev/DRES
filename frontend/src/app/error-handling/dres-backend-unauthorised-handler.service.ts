@@ -2,7 +2,7 @@ import { Injectable, Injector } from "@angular/core";
 import { AppConfig } from "../app.config";
 import { ActivatedRoute, Router } from "@angular/router";
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } from "@angular/common/http";
-import { EMPTY, Observable, of } from "rxjs";
+import { EMPTY, Observable, of, throwError } from "rxjs";
 import { catchError, tap } from "rxjs/operators";
 import { IConfig } from "../model/config.interface";
 
@@ -40,8 +40,8 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
             console.log("HTTP Error Response, this", this)
             const e = err as HttpErrorResponse
             const url = new URL(e.url)
-            const router = this.injector.get<Router>(Router)
             if(e.status === 401 && url.host.startsWith(this.config.endpoint.host)){
+              const router = this.injector.get<Router>(Router)
               console.log("401", router)
               if(!router?.url){
                 console.log("No router url, reload")
@@ -56,9 +56,10 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
                 rt = router.parseUrl(`/login?returnUrl=${router.url}`)
               }
               router.navigateByUrl(rt)
+              return EMPTY;
             }
           }
-          return EMPTY;
+          return throwError(err);
         }));
     }
   }

@@ -262,7 +262,7 @@ export class TemplateBuilderService {
     return result;
   }
 
-  importFrom(from: ApiEvaluationTemplate) {
+  importFrom(from: ApiEvaluationTemplate, nameCollisionSuffix = "(Imported)") {
     /* Import check is currently on name, may switch to completely UUID based matching */
 
     const alteredTypes: Map<string,ApiTaskType> = new Map<string, ApiTaskType>()
@@ -274,7 +274,7 @@ export class TemplateBuilderService {
         this.getTemplate().taskTypes.push(it)
       }else{
         const legacyName = it.name
-        it.name = `${it.name} (Imported)`
+        it.name = `${it.name} ${nameCollisionSuffix}`
         alteredTypes.set(legacyName, it)
         this.getTemplate().taskTypes.push(it)
       }
@@ -288,7 +288,7 @@ export class TemplateBuilderService {
         this.getTemplate().taskGroups.push(it)
       }else{
         const legacyName = it.name
-        it.name = `${it.name} (Imported)`
+        it.name = `${it.name} ${nameCollisionSuffix}`
         alteredGroups.set(legacyName, it)
         this.getTemplate().taskGroups.push(it)
       }
@@ -304,7 +304,7 @@ export class TemplateBuilderService {
       if(!this.getTemplate().tasks.map(that => that.name).includes(it.name)){
         this.getTemplate().tasks.push(it)
       }else{
-        it.name = `${it.name} (Imported)`
+        it.name = `${it.name} ${nameCollisionSuffix}`
         this.getTemplate().tasks.push(it)
       }
     })

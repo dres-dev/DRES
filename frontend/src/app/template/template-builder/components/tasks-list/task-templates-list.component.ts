@@ -103,6 +103,23 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
     this.selection.toggle(task);
   }
 
+  public copyTask(task: ApiTaskTemplate){
+    const copy = JSON.parse(JSON.stringify(task))
+    copy.id = undefined;
+    const temp = {
+      name: "<COPY-TEMPLATE>",
+      description: "---Automatically generated template whose elements get copied. If this is seen, there was a programmer's error somewhere---",
+      taskTypes: [],
+      taskGroups: [],
+      tasks: [copy],
+      teams: [],
+      teamGroups: [],
+      judges: [],
+      id: "---COPY_TEMPLATE_NO_ID---"
+    } as ApiEvaluationTemplate;
+    this.builderService.importFrom(temp, "(Copy)")
+  }
+
   public tasksLength() {
     return this.builderService.getTemplate().tasks.length;
   }

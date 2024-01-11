@@ -258,7 +258,7 @@ class InteractiveSynchronousRunManager(
             this.evaluation.currentTaskRun!!.prepare()
 
             /* Reset the ReadyLatch. */
-            this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
+            //this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
         }
 
 
@@ -470,10 +470,11 @@ class InteractiveSynchronousRunManager(
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
 
         if (taskTemplateId == currentTemplateId) {
-            if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING) {
+            val status = this.evaluation.currentTaskRun?.status
+//            if (status == ApiTaskStatus.PREPARING) {
                 this.readyLatch.register(viewerInfo) //avoid redying previously untracked viewers
                 this.readyLatch.setReady(viewerInfo)
-            }
+//            }
         }
 
     }

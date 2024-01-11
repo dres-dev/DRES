@@ -125,11 +125,16 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         }
       ),
       tap((hint) => {
+
         this.state.pipe(
           take(1), //use latest state, only do this once
           switchMap(
-            state => this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(state.evaluationId, state.taskTemplateId)
-            )
+            (state) => {
+              console.log(state)
+              return this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(state.evaluationId, state.taskTemplateId)
+            }
+            ),
+          tap(() => {console.log("READY sent")})
           ).subscribe()
       })
     ).subscribe(n => this.currentTaskHint.next(n))

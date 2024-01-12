@@ -9,6 +9,8 @@ import { IConfig } from "../model/config.interface";
 @Injectable()
 export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
 
+  private noConfigWarningSentFlag = false;
+
   constructor(private injector: Injector) {
     console.log("Interceptor ctor")
   }
@@ -30,7 +32,10 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
         }
       }))
     }else if(!this.config) {
-      console.warn("No config present, won't work")
+      if(!this.noConfigWarningSentFlag){
+        this.noConfigWarningSentFlag = true;
+        console.warn("No config present, won't work")
+      }
       // in case we do not have a config loaded and its not the first config call, then we just stop working
       return next.handle(req)
     }else{

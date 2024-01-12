@@ -259,6 +259,7 @@ class InteractiveSynchronousRunManager(
 
             /* Reset the ReadyLatch. */
             //this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
+            /* Since the viewer sends its ready message too early, if we reset the readyLatch here, we will override the previously sent ready and will always run into the timout */
         }
 
 
@@ -472,6 +473,7 @@ class InteractiveSynchronousRunManager(
         if (taskTemplateId == currentTemplateId) {
             val status = this.evaluation.currentTaskRun?.status
 //            if (status == ApiTaskStatus.PREPARING) {
+            /* Since the viewer does sent the ready message too early, we cannot care whether the task is (already) preparing or not) */
                 this.readyLatch.register(viewerInfo) //avoid redying previously untracked viewers
                 this.readyLatch.setReady(viewerInfo)
 //            }

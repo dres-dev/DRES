@@ -2,7 +2,7 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES API",
-    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0-RC2",
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0-RC3",
     "contact" : {
       "name" : "The DRES Dev Team",
       "url" : "https://dres.dev"
@@ -10,7 +10,7 @@
     "license" : {
       "name" : "MIT"
     },
-    "version" : "2.0.0-RC2"
+    "version" : "2.0.0-RC3"
   },
   "paths" : {
     "/api/v1/submit" : {

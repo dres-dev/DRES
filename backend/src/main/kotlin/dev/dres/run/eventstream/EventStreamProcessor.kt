@@ -2,14 +2,14 @@ package dev.dres.run.eventstream
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.DRES
-import dev.dres.utilities.extensions.read
-import dev.dres.utilities.extensions.write
 import org.slf4j.LoggerFactory
 import java.io.PrintWriter
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.StampedLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
 import kotlin.concurrent.thread
+import kotlin.concurrent.write
 
 object EventStreamProcessor {
 
@@ -24,7 +24,7 @@ object EventStreamProcessor {
 
     private val eventQueue = LinkedBlockingQueue<StreamEvent>()
     private val eventHandlers = mutableListOf<StreamEventHandler>()
-    private val handlerLock = StampedLock()
+    private val handlerLock = ReentrantReadWriteLock()
     private val eventSink = PrintWriter(
         DRES.CONFIG.eventsLocation.resolve("${System.currentTimeMillis()}.txt").toFile()
             .also { it.parentFile.mkdirs() })

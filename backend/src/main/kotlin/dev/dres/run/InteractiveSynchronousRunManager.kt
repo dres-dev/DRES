@@ -181,9 +181,9 @@ class InteractiveSynchronousRunManager(
      *
      * @return [DbTaskTemplate]
      */
-    override fun currentTaskTemplate(context: RunActionContext): ApiTaskTemplate = this.stateLock.write {
+    override fun currentTaskTemplate(context: RunActionContext): ApiTaskTemplate {
         checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE)
-        this.evaluation.getCurrentTaskTemplate()
+        return this.evaluation.getCurrentTaskTemplate()
     }
 
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
@@ -208,7 +208,7 @@ class InteractiveSynchronousRunManager(
         }
     }
 
-    override fun goTo(context: RunActionContext, index: Int) {
+    override fun goTo(context: RunActionContext, index: Int) = this.stateLock.write {
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
         this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING }
@@ -258,7 +258,8 @@ class InteractiveSynchronousRunManager(
             this.evaluation.currentTaskRun!!.prepare()
 
             /* Reset the ReadyLatch. */
-            this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
+            //this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
+            /* Since the viewer sends its ready message too early, if we reset the readyLatch here, we will override the previously sent ready and will always run into the timout */
         }
 
 
@@ -291,7 +292,7 @@ class InteractiveSynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @return [DbTask] or null
      */
-    override fun currentTask(context: RunActionContext) = this.stateLock.read {
+    override fun currentTask(context: RunActionContext) =
         when (this.evaluation.currentTaskRun?.status) {
             ApiTaskStatus.PREPARING,
             ApiTaskStatus.RUNNING,
@@ -299,7 +300,7 @@ class InteractiveSynchronousRunManager(
 
             else -> null
         }
-    }
+
 
     /**
      * Returns [DbTask]s for a specific task [EvaluationId]. May be empty.
@@ -315,9 +316,9 @@ class InteractiveSynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @return List of [DbSubmission]s.
      */
-    override fun allSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
+    override fun allSubmissions(context: RunActionContext): List<DbSubmission> =
         this.evaluation.taskRuns.flatMap { it.getDbSubmissions() }
-    }
+
 
     /**
      * Returns the [DbSubmission]s for all currently active [DbTask]s or an empty [List], if no such task is active.
@@ -325,9 +326,9 @@ class InteractiveSynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @return List of [DbSubmission]s for the currently active [DbTask]
      */
-    override fun currentSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
+    override fun currentSubmissions(context: RunActionContext): List<DbSubmission> =
         this.currentTask(context)?.getDbSubmissions()?.toList() ?: emptyList()
-    }
+
 
     /**
      * Returns the number of [DbTask]s held by this [RunManager].
@@ -345,7 +346,7 @@ class InteractiveSynchronousRunManager(
      * @throws IllegalArgumentException If the specified correction cannot be applied.
      * @throws IllegalStateException If [RunManager] was not in wrong [RunManagerStatus].
      */
-    override fun adjustDuration(context: RunActionContext, s: Int): Long = this.stateLock.read {
+    override fun adjustDuration(context: RunActionContext, s: Int): Long = this.stateLock.write {
         checkContext(context)
 
         /* Obtain task and perform sanity check. */
@@ -369,7 +370,7 @@ class InteractiveSynchronousRunManager(
      *
      * @return Time remaining until the task will end or -1, if no task is running.
      */
-    override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
+    override fun timeLeft(context: RunActionContext): Long {
         return if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
@@ -388,7 +389,7 @@ class InteractiveSynchronousRunManager(
      *
      * @return Time remaining until the task will end or -1, if no task is running.
      */
-    override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
+    override fun timeElapsed(context: RunActionContext): Long {
         return if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
@@ -410,7 +411,7 @@ class InteractiveSynchronousRunManager(
      *
      * @param viewerId The ID of the viewer's WebSocket session.
      */
-    override fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean = this.stateLock.read {
+    override fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean {
         checkStatus(RunManagerStatus.ACTIVE)
         assertTaskPreparingOrRunning()
         checkContext(context)
@@ -470,10 +471,12 @@ class InteractiveSynchronousRunManager(
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
 
         if (taskTemplateId == currentTemplateId) {
-            if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING) {
+            val status = this.evaluation.currentTaskRun?.status
+//            if (status == ApiTaskStatus.PREPARING) {
+            /* Since the viewer does sent the ready message too early, we cannot care whether the task is (already) preparing or not) */
                 this.readyLatch.register(viewerInfo) //avoid redying previously untracked viewers
                 this.readyLatch.setReady(viewerInfo)
-            }
+//            }
         }
 
     }
@@ -489,7 +492,7 @@ class InteractiveSynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @param submission [ApiSubmission] that should be registered.
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) : ApiSubmission {
 
         /* Phase 1: Basic lookups required for validation (read-only). */
         val (task, transformedSubmission) = this.store.transactional(true) {
@@ -514,7 +517,7 @@ class InteractiveSynchronousRunManager(
         }
 
         /* Phase 2: Create DbSubmission, apply transformers and validate it. */
-        return@read this.store.transactional {
+        return this.store.transactional {
             /* Convert submission to database representation. */
             val db = transformedSubmission.toNewDb()
 
@@ -544,8 +547,7 @@ class InteractiveSynchronousRunManager(
         context: RunActionContext,
         submissionId: SubmissionId,
         submissionStatus: ApiVerdictStatus
-    ): Boolean = this.stateLock.read {
-        val (taskId, status) = this.store.transactional {
+    ): Boolean = this.store.transactional {
             val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull()
                 ?: throw IllegalArgumentException("Could not find submission with ID ${submissionId}.")
 
@@ -553,13 +555,13 @@ class InteractiveSynchronousRunManager(
             val newStatus = submissionStatus.toDb()
             if (answerSet.status != newStatus) {
                 answerSet.status = newStatus
-                answerSet.task.id to true
+                true
             } else {
-                answerSet.task.id to false
+                false
             }
-        }
-        return status
     }
+
+
 
     /**
      *

@@ -8,6 +8,7 @@ import dev.dres.data.model.template.TemplateId
 import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.template.task.TaskTemplateId
 import io.javalin.openapi.OpenApiIgnore
+import kotlinx.serialization.Serializable
 
 /**
  * The RESTful API equivalent for [DbTaskTemplate].
@@ -16,6 +17,7 @@ import io.javalin.openapi.OpenApiIgnore
  * @author Luca Rossetto & Ralph Gasser
  * @version 2.0.0
  */
+@Serializable
 data class ApiTaskTemplate(
     val id: TaskTemplateId? = null,
     val name: String,

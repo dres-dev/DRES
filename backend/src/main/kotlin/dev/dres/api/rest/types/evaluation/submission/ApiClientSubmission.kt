@@ -13,6 +13,7 @@ import kotlinx.dnq.query.addAll
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.single
 import kotlinx.dnq.query.singleOrNull
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
 /**
@@ -23,6 +24,7 @@ import java.util.UUID
  * @author Luca Rossetto
  * @version 1.0.0
  */
+@Serializable
 data class ApiClientSubmission(
     val answerSets: List<ApiClientAnswerSet>,
     /** The [UserId] associated with the submission. Is usually added as contextual information by the receiving endpoint. */

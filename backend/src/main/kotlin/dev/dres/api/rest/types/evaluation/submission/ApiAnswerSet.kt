@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.submissions.*
 import io.javalin.openapi.OpenApiIgnore
+import kotlinx.serialization.Serializable
 
 /**
  * The RESTful API equivalent for the type of answer set as submitted by the DRES endpoint.
@@ -14,6 +15,7 @@ import io.javalin.openapi.OpenApiIgnore
  * @author Ralph Gasser
  * @version 1.0.0
  */
+@Serializable
 data class ApiAnswerSet(
     override val id: AnswerSetId,
     val status: ApiVerdictStatus,

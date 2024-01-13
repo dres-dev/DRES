@@ -19,9 +19,12 @@ import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.submissions.*
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.InteractiveRunManager
+import dev.dres.run.audit.AuditLogSource
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -133,6 +136,14 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         } catch (e: IllegalTeamIdException) {
             logger.info("Submission with unknown team id '${submission.teamId}' was received.")
             throw ErrorStatusException(400, "Run manager does not know the given teamId ${submission.teamId}.", ctx)
+        } finally {
+            AuditLogger.submission(
+                submission,
+                rac.evaluationId!!,
+                AuditLogSource.REST,
+                ctx.sessionToken(),
+                ctx.ip()
+            )
         }
 
         /* Lookup verdict for submission and return it. */

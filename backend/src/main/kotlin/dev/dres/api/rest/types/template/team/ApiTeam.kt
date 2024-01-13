@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.Team
 import dev.dres.data.model.template.team.TeamId
+import kotlinx.serialization.Serializable
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
@@ -18,6 +19,7 @@ import javax.imageio.ImageIO
  * @author Loris Sauter
  * @version 1.0.0
  */
+@Serializable
 data class ApiTeam(
     val id: TeamId? = null,
     val name: String? = null,

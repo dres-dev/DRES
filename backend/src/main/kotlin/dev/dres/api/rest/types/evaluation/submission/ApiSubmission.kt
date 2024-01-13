@@ -2,6 +2,7 @@ package dev.dres.api.rest.types.evaluation.submission
 
 
 import dev.dres.data.model.submissions.*
+import kotlinx.serialization.Serializable
 
 /**
  * The RESTful API equivalent of a submission as returned by the DRES endpoint.
@@ -12,6 +13,7 @@ import dev.dres.data.model.submissions.*
  * @author Ralph Gasser
  * @version 2.0.0
  */
+@Serializable
 data class ApiSubmission(
     override val submissionId: SubmissionId,
     override val teamId: String,

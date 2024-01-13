@@ -8,6 +8,7 @@ import dev.dres.data.model.submissions.DbAnswerType
 import io.javalin.openapi.OpenApiIgnore
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.singleOrNull
+import kotlinx.serialization.Serializable
 
 /**
  * The RESTful API equivalent of an answer as provided by a client of the submission API endpoints.
@@ -17,7 +18,8 @@ import kotlinx.dnq.query.singleOrNull
  * @author Luca Rossetto
  * @version 1.0.0
  */
-data class ApiClientAnswer(
+@Serializable
+data class ApiClientAnswer( //TODO add optional relevance score field
     /** The text that is part of this [ApiClientAnswer]. */
     val text: String? = null,
 

@@ -5,6 +5,7 @@ import dev.dres.data.model.media.*
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.first
 import kotlinx.dnq.util.findById
+import kotlinx.serialization.Serializable
 
 /**
  * The RESTful API equivalent for [DbMediaItem].
@@ -13,6 +14,7 @@ import kotlinx.dnq.util.findById
  * @author Ralph Gasser
  * @version 1.1.0
  */
+@Serializable
 data class ApiMediaItem(
     override val mediaItemId: MediaItemId,
     override val name: String,

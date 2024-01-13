@@ -16,6 +16,7 @@ import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.serialization.Serializable
 
 /**
  * A [PostRestHandler] that handles user-requests to login.
@@ -28,6 +29,7 @@ class LoginHandler() : RestHandler, PostRestHandler<ApiUser> {
     override val route = "login"
     override val apiVersion = RestApi.LATEST_API_VERSION
 
+    @Serializable
     data class LoginRequest(var username: String, var password: String)
 
     @OpenApi(

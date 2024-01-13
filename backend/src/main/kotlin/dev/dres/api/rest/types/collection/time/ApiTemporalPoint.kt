@@ -1,6 +1,7 @@
 package dev.dres.api.rest.types.collection.time
 
 import dev.dres.data.model.media.time.TemporalPoint
+import kotlinx.serialization.Serializable
 
 /**
  * RESTful API representation of a [TemporalPoint].
@@ -8,6 +9,7 @@ import dev.dres.data.model.media.time.TemporalPoint
  * @version 1.0.0
  * @author Ralph Gasser
  */
+@Serializable
 data class ApiTemporalPoint(val value: String, val unit: ApiTemporalUnit) {
 
     companion object{

@@ -3,6 +3,7 @@ package dev.dres.api.rest.types.evaluation.submission
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.data.model.submissions.Answer
 import dev.dres.data.model.submissions.AnswerType
+import kotlinx.serialization.Serializable
 
 /**
  * The RESTful API equivalent for the type of answer as submitted by the DRES endpoint.
@@ -13,6 +14,7 @@ import dev.dres.data.model.submissions.AnswerType
  * @author Ralph Gasser
  * @version 1.0.0
  */
+@Serializable
 data class ApiAnswer(
     /** The [ApiAnswerType] of this [ApiAnswer]. */
     val type: ApiAnswerType,

@@ -113,6 +113,7 @@ dependencies {
     ///// Kotlin
     implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin
     implementation group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: version_kotlin
+    implementation group: 'org.jetbrains.kotlinx', name:'kotlinx-serialization-json', version: '1.6.2'
 }
 
 kapt {

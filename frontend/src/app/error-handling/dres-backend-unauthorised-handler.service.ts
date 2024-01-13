@@ -2,12 +2,14 @@ import { Injectable, Injector } from "@angular/core";
 import { AppConfig } from "../app.config";
 import { ActivatedRoute, Router } from "@angular/router";
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } from "@angular/common/http";
-import { EMPTY, Observable, of } from "rxjs";
+import { EMPTY, Observable, of, throwError } from "rxjs";
 import { catchError, tap } from "rxjs/operators";
 import { IConfig } from "../model/config.interface";
 
 @Injectable()
 export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
+
+  private noConfigWarningSentFlag = false;
 
   constructor(private injector: Injector) {
     console.log("Interceptor ctor")
@@ -30,7 +32,10 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
         }
       }))
     }else if(!this.config) {
-      console.warn("No config present, won't work")
+      if(!this.noConfigWarningSentFlag){
+        this.noConfigWarningSentFlag = true;
+        console.warn("No config present, won't work")
+      }
       // in case we do not have a config loaded and its not the first config call, then we just stop working
       return next.handle(req)
     }else{
@@ -40,8 +45,8 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
             console.log("HTTP Error Response, this", this)
             const e = err as HttpErrorResponse
             const url = new URL(e.url)
-            const router = this.injector.get<Router>(Router)
             if(e.status === 401 && url.host.startsWith(this.config.endpoint.host)){
+              const router = this.injector.get<Router>(Router)
               console.log("401", router)
               if(!router?.url){
                 console.log("No router url, reload")
@@ -56,9 +61,10 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
                 rt = router.parseUrl(`/login?returnUrl=${router.url}`)
               }
               router.navigateByUrl(rt)
+              return EMPTY;
             }
           }
-          return EMPTY;
+          return throwError(err);
         }));
     }
   }

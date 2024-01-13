@@ -3,6 +3,7 @@ package dev.dres.api.rest.types.template.team
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.template.team.TeamAggregatorImpl
 import dev.dres.data.model.template.team.TeamGroupId
+import kotlinx.serialization.Serializable
 
 /**
  * A RESTful API representation of a [DbTeamGroup]
@@ -10,6 +11,7 @@ import dev.dres.data.model.template.team.TeamGroupId
  * @author Loris Sauter
  * @version 1.0.0
  */
+@Serializable
 data class ApiTeamGroup(
     val id: TeamGroupId? = null,
     val name: String? = null,

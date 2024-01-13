@@ -1,10 +1,10 @@
 package dev.dres.utilities
 
-import dev.dres.utilities.extensions.read
-import dev.dres.utilities.extensions.write
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap
 import java.util.HashMap
-import java.util.concurrent.locks.StampedLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * A simple latch that tracks for all object it contains whether they are ready (true) or not (false).
@@ -18,7 +18,7 @@ class ReadyLatch<T> {
     private val map = Object2BooleanOpenHashMap<T>()
 
     /** Internal lock to mediate access to map. */
-    private val lock = StampedLock()
+    private val lock = ReentrantReadWriteLock()
 
     private var timeout: Long? = null
 

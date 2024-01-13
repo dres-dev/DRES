@@ -147,7 +147,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
           duration: 5000,
         });
         if (err.status === 404) {
-          this.router.navigate(['/template/list']);
+          this.router.navigate(['/evaluation/list']);
         }
         return of(null);
       }),

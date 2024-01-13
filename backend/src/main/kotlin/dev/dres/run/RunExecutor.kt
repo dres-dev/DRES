@@ -2,13 +2,9 @@ package dev.dres.run
 
 
 import dev.dres.api.rest.types.ViewerInfo
-import dev.dres.data.model.config.Config
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
-import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.validation.interfaces.JudgementValidator
-import dev.dres.utilities.extensions.read
-import dev.dres.utilities.extensions.write
 import io.javalin.websocket.WsContext
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
@@ -16,7 +12,9 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
-import java.util.concurrent.locks.StampedLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * The execution environment for [RunManager]s
@@ -32,7 +30,7 @@ object RunExecutor {
     private val executor = Executors.newCachedThreadPool()
 
     /** List of [RunManager] executed by this [RunExecutor]. */
-    private val runManagers = HashMap<EvaluationId,RunManager>()
+    private val runManagers = HashMap<EvaluationId, RunManager>()
 
     /** List of [JudgementValidator]s registered with this [RunExecutor]. */
     private val judgementValidators = LinkedList<JudgementValidator>()
@@ -43,11 +41,11 @@ object RunExecutor {
     /** List of session IDs that are currently observing an evaluation. */
     private val observingClients = HashMap<EvaluationId, MutableSet<ViewerInfo>>()
 
-    /** Lock for accessing and changing all data structures related to WebSocket clients. */
-    private val clientLock = StampedLock()
+//    /** Lock for accessing and changing all data structures related to WebSocket clients. */
+//    private val clientLock = StampedLock()
 
     /** Lock for accessing and changing all data structures related to [RunManager]s. */
-    private val runManagerLock = StampedLock()
+    private val runManagerLock = ReentrantReadWriteLock()
 
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, EvaluationId>()
@@ -58,7 +56,7 @@ object RunExecutor {
      */
     fun init(store: TransientEntityStore) {
         store.transactional {
-            DbEvaluation.filter { (it.ended eq null) }.asSequence().forEach {evaluation ->
+            DbEvaluation.filter { (it.ended eq null) }.asSequence().forEach { evaluation ->
                 try {
                     this.schedule(evaluation.toRunManager(store))  /* Re-schedule evaluations. */
                 } catch (e: IllegalStateException) {
@@ -89,26 +87,30 @@ object RunExecutor {
     private val cleanerThread = Thread {
         while (!this@RunExecutor.executor.isShutdown) {
             var stamp = this@RunExecutor.runManagerLock.readLock()
-            try {
+            this@RunExecutor.runManagerLock.read {
+                //try {
                 this@RunExecutor.results.entries.removeIf { entry ->
                     val k = entry.key
                     val v = entry.value
                     if (k.isDone || k.isCancelled) {
                         logger.info("RunManager $v (done = ${k.isDone}, cancelled = ${k.isCancelled}) will be removed!")
-                        stamp = this@RunExecutor.runManagerLock.tryConvertToWriteLock(stamp)
-                        if (stamp > -1L) {
+//                        stamp = this@RunExecutor.runManagerLock.tryConvertToWriteLock(stamp)
+//                        if (stamp > -1L) {
+                        this@RunExecutor.runManagerLock.write {
                             /* Cleanup. */
                             this@RunExecutor.runManagers.remove(v)
                             this@RunExecutor.observingClients.remove(v)
+
                         }
                         true
                     } else {
                         false
                     }
                 }
-            } finally {
-                this@RunExecutor.runManagerLock.unlock(stamp)
             }
+//            } finally {
+//                this@RunExecutor.runManagerLock.unlock(stamp)
+//            }
             Thread.sleep(500)
         }
     }

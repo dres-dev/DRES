@@ -1,6 +1,7 @@
 package dev.dres.api.rest.types.collection.time
 
 import dev.dres.data.model.media.time.TemporalRange
+import kotlinx.serialization.Serializable
 
 /**
  * RESTful API representation of a [TemporalRange].
@@ -8,6 +9,7 @@ import dev.dres.data.model.media.time.TemporalRange
  * @version 1.0.0
  * @author Ralph Gasser
  */
+@Serializable
 data class ApiTemporalRange(val start: ApiTemporalPoint, val end: ApiTemporalPoint) {
     constructor(range: TemporalRange) : this(ApiTemporalPoint.fromTemporalPoint(range.start), ApiTemporalPoint.fromTemporalPoint(range.end))
     fun toTemporalRange(fps: Float): TemporalRange = TemporalRange(start.toTemporalPoint(fps), end.toTemporalPoint(fps))

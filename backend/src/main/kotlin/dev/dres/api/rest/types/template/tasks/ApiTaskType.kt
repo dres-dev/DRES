@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import dev.dres.api.rest.types.template.tasks.options.*
 import dev.dres.data.model.template.task.DbTaskType
 import io.javalin.openapi.OpenApiIgnore
+import kotlinx.serialization.Serializable
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -18,6 +19,7 @@ import java.nio.file.StandardOpenOption
  * @author Ralph Gasser & Loris Sauter
  * @version 1.1.0
  */
+@Serializable
 data class ApiTaskType(
     val name: String,
     val duration: Long,

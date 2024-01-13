@@ -2,6 +2,7 @@ package dev.dres.api.rest.types.template.tasks
 
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
 import dev.dres.data.model.template.task.DbTaskTemplateTarget
+import kotlinx.serialization.Serializable
 
 /**
  * The RESTful API equivalent for [DbTaskTemplateTarget].
@@ -9,6 +10,7 @@ import dev.dres.data.model.template.task.DbTaskTemplateTarget
  * @author Luca Rossetto & Ralph Gasser & Loris Sauter
  * @version 1.1.0
  */
+@Serializable
 data class ApiTarget(
     val type: ApiTargetType,
     /**

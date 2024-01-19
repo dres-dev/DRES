@@ -190,7 +190,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
+                  "$ref" : "#/components/schemas/ApiClientTaskTemplateInfo"
                 }
               }
             }

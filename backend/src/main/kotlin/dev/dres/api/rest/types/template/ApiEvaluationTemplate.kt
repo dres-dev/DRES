@@ -37,6 +37,7 @@ data class ApiEvaluationTemplate(
     @get:JsonIgnore
     @delegate:JsonIgnore
     @get:OpenApiIgnore
+    //@kotlinx.serialization.Transient not needed due to delegation
     private val allParticipantIds by lazy { teams.flatMap { team -> team.users.mapNotNull { it.id } }.toSet() }
 
     @JsonIgnore

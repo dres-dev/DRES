@@ -5,10 +5,12 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.log.QueryResultLog
+import dev.dres.run.RunManager
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.InvalidRequestEvent
 import dev.dres.run.eventstream.QueryResultLogEvent
 import dev.dres.utilities.extensions.activeManagerForUser
+import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -22,14 +24,17 @@ import io.javalin.openapi.*
  * @version 2.0.0
  */
 class ResultLogHandler: AbstractLogHandler() {
-    override val route = "log/result"
+    override val route = "log/result/{evaluationId}"
 
-    @OpenApi(summary = "Accepts result logs from participants.",
-        path = "/api/v2/log/result",
+    @OpenApi(summary = "Accepts result logs from participants  for the specified evaluation.",
+        path = "/api/v2/log/result/{evaluationId}",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(QueryResultLog::class)]),
         tags = ["Log"],
+        pathParams = [
+            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)
+        ],
         queryParams = [
             OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
         ],
@@ -39,7 +44,8 @@ class ResultLogHandler: AbstractLogHandler() {
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])]
     )
     override fun doPost(ctx: Context): SuccessStatus {
-        val evaluationManager = ctx.activeManagerForUser()
+        // val evaluationManager = ctx.activeManagerForUser()
+        val evaluationManager = ctx.eligibleManagerForId<RunManager>()
         val queryResultLog = try {
             ctx.bodyAsClass(QueryResultLog::class.java)
         } catch (e: BadRequestResponse){

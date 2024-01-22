@@ -1,6 +1,6 @@
 package dev.dres.api.rest
 
-import com.fasterxml.jackson.core.type.TypeReference
+
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.javalin.json.JsonMapper
 import kotlinx.serialization.KSerializer
@@ -12,13 +12,16 @@ import java.lang.reflect.Type
 object KotlinxJsonMapper : JsonMapper {
 
     private val fallbackMapper = jacksonObjectMapper()
+    private val mapper = Json{
+        ignoreUnknownKeys = true
+    }
 
     override fun <T : Any> fromJsonString(json: String, targetType: Type): T {
 
         return try {
             @Suppress("UNCHECKED_CAST")
             val serializer = serializer(targetType) as KSerializer<T>
-            Json.decodeFromString(serializer, json)
+            mapper.decodeFromString(serializer, json)
         } catch (e: SerializationException) {
             null
         } catch (e: IllegalStateException) {
@@ -31,7 +34,7 @@ object KotlinxJsonMapper : JsonMapper {
 
         return try {
             val serializer = serializer(type)
-            Json.encodeToString(serializer, obj)
+            mapper.encodeToString(serializer, obj)
         } catch (e: SerializationException) {
             null
         } catch (e: IllegalStateException) {

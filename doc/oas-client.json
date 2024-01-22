@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES Client API",
-    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0-RC3",
-    "version" : "2.0.0-RC3"
+    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0-RC4",
+    "version" : "2.0.0-RC4"
   },
   "paths" : {
     "/api/v1/submit" : {
@@ -183,7 +183,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
+                  "$ref" : "#/components/schemas/ApiClientTaskTemplateInfo"
                 }
               }
             }
@@ -452,12 +452,22 @@
         "security" : [ ]
       }
     },
-    "/api/v2/log/query" : {
+    "/api/v2/log/query/{evaluationId}" : {
       "post" : {
         "tags" : [ "Log" ],
-        "summary" : "Accepts query logs from participants",
-        "operationId" : "postApiV2LogQuery",
+        "summary" : "Accepts query logs from participants for the specified evaluation.",
+        "operationId" : "postApiV2LogQueryByEvaluationId",
         "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
@@ -514,12 +524,22 @@
         "security" : [ ]
       }
     },
-    "/api/v2/log/result" : {
+    "/api/v2/log/result/{evaluationId}" : {
       "post" : {
         "tags" : [ "Log" ],
-        "summary" : "Accepts result logs from participants.",
-        "operationId" : "postApiV2LogResult",
+        "summary" : "Accepts result logs from participants  for the specified evaluation.",
+        "operationId" : "postApiV2LogResultByEvaluationId",
         "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
@@ -2467,32 +2487,6 @@
         },
         "required" : [ "timestamp", "events" ]
       },
-      "QueryResult" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "item" : {
-            "type" : "string"
-          },
-          "segment" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "frame" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "score" : {
-            "type" : "number",
-            "format" : "double"
-          },
-          "rank" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        },
-        "required" : [ "item" ]
-      },
       "QueryResultLog" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -2510,7 +2504,7 @@
           "results" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/QueryResult"
+              "$ref" : "#/components/schemas/RankedAnswer"
             }
           },
           "events" : {
@@ -2521,6 +2515,20 @@
           }
         },
         "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events" ]
+      },
+      "RankedAnswer" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "answer" : {
+            "$ref" : "#/components/schemas/ApiClientAnswer"
+          },
+          "rank" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "answer" ]
       },
       "TemporalPoint" : {
         "type" : "object",

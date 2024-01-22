@@ -25,6 +25,7 @@ data class ApiAnswerSet(
 
     @get:JsonIgnore
     @get:OpenApiIgnore
+    @kotlinx.serialization.Transient
     override lateinit var submission: Submission
         @JsonIgnore
         @OpenApiIgnore

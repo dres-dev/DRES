@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.client
 
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.types.evaluation.ApiClientTaskTemplateInfo
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.types.evaluation.ApiTaskTemplateInfo
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -21,7 +22,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @version 2.0.0
  */
 class ClientTaskInfoHandler : AbstractEvaluationClientHandler(),
-    GetRestHandler<ApiTaskTemplateInfo> {
+    GetRestHandler<ApiClientTaskTemplateInfo> {
     override val route = "client/evaluation/currentTask/{evaluationId}"
 
     @OpenApi(
@@ -36,13 +37,13 @@ class ClientTaskInfoHandler : AbstractEvaluationClientHandler(),
             OpenApiParam("session", String::class, "Session Token")
         ],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(ApiTaskTemplateInfo::class)]),
+            OpenApiResponse("200", [OpenApiContent(ApiClientTaskTemplateInfo::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiTaskTemplateInfo {
+    override fun doGet(ctx: Context): ApiClientTaskTemplateInfo {
         val run = ctx.eligibleManagerForId<RunManager>()
         val rac = ctx.runActionContext()
         if (run !is InteractiveRunManager) throw ErrorStatusException(
@@ -52,6 +53,6 @@ class ClientTaskInfoHandler : AbstractEvaluationClientHandler(),
         )
         val task =
             run.currentTask(rac) ?: throw ErrorStatusException(404, "Specified evaluation has no active task.", ctx)
-        return ApiTaskTemplateInfo(task.template)
+        return ApiClientTaskTemplateInfo(task.template)
     }
 }

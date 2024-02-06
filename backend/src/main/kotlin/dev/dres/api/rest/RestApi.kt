@@ -21,7 +21,6 @@ import dev.dres.api.rest.handler.log.ResultLogHandler
 import dev.dres.api.rest.handler.preview.*
 import dev.dres.api.rest.handler.template.*
 import dev.dres.api.rest.handler.scores.ListEvaluationScoreHandler
-import dev.dres.api.rest.handler.submission.LegacySubmissionHandler
 import dev.dres.api.rest.handler.submission.SubmissionHandler
 import dev.dres.api.rest.handler.system.CurrentTimeHandler
 import dev.dres.api.rest.handler.system.InfoHandler
@@ -51,7 +50,6 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
-import kotlin.math.min
 
 /**
  * This is a singleton instance of the RESTful API
@@ -154,7 +152,6 @@ object RestApi {
             GetTeamLogoHandler(),
 
             // Submission
-            LegacySubmissionHandler(store, cache),
             SubmissionHandler(store),
 
             // Log

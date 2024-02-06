@@ -18,9 +18,13 @@ import kotlinx.dnq.query.firstOrNull
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ScoreDownloadHandler : AbstractDownloadHandler(), GetRestHandler<String> {
+class ScoreDownloadHandler : AbstractDownloadHandler(), GetRestHandler<Unit> {
 
     override val route = "download/evaluation/{evaluationId}/scores"
+
+    override fun doGet(ctx: Context) {
+        //nop
+    }
 
     @OpenApi(
         summary = "Provides a CSV download with the scores for a given evaluation.",
@@ -38,7 +42,7 @@ class ScoreDownloadHandler : AbstractDownloadHandler(), GetRestHandler<String> {
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): String {
+    override fun get(ctx: Context) {
         val manager = ctx.eligibleManagerForId<RunManager>()
         val rac = ctx.runActionContext()
 
@@ -46,14 +50,16 @@ class ScoreDownloadHandler : AbstractDownloadHandler(), GetRestHandler<String> {
         ctx.contentType("text/csv")
         ctx.header("Content-Disposition", "attachment; filename=\"scores-${manager.id}.csv\"")
 
-        /* Prepare and return response. */
-        return "startTime,task,group,team,score\n" + manager.tasks(rac).filter {
-            it.started != null
-        }.sortedBy {
-            it.started
-        }.flatMap { task ->
-            task.scorer.scores().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup}\",\"${manager.template.teams.firstOrNull { t -> t.id == it.first }?.name ?: "???"}\",${it.third}" }
-        }.joinToString(separator = "\n")
+        /* Prepare and send response. */
+        ctx.result(
+            "startTime,task,group,team,score\n" + manager.tasks(rac).filter {
+                it.started != null
+            }.sortedBy {
+                it.started
+            }.flatMap { task ->
+                task.scorer.scores()
+                    .map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup}\",\"${manager.template.teams.firstOrNull { t -> t.id == it.first }?.name ?: "???"}\",${it.third}" }
+            }.joinToString(separator = "\n")
+        )
     }
-
 }

@@ -64,6 +64,9 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
     /** The [DbUser]s that act as judge for this [DbEvaluationTemplate] */
     val judges by xdLink0_N(DbUser, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
 
+    /** The [DbUser]s that can view / spectate this [DbEvaluationTemplate] */
+    val viewers by xdLink0_N(DbUser, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
+
     /** The [DbTaskTemplate]s contained in this [DbEvaluationTemplate]*/
     val tasks by xdChildren0_N<DbEvaluationTemplate, DbTaskTemplate>(DbTaskTemplate::evaluation)
 
@@ -91,6 +94,7 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
         teamGroups = this.teamGroups.asSequence().map { it.toApi() }.toList(),
         teams = this.teams.asSequence().map { it.toApi() }.toList(),
         judges = this.judges.asSequence().map { it.id }.toList(),
+        viewers = this.viewers.asSequence().map{ it.id }.toList(),
         tasks = this.tasks.sortedBy(DbTaskTemplate::idx).asSequence().map { it.toApi() }.toList(),
     )
 
@@ -107,6 +111,7 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
             created = this@DbEvaluationTemplate.created
             modified = this@DbEvaluationTemplate.modified
             judges.addAll(this@DbEvaluationTemplate.judges)
+            viewers.addAll(this@DbEvaluationTemplate.viewers)
         }
 
         /* Copy task types. */

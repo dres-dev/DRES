@@ -48,6 +48,7 @@ import { MatDialogModule } from "@angular/material/dialog";
 import { ColorPickerModule } from "ngx-color-picker";
 import {CdkDrag, CdkDropList} from '@angular/cdk/drag-drop';
 import { MatCardModule } from "@angular/material/card";
+import { ViewersListComponent } from './viewers-list/viewers-list.component';
 
 
 @NgModule({
@@ -67,7 +68,8 @@ import { MatCardModule } from "@angular/material/card";
     QueryDescriptionMediaItemVideoFormFieldComponent,
     QueryDescriptionExternalVideoFormFieldComponent,
     QueryDescriptionExternalImageFormFieldComponent,
-    TeamBuilderDialogComponent
+    TeamBuilderDialogComponent,
+    ViewersListComponent
   ],
   imports: [
     CommonModule,
@@ -100,7 +102,7 @@ import { MatCardModule } from "@angular/material/card";
     TaskTypesListComponent,
     TaskGroupsListComponent,
     TaskTemplatesListComponent,
-    TaskTemplateEditorComponent]
+    TaskTemplateEditorComponent, ViewersListComponent]
 })
 export class TemplateBuilderComponentsModule {
 }

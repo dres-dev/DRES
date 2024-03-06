@@ -90,14 +90,11 @@ dependencies {
     ////// Jaffree ffmpeg wrapper
     implementation group: 'com.github.kokorin.jaffree', name: 'jaffree', version: version_jaffree
 
-
     ////// Log4J
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: version_log4j
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: version_log4j
     implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: version_log4j
     implementation group: 'org.apache.logging.log4j', name: 'log4j-jul', version: version_log4j
-    implementation 'io.github.microutils:kotlin-logging-jvm:2.0.11'
-
 
     ////// FastUtil
     implementation group: 'it.unimi.dsi', name: 'fastutil', version: version_fastutil

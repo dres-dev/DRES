@@ -47,8 +47,6 @@ compileTestKotlin {
 
 dependencies {
 
-    def javalinOpenapi = '5.6.1'
-
     ///// Frontend files (produced by sub-project).
     implementation frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
 
@@ -64,11 +62,11 @@ dependencies {
 
     ////// Javalin
     implementation group: 'io.javalin', name:  'javalin', version: version_javalin
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenapi")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:$version_javalinopenapi")
 
-    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: javalinOpenapi
-    implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: javalinOpenapi
-    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalin
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalinopenapi
+    implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: version_javalinopenapi
+    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalinssl
 
     ////// Bcrypt
     implementation group: 'org.mindrot', name: 'jbcrypt', version: version_bcrypt

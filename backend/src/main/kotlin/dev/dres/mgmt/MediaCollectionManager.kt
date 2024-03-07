@@ -27,6 +27,10 @@ object MediaCollectionManager {
         DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()?.toApi()
     }
 
+    fun getCollectionByName(name: String): ApiMediaCollection? = this.store.transactional(true){
+        DbMediaCollection.query(DbMediaCollection::name eq name).firstOrNull()?.toApi()
+    }
+
     fun getPopulatedCollection(collectionId: CollectionId): ApiPopulatedMediaCollection? =
         this.store.transactional(true) {
             val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()

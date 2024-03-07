@@ -34,6 +34,8 @@ data class Config(
     val auditLocation: Path = DRES.APPLICATION_ROOT.parent.resolve("audit"),
     /** Whether API endpoints for external media should be available */
     val externalMediaEndpointsEnabled: Boolean = false,
+    /** Whether to enable http3 protocol, requires enableSsl to be true, to have an effect. THIS IS CURRENTLY NOT YET SUPPORTED */
+    val enableHttp3: Boolean = false,
 ) {
 
     companion object{

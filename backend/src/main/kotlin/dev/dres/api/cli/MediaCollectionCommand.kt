@@ -4,6 +4,9 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
+import com.github.ajalt.clikt.parameters.groups.required
+import com.github.ajalt.clikt.parameters.groups.single
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.float
@@ -14,9 +17,7 @@ import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult
 import com.jakewharton.picnic.table
-import dev.dres.api.rest.types.collection.ApiMediaItem
-import dev.dres.api.rest.types.collection.ApiMediaSegment
-import dev.dres.api.rest.types.collection.ApiMediaType
+import dev.dres.api.rest.types.collection.*
 import dev.dres.data.model.config.Config
 import dev.dres.data.model.media.*
 import dev.dres.mgmt.MediaCollectionManager
@@ -69,6 +70,7 @@ class MediaCollectionCommand(private val config: Config) :
         return mapOf(
             "ls" to listOf("list"),
             "remove" to listOf("delete"),
+            "rm" to listOf("delete"),
             "drop" to listOf("delete")
         )
     }
@@ -84,7 +86,24 @@ class MediaCollectionCommand(private val config: Config) :
     }
 
     /**
-     *
+     * Wrapper to both handle [CollectionId] and collection name as a [String].
+     */
+    sealed class CollectionAddress {
+        data class IdAddress(val id: CollectionId): CollectionAddress(){
+            override fun toString(): String {
+                return "CollectionAddress(id=$id)"
+            }
+        }
+        data class NameAddress(val name: String): CollectionAddress(){
+            override fun toString(): String {
+                return "CollectionAddress(name=$name)"
+            }
+        }
+    }
+
+    /**
+     * Base command for media collection related commands.
+     * Provides infrastructure to get the collection specified by the user
      */
     abstract inner class AbstractCollectionCommand(
         name: String,
@@ -92,8 +111,44 @@ class MediaCollectionCommand(private val config: Config) :
     ) :
         CliktCommand(name = name, help = help, printHelpOnEmptyArgs = true) {
 
-        /** The [CollectionId] of the [DbMediaCollection] affected by this [AbstractCollectionCommand]. */
-        protected val id: CollectionId by option("-i", "--id", help = "ID of a media collection.").required()
+        /** The [CollectionAddress] of the [DbMediaCollection] affected by this [AbstractCollectionCommand]. */
+        protected val collectionAddress: CollectionAddress by mutuallyExclusiveOptions<CollectionAddress>(
+            option(
+                "-i",
+                "--id",
+                help = "ID of a media collection."
+            ).convert { CollectionAddress.IdAddress(it) },
+            option(
+                "-c",
+                "--collection",
+                help = "The collection name"
+            ).convert { CollectionAddress.NameAddress(it) }
+        ).single().required()
+
+        /**
+         * Resolves the [ApiMediaCollection] which is addressed by the given [CollectionAddress]
+         */
+        protected fun resolve(addr: CollectionAddress): ApiMediaCollection {
+            val col = when (addr) {
+                is CollectionAddress.IdAddress -> {
+                    MediaCollectionManager.getCollection(addr.id)
+                }
+
+                is CollectionAddress.NameAddress -> {
+                    MediaCollectionManager.getCollectionByName(addr.name)
+                }
+            }
+            if (col != null) {
+                return col
+            } else {
+                throw IllegalArgumentException("Could not find media collection for address $addr")
+            }
+        }
+
+        protected fun resolvePopulated(addr: CollectionAddress): ApiPopulatedMediaCollection {
+            return MediaCollectionManager.getPopulatedCollection(resolve(addr).id!!)
+                ?: throw IllegalArgumentException("Could not find media collection for address $addr")
+        }
 
     }
 
@@ -140,13 +195,13 @@ class MediaCollectionCommand(private val config: Config) :
     inner class Delete :
         AbstractCollectionCommand("delete", help = "Deletes a media collection.") {
         override fun run() {
-
-            if (MediaCollectionManager.deleteCollection(this.id) == null) {
-                println("Failed to delete collection; specified collection not found.")
-            } else {
+            try{
+                MediaCollectionManager.deleteCollection(resolve(collectionAddress).id!!)
+                    ?: throw IllegalArgumentException("Could not find media collection for address $collectionAddress")
                 println("Collection deleted successfully.")
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
             }
-
         }
     }
 
@@ -174,11 +229,10 @@ class MediaCollectionCommand(private val config: Config) :
         )
 
         override fun run() {
-
-            val collection = MediaCollectionManager.getCollection(id)
-
-            if (collection == null) {
-                println("Failed to update collection; specified collection not found.")
+            val collection = try {
+                resolve(collectionAddress)
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
                 return
             }
 
@@ -250,9 +304,10 @@ class MediaCollectionCommand(private val config: Config) :
 
         override fun run() {
             /* Find media collection. */
-            val collection = MediaCollectionManager.getPopulatedCollection(id)
-            if (collection == null) {
-                println("Collection not found.")
+            val collection = try{
+                resolvePopulated(collectionAddress)
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
                 return
             }
 
@@ -305,9 +360,10 @@ class MediaCollectionCommand(private val config: Config) :
     ) {
         override fun run() {
             /* Find media collection. */
-            val collection = MediaCollectionManager.getPopulatedCollection(id)
-            if (collection == null) {
-                println("Collection not found.")
+            val collection = try{
+                resolvePopulated(collectionAddress)
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
                 return
             }
 
@@ -373,9 +429,10 @@ class MediaCollectionCommand(private val config: Config) :
 
             /* Find media collection and note base path */
 
-            val collection = MediaCollectionManager.getCollection(id)
-            if (collection == null) {
-                println("Collection not found.")
+            val collection = try{
+                resolve(collectionAddress)
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
                 return
             }
 
@@ -413,7 +470,7 @@ class MediaCollectionCommand(private val config: Config) :
                                     type = ApiMediaType.IMAGE,
                                     name = it.fileName.nameWithoutExtension,
                                     location = relativePath.toString(),
-                                    collectionId = id,
+                                    collectionId = collection.id!!,
                                     mediaItemId = "" //is generated anew anyway
                                 )
                             }
@@ -445,7 +502,7 @@ class MediaCollectionCommand(private val config: Config) :
                                     location = relativePath.toString(),
                                     durationMs = duration,
                                     fps = fps,
-                                    collectionId = id,
+                                    collectionId = collection.id!!,
                                     mediaItemId = "" //is generated anew anyway
                                 )
                             }
@@ -466,7 +523,7 @@ class MediaCollectionCommand(private val config: Config) :
 
                 }
 
-                MediaCollectionManager.addMediaItems(id, items)
+                MediaCollectionManager.addMediaItems(collection.id!!, items)
 
 
             }
@@ -510,9 +567,10 @@ class MediaCollectionCommand(private val config: Config) :
             }
 
             /* Find media collection. */
-            val collection = MediaCollectionManager.getPopulatedCollection(id)
-            if (collection == null) {
-                println("Collection not found.")
+            val collection = try{
+                resolvePopulated(collectionAddress)
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
                 return
             }
 
@@ -564,9 +622,10 @@ class MediaCollectionCommand(private val config: Config) :
 
         override fun run() {
             /* Find media collection. */
-            val collection = MediaCollectionManager.getCollection(id)
-            if (collection == null) {
-                println("Collection not found.")
+            val collection = try{
+                resolve(collectionAddress)
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
                 return
             }
 
@@ -583,7 +642,7 @@ class MediaCollectionCommand(private val config: Config) :
                 location = this@AddItem.path,
                 durationMs = this@AddItem.duration,
                 fps = this@AddItem.fps,
-                collectionId = id,
+                collectionId = collection.id!!,
                 mediaItemId = ""
             )
 
@@ -611,9 +670,10 @@ class MediaCollectionCommand(private val config: Config) :
 
         override fun run() {
             /* Find media collection. */
-            val collection = MediaCollectionManager.getPopulatedCollection(id)
-            if (collection == null) {
-                println("Collection not found.")
+            val collection = try{
+                resolvePopulated(collectionAddress)
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
                 return
             }
 
@@ -659,11 +719,13 @@ class MediaCollectionCommand(private val config: Config) :
             }
 
             /* Find media collection. */
-            val collection = MediaCollectionManager.getCollection(id)
-            if (collection == null) {
-                println("Collection not found.")
+            val collection = try{
+                resolve(collectionAddress)
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
                 return
             }
+
             /* Load file. */
             Files.newInputStream(this.input, StandardOpenOption.READ).use { ips ->
                 val chunks = csvReader().readAllWithHeader(ips).chunked(transactionChunkSize)
@@ -678,12 +740,12 @@ class MediaCollectionCommand(private val config: Config) :
                             location = row.getValue("location"),
                             durationMs = row["duration"]?.toLongOrNull(),
                             fps = row["fps"]?.toFloatOrNull(),
-                            collectionId = id,
+                            collectionId = collection.id!!,
                             mediaItemId = ""
                         )
                     }
 
-                    MediaCollectionManager.addMediaItems(id, items)
+                    MediaCollectionManager.addMediaItems(collection.id!!, items)
 
                 }
             }
@@ -722,9 +784,10 @@ class MediaCollectionCommand(private val config: Config) :
 
 
             /* Find media collection. */
-            val collection = MediaCollectionManager.getCollection(id)
-            if (collection == null) {
-                println("Collection not found.")
+            val collection = try{
+                resolve(collectionAddress)
+            }catch(ex: IllegalArgumentException){
+                println(ex.message)
                 return
             }
             /* Load file. */
@@ -743,7 +806,7 @@ class MediaCollectionCommand(private val config: Config) :
                     .sortedBy { it.mediaItemName }
                     .asSequence().chunked(transactionChunkSize)
                     .forEach { chunk ->
-                        inserted += MediaCollectionManager.addSegments(id, chunk)
+                        inserted += MediaCollectionManager.addSegments(collection.id!!, chunk)
                     }
             }
 

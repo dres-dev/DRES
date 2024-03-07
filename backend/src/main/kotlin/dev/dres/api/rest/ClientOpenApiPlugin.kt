@@ -10,7 +10,7 @@ class ClientOpenApiPlugin : OpenApiPlugin({
     it
         .withDocumentationPath("/clientapi.json")
         .withDefinitionConfiguration { _, u ->
-            u.withOpenApiInfo { t ->
+            u.withInfo { t ->
                 t.title = "DRES Client API"
                 t.version = DRES.VERSION
                 t.description =

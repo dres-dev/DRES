@@ -1,6 +1,7 @@
 package dev.dres.api.rest
 
 import GetTaskHintHandler
+import com.fasterxml.jackson.databind.node.ObjectNode
 import dev.dres.DRES
 import dev.dres.api.rest.handler.*
 import dev.dres.api.rest.handler.collection.*
@@ -235,39 +236,44 @@ object RestApi {
             }
 
             it.registerPlugin(
-                OpenApiPlugin{ oapConfig ->
+                OpenApiPlugin { oapConfig ->
                     oapConfig
                         .withDocumentationPath("/openapi.json")
                         .withDefinitionConfiguration { version, openApiDef ->
                             openApiDef
                                 .withInfo { info ->
-                                info.title = "DRES API"
-                                info.version = DRES.VERSION
-                                info.description =
-                                    "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
-                                val contact = OpenApiContact()
-                                contact.url = "https://dres.dev"
-                                contact.name = "The DRES Dev Team"
-                                info.contact = contact
-                                val license = OpenApiLicense()
-                                license.name = "MIT"
-                                info.license = license
-                             }
+                                    info.title = "DRES API"
+                                    info.version = DRES.VERSION
+                                    info.description =
+                                        "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
+                                    val contact = OpenApiContact()
+                                    contact.url = "https://dres.dev"
+                                    contact.name = "The DRES Dev Team"
+                                    info.contact = contact
+                                    val license = OpenApiLicense()
+                                    license.name = "MIT"
+                                    info.license = license
+                                }
 
-                            .withSecurity(
-                                SecurityComponentConfiguration()
-                                    .withSecurityScheme("CookieAuth", CookieAuth(AccessManager.SESSION_COOKIE_NAME))
-                            )
+                                .withSecurity(
+                                    SecurityComponentConfiguration()
+                                        .withSecurityScheme(
+                                            "CookieAuth",
+                                            CookieAuth(AccessManager.SESSION_COOKIE_NAME)
+                                        )
+                                )
                         }
                 }
             )
 
+
             it.registerPlugin(ClientOpenApiPlugin())
-            it.registerPlugin(SwaggerPlugin{ swaggerConfig ->
+
+            it.registerPlugin(SwaggerPlugin { swaggerConfig ->
                 swaggerConfig.documentationPath = "/openapi.json"
                 swaggerConfig.uiPath = "/swagger-ui"
             })
-            it.registerPlugin(SwaggerPlugin{ swaggerConfig ->
+            it.registerPlugin(SwaggerPlugin { swaggerConfig ->
                 swaggerConfig.documentationPath = "/clientapi.json"
                 swaggerConfig.uiPath = "/swagger-client"
                 swaggerConfig.title = "Client Swagger UI"
@@ -293,7 +299,9 @@ object RestApi {
                 it.registerPlugin(ssl)
             }
 
-            it.router.apiBuilder{
+
+
+            it.router.apiBuilder {
                 path("api") {
                     apiRestHandlers.groupBy { it.apiVersion }.forEach { apiGroup ->
                         path(apiGroup.key) {
@@ -329,10 +337,10 @@ object RestApi {
                 }
             }
 
-        }.beforeMatched{ctx ->
+        }.beforeMatched { ctx ->
             /* BeforeMatched handlers are only matched if the request will be matched */
             /* See https://javalin.io/migration-guide-javalin-5-to-6 */
-            if(! AccessManager.hasAccess(ctx)){
+            if (!AccessManager.hasAccess(ctx)) {
                 ctx.status(HttpStatus.UNAUTHORIZED)
                 ctx.skipRemainingHandlers()
             }
@@ -369,7 +377,6 @@ object RestApi {
             if (ctx.path().startsWith("/api/")) { //do not cache api requests
                 ctx.header("Cache-Control", "no-store")
             }
-
 
 
         }.error(401) {

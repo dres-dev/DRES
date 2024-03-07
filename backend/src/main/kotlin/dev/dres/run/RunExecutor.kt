@@ -86,7 +86,7 @@ object RunExecutor {
     /** A thread that cleans after [RunManager] have finished. */
     private val cleanerThread = Thread {
         while (!this@RunExecutor.executor.isShutdown) {
-            var stamp = this@RunExecutor.runManagerLock.readLock()
+//            var stamp = this@RunExecutor.runManagerLock.readLock()
             this@RunExecutor.runManagerLock.read {
                 //try {
                 this@RunExecutor.results.entries.removeIf { entry ->

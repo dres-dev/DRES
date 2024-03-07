@@ -75,9 +75,6 @@ object RestApi {
      * @param cache The [CacheManager] instance used to access the media cache.
      */
     fun init(config: Config, store: TransientEntityStore, cache: CacheManager) {
-
-        val runExecutor = RunExecutor
-
         /**
          * The list of API operations, each as a handler.
          * Did you follow our convention?
@@ -239,7 +236,7 @@ object RestApi {
                 OpenApiPlugin { oapConfig ->
                     oapConfig
                         .withDocumentationPath("/openapi.json")
-                        .withDefinitionConfiguration { version, openApiDef ->
+                        .withDefinitionConfiguration { _, openApiDef ->
                             openApiDef
                                 .withInfo { info ->
                                     info.title = "DRES API"

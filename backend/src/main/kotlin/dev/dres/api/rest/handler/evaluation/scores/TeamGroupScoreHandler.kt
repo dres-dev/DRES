@@ -44,7 +44,7 @@ class TeamGroupScoreHandler : AbstractScoreHandler(), GetRestHandler<List<ApiTea
         }
 
 
-            val rac = ctx.runActionContext()
+//            val rac = ctx.runActionContext()
             /* TODO: Not suite sure where the teamGroupAggregator got lost.*/
             //val aggregators = manager.currentTask(rac)?.teamGroupAggregators ?: throw ErrorStatusException(404, "No active task in evaluation ${ctx.evaluationId()}.", ctx)
             //val teamGroups = manager.template.teamsGroups.toList()

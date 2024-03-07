@@ -116,7 +116,9 @@ dependencies {
 kapt {
     correctErrorTypes true
     useBuildCache true
+    targetCompatibility = 11
 }
+
 
 test {
     useJUnitPlatform()

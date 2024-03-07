@@ -254,7 +254,6 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
                 return@transactional
             }
 
-            val mapper = jacksonObjectMapper()
             Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
                 /*val writer = if (this.pretty) {
                     mapper.writerWithDefaultPrettyPrinter()

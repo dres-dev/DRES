@@ -117,7 +117,7 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
      * @throws IOException
      */
     private fun ApiTaskTemplate.toTaskHint(): ApiHintContent = store.transactional(true){
-        val sequence = this.hints.groupBy { it.type }.flatMap { (type, hints) ->
+        val sequence = this.hints.groupBy { it.type }.flatMap { (_, hints) ->
             var index = 0
             hints.sortedBy { it.start ?: 0 }.flatMap {
                 val ret = mutableListOf(it.toContentElement())

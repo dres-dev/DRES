@@ -1,5 +1,6 @@
 package dev.dres
 
+import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import dev.dres.api.cli.Cli
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
@@ -29,6 +30,10 @@ import kotlinx.dnq.util.initMetaData
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isExecutable
+import kotlin.io.path.listDirectoryEntries
 import kotlin.system.exitProcess
 
 
@@ -99,6 +104,8 @@ object DRES {
 
         println("Starting DRES (application: $APPLICATION_ROOT, data: $DATA_ROOT)")
         println("Initializing...")
+
+
 
         /* Initialize Xodus based data store. */
         val store = this.prepareDatabase()

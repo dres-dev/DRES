@@ -31,7 +31,8 @@ import java.nio.file.StandardOpenOption
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCommand(name = "evaluation") {
+class EvaluationCommand(internal val store: TransientEntityStore) :
+    NoOpCliktCommand(name = "evaluation") {
 
     init {
         subcommands(
@@ -49,9 +50,10 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
     override fun aliases(): Map<String, kotlin.collections.List<String>> {
         return mapOf(
             "ls" to listOf("ongoing"),
-            "la" to listOf("list"),
+            "ll" to listOf("list"),
             "remove" to listOf("delete"),
-            "drop" to listOf("delete")
+            "drop" to listOf("delete"),
+            "rm" to listOf("delete")
         )
     }
 

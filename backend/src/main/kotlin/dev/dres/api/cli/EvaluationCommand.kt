@@ -1,6 +1,6 @@
 package dev.dres.api.cli
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -249,21 +249,22 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
         /** Flag indicating whether export should be pretty printed.*/
         private val pretty: Boolean by option("-p", "--pretty", help = "Flag indicating whether exported JSON should be pretty printed.").flag("-u", "--ugly", default = true)
 
+
+
         override fun run() = this@EvaluationCommand.store.transactional(true) {
             val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
             if (evaluation == null) {
                 println("Evaluation ${this.id} does not seem to exist.")
                 return@transactional
             }
-
+            val mapper = ObjectMapper()
             Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
-                /*val writer = if (this.pretty) {
+                val writer = if (this.pretty) {
                     mapper.writerWithDefaultPrettyPrinter()
                 } else {
                     mapper.writer()
                 }
-                writer.writeValue(it, run)*/
-                // TODO: Export must be re-conceived based on API classes.
+                writer.writeValue(it, evaluation.toApi())
             }
             println("Successfully exported evaluation ${this.id} to $path.")
         }

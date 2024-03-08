@@ -1,21 +1,20 @@
 package dev.dres
 
-import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import dev.dres.api.cli.Cli
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
-import dev.dres.data.model.config.Config
 import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.admin.DbUser
+import dev.dres.data.model.config.Config
 import dev.dres.data.model.media.*
+import dev.dres.data.model.run.*
+import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.*
 import dev.dres.data.model.template.task.options.*
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamAggregator
 import dev.dres.data.model.template.team.DbTeamGroup
-import dev.dres.data.model.run.*
-import dev.dres.data.model.submissions.*
 import dev.dres.mgmt.MediaCollectionManager
 import dev.dres.mgmt.TemplateManager
 import dev.dres.mgmt.admin.UserManager
@@ -30,10 +29,6 @@ import kotlinx.dnq.util.initMetaData
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.io.path.exists
-import kotlin.io.path.isDirectory
-import kotlin.io.path.isExecutable
-import kotlin.io.path.listDirectoryEntries
 import kotlin.system.exitProcess
 
 
@@ -47,7 +42,7 @@ import kotlin.system.exitProcess
  */
 object DRES {
     /** Version of DRES. */
-    const val VERSION = "2.0.0-RC5"
+    const val VERSION = "2.0.0"
 
     /** Application root; should be relative to JAR file or classes path. */
     val APPLICATION_ROOT: Path =

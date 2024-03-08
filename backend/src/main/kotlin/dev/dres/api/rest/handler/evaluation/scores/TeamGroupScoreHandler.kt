@@ -42,13 +42,10 @@ class TeamGroupScoreHandler : AbstractScoreHandler(), GetRestHandler<List<ApiTea
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
-
-
-//            val rac = ctx.runActionContext()
-            /* TODO: Not suite sure where the teamGroupAggregator got lost.*/
-            //val aggregators = manager.currentTask(rac)?.teamGroupAggregators ?: throw ErrorStatusException(404, "No active task in evaluation ${ctx.evaluationId()}.", ctx)
-            //val teamGroups = manager.template.teamsGroups.toList()
-            //teamGroups.map { ApiTeamGroupValue(it.name, aggregators[it.teamGroupId]?.lastValue ?: 0.0) }
+            val rac = ctx.runActionContext()
+            val aggregators = manager.currentTask(rac)?.teamGroupAggregators ?: throw ErrorStatusException(404, "No active task in evaluation ${ctx.evaluationId()}.", ctx)
+            val teamGroups = manager.template.teamGroups.toList()
+            teamGroups.map { ApiTeamGroupValue(it.name!!, aggregators[it.id]?.lastValue ?: 0.0) }
             return emptyList()
 
     }

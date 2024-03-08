@@ -1,3 +1,5 @@
+package dev.dres.api.rest.handler.evaluation.viewer
+
 import dev.dres.DRES
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.handler.evaluation.viewer.AbstractEvaluationViewerHandler

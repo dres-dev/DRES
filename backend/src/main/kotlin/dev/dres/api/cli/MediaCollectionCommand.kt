@@ -796,17 +796,21 @@ class MediaCollectionCommand(private val config: Config) :
                 val rows: kotlin.collections.List<Map<String, String>> = csvReader().readAllWithHeader(ips)
                 println("Done! Reading ${rows.size} rows")
 
-                rows.mapNotNull {
-                    val segmentName = it["name"] ?: return@mapNotNull null
-                    val videoName = it["video"] ?: return@mapNotNull null
-                    val start = it["start"]?.toIntOrNull() ?: return@mapNotNull null
-                    val end = it["end"]?.toIntOrNull() ?: return@mapNotNull null
-                    ApiMediaSegment(videoName, segmentName, start, end)
+                rows.mapIndexedNotNull { index, row ->
+                    val segmentName = row["name"] ?: return@mapIndexedNotNull null
+                    val videoName = row["video"] ?: return@mapIndexedNotNull null
+                    val start = row["start"]?.toIntOrNull() ?: return@mapIndexedNotNull null
+                    val end = row["end"]?.toIntOrNull() ?: return@mapIndexedNotNull null
+                    index to ApiMediaSegment(videoName, segmentName, start, end)
                 }
-                    .sortedBy { it.mediaItemName }
+                    .sortedBy { it.second.mediaItemName }
                     .asSequence().chunked(transactionChunkSize)
                     .forEach { chunk ->
-                        inserted += MediaCollectionManager.addSegments(collection.id!!, chunk)
+                        try {
+                            inserted += MediaCollectionManager.addSegments(collection.id!!, chunk.map { it.second })
+                        }catch(ex: RuntimeException){
+                            System.err.println("An error (${ex.javaClass.simpleName}) occurred during ingesting from rows ${chunk.first().first} to ${chunk.last().first}: ${ex.message} ")
+                        }
                     }
             }
 

@@ -809,7 +809,12 @@ class MediaCollectionCommand(private val config: Config) :
                         try {
                             inserted += MediaCollectionManager.addSegments(collection.id!!, chunk.map { it.second })
                         }catch(ex: RuntimeException){
-                            System.err.println("An error (${ex.javaClass.simpleName}) occurred during ingesting from rows ${chunk.first().first} to ${chunk.last().first}: ${ex.message} ")
+                            val errorMsg = "An error (${ex.javaClass.simpleName}) occurred during ingesting from rows ${chunk.first().first} to ${chunk.last().first}"
+                            System.err.println("$errorMsg: ${ex.message}")
+                            this@MediaCollectionCommand.logger.error(
+                                this@MediaCollectionCommand.logMarker,
+                                errorMsg, ex
+                            )
                         }
                     }
             }

@@ -39,6 +39,16 @@ object AccessManager {
         }
     }
 
+    fun hasAccess(ctx: Context): Boolean {
+        val permittedRoles = ctx.routeRoles()
+        return when {
+            permittedRoles.isEmpty() -> true
+            permittedRoles.contains(ApiRole.ANYONE) -> true
+            rolesOfSession(ctx.sessionToken()).any { it in permittedRoles } -> true
+            else -> false
+        }
+    }
+
     /** An internal [ConcurrentHashMap] that maps [SessionToken]s to [ApiRole]s. */
     private val sessionRoleMap = HashMap<SessionToken, MutableSet<ApiRole>>()
 

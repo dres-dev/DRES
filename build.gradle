@@ -13,8 +13,8 @@ plugins {
 }
 
 /// Variables used for Open API generation.
-def fullOAS = 'http://localhost:8080/swagger-docs'
-def clientOAS = 'http://localhost:8080/client-oas'
+def fullOAS = 'http://localhost:8080/openapi.json'
+def clientOAS = 'http://localhost:8080/clientapi.json'
 def oasFile = "${project.projectDir}/doc/oas.json"
 def clientOasFile = "${project.projectDir}/doc/oas-client.json"
 
@@ -32,7 +32,7 @@ openApiGenerate {
     outputDir = file("${project.projectDir}/frontend/openapi").toString()
     configOptions = [
         npmName: '@dres-openapi/api',
-        ngVersion: '13.2.3',
+        ngVersion: '15.2.9',
         snapshot: 'true', /// I suggest to remove this, as soon as we automate this,
         enumPropertyNaming: 'original'
     ]

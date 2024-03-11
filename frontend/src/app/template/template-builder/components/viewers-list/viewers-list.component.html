@@ -1,0 +1,41 @@
+<div class="flex flex-row align-center">
+  <h2>Viewers</h2>
+  <div class="spacer-flex"></div>
+  <button mat-button [matMenuTriggerFor]="userSelection"
+          aria-label="Add new viewer."
+          matTooltip="Add new viewer."
+          (click)="refreshAvailableUsers()">
+    <mat-icon>add</mat-icon>
+    Add viewer
+  </button>
+
+  <mat-menu #userSelection overlapTrigger="true">
+    <div style="padding: 0.5em">
+      <mat-form-field appearance="fill">
+        <mat-label>Viewer Selection</mat-label>
+        <input type="text" placeholder="Viewer" aria-label="Viewer" matInput [matAutocomplete]="userAutocomplete" (click)="$event.stopPropagation()" />
+        <mat-autocomplete #userAutocomplete="matAutocomplete" (optionSelected)="addUser($event)" [displayWith]="displayUser">
+          <mat-option *ngFor="let user of availableUsers | async" [value]="user">{{user.username}}</mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+  </mat-menu>
+</div>
+<table #table mat-table [dataSource]="(users | async)" [style.width]="'100%'">
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef>Name</th>
+    <td mat-cell *matCellDef="let user">{{(userForId(user) | async)?.username}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="action">
+    <th mat-header-cell *matHeaderCellDef>Action</th>
+    <mat-cell *matCellDef="let user">
+      <button mat-icon-button aria-label="Remove User." matTooltip="Remove User." (click)="remove(user)">
+        <mat-icon>remove</mat-icon>
+      </button>
+    </mat-cell>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let user; columns: displayedColumns"></tr>
+</table>

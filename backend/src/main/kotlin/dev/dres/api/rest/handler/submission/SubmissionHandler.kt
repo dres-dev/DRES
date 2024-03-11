@@ -48,7 +48,17 @@ class SubmissionHandler(private val store: TransientEntityStore) : PostRestHandl
         path = "/api/v2/submit/{evaluationId}",
         methods = [HttpMethod.POST],
         operationId = OpenApiOperation.AUTO_GENERATE,
-        requestBody = OpenApiRequestBody([OpenApiContent(ApiClientSubmission::class)], required = true),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiClientSubmission::class)], required = true,
+            description =
+               "Some notes regarding the submission format. " +
+               "At least one answerSet is required, taskId, taskName are inferred if not provided," +
+               "  at least one answer is required, mediaItemCollectionName is inferred if not provided," +
+               "  start and end should be provided in milliseconds." +
+               "For most evaluation setups, an answer is built in one of the three following ways:" +
+               " A) only text is required: just provide the text property with a meaningful entry" +
+               " B) only a mediaItemName is required: just provide the mediaItemName, optionally with the collection name." +
+               " C) a specific portion of a mediaItem is required: provide mediaItemName, start and end, optionally with collection name"
+            ),
         pathParams = [
             OpenApiParam(
                 "evaluationId",
@@ -99,6 +109,7 @@ class SubmissionHandler(private val store: TransientEntityStore) : PostRestHandl
         val apiSubmission = try {
             runManager.postSubmission(rac, apiClientSubmission)
         } catch (e: SubmissionRejectedException) {
+            logger.info("Submission was rejected by submission filter.")
             throw ErrorStatusException(412, e.message ?: "Submission rejected by submission filter.", ctx)
         } catch (e: IllegalRunStateException) {
             logger.info("Submission was received while run manager was not accepting submissions.")

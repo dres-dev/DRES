@@ -129,6 +129,8 @@ inline fun <reified T: RunManager> Context.eligibleManagerForId(): T {
     val manager = RunExecutor.managerForId(evaluationId) as? T ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found.", this)
     return if (this.isJudge() && manager.template.judges.contains(userId)) {
         manager
+    } else if (this.isViewer() && manager.template.viewers.contains(userId)) {
+        manager
     } else if (this.isParticipant() && manager.template.hasParticipant(userId)) {
         manager
     } else if (this.isAdmin()) {
@@ -166,6 +168,16 @@ fun Context.isParticipant(): Boolean {
 fun Context.isJudge(): Boolean {
     val roles = AccessManager.rolesOfSession(this.sessionToken())
     return roles.contains(ApiRole.JUDGE) && !roles.contains(ApiRole.ADMIN)
+}
+
+/**
+ * Checks if user associated with current [Context] has [ApiRole.VIEWER].
+ *
+ * @return True if current user has [ApiRole.VIEWER]
+ */
+fun Context.isViewer(): Boolean {
+    val roles = AccessManager.rolesOfSession(this.sessionToken())
+    return roles.contains(ApiRole.VIEWER) && !roles.contains(ApiRole.ADMIN)
 }
 
 /**

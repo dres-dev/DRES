@@ -32,6 +32,7 @@ data class ApiEvaluationTemplate(
     val teams: List<ApiTeam>,
     val teamGroups: List<ApiTeamGroup>,
     val judges: List<String>,
+    val viewers: List<String>
 ) {
 
     @get:JsonIgnore

@@ -1,6 +1,6 @@
 package dev.dres.api.cli
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -31,7 +31,8 @@ import java.nio.file.StandardOpenOption
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCommand(name = "evaluation") {
+class EvaluationCommand(internal val store: TransientEntityStore) :
+    NoOpCliktCommand(name = "evaluation") {
 
     init {
         subcommands(
@@ -49,9 +50,10 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
     override fun aliases(): Map<String, kotlin.collections.List<String>> {
         return mapOf(
             "ls" to listOf("ongoing"),
-            "la" to listOf("list"),
+            "ll" to listOf("list"),
             "remove" to listOf("delete"),
-            "drop" to listOf("delete")
+            "drop" to listOf("delete"),
+            "rm" to listOf("delete")
         )
     }
 
@@ -247,22 +249,22 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
         /** Flag indicating whether export should be pretty printed.*/
         private val pretty: Boolean by option("-p", "--pretty", help = "Flag indicating whether exported JSON should be pretty printed.").flag("-u", "--ugly", default = true)
 
+
+
         override fun run() = this@EvaluationCommand.store.transactional(true) {
             val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
             if (evaluation == null) {
                 println("Evaluation ${this.id} does not seem to exist.")
                 return@transactional
             }
-
-            val mapper = jacksonObjectMapper()
+            val mapper = ObjectMapper()
             Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
-                /*val writer = if (this.pretty) {
+                val writer = if (this.pretty) {
                     mapper.writerWithDefaultPrettyPrinter()
                 } else {
                     mapper.writer()
                 }
-                writer.writeValue(it, run)*/
-                // TODO: Export must be re-conceived based on API classes.
+                writer.writeValue(it, evaluation.toApi())
             }
             println("Successfully exported evaluation ${this.id} to $path.")
         }

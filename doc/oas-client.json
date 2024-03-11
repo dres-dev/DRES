@@ -2,155 +2,10 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES Client API",
-    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0-RC4",
-    "version" : "2.0.0-RC4"
+    "version" : "2.0.0-RC5",
+    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0-RC5"
   },
   "paths" : {
-    "/api/v1/submit" : {
-      "get" : {
-        "tags" : [ "Submission" ],
-        "summary" : "Endpoint to accept submissions",
-        "description" : "This has been the submission endpoint for version 1. Please refrain from using it and migrate to the v2 endpoint.",
-        "operationId" : "getApiV1Submit",
-        "parameters" : [ {
-          "name" : "collection",
-          "in" : "query",
-          "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "item",
-          "in" : "query",
-          "description" : "Identifier for the actual media object or media file.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "text",
-          "in" : "query",
-          "description" : "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "frame",
-          "in" : "query",
-          "description" : "Frame number for media with temporal progression (e.g., video).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "shot",
-          "in" : "query",
-          "description" : "Shot number for media with temporal progression (e.g., video).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "timecode",
-          "in" : "query",
-          "description" : "Timecode for media with temporal progression (e.g,. video).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
-                }
-              }
-            }
-          },
-          "202" : {
-            "description" : "Accepted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "412" : {
-            "description" : "Precondition Failed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : true,
-        "security" : [ ]
-      }
-    },
     "/api/v2/client/evaluation/currentTask/{evaluationId}" : {
       "get" : {
         "tags" : [ "Evaluation Client" ],
@@ -739,6 +594,7 @@
           }
         } ],
         "requestBody" : {
+          "description" : "Some notes regarding the submission format. At least one answerSet is required, taskId, taskName are inferred if not provided,  at least one answer is required, mediaItemCollectionName is inferred if not provided,  start and end should be provided in milliseconds.For most evaluation setups, an answer is built in one of the three following ways: A) only text is required: just provide the text property with a meaningful entry B) only a mediaItemName is required: just provide the mediaItemName, optionally with the collection name. C) a specific portion of a mediaItem is required: provide mediaItemName, start and end, optionally with collection name",
           "content" : {
             "application/json" : {
               "schema" : {
@@ -2107,9 +1963,15 @@
             "items" : {
               "type" : "string"
             }
+          },
+          "viewers" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         },
-        "required" : [ "id", "name", "taskTypes", "taskGroups", "tasks", "teams", "teamGroups", "judges" ]
+        "required" : [ "id", "name", "taskTypes", "taskGroups", "tasks", "teams", "teamGroups", "judges", "viewers" ]
       },
       "ApiEvaluationTemplateOverview" : {
         "type" : "object",

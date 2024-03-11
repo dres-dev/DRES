@@ -10,6 +10,7 @@ import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.isJudge
 import dev.dres.utilities.extensions.isParticipant
+import dev.dres.utilities.extensions.isViewer
 import dev.dres.utilities.extensions.userId
 import io.javalin.http.Context
 import io.javalin.security.RouteRole
@@ -58,6 +59,7 @@ abstract class AbstractEvaluationViewerHandler: RestHandler, AccessManagedRestHa
                 m.template.teams.flatMap { it.users }.any { it.id == ctx.userId() }
             }
             ctx.isJudge() -> managers.filter { m -> m.template.judges.any { u -> u == ctx.userId() } }
+            ctx.isViewer() -> managers.filter { m -> m.template.viewers.any{u -> u == ctx.userId()}}
             else -> managers
         }
     }

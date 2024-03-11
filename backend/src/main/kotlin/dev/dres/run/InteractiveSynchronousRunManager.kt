@@ -471,9 +471,9 @@ class InteractiveSynchronousRunManager(
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
 
         if (taskTemplateId == currentTemplateId) {
-            val status = this.evaluation.currentTaskRun?.status
+//            val status = this.evaluation.currentTaskRun?.status
 //            if (status == ApiTaskStatus.PREPARING) {
-            /* Since the viewer does sent the ready message too early, we cannot care whether the task is (already) preparing or not) */
+            /* Since the viewer does send the ready message too early, we cannot care whether the task is (already) preparing or not */
                 this.readyLatch.register(viewerInfo) //avoid redying previously untracked viewers
                 this.readyLatch.setReady(viewerInfo)
 //            }

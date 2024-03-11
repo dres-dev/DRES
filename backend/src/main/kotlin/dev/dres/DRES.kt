@@ -3,18 +3,18 @@ package dev.dres
 import dev.dres.api.cli.Cli
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
-import dev.dres.data.model.config.Config
 import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.admin.DbUser
+import dev.dres.data.model.config.Config
 import dev.dres.data.model.media.*
+import dev.dres.data.model.run.*
+import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.*
 import dev.dres.data.model.template.task.options.*
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamAggregator
 import dev.dres.data.model.template.team.DbTeamGroup
-import dev.dres.data.model.run.*
-import dev.dres.data.model.submissions.*
 import dev.dres.mgmt.MediaCollectionManager
 import dev.dres.mgmt.TemplateManager
 import dev.dres.mgmt.admin.UserManager
@@ -42,7 +42,7 @@ import kotlin.system.exitProcess
  */
 object DRES {
     /** Version of DRES. */
-    const val VERSION = "2.0.0-RC4"
+    const val VERSION = "2.0.0"
 
     /** Application root; should be relative to JAR file or classes path. */
     val APPLICATION_ROOT: Path =
@@ -99,6 +99,8 @@ object DRES {
 
         println("Starting DRES (application: $APPLICATION_ROOT, data: $DATA_ROOT)")
         println("Initializing...")
+
+
 
         /* Initialize Xodus based data store. */
         val store = this.prepareDatabase()

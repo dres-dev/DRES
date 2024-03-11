@@ -26,6 +26,8 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.*
 import javax.imageio.ImageIO
+import kotlin.io.path.*
+import kotlin.system.exitProcess
 
 /**
  * A [CacheManager] used to manager and generate, access and manage cached image and video previews.
@@ -53,6 +55,24 @@ class CacheManager(private val config: Config, private val store: TransientEntit
 
     init {
         println("Found FFmpeg at ${this.ffmpegBin}...")
+        /* Validating that FFmpeg path exists and is a directory */
+        if(!this.ffmpegBin.exists() || !this.ffmpegBin.isDirectory()){
+            System.err.println("ERROR: FFmpeg path ${this.ffmpegBin} does not exist! Shutting down!")
+            exitProcess(-100)
+        }
+
+        /* Validating that FFmpeg and FFprobe exist and are executable */
+        this.ffmpegBin.listDirectoryEntries("ff*").forEach {
+            /* Slightly convoluted in order to not hassle with OS dependent things like .exe extension on Windows */
+            val isFFmpeg = it.nameWithoutExtension.startsWith("ffmpeg") && it.nameWithoutExtension.endsWith("ffmpeg")
+            val isFFprobe = it.nameWithoutExtension.startsWith("ffprobe") && it.nameWithoutExtension.endsWith("ffprobe")
+            if(isFFprobe || isFFmpeg){
+                if(!it.exists() || !it.isExecutable()){
+                    System.err.println("ERROR: $it in ${this.ffmpegBin} does not exist or is not executable! Shutting down!")
+                    exitProcess(-101)
+                }
+            }
+        }
         if (!Files.exists(cacheLocation)) {
             println("Created cache location at ${this.cacheLocation}...")
             Files.createDirectories(cacheLocation)

@@ -322,9 +322,20 @@ object TemplateManager {
         dbEvaluationTemplate.judges.removeAll(DbUser.query(not(DbUser::id.containsIn(*judgeIds))))
         for (userId in judgeIds) {
             val user = DbUser.filter { it.id eq userId }.firstOrNull()
-                ?: throw IllegalArgumentException("Unknown user $userId for evaluation ${apiEvaluationTemplate.id}.")
+                ?: throw IllegalArgumentException("Unknown judge user $userId for evaluation ${apiEvaluationTemplate.id}.")
             if (!dbEvaluationTemplate.judges.contains(user)) {
                 dbEvaluationTemplate.judges.add(user)
+            }
+        }
+
+        /* Update viewer information */
+        val viewerIds = apiEvaluationTemplate.viewers.toTypedArray()
+        dbEvaluationTemplate.viewers.removeAll(DbUser.query(not(DbUser::id.containsIn(*viewerIds))))
+        for (userId in viewerIds){
+            val user = DbUser.filter{it.id eq userId}.firstOrNull()
+                ?: throw IllegalArgumentException("Unknown viewer user $userId for evaluation ${apiEvaluationTemplate.id}.")
+            if( !(dbEvaluationTemplate.viewers.contains(user))){
+                dbEvaluationTemplate.viewers.add(user)
             }
         }
     }

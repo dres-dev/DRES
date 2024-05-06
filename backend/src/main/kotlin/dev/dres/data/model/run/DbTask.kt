@@ -1,6 +1,7 @@
 package dev.dres.data.model.run
 
 import dev.dres.api.rest.types.evaluation.ApiTask
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.submissions.AnswerSet
 import dev.dres.data.model.template.task.DbTaskTemplate
@@ -11,6 +12,7 @@ import dev.dres.data.model.template.team.DbTeam
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.mapDistinct
 import kotlinx.dnq.util.isInstanceOf
 import java.lang.IllegalStateException
 
@@ -47,8 +49,11 @@ class DbTask(entity: Entity) : PersistentEntity(entity) {
     /** Link to a [DbTeam] this [DbTask] was created for. Can be NULL!*/
     var team by xdLink0_1(DbTeam)
 
-    /** List of [DbSubmission]s received by this [DbTask]. */
+    /** List of [DbAnswerSet]s received by this [DbTask]. */
     val answerSets by xdLink0_N<DbTask,DbAnswerSet>(DbAnswerSet::task)
+
+    /** List of [DbSubmission]s received by this [DbTask].*/
+    fun submissions() = this.answerSets.asSequence().map{it.submission}.toList()
 
     /**
      * Converts this [DbTask] to a RESTful API representation [ApiTask].
@@ -62,6 +67,6 @@ class DbTask(entity: Entity) : PersistentEntity(entity) {
         templateId = this.template.id,
         started = this.started,
         ended = this.ended,
-        submissions = this.answerSets.asSequence().map { it.toApi() }.toList()
+        submissions = submissions().map { it.toApi() }.toList()
     )
 }

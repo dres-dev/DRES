@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES Client API",
-    "version" : "2.0.0-RC5",
-    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0-RC5"
+    "version" : "2.0.0",
+    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0"
   },
   "paths" : {
     "/api/v2/client/evaluation/currentTask/{evaluationId}" : {
@@ -1342,7 +1342,7 @@
           "submissions" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/ApiAnswerSet"
+              "$ref" : "#/components/schemas/ApiSubmission"
             }
           }
         },

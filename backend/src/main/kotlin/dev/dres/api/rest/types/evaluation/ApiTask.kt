@@ -1,6 +1,8 @@
 package dev.dres.api.rest.types.evaluation
 
 import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.template.TemplateId
@@ -19,5 +21,5 @@ data class ApiTask(
     val templateId: TemplateId,
     val started: Long?,
     val ended: Long?,
-    val submissions: List<ApiAnswerSet>
+    val submissions: List<ApiSubmission>
 )

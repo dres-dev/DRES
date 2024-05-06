@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES API",
-    "version" : "2.0.0-RC5",
-    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0-RC5",
+    "version" : "2.0.0",
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0",
     "contact" : {
       "name" : "The DRES Dev Team",
       "url" : "https://dres.dev"
@@ -594,9 +594,9 @@
           "200" : {
             "description" : "OK",
             "content" : {
-              "text/plain" : {
+              "application/json" : {
                 "schema" : {
-                  "type" : "string"
+                  "$ref" : "#/components/schemas/ApiEvaluation"
                 }
               }
             }
@@ -5756,7 +5756,7 @@
           "submissions" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/ApiAnswerSet"
+              "$ref" : "#/components/schemas/ApiSubmission"
             }
           }
         },

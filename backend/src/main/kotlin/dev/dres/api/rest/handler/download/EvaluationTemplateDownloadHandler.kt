@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.data.model.template.DbEvaluationTemplate
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -18,7 +19,8 @@ import kotlinx.dnq.query.query
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class EvaluationTemplateDownloadHandler(private val store: TransientEntityStore) : AbstractDownloadHandler(), GetRestHandler<String> {
+class EvaluationTemplateDownloadHandler(private val store: TransientEntityStore) : AbstractDownloadHandler(),
+    GetRestHandler<ApiEvaluationTemplate> {
 
     /** The route of this [EvaluationTemplateDownloadHandler]. */
     override val route = "download/template/{templateId}"
@@ -39,7 +41,7 @@ class EvaluationTemplateDownloadHandler(private val store: TransientEntityStore)
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): String {
+    override fun doGet(ctx: Context): ApiEvaluationTemplate {
         /* Obtain run id and run. */
         val templateId = ctx.pathParamMap()["templateId"] ?: throw ErrorStatusException(400, "Parameter 'templateId' is missing!'", ctx)
         val template = this.store.transactional(true) {
@@ -51,7 +53,6 @@ class EvaluationTemplateDownloadHandler(private val store: TransientEntityStore)
         ctx.header("Content-Disposition", "attachment; filename=\"evaluation-template-${templateId}.json")
 
         /* Return value. */
-        val mapper = jacksonObjectMapper()
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(template)
+        return template
     }
 }

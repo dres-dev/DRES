@@ -55,14 +55,16 @@
             <h3>Users in Team
             <mat-icon matTooltip="To add users to this team, drag'n'drop them from the available users list. To remove users from this team, dragn'n'drop them to the available users list.">help</mat-icon>
             </h3>
+            <app-search-box #memberFilter (filterChanged)="onMemberFilterChanged($event)"></app-search-box>
             <div
               cdkDropList
               #memberList="cdkDropList"
-              [cdkDropListData]="form.get('users').value"
+              id="memberList"
+              [cdkDropListData]="form.get('users').value | userListFilter: memberFilterText"
               [cdkDropListConnectedTo]="[userList]"
               class="member-list"
               (cdkDropListDropped)="drop($event)">
-              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of form.get('users').value" cdkDrag>
+              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of (form.get('users').value | userListFilter: memberFilterText)" cdkDrag>
                 <mat-card-content>{{user.username}}</mat-card-content>
               </mat-card>
             </div>
@@ -71,14 +73,16 @@
             <h3>Users Available
               <mat-icon matTooltip="To add users to the team, drag'n'drop them from this list. To remove users from the team, dragn'n'drop them to the this list.">help</mat-icon>
             </h3>
+            <app-search-box #userFilter (filterChanged)="onAvailalbeFilterChanged($event)"></app-search-box>
             <div
               cdkDropList
               #userList="cdkDropList"
-              [cdkDropListData]="users"
+              id="userList"
+              [cdkDropListData]="users | userListFilter: availableFilterText"
               [cdkDropListConnectedTo]="[memberList]"
               class="member-list"
               (cdkDropListDropped)="drop($event)">
-              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of users" cdkDrag>
+              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of (users|userListFilter: availableFilterText)" cdkDrag>
                 <mat-card-content>{{user.username}}</mat-card-content>
               </mat-card>
             </div>

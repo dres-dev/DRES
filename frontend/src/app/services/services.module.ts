@@ -23,6 +23,7 @@ import { OrderByPipe } from './pipes/order-by.pipe';
 import { FilterNotInPipe } from './pipes/filter-not-in.pipe';
 import { UnderscoreWordBreakPipe } from './pipes/underscore-wordbreak.pipe';
 import { SubmissionsOfPipe } from './pipes/submissions-of.pipe';
+import { NotInListFilterPipe } from './pipes/not-in-list-filter.pipe';
 
 /**
  * Provides the {@link AppConfig} reference.
@@ -59,7 +60,8 @@ export function initializeApiConfig(appConfig: AppConfig) {
     OrderByPipe,
     FilterNotInPipe,
     UnderscoreWordBreakPipe,
-    SubmissionsOfPipe
+    SubmissionsOfPipe,
+    NotInListFilterPipe
   ],
   declarations: [
     RoundPipePipe,
@@ -81,6 +83,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     FilterNotInPipe,
     UnderscoreWordBreakPipe,
     SubmissionsOfPipe,
+    NotInListFilterPipe,
   ],
   providers: [
     AuthenticationService,

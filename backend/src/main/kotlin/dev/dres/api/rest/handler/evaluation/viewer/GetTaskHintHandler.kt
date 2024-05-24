@@ -2,7 +2,6 @@ package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.DRES
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.handler.evaluation.viewer.AbstractEvaluationViewerHandler
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.template.tasks.ApiHintContent
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -140,8 +139,8 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
     private fun ApiHint.toContentElement(): ApiContentElement {
 
         //TODO find a better place for this lookup
-        val item = this.mediaItem?.let {itemId ->
-            DbMediaItem.filter { it.mediaItemId eq itemId }.firstOrNull()
+        val item = this.item?.let { item ->
+            DbMediaItem.filter { it.mediaItemId eq item.mediaItemId }.firstOrNull()
         }
         val range = if (item?.fps != null) {
             this.range?.toTemporalRange(item.fps!!)

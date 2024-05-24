@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES Client API",
-    "version" : "2.0.0",
-    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0"
+    "version" : "2.0.1-SNAPSHOT",
+    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.1-SNAPSHOT"
   },
   "paths" : {
     "/api/v2/client/evaluation/currentTask/{evaluationId}" : {
@@ -2021,11 +2021,8 @@
           "dataType" : {
             "type" : "string"
           },
-          "mediaItem" : {
-            "type" : "string"
-          },
-          "mediaItemName" : {
-            "type" : "string"
+          "item" : {
+            "$ref" : "#/components/schemas/ApiMediaItem"
           },
           "range" : {
             "$ref" : "#/components/schemas/ApiTemporalRange"
@@ -2069,8 +2066,8 @@
           "range" : {
             "$ref" : "#/components/schemas/ApiTemporalRange"
           },
-          "name" : {
-            "type" : "string"
+          "item" : {
+            "$ref" : "#/components/schemas/ApiMediaItem"
           }
         },
         "required" : [ "type" ]

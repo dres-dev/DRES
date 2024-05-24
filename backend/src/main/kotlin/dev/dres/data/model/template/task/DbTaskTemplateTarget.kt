@@ -60,7 +60,7 @@ class DbTaskTemplateTarget(entity: Entity) : XdEntity(entity) {
             type=this.type.toApi(),
             target =  this.item?.id,
             range= this.range?.let { ApiTemporalRange(it) },
-            name= this.item?.name
+            item = this.item?.toApi()
         )
         DbTargetType.TEXT -> ApiTarget(this.type.toApi(), this.text)
         else -> throw IllegalStateException("Task description of type ${this.type.description} is not supported.")

@@ -231,8 +231,9 @@ object TemplateManager {
                 task.hints.add(DbHint.new {
                     this.type = hint.type.toDb()
                     this.item =
-                        hint.mediaItem?.let { DbMediaItem.query(DbMediaItem::id eq hint.mediaItem).firstOrNull() }
+                        hint.item?.let { DbMediaItem.query(DbMediaItem::id eq hint.item.mediaItemId).firstOrNull() }
                     this.text = hint.description
+
                     this.path = hint.path
                     this.start = hint.start
                     this.end = hint.end

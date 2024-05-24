@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES API",
-    "version" : "2.0.0",
-    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0",
+    "version" : "2.0.1-SNAPSHOT",
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.1-SNAPSHOT",
     "contact" : {
       "name" : "The DRES Dev Team",
       "url" : "https://dres.dev"
@@ -6435,11 +6435,8 @@
           "dataType" : {
             "type" : "string"
           },
-          "mediaItem" : {
-            "type" : "string"
-          },
-          "mediaItemName" : {
-            "type" : "string"
+          "item" : {
+            "$ref" : "#/components/schemas/ApiMediaItem"
           },
           "range" : {
             "$ref" : "#/components/schemas/ApiTemporalRange"
@@ -6483,8 +6480,8 @@
           "range" : {
             "$ref" : "#/components/schemas/ApiTemporalRange"
           },
-          "name" : {
-            "type" : "string"
+          "item" : {
+            "$ref" : "#/components/schemas/ApiMediaItem"
           }
         },
         "required" : [ "type" ]

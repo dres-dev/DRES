@@ -4,7 +4,7 @@
         (click)="searchBoxActive = true">
   <mat-icon>search</mat-icon>
 </button>
-<mat-form-field *ngIf="searchBoxActive" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+<mat-form-field *ngIf="searchBoxActive" class="width-full">
   <mat-icon matIconPrefix>search</mat-icon>
   <input matInput type="text" placeholder="Search" [(ngModel)]="filter" (ngModelChange)="onTextChanged()" />
   <button type="button" matSuffix mat-icon-button

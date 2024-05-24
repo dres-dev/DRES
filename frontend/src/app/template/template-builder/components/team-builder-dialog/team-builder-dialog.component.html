@@ -1,5 +1,5 @@
 <h1 mat-dialog-title>Add team</h1>
-<div mat-dialog-content>
+<div mat-dialog-content cdkScrollable>
   <form [formGroup]="form">
     <div class="team-grid">
       <div class="grid-element-logo">
@@ -52,12 +52,17 @@
         </p>
         <div>
           <div class="member-list-container">
-            <h3>Users in Team
-            <mat-icon matTooltip="To add users to this team, drag'n'drop them from the available users list. To remove users from this team, dragn'n'drop them to the available users list.">help</mat-icon>
-            </h3>
-            <app-search-box #memberFilter (filterChanged)="onMemberFilterChanged($event)"></app-search-box>
+            <div class="tb-container-2col">
+              <h3 class="content-left">Users in Team
+                <mat-icon matTooltip="To add users to this team, drag'n'drop them from the available users list. To remove users from this team, dragn'n'drop them to the available users list.">help</mat-icon>
+              </h3>
+              <app-search-box class="content-right width-full"
+                              #memberFilter (filterChanged)="onMemberFilterChanged($event)">
+              </app-search-box>
+            </div>
             <div
               cdkDropList
+              [cdkDropListAutoScrollStep]="20"
               #memberList="cdkDropList"
               id="memberList"
               [cdkDropListData]="form.get('users').value | userListFilter: memberFilterText"
@@ -70,12 +75,16 @@
             </div>
           </div>
           <div class="member-list-container">
-            <h3>Users Available
-              <mat-icon matTooltip="To add users to the team, drag'n'drop them from this list. To remove users from the team, dragn'n'drop them to the this list.">help</mat-icon>
-            </h3>
-            <app-search-box #userFilter (filterChanged)="onAvailalbeFilterChanged($event)"></app-search-box>
+            <div class="tb-container-2col">
+              <h3 class="content-left">Users Available
+                <mat-icon matTooltip="To add users to the team, drag'n'drop them from this list. To remove users from the team, dragn'n'drop them to the this list.">help</mat-icon>
+              </h3>
+              <app-search-box class="content-right"
+                #userFilter (filterChanged)="onAvailalbeFilterChanged($event)"></app-search-box>
+            </div>
             <div
               cdkDropList
+              [cdkDropListAutoScrollStep]="20"
               #userList="cdkDropList"
               id="userList"
               [cdkDropListData]="users | userListFilter: availableFilterText"

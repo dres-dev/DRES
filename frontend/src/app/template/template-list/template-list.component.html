@@ -30,6 +30,7 @@
         <mat-spinner *ngIf="waitingForRun[row.id]" [diameter]="20"></mat-spinner>
         <span *ngIf="!waitingForRun[row.id]">
           <button
+                  [disabled]="row.taskCount == 0 || row.teamCount == 0"
                   mat-icon-button
                   aria-label="Start new evaluation run from template."
                   matTooltip="Start new evaluation run from template."

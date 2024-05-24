@@ -59,9 +59,19 @@ object RunExecutor {
             DbEvaluation.filter { (it.ended eq null) }.asSequence().forEach { evaluation ->
                 try {
                     this.schedule(evaluation.toRunManager(store))  /* Re-schedule evaluations. */
-                } catch (e: IllegalStateException) {
-                    logger.error("Could not re-schedule previous run: ${e.message}")
-                    evaluation.ended = System.currentTimeMillis()
+                } catch (e: RuntimeException) {
+                    when (e) {
+                        is IllegalStateException,
+                        is IllegalArgumentException -> {
+                            logger.error("Could not re-schedule previous run: ${e.message}")
+                            evaluation.ended = System.currentTimeMillis()
+                        }
+
+                        else -> {
+                            logger.error("Fatal error during re-scheduling of previous run (${evaluation.evaluationId}): ${e.message}")
+                            throw e
+                        }
+                    }
                 }
             }
         }

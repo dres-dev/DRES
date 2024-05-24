@@ -185,4 +185,7 @@ _none_
 
 ### Frontend
 
-**Safari is NOT supported**
+* Task duration greater than `9999999` break things. Do not use such long tasks.
+* Safari is NOT supported
+
+

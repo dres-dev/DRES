@@ -183,12 +183,10 @@ export class TeamBuilderDialogComponent {
   }
 
   onMemberFilterChanged(filter: string){
-    console.log(`MEMBER: was: ${this.memberFilterText} is: ${filter}`)
     this.memberFilterText = filter;
   }
 
   onAvailalbeFilterChanged(filter: string){
-    console.log(`AVAIL: was: ${this.availableFilterText} is: ${filter}`)
     this.availableFilterText= filter;
   }
 

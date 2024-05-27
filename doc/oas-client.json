@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES Client API",
-    "version" : "2.0.1",
-    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.1"
+    "version" : "2.0.2",
+    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.2"
   },
   "paths" : {
     "/api/v2/client/evaluation/currentTask/{evaluationId}" : {

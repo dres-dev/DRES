@@ -18,7 +18,7 @@ export class FilterNotInPipe implements PipeTransform {
   transform(value: any[], haystack: any[], propertyKey : string = null): any[] {
     if(value){
       if(propertyKey){
-       return value.filter(it => !haystack.map(item => item[propertyKey]).includes(it[propertyKey]))
+       return value.filter(it => !haystack.map(item => item != null && item[propertyKey]).includes(it[propertyKey]))
       }
       return value.filter(it => !haystack.includes(it));
     }else{

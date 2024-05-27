@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.download
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.types.evaluation.ApiEvaluation
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.DbEvaluation
@@ -18,7 +18,7 @@ import kotlinx.dnq.query.query
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class EvaluationDownloadHandler(private val store: TransientEntityStore) : AbstractDownloadHandler(), GetRestHandler<String> {
+class EvaluationDownloadHandler(private val store: TransientEntityStore) : AbstractDownloadHandler(), GetRestHandler<ApiEvaluation> {
 
     /** The route of this [EvaluationDownloadHandler]. */
     override val route = "download/evaluation/{evaluationId}"
@@ -32,14 +32,14 @@ class EvaluationDownloadHandler(private val store: TransientEntityStore) : Abstr
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)
         ],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(String::class, type = "application/json")]),
+            OpenApiResponse("200", [OpenApiContent(ApiEvaluation::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): String {
+    override fun doGet(ctx: Context): ApiEvaluation {
         /* Obtain run id and run. */
         val evaluationId = ctx.pathParamMap().getOrElse("evaluationId") { throw ErrorStatusException(400, "Parameter 'evaluationId' is missing!'", ctx) }
         val evaluation = this.store.transactional(true) {
@@ -51,7 +51,6 @@ class EvaluationDownloadHandler(private val store: TransientEntityStore) : Abstr
         ctx.header("Content-Disposition", "attachment; filename=\"run-${evaluationId}.json\"")
 
         /* Return value. */
-        val mapper = jacksonObjectMapper()
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(evaluation)
+        return evaluation
     }
 }

@@ -10,6 +10,7 @@ import { COMMA, ENTER } from "@angular/cdk/keycodes";
 import { MatChipInput, MatChipInputEvent } from "@angular/material/chips";
 import { TemplateBuilderService } from "../../template-builder.service";
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from "@angular/cdk/drag-drop";
+import { SearchBoxComponent } from "../../../../shared/search-box/search-box.component";
 
 @Component({
   selector: 'app-team-builder-dialog',
@@ -20,9 +21,13 @@ export class TeamBuilderDialogComponent {
   form: FormGroup;
   separatorKeyCodes: number[] = [ENTER, COMMA];
   @ViewChild('userInput') userInput: ElementRef<HTMLInputElement>
+  @ViewChild('memberFilter') memberFilter: SearchBoxComponent
+  @ViewChild('userFilter') userFilter: SearchBoxComponent
 
   logoName = '';
   users: ApiUser[];
+  memberFilterText: string;
+  availableFilterText: string;
   availableUsers: Observable<ApiUser[]>;
   colorPalette = [
     '#BF0000',
@@ -97,12 +102,26 @@ export class TeamBuilderDialogComponent {
   }
 
   public drop(event: CdkDragDrop<ApiUser[]>){
+    let prevList = event.previousContainer.data;
+    let newList = event.container.data;
     if(event.previousContainer === event.container){
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex)
     }else{
-      transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex)
+      if(event.previousContainer.id === "memberList"){
+        prevList = this.form.get('users').value;
+        newList = this.users;
+      }else{
+        newList = this.form.get('users').value;
+        prevList = this.users;
+      }
+      let prevIdx = prevList.indexOf(event.previousContainer.data[event.previousIndex])
+      let currIdx = newList.indexOf(event.container.data[event.currentIndex])
+      transferArrayItem(prevList, newList, prevIdx, currIdx)
     }
+    this.memberFilter?.clear()
+    this.userFilter?.clear();
   }
+
 
   /**
    * Removes the selected user from the list of users.
@@ -161,6 +180,14 @@ export class TeamBuilderDialogComponent {
       logoData: this.form.get('logoData').value,
       users: this.form.get('users').value,
     } as ApiTeam;
+  }
+
+  onMemberFilterChanged(filter: string){
+    this.memberFilterText = filter;
+  }
+
+  onAvailalbeFilterChanged(filter: string){
+    this.availableFilterText= filter;
   }
 
   /**

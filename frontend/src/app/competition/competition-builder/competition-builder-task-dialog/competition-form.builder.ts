@@ -191,7 +191,7 @@ export class CompetitionFormBuilder {
           type: c.get('type').value,
           start: c.get('start').value,
           end: c.get('end').value,
-          mediaItem: c.get('mediaItem')?.value?.mediaItemId ?? null,
+          item: c.get('mediaItem')?.value ?? null,
           range:
             c.get('segment_start') && c.get('segment_end')
               ? ({
@@ -236,7 +236,7 @@ export class CompetitionFormBuilder {
           type: c.get('type').value,
           start: c.get('start').value,
           end: c.get('end').value,
-          mediaItem: c.get('mediaItem')?.value?.mediaItemId ?? null,
+          item: c.get('mediaItem')?.value ?? null,
           range:
             c.get('segment_start') && c.get('segment_end')
               ? ({
@@ -491,13 +491,13 @@ export class CompetitionFormBuilder {
    * @return The new {@link FormGroup}
    */
   private imageItemComponentForm(index: number, initialize?: ApiHint): UntypedFormGroup {
-    if(initialize?.path && !initialize?.mediaItem){
+    if(initialize?.path && !initialize?.item){
       /* Handle external image */
       return this.externalImageItemComponentForm(index, initialize);
     }
     const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
     if (
-      !initialize?.mediaItem &&
+      !initialize?.item &&
       (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
     ) {
       mediaItemFormControl.setValue((this.form.get('target') as UntypedFormArray).controls[0].get('mediaItem').value, {emitEvent: false});
@@ -515,9 +515,9 @@ export class CompetitionFormBuilder {
     );
 
     /* Load media item from API. */
-    if (initialize?.mediaItem && this.data?.collectionId) {
+    if (initialize?.item && this.data?.collectionId) {
       this.collectionService
-        .getApiV2MediaItemByMediaItemId(initialize?.mediaItem)
+        .getApiV2MediaItemByMediaItemId(initialize?.item.mediaItemId)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s, {emitEvent: false});
@@ -546,14 +546,14 @@ export class CompetitionFormBuilder {
    * @return The new {@link FormGroup}
    */
   private videoItemComponentForm(index: number, initialize?: ApiHint): UntypedFormGroup {
-    if(initialize?.path && !initialize?.mediaItem){
+    if(initialize?.path && !initialize?.item){
       /* handle external video */
       return this.externalVideoItemComponentForm(index, initialize);
     }
     /* Initialize media item based on target. */
     const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
     if (
-      !initialize?.mediaItem &&
+      !initialize?.item &&
       (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
     ) {
       mediaItemFormControl.setValue((this.form.get('target') as UntypedFormArray).controls[0].get('mediaItem').value, {emitEvent: false});
@@ -571,9 +571,9 @@ export class CompetitionFormBuilder {
     );
 
     /* Load media item from API. */
-    if (initialize?.mediaItem && this.data?.collectionId) {
+    if (initialize?.item && this.data?.collectionId) {
       this.collectionService
-        .getApiV2MediaItemByMediaItemId(initialize.mediaItem)
+        .getApiV2MediaItemByMediaItemId(initialize.item.mediaItemId)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s, {emitEvent: false});

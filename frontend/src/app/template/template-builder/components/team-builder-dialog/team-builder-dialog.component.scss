@@ -26,7 +26,7 @@
   min-height: 48px;
   background: rgba(74,74,74, 0.84);
   border-radius: 4px;
-  overflow: hidden;
+  overflow: auto;
   display: block;
 }
 
@@ -75,4 +75,24 @@
 
 .member-list.cdk-drop-list-dragging .member-box:not(.cdk-drag-placeholder){
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+.content-left {
+  grid-area: left;
+}
+
+.content-right {
+  grid-area: right;
+}
+
+.tb-container-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+  "left right";
+  column-gap: 1em;
+
+  > * {
+    min-width: 0;
+  }
 }

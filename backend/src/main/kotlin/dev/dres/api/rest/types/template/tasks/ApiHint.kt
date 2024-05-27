@@ -1,5 +1,6 @@
 package dev.dres.api.rest.types.template.tasks
 
+import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
 import dev.dres.data.model.template.*
 import kotlinx.serialization.Serializable
@@ -65,12 +66,7 @@ data class ApiHint(
          *
          * This is the reference to the media item
          */
-        val mediaItem: String? = null,
-
-        /**
-         * This is a reference to the media item's name, in case there is one.
-         */
-        val mediaItemName: String? = null,
+        val item: ApiMediaItem? = null,
 
         /**
          * In case [type] is

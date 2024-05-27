@@ -49,6 +49,8 @@ import { ColorPickerModule } from "ngx-color-picker";
 import {CdkDrag, CdkDropList} from '@angular/cdk/drag-drop';
 import { MatCardModule } from "@angular/material/card";
 import { ViewersListComponent } from './viewers-list/viewers-list.component';
+import { UserListFilterPipe } from './team-builder-dialog/user-list-filter.pipe';
+import { UserListInOtherFilterPipe } from './team-builder-dialog/user-list-in-other-filter.pipe';
 
 
 @NgModule({
@@ -69,7 +71,9 @@ import { ViewersListComponent } from './viewers-list/viewers-list.component';
     QueryDescriptionExternalVideoFormFieldComponent,
     QueryDescriptionExternalImageFormFieldComponent,
     TeamBuilderDialogComponent,
-    ViewersListComponent
+    ViewersListComponent,
+    UserListFilterPipe,
+    UserListInOtherFilterPipe
   ],
   imports: [
     CommonModule,

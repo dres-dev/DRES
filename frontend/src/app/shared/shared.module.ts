@@ -17,6 +17,9 @@ import { ServerInfoComponent } from './server-info/server-info.component';
 import { TargetMediaViewerComponent } from './target-media-viewer/target-media-viewer.component';
 import { MediaItemViewerComponent } from './media-item-viewer/media-item-viewer.component';
 import { InformationDialogComponent } from './information-dialog/information-dialog.component';
+import { SearchBoxComponent } from './search-box/search-box.component';
+import { MatInputModule } from "@angular/material/input";
+import { FormsModule } from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -31,6 +34,7 @@ import { InformationDialogComponent } from './information-dialog/information-dia
     TargetMediaViewerComponent,
     MediaItemViewerComponent,
     InformationDialogComponent,
+    SearchBoxComponent,
   ],
   exports: [
     BackButtonComponent,
@@ -42,8 +46,9 @@ import { InformationDialogComponent } from './information-dialog/information-dia
     UploadJsonButtonComponent,
     ActionableDynamicTable,
     TargetMediaViewerComponent,
-    MediaItemViewerComponent
+    MediaItemViewerComponent,
+    SearchBoxComponent
   ],
-  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule]
+  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule, MatInputModule, FormsModule]
 })
 export class SharedModule {}

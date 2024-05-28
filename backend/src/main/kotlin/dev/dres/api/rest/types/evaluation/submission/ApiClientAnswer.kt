@@ -6,6 +6,7 @@ import dev.dres.data.model.media.MediaItemId
 import dev.dres.data.model.submissions.DbAnswer
 import dev.dres.data.model.submissions.DbAnswerType
 import io.javalin.openapi.OpenApiIgnore
+import io.javalin.openapi.OpenApiNullable
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.singleOrNull
 import kotlinx.serialization.Serializable
@@ -21,6 +22,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ApiClientAnswer( //TODO add optional relevance score field
     /** The text that is part of this [ApiClientAnswer]. */
+    @get:OpenApiNullable
     val text: String? = null,
 
     /** The [MediaItemId] associated with the [ApiClientAnswer]. Is usually added as contextual information by the receiving endpoint. */
@@ -29,15 +31,19 @@ data class ApiClientAnswer( //TODO add optional relevance score field
     val mediaItemId: MediaItemId? = null,
 
     /** The name of the media item that is part of the answer. */
+    @get:OpenApiNullable
     val mediaItemName: String?  = null,
 
     /** The name of the collection the media item belongs to. */
+    @get:OpenApiNullable
     val mediaItemCollectionName: String? = null,
 
     /** For temporal [ApiClientAnswer]s: Start of the segment in question in milliseconds. */
+    @get:OpenApiNullable
     val start: Long? = null,
 
     /** For temporal [ApiClientAnswer]s: End of the segment in question in milliseconds. */
+    @get:OpenApiNullable
     val end: Long? = null,
 ) {
 

@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES API",
-    "version" : "2.0.2",
-    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.2",
+    "version" : "2.0.3-SNAPSHOT",
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.3-SNAPSHOT",
     "contact" : {
       "name" : "The DRES Dev Team",
       "url" : "https://dres.dev"
@@ -6019,21 +6019,26 @@
         "additionalProperties" : false,
         "properties" : {
           "text" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "mediaItemName" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "mediaItemCollectionName" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "start" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "end" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           }
         }
       },
@@ -6042,10 +6047,12 @@
         "additionalProperties" : false,
         "properties" : {
           "taskId" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "taskName" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "answers" : {
             "type" : "array",

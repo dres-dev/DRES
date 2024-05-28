@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES API",
-    "version" : "2.0.3-SNAPSHOT",
-    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.3-SNAPSHOT",
+    "version" : "2.0.4",
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.4",
     "contact" : {
       "name" : "The DRES Dev Team",
       "url" : "https://dres.dev"

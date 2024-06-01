@@ -1,14 +1,14 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { TemplateBuilderService } from "../../template-builder.service";
-import { Observable, Subscription } from "rxjs";
+import { forkJoin, Observable, Subscription } from "rxjs";
 import {
   ApiHintOption, ApiHintType,
-  ApiMediaCollection, ApiMediaItem, ApiTargetOption,
+  ApiMediaCollection, ApiMediaItem, ApiTarget, ApiTargetOption, ApiTargetType,
   ApiTaskGroup,
   ApiTaskTemplate,
   ApiTaskType, ApiTemporalPoint, ApiTemporalRange,
   ApiTemporalUnit,
-  CollectionService
+  CollectionService, MediaService
 } from "../../../../../../openapi";
 import { UntypedFormControl, UntypedFormGroup } from "@angular/forms";
 import {
@@ -19,12 +19,13 @@ import {
 } from "../../../../competition/competition-builder/competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component";
 import { AppConfig } from "../../../../app.config";
 import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
-import { filter, first } from "rxjs/operators";
+import { filter, first, map } from "rxjs/operators";
 import { TimeUtilities } from "../../../../utilities/time.utilities";
 import {
   AdvancedBuilderDialogComponent,
   AdvancedBuilderDialogData
 } from "../../../../competition/competition-builder/competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component";
+import { BatchAddTargetDialogComponent, BatchAddTargetDialogData } from "../batch-add-target-dialog/batch-add-target-dialog.component";
 
 @Component({
   selector: 'app-task-template-editor',
@@ -368,35 +369,42 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   batchAddTargets() {
     const config = {
-      width: '400px',
-      height: '600px',
-      data: { builder: this.formBuilder },
-    } as MatDialogConfig<AdvancedBuilderDialogData>;
-    const dialogRef = this.dialog.open(AdvancedBuilderDialogComponent, config);
+      width: '400px'
+    } as MatDialogConfig;
+    const dialogRef = this.dialog.open(BatchAddTargetDialogComponent, config);
     dialogRef
       .afterClosed()
       .pipe(filter((r) => r != null))
       .subscribe((r: Array<string>) => {
-        this.formBuilder.removeTargetForm(0);
-        const mediaCollectionId = this.formBuilder.form.get('mediaCollection').value;
-        this.collectionService.postApiV2CollectionByCollectionIdResolve(mediaCollectionId, r).subscribe((items) => {
-          items.forEach((item) => {
-            const form = this.formBuilder.addTargetForm("SINGLE_MEDIA_ITEM");
-            console.log(`Adding new mediaItem as target ${mediaCollectionId}/${item.name}`);
-            form.get('mediaItem').setValue(item);
-          });
-        });
-        /*r.forEach((name, idx) => {
-                    const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
-                    console.log(`${mediaCollectionId} ? ${name}`);
-                    const nameNoExt = name.substring(0, name.lastIndexOf('.'));
-                    this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)
-                        .subscribe(item => {
-                                console.log(`Added ${item[0]}`);
-                                form.get('mediaItem').setValue(item[0]);
-                            }
-                        );
-                });*/
+        let targets : ApiTarget[]
+        switch(this.taskType.targetOption){
+          case "SINGLE_MEDIA_ITEM":
+          case "SINGLE_MEDIA_SEGMENT":
+            const obs = r.map(it =>{
+              return this.collectionService.getApiV2CollectionByCollectionIdByStartsWith(this.form.get('mediaCollection').value, it.trim())
+            });
+            forkJoin(obs).subscribe(itemsList => {
+              itemsList.forEach(it => {
+                if(it.length > 0){
+                  const type = this.taskType.targetOption === "SINGLE_MEDIA_ITEM" ? ApiTargetType.MEDIA_ITEM : ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE;
+                  this.formBuilder.addTargetForm(this.taskType.targetOption, {type: type, target: it[0].mediaItemId} as ApiTarget)
+                }
+              })
+            })
+            break;
+          case "JUDGEMENT":
+          case "VOTE":
+            console.warn("Cannot batch-add targets for target option JUDGEMENT or VOTE.")
+            break;
+          case "TEXT":
+            const targets = r.map(it => {
+              return {target: it, type: ApiTargetType.TEXT} as ApiTarget
+            });
+            targets.forEach(target => {
+              this.formBuilder.addTargetForm(this.taskType.targetOption, target)
+            })
+            break;
+        }
       });
   }
 

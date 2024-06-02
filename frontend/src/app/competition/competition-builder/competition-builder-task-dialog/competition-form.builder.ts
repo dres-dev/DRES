@@ -124,18 +124,19 @@ export class CompetitionFormBuilder {
   /**
    * Adds a new {@link FormGroup} for the given {@link TaskType.ComponentsEnum}.
    *
-   * @param type The {@link TaskType.TargetTypeEnum} to add a {@link FormGroup} for.
+   * @param type The {@link ApiTargetOption} to add a {@link FormGroup} for.
+   * @param initialise The {@link ApiTarget} to add
    */
-  public addTargetForm(type: ApiTargetOption) {
+  public addTargetForm(type: ApiTargetOption, initialise?: ApiTarget) {
     const array = this.form.get('target') as UntypedFormArray;
     const newIndex = array.length;
     switch (type) {
       case "SINGLE_MEDIA_ITEM":
-        const f = this.singleMediaItemTargetForm(newIndex);
+        const f = this.singleMediaItemTargetForm(newIndex, initialise);
         array.push(f)
         return f;
       case "SINGLE_MEDIA_SEGMENT":
-        const targetForm = this.singleMediaSegmentTargetForm(newIndex);
+        const targetForm = this.singleMediaSegmentTargetForm(newIndex, initialise);
         array.push(targetForm);
         return targetForm;
       case "JUDGEMENT":
@@ -143,7 +144,7 @@ export class CompetitionFormBuilder {
         console.warn("Judgement and Vote shouldn't have access to add targets. This is a programmer's error.")
         break;
       case 'TEXT':
-        const form = this.singleTextTargetForm();
+        const form = this.singleTextTargetForm(initialise);
         array.push(form);
         return form;
       default:
@@ -372,8 +373,9 @@ export class CompetitionFormBuilder {
       )
     );
 
+
     /* Load media item from API. */
-    if (initialize?.target && this.data?.collectionId) {
+    if (initialize?.target && this.form.get('mediaCollection')) {
       this.collectionService
         .getApiV2MediaItemByMediaItemId(initialize?.target)
         .pipe(first())
@@ -407,7 +409,7 @@ export class CompetitionFormBuilder {
     );
 
     /* Load media item from API. */
-    if (initialize?.target && this.data.collectionId) {
+    if (initialize?.target && this.form.get('mediaCollection')) {
       this.collectionService
         .getApiV2MediaItemByMediaItemId(initialize.target)
         .pipe(first())

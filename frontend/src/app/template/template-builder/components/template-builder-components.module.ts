@@ -51,6 +51,7 @@ import { MatCardModule } from "@angular/material/card";
 import { ViewersListComponent } from './viewers-list/viewers-list.component';
 import { UserListFilterPipe } from './team-builder-dialog/user-list-filter.pipe';
 import { UserListInOtherFilterPipe } from './team-builder-dialog/user-list-in-other-filter.pipe';
+import { BatchAddTargetDialogComponent } from './batch-add-target-dialog/batch-add-target-dialog.component';
 
 
 @NgModule({
@@ -73,7 +74,8 @@ import { UserListInOtherFilterPipe } from './team-builder-dialog/user-list-in-ot
     TeamBuilderDialogComponent,
     ViewersListComponent,
     UserListFilterPipe,
-    UserListInOtherFilterPipe
+    UserListInOtherFilterPipe,
+    BatchAddTargetDialogComponent
   ],
   imports: [
     CommonModule,

@@ -1,0 +1,21 @@
+<h1 mat-dialog-title>Batch Add Targets</h1>
+<div mat-dialog-content>
+  <p>
+    Batch-add targets by file or by your input, each on its own line.
+    Please not that the target name must be exactly matching the media item's name.
+  </p>
+  <div>
+    <mat-label>File</mat-label>
+    <input hidden type="file" #fileUpload (change)="processUpload($event)" />
+    <button mat-button (click)="fileUpload.click()">Upload target file</button>
+  </div>
+  <mat-form-field class="width-full">
+    <mat-label>Targets</mat-label>
+    <textarea matInput #targetArea (change)="processInput($event)">
+    </textarea>
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-button cdkFocusInitial (click)="save()">Add</button>
+</div>

@@ -1,8 +1,8 @@
-import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
 import { ApiTeam, TemplateService, UserService } from "../../../../../../openapi";
-import { MatTable } from "@angular/material/table";
-import { Observable } from "rxjs";
+import { MatTable, MatTableDataSource } from "@angular/material/table";
+import { Observable, Subscription } from "rxjs";
 import { TemplateBuilderService } from "../../template-builder.service";
 import { MatDialog } from "@angular/material/dialog";
 import { AppConfig } from "../../../../app.config";
@@ -10,20 +10,26 @@ import { filter, map, tap } from "rxjs/operators";
 import { TeamBuilderDialogComponent } from "../team-builder-dialog/team-builder-dialog.component";
 import { ActivatedRoute } from "@angular/router";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatSort } from "@angular/material/sort";
 
 @Component({
   selector: 'app-teams-list',
   templateUrl: './teams-list.component.html',
   styleUrls: ['./teams-list.component.scss']
 })
-export class TeamsListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy {
+export class TeamsListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   displayedColumns = ['logo', 'name', 'action'];
 
+  dataSource: MatTableDataSource<ApiTeam>
+
   @ViewChild('teamTable')
   teamTable: MatTable<ApiTeam>;
+  @ViewChild(MatSort) sort: MatSort;
 
-  teams: Observable<ApiTeam[]> = new Observable<ApiTeam[]>((o) => o.next([]));
+  private updateSub: Subscription;
+  private afterInitComplete = false;
+
   constructor(
     builderService: TemplateBuilderService,
     route: ActivatedRoute,
@@ -31,30 +37,37 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
     snackBar: MatSnackBar,
     private userService: UserService,
     private dialog: MatDialog,
-    private config: AppConfig
+    private config: AppConfig,
+    private elementRef: ElementRef
   ) {
     super(builderService, route, templateService, snackBar);
+    this.dataSource = new MatTableDataSource()
   }
 
   ngOnInit(): void {
     this.onInit();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.sort = this.sort;
+    this.afterInitComplete = true;
+  }
+
   onChange() {
-    this.teams = this.builderService.templateAsObservable().pipe(
-      map((t) => {
-        if (t) {
-          return t.teams;
-        } else {
-          return [];
+    this.updateSub = this.builderService.templateAsObservable().subscribe(t => {
+      if(t){
+        this.dataSource.data = t.teams;
+        /* The elementRef.nativeElement.offsetParent checks if this component is visible */
+        if(this.afterInitComplete && this.elementRef.nativeElement.offsetParent){
+          this.teamTable?.renderRows();
         }
-      }),
-      tap(_ => this.teamTable?.renderRows())
-    );
+      }
+    })
   }
 
   ngOnDestroy() {
     this.onDestroy();
+    this.updateSub.unsubscribe();
   }
 
   /**

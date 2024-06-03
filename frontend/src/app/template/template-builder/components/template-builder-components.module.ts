@@ -52,6 +52,7 @@ import { ViewersListComponent } from './viewers-list/viewers-list.component';
 import { UserListFilterPipe } from './team-builder-dialog/user-list-filter.pipe';
 import { UserListInOtherFilterPipe } from './team-builder-dialog/user-list-in-other-filter.pipe';
 import { BatchAddTargetDialogComponent } from './batch-add-target-dialog/batch-add-target-dialog.component';
+import { MatSortModule } from "@angular/material/sort";
 
 
 @NgModule({
@@ -100,7 +101,8 @@ import { BatchAddTargetDialogComponent } from './batch-add-target-dialog/batch-a
     ColorPickerModule,
     CdkDropList,
     CdkDrag,
-    MatCardModule
+    MatCardModule,
+    MatSortModule
   ],
   exports: [TemplateInformationComponent,
     JudgesListComponent,

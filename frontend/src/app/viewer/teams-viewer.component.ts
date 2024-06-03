@@ -13,9 +13,9 @@ import {catchError, filter, map, pairwise, retry, sampleTime, shareReplay, switc
 import {AppConfig} from '../app.config';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
 import {
-    ApiAnswerType, ApiEvaluationInfo, ApiEvaluationState, ApiMediaItem, ApiScoreOverview,
-    ApiSubmission, ApiVerdictStatus, EvaluationScoresService, EvaluationService
-} from 'openapi';
+  ApiAnswerType, ApiEvaluationInfo, ApiEvaluationState, ApiMediaItem, ApiScoreOverview,
+  ApiSubmission, ApiTeam, ApiVerdictStatus, EvaluationScoresService, EvaluationService
+} from "openapi";
 import { HttpErrorResponse } from '@angular/common/http';
 
 /**
@@ -274,6 +274,13 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
    */
   public teamLogo(teamId: string): string {
     return this.config.resolveApiUrl(`/template/logo/${teamId}`);
+  }
+
+  /**
+   * Sorts the given {@link ApiTeam}s based on the team name (lexicographically)
+   */
+  public orderTeamsByName = (team1: ApiTeam, team2: ApiTeam) => {
+    return team1.name.localeCompare(team2.name)
   }
 
   /**

@@ -2,7 +2,7 @@
   <mat-card-content>
     <div class="flex" [style.overflow-x]="'auto'">
       <div
-        *ngFor="let team of (info | async)?.teams"
+        *ngFor="let team of ((info | async)?.teams | orderBy:'asc':orderTeamsByName)"
         [style.background-color]="team.color + '44'"
         class="tile"
         [@highlight]="(highlight | async).get(team.id)"

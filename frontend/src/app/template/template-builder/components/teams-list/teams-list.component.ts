@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
 import { ApiTeam, TemplateService, UserService } from "../../../../../../openapi";
 import { MatTable, MatTableDataSource } from "@angular/material/table";
@@ -28,6 +28,7 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
   @ViewChild(MatSort) sort: MatSort;
 
   private updateSub: Subscription;
+  private afterInitComplete = false;
 
   constructor(
     builderService: TemplateBuilderService,
@@ -36,7 +37,8 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
     snackBar: MatSnackBar,
     private userService: UserService,
     private dialog: MatDialog,
-    private config: AppConfig
+    private config: AppConfig,
+    private elementRef: ElementRef
   ) {
     super(builderService, route, templateService, snackBar);
     this.dataSource = new MatTableDataSource()
@@ -48,13 +50,17 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
 
   ngAfterViewInit() {
     this.dataSource.sort = this.sort;
+    this.afterInitComplete = true;
   }
 
   onChange() {
     this.updateSub = this.builderService.templateAsObservable().subscribe(t => {
       if(t){
         this.dataSource.data = t.teams;
-        this.teamTable?.renderRows();
+        /* The elementRef.nativeElement.offsetParent checks if this component is visible */
+        if(this.afterInitComplete && this.elementRef.nativeElement.offsetParent){
+          this.teamTable?.renderRows();
+        }
       }
     })
   }

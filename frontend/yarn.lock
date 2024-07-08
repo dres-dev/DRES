@@ -5293,7 +5293,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"apexcharts@npm:^3.50.0":
+"apexcharts@npm:^3.41.0":
   version: 3.50.0
   resolution: "apexcharts@npm:3.50.0"
   dependencies:
@@ -6879,7 +6879,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": 5.17.x
     "@typescript-eslint/parser": 5.17.x
     angularx-qrcode: 16.0.2
-    apexcharts: ^3.50.0
+    apexcharts: ^3.41.0
     eslint: ^8.12.0
     eslint-config-prettier: ^8.5.0
     eslint-plugin-prettier: ^4.0.0

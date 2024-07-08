@@ -47,7 +47,7 @@ export class BatchAddTargetDialogComponent {
 
   save(){
     /* Sanitation: break up on newline and trim each line */
-    const lines = this.textArea.nativeElement.value?.split('\n')
+    const lines = this.textArea.nativeElement.value?.trim().split('\n')
     this.dialogRef.close(lines.map(it => it.trim()))
   }
 

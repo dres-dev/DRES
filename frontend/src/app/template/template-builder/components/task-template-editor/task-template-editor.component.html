@@ -87,7 +87,7 @@
           </mat-button-toggle>
         </mat-button-toggle-group>
         -->
-        <button
+        <button *ngIf="hasCollectionSet()"
           mat-button
           aria-label="Batch Target Add"
           matTooltip="Batch Target Add"

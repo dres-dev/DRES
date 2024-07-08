@@ -12,6 +12,9 @@ import { map } from "rxjs/operators";
   providedIn: 'root'
 })
 export class TemplateBuilderService {
+
+  private touchedTasks: Array<ApiTaskTemplate> = [];
+
   set defaultCollection(value: string) {
     this._defaultCollection = value;
   }
@@ -63,6 +66,7 @@ export class TemplateBuilderService {
       }
       this._selectedTaskGroup = this.findGroupByName(task.taskGroup);
       this._selectedTaskType = this.findTypeByName(task.taskType);
+      this.touchedTasks.push(task);
       this.selectedTaskTemplate.next(task);
     }else{
       console.log("BuilderService.selectTaskTemplate UNSELECT");
@@ -70,6 +74,10 @@ export class TemplateBuilderService {
       this._selectedTaskGroup = null;
       this._selectedTaskType = null;
     }
+  }
+
+  public hasTouchedTasks(){
+    return this.touchedTasks?.length > 0 || false;
   }
 
   public selectedTaskTemplateAsObservable(){

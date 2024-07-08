@@ -68,14 +68,14 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "dres-frontend:build"
+            "buildTarget": "dres-frontend:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "dres-frontend:build:production"
+              "buildTarget": "dres-frontend:build:production"
             },
             "development": {
-              "browserTarget": "dres-frontend:build:development"
+              "buildTarget": "dres-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -83,7 +83,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "dres-frontend:build"
+            "buildTarget": "dres-frontend:build"
           }
         },
         "test": {

@@ -155,14 +155,6 @@ interface InteractiveRunManager : RunManager {
     fun updateSubmission(context: RunActionContext, submissionId: SubmissionId, submissionStatus: ApiVerdictStatus): Boolean
 
     /**
-     * List of all [DbSubmission]s for this [InteractiveRunManager], irrespective of the [DbTask] it belongs to.
-     *
-     * @param context The [RunActionContext] used for the invocation.
-     * @return List of [DbSubmission]s
-     */
-    fun allSubmissions(context: RunActionContext): List<DbSubmission>
-
-    /**
      * List of [DbSubmission]s for the current [DbTask].
      *
      * @param context The [RunActionContext] used for the invocation.

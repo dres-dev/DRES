@@ -461,10 +461,9 @@ class InteractiveAsynchronousRunManager(
     /**
      * List of all [DbSubmission]s for this [InteractiveAsynchronousRunManager], irrespective of the [DbTask] it belongs to.
      *
-     * @param context The [RunActionContext] used for the invocation.
      * @return List of [DbSubmission]s.
      */
-    override fun allSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
+    override fun allSubmissions(): List<DbSubmission> = this.stateLock.read {
         this.evaluation.taskRuns.flatMap { it.getDbSubmissions() }
     }
 

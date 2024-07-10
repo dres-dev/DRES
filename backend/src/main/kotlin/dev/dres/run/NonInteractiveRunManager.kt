@@ -5,6 +5,7 @@ import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskId
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 import jetbrains.exodus.database.TransientEntityStore
@@ -204,6 +205,10 @@ class NonInteractiveRunManager(
             }
 
         } */
+    }
+
+    override fun allSubmissions(): List<DbSubmission> {
+        TODO("Not yet implemented")
     }
 
     override fun reScore(taskId: TaskId) {

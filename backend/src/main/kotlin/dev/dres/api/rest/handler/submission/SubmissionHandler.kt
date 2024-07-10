@@ -6,15 +6,10 @@ import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
-import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -25,14 +20,9 @@ import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
-import kotlinx.dnq.query.filter
-import kotlinx.dnq.query.first
-import kotlinx.dnq.query.firstOrNull
-import kotlinx.dnq.transactional
 import org.slf4j.LoggerFactory
 
-class SubmissionHandler(private val store: TransientEntityStore) : PostRestHandler<ApiSubmission>,
+class SubmissionHandler : PostRestHandler<ApiSubmission>,
     AccessManagedRestHandler {
 
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)

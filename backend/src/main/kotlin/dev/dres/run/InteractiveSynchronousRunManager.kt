@@ -316,7 +316,7 @@ class InteractiveSynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @return List of [DbSubmission]s.
      */
-    override fun allSubmissions(context: RunActionContext): List<DbSubmission> =
+    override fun allSubmissions(): List<DbSubmission> =
         this.evaluation.taskRuns.flatMap { it.getDbSubmissions() }
 
 

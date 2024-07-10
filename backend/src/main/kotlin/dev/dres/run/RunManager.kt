@@ -122,6 +122,13 @@ interface RunManager : Runnable {
     fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) : ApiSubmission
 
     /**
+     * List of all [DbSubmission]s for this [InteractiveRunManager], irrespective of the [DbTask] it belongs to.
+     *
+     * @return List of [DbSubmission]s
+     */
+    fun allSubmissions(): List<DbSubmission>
+
+    /**
      * Returns a list of viewer [ViewerInfo]s for this [RunManager] alongside with their respective state.
      *
      * @return List of viewer [ViewerInfo]s for this [RunManager].

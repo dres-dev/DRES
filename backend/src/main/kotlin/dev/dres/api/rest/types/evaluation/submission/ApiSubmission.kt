@@ -21,12 +21,12 @@ data class ApiSubmission(
     val teamName: String,
     val memberName: String,
     override val timestamp: Long,
-    val answers: List<ApiAnswerSet> = emptyList()
+    val answerSets: List<ApiAnswerSet> = emptyList()
  ) : Submission {
 
     init {
-        answers.forEach { it.submission = this }
+        answerSets.forEach { it.submission = this }
     }
-    override fun answerSets(): Sequence<AnswerSet> = answers.asSequence()
+    override fun answerSets(): Sequence<AnswerSet> = answerSets.asSequence()
 
 }

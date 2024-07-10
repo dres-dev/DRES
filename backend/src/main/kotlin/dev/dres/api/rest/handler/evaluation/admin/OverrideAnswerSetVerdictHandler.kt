@@ -70,7 +70,7 @@ class OverrideAnswerSetVerdictHandler(private val store: TransientEntityStore): 
         return this.store.transactional {
             val rac = ctx.runActionContext()
 
-            val dbSubmission = evaluationManager.allSubmissions(rac).find { submission -> submission.answerSets.filter { it.id eq answerSetId }.any() } ?:
+            val dbSubmission = evaluationManager.allSubmissions().find { submission -> submission.answerSets.filter { it.id eq answerSetId }.any() } ?:
             throw ErrorStatusException(404, "No AnswerSet with Id '$answerSetId' found.", ctx)
 
             val answerSet = dbSubmission.answerSets.filter { it.id eq answerSetId }.first()

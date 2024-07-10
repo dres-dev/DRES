@@ -19,6 +19,7 @@ import dev.dres.api.rest.handler.log.QueryLogHandler
 import dev.dres.api.rest.handler.log.ResultLogHandler
 import dev.dres.api.rest.handler.preview.*
 import dev.dres.api.rest.handler.scores.ListEvaluationScoreHandler
+import dev.dres.api.rest.handler.submission.SubmissionAllStatusHandler
 import dev.dres.api.rest.handler.submission.SubmissionHandler
 import dev.dres.api.rest.handler.submission.SubmissionStatusHandler
 import dev.dres.api.rest.handler.system.CurrentTimeHandler
@@ -153,7 +154,7 @@ object RestApi {
 
             // Submission Status
             SubmissionStatusHandler(store),
-            SubmissionStatusHandler(store),
+            SubmissionAllStatusHandler(store),
 
             // Log
             QueryLogHandler(),

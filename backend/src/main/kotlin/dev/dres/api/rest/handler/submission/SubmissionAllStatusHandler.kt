@@ -26,7 +26,7 @@ class SubmissionAllStatusHandler(private val store: TransientEntityStore) : GetR
 
     @OpenApi(
         summary = "Endpoint provide the information about all submissions of a team.",
-        path = "/api/v2/submission/{evaluationId}/{submissionId}",
+        path = "/api/v2/submission/{evaluationId}/all",
         methods = [HttpMethod.GET],
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [

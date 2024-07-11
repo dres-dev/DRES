@@ -126,17 +126,18 @@ export class CompetitionFormBuilder {
    *
    * @param type The {@link ApiTargetOption} to add a {@link FormGroup} for.
    * @param initialise The {@link ApiTarget} to add
+   * @param store Only if initialise is not null. Whether to store the target. Propagated to the individual methods
    */
-  public addTargetForm(type: ApiTargetOption, initialise?: ApiTarget) {
+  public addTargetForm(type: ApiTargetOption, initialise?: ApiTarget, store: boolean = false, item?: ApiMediaItem) {
     const array = this.form.get('target') as UntypedFormArray;
     const newIndex = array.length;
     switch (type) {
       case "SINGLE_MEDIA_ITEM":
-        const f = this.singleMediaItemTargetForm(newIndex, initialise);
+        const f = this.singleMediaItemTargetForm(newIndex, initialise, store, item);
         array.push(f)
         return f;
       case "SINGLE_MEDIA_SEGMENT":
-        const targetForm = this.singleMediaSegmentTargetForm(newIndex, initialise);
+        const targetForm = this.singleMediaSegmentTargetForm(newIndex, initialise, store, item);
         array.push(targetForm);
         return targetForm;
       case "JUDGEMENT":
@@ -149,6 +150,10 @@ export class CompetitionFormBuilder {
         return form;
       default:
         break;
+    }
+
+    if(store){
+      this.storeFormData()
     }
   }
 
@@ -358,7 +363,7 @@ export class CompetitionFormBuilder {
    * @param index Index of the FormControl
    * @param initialize The optional {RestTaskDescriptionTargetItem} containing the data to initialize the form with.
    */
-  private singleMediaItemTargetForm(index: number, initialize?: ApiTarget): UntypedFormGroup {
+  private singleMediaItemTargetForm(index: number, initialize?: ApiTarget,  store: boolean = false, item?: ApiMediaItem): UntypedFormGroup {
     /* Prepare auto complete field. */
     const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
     const typeFormControl = new UntypedFormControl(ApiTargetType.MEDIA_ITEM);
@@ -373,9 +378,16 @@ export class CompetitionFormBuilder {
       )
     );
 
+    let resolveRequired = true
+
+    /* Set passed media item */
+    if(initialize?.target && item){
+      mediaItemFormControl.setValue(item, {emitEvent: false})
+      resolveRequired = false
+    }
 
     /* Load media item from API. */
-    if (initialize?.target && this.form.get('mediaCollection')) {
+    if (resolveRequired && initialize?.target && this.form.get('mediaCollection')) {
       this.collectionService
         .getApiV2MediaItemByMediaItemId(initialize?.target)
         .pipe(first())
@@ -393,7 +405,7 @@ export class CompetitionFormBuilder {
    * @param index Index of the FormControl
    * @param initialize The optional {RestTaskDescriptionTargetItem} to initialize the form with.
    */
-  private singleMediaSegmentTargetForm(index: number, initialize?: ApiTarget) {
+  private singleMediaSegmentTargetForm(index: number, initialize?: ApiTarget,  store: boolean = false, item?: ApiMediaItem) {
     /* Prepare auto complete field. */
     const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
     const typeFormControl = new UntypedFormControl(ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE);
@@ -408,8 +420,16 @@ export class CompetitionFormBuilder {
       )
     );
 
+    let resolveRequired = true
+
+    /* Set passed media item */
+    if(initialize?.target && item){
+      mediaItemFormControl.setValue(item, {emitEvent:false})
+      resolveRequired = false
+    }
+
     /* Load media item from API. */
-    if (initialize?.target && this.form.get('mediaCollection')) {
+    if (resolveRequired && initialize?.target && this.form.get('mediaCollection')) {
       this.collectionService
         .getApiV2MediaItemByMediaItemId(initialize.target)
         .pipe(first())

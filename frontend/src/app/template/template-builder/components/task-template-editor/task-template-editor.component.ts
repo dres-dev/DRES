@@ -1,6 +1,6 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { TemplateBuilderService } from "../../template-builder.service";
-import { forkJoin, Observable, Subscription } from "rxjs";
+import { forkJoin, Observable, Subscription, takeUntil } from "rxjs";
 import {
   ApiHintOption, ApiHintType,
   ApiMediaCollection, ApiMediaItem, ApiTarget, ApiTargetOption, ApiTargetType,
@@ -21,11 +21,8 @@ import { AppConfig } from "../../../../app.config";
 import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
 import { filter, first, map } from "rxjs/operators";
 import { TimeUtilities } from "../../../../utilities/time.utilities";
-import {
-  AdvancedBuilderDialogComponent,
-  AdvancedBuilderDialogData
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component";
 import { BatchAddTargetDialogComponent, BatchAddTargetDialogData } from "../batch-add-target-dialog/batch-add-target-dialog.component";
+import { NavigationEnd, Router, RouterEvent } from "@angular/router";
 
 @Component({
   selector: 'app-task-template-editor',
@@ -67,9 +64,17 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   constructor(private builderService: TemplateBuilderService,
               public collectionService: CollectionService,
               public config: AppConfig,
-              private dialog: MatDialog) {}
+              private dialog: MatDialog,
+              private router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.router.events.subscribe((event) => {
+      if(event instanceof NavigationEnd){
+        console.log("NavigationEnd", event);
+        this.builderService?.selectTaskTemplate(null)
+      }
+    })
     this.taskSub = this.builderService.selectedTaskTemplateAsObservable().subscribe((t)=>{
       if(t){
         this.task = t;

@@ -107,7 +107,20 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   }
 
   public isFormValid(){
-    return this.form == undefined || this.form.valid;
+    if(this.builderService.hasTouchedTasks()){
+      return this?.form?.valid || true;
+    }else{
+      return true;
+    }
+  }
+
+  public hasCollectionSet(){
+    if(this.form){
+      if(this.form.get('mediaCollection')?.value){
+        return true
+      }
+    }
+    return false
   }
 
   public fetchData(){
@@ -380,17 +393,13 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
         switch(this.taskType.targetOption){
           case "SINGLE_MEDIA_ITEM":
           case "SINGLE_MEDIA_SEGMENT":
-            const obs = r.map(it =>{
-              return this.collectionService.getApiV2CollectionByCollectionIdByStartsWith(this.form.get('mediaCollection').value, it.trim())
-            });
-            forkJoin(obs).subscribe(itemsList => {
-              itemsList.forEach(it => {
-                if(it.length > 0){
+            this.collectionService.postApiV2CollectionByCollectionIdResolve(this.form.get('mediaCollection').value, r)
+              .subscribe(items => {
+                items.forEach(it => {
                   const type = this.taskType.targetOption === "SINGLE_MEDIA_ITEM" ? ApiTargetType.MEDIA_ITEM : ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE;
-                  this.formBuilder.addTargetForm(this.taskType.targetOption, {type: type, target: it[0].mediaItemId} as ApiTarget)
-                }
+                  this.formBuilder.addTargetForm(this.taskType.targetOption, {type: type, target: it.mediaItemId} as ApiTarget, true, it)
+                })
               })
-            })
             break;
           case "JUDGEMENT":
           case "VOTE":

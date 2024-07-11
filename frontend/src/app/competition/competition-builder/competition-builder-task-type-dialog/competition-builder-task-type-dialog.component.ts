@@ -204,7 +204,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
       name: new UntypedFormControl(this.data?.name, [Validators.required, Validators.minLength(3)]),
 
       /* Default Duration. Required */
-      defaultTaskDuration: new UntypedFormControl(this.data?.duration, [Validators.required, Validators.min(1)]),
+      defaultTaskDuration: new UntypedFormControl(this.data?.duration, [Validators.required, Validators.min(1), Validators.max(999999)]),
 
       /* Target Type. Required */
       target: new UntypedFormControl(this.data?.targetOption, [Validators.required]),

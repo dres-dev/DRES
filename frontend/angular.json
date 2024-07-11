@@ -20,7 +20,7 @@
             "outputPath": "dist/dres-frontend",
             "index": "src/index.html",
             "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "aot": true,
             "assets": ["src/immutable", "src/config.json"],
@@ -68,14 +68,14 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "dres-frontend:build"
+            "buildTarget": "dres-frontend:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "dres-frontend:build:production"
+              "buildTarget": "dres-frontend:build:production"
             },
             "development": {
-              "browserTarget": "dres-frontend:build:development"
+              "buildTarget": "dres-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -83,14 +83,14 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "dres-frontend:build"
+            "buildTarget": "dres-frontend:build"
           }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "assets": ["src/favicon.ico", "src/assets"],

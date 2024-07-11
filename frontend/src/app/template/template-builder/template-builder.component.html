@@ -3,7 +3,7 @@
         <button mat-icon-button (click)="back()">
             <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>Edit evaluation template {{(builderService.templateAsObservable() | async)?.id}} <span *ngIf="(builderService.dirty() | async)" class="warn-color">(unsaved changes)</span></h1>
+        <h1 matTooltip="{{(builderService.templateAsObservable() | async)?.id}}">Edit evaluation template {{(builderService.templateAsObservable() | async)?.name}} <span *ngIf="(builderService.dirty() | async)" class="warn-color">(unsaved changes)</span></h1>
     </div>
 
     <div class="spacer-flex"></div>

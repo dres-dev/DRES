@@ -42,9 +42,9 @@ task packageFrontend(type: Zip) {
         return file("$buildDir/lib/dres-frontend.jar").exists()
     }
     dependsOn buildFrontend
-    baseName 'dres-frontend'
-    extension 'jar'
-    destinationDir file("$buildDir/lib")
+    archiveBaseName = 'dres-frontend'
+    archiveExtension = 'jar'
+    destinationDirectory=  file("$buildDir/lib")
     from("$buildDir/dist") {
         println("includeConfig: "+includeConfig)
         if(!includeConfig){

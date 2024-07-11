@@ -365,7 +365,7 @@ object TemplateManager {
                 it.copy(id = null)
             },
             teams = apiTemplate.teams.map {
-                it.copy(id = null, logoData = Base64.getEncoder().encodeToString(getTeamLogo(it.teamId)!!.readAllBytes()))
+                it.copy(id = null, logoData = if(getTeamLogo(it.teamId) != null) {Base64.getEncoder().encodeToString(getTeamLogo(it.teamId)?.readAllBytes())}else{null})
             }
         )
 

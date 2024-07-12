@@ -52,7 +52,7 @@ class DequeueVoteHandler: AbstractJudgementHandler(), GetRestHandler<ApiJudgemen
     fun nextRequest(ctx: Context): ApiJudgementRequest? { //TODO needs adjustment to deal with answerSets
         val evaluationManager = ctx.eligibleManagerForId<RunManager>()
 
-        val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().sortedBy { it.priority }.find { it.isActive } ?: return null
+        val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().sortedBy { it.priority }.reversed().find { it.isActive } ?: return null
         val next = validator.next()
             ?: /* No submission awaiting judgement */
             return null

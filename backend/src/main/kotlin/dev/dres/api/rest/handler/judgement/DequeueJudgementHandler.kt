@@ -53,7 +53,7 @@ class DequeueJudgementHandler : AbstractJudgementHandler(),
     private fun nextRequest(ctx: Context): ApiJudgementRequest? {
         val evaluationManager = ctx.eligibleManagerForId<RunManager>()
         checkEligibility(ctx, evaluationManager)
-        val validator = evaluationManager.judgementValidators.find { it.hasOpen } ?: return null
+        val validator = evaluationManager.judgementValidators.sortedBy { it.priority }.find { it.hasOpen } ?: return null
         val next = validator.next() ?: return null
         val taskDescription = validator.taskTemplate.textualDescription()
         return ApiJudgementRequest(

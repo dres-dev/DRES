@@ -39,12 +39,23 @@ open class BasicJudgementValidator(
         private val counter = AtomicInteger()
         private const val judgementTimeout = 60_000 //ms until a request is re-scheduled
 
+        private const val defaultPriority = 0;
+
         /**
          * The key used to read the task type configuration order
          * The value expected under this key is LIFO, which results in LIFO ordering of the queue,
          * all other parameters or the absence of one results in the default FIFO behaviour.
          */
         private const val CONFIGURATION_ORDER_KEY = "JUDGEMENT.order"
+
+        /**
+         * The key used to read the task type configuration priority.
+         * The value is expected to be a number. Higher number represents higher priority.
+         * Consumers are expected to respect the {priority}
+         */
+        private const val CONFIGURATION_PRIORITY_KEY = "JUDGEMENT.priority"
+
+
     }
 
     /** The [BasicJudgementValidator]'s ID is simply an auto-incrementing number. */
@@ -52,6 +63,9 @@ open class BasicJudgementValidator(
 
     /** A [BasicJudgementValidator] is always deferring. */
     override val deferring: Boolean = true
+
+    /** The priority of this [JudgementValidator], higher priorities are represent by a higher number and consumers are expected to respect this */
+    override val priority = this.taskType.configuration[CONFIGURATION_PRIORITY_KEY]?.toInt() ?: defaultPriority
 
     /** Internal lock on relevant data structures. */
     private val updateLock = ReentrantReadWriteLock()

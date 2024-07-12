@@ -31,6 +31,9 @@ interface JudgementValidator {
     /** The template of the task this validator belongs to */
     val taskTemplate: ApiTaskTemplate
 
+    /** The priority of this [JudgementValidator], higher priorities are represent by a higher number and consumers are expected to respect this */
+    val priority: Int
+
     /**
      * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'s internal queue.
      *

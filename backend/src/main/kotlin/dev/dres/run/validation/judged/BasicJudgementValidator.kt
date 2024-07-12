@@ -3,6 +3,7 @@ package dev.dres.run.validation.judged
 import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
 import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
+import dev.dres.api.rest.types.template.tasks.ApiTaskType
 import dev.dres.data.model.submissions.*
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
@@ -22,15 +23,28 @@ import kotlin.concurrent.write
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 2.0.0
+ * @author Loris Sauter
+ *
+ * @version 2.1.0
  */
-open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, protected val store: TransientEntityStore, knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(),
-
+open class BasicJudgementValidator(
+    override val taskTemplate: ApiTaskTemplate,
+    protected val store: TransientEntityStore,
+    private val taskType: ApiTaskType,
+    knownCorrectRanges: Collection<ItemRange> = emptyList(),
+    knownWrongRanges: Collection<ItemRange> = emptyList(),
 ) : AnswerSetValidator, JudgementValidator {
 
     companion object {
         private val counter = AtomicInteger()
         private const val judgementTimeout = 60_000 //ms until a request is re-scheduled
+
+        /**
+         * The key used to read the task type configuration order
+         * The value expected under this key is LIFO, which results in LIFO ordering of the queue,
+         * all other parameters or the absence of one results in the default FIFO behaviour.
+         */
+        private const val CONFIGURATION_ORDER_KEY = "JUDGEMENT.order"
     }
 
     /** The [BasicJudgementValidator]'s ID is simply an auto-incrementing number. */
@@ -43,7 +57,7 @@ open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, p
     private val updateLock = ReentrantReadWriteLock()
 
     /** Internal queue that keeps track of all the [AnswerSetId]s and associated [ItemRange]s that require judgement. */
-    private val queue: Queue<Pair<AnswerSetId,ItemRange>> = LinkedList()
+    private val queue: Deque<Pair<AnswerSetId,ItemRange>> = LinkedList()
 
     /** Internal map of all [AnswerSetId]s and associated [ItemRange]s that have been retrieved by a judge and are pending a verdict. */
     private val waiting = HashMap<String, Pair<AnswerSetId,ItemRange>>()
@@ -56,6 +70,12 @@ open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, p
 
     /** Internal map of known [ItemRange]s to associated [DbVerdictStatus]. */
     private val cache: MutableMap<ItemRange, DbVerdictStatus> = ConcurrentHashMap()
+
+    /** Internal flag whether to use LIFO */
+    private val lifo = when(this.taskType.configuration.getOrDefault(CONFIGURATION_ORDER_KEY, "fifo")) {
+        "lifo" -> true
+        else -> false
+    }
 
     init {
         knownCorrectRanges.forEach { this.cache[it] = DbVerdictStatus.CORRECT }
@@ -99,7 +119,11 @@ open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, p
                 answerSet.status = cachedStatus
             } else if (itemRange !in this.queuedItemRanges.keys) {
                 this.updateLock.write {
-                    this.queue.offer(answerSet.id to itemRange)
+                    if(this.lifo){
+                        this.queue.offerFirst(answerSet.id to itemRange)
+                    }else{
+                        this.queue.offerLast(answerSet.id to itemRange)
+                    }
                     this.queuedItemRanges[itemRange] = mutableListOf(answerSet.id)
                 }
             } else {

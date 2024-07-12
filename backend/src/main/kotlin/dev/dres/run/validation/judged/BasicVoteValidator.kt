@@ -3,6 +3,7 @@ package dev.dres.run.validation.judged
 import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
 import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
+import dev.dres.api.rest.types.template.tasks.ApiTaskType
 import dev.dres.data.model.submissions.*
 import dev.dres.run.validation.interfaces.VoteValidator
 import jetbrains.exodus.database.TransientEntityStore
@@ -19,15 +20,25 @@ import kotlin.concurrent.write
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 2.0.0
+ * @author Ralph Gasser
+ *
+ * @version 2.1.0
  */
-class BasicVoteValidator(taskTemplate: ApiTaskTemplate, store: TransientEntityStore, knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(), private val minimumVotes: Int = defaultMinimimVotes, private val voteDifference: Int = defaultVoteDifference) : BasicJudgementValidator(taskTemplate, store, knownCorrectRanges, knownWrongRanges), VoteValidator {
+class BasicVoteValidator(
+    taskTemplate: ApiTaskTemplate,
+    store: TransientEntityStore,
+    taskType: ApiTaskType,
+    knownCorrectRanges: Collection<ItemRange> = emptyList(),
+    knownWrongRanges: Collection<ItemRange> = emptyList(),
+    private val minimumVotes: Int = defaultMinimimVotes,
+    private val voteDifference: Int = defaultVoteDifference
+) : BasicJudgementValidator(taskTemplate, store, taskType, knownCorrectRanges, knownWrongRanges), VoteValidator {
 
-    constructor(taskTemplate: ApiTaskTemplate, store: TransientEntityStore, knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(), parameters: Map<String, String>): this(
-        taskTemplate, store,
+    constructor(taskTemplate: ApiTaskTemplate, store: TransientEntityStore, taskType: ApiTaskType, knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(), parameters: Map<String, String>): this(
+        taskTemplate, store, taskType,
         knownCorrectRanges, knownWrongRanges,
-        parameters.getOrDefault("minimumVotes", "$defaultMinimimVotes").toIntOrNull() ?: defaultMinimimVotes,
-        parameters.getOrDefault("voteDifference", "$defaultVoteDifference").toIntOrNull() ?: defaultVoteDifference
+        parameters.getOrDefault(CONFIGURATION_MINIMUM_VOTES_KEY, "$defaultMinimimVotes").toIntOrNull() ?: defaultMinimimVotes,
+        parameters.getOrDefault(CONFIGURATION_VOTE_DIFF_KEY, "$defaultVoteDifference").toIntOrNull() ?: defaultVoteDifference
     )
 
     init {
@@ -37,6 +48,8 @@ class BasicVoteValidator(taskTemplate: ApiTaskTemplate, store: TransientEntitySt
     companion object {
         private val defaultMinimimVotes = 5
         private val defaultVoteDifference = 1
+        private const val CONFIGURATION_MINIMUM_VOTES_KEY = "VOTE.minimumVotes"
+        private const val CONFIGURATION_VOTE_DIFF_KEY = "VOTE.voteDifference"
     }
 
     /** Internal queue of [AnswerSetId]s that pend voting. */

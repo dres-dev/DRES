@@ -50,7 +50,7 @@ abstract class AbstractInteractiveTask(store: TransientEntityStore, task: DbTask
                             .asSequence().map {
                                 ItemRange(it.item?.name!!, it.start!!, it.end!!)
                             }.toSet()
-                    BasicJudgementValidator(template.toApi(), this.store, knownCorrectRanges = knownRanges)
+                    BasicJudgementValidator(template.toApi(), this.store, template.taskGroup.type.toApi(), knownCorrectRanges = knownRanges)
                 }
 
                 DbTargetOption.VOTE -> {
@@ -62,7 +62,7 @@ abstract class AbstractInteractiveTask(store: TransientEntityStore, task: DbTask
                     val parameters =
                         template.taskGroup.type.configurations.filter { it.key eq targetOption.description }
                             .asSequence().associate { it.key to it.value }
-                    BasicVoteValidator(template.toApi(), this.store, knownCorrectRanges = knownRanges, parameters = parameters)
+                    BasicVoteValidator(template.toApi(), this.store, template.taskGroup.type.toApi(), knownCorrectRanges = knownRanges, parameters = parameters)
                 }
 
                 else -> throw IllegalStateException("The provided target option ${targetOption.description} is not supported by interactive tasks.")

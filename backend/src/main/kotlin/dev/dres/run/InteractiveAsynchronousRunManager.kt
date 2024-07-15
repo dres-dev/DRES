@@ -370,8 +370,8 @@ class InteractiveAsynchronousRunManager(
 
     /**
      * Returns the time  in milliseconds that is left until the end of the currently running task for the given team.
-     * Only works if the [InteractiveAsynchronousRunManager] is in state [RunManagerStatus.ACTIVE]. If no task is running,
-     * this method returns -1L.
+     * Only works if the [InteractiveAsynchronousRunManager] is in state [RunManagerStatus.ACTIVE].
+     * If no task is running or is running perpetually, this method returns -1L.
      *
      * @param context The [RunActionContext] used for the invocation.
      * @return Time remaining until the task will end or -1, if no task is running.
@@ -380,10 +380,10 @@ class InteractiveAsynchronousRunManager(
 
         val currentTaskRun = this.currentTask(context)
 
-        return if (currentTaskRun?.isRunning == true) {
+        return if (currentTaskRun?.isRunning == true && currentTaskRun.duration != null) { // TODO what is the semantic of a perpetual IA task?
             max(
                 0L,
-                currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                currentTaskRun.duration!! * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
             )
         } else {
             -1L
@@ -488,10 +488,11 @@ class InteractiveAsynchronousRunManager(
 
         val currentTaskRun = this.currentTask(context)
             ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
-        val newDuration = currentTaskRun.duration + s
+        check(currentTaskRun.duration != null){"The task '${currentTaskRun.template.name}' (${currentTaskRun.taskId}) runs perpetually."} // TODO what is the semantic of a perpetual IA task?
+        val newDuration = currentTaskRun.duration!! + s
         check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         currentTaskRun.duration = newDuration
-        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
+        return (currentTaskRun.duration!! * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
 
     }
 
@@ -722,20 +723,24 @@ class InteractiveAsynchronousRunManager(
                 this.stateLock.write {
                     val task = this.evaluation.currentTaskForTeam(teamId)
                         ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
-                    val timeLeft = max(
-                        0L,
-                        task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
-                    )
-                    if (timeLeft <= 0) {
-                        task.end()
-                        AuditLogger.taskEnd(this.id, task.taskId, AuditLogSource.INTERNAL, null)
+                    if(task.duration != null){
+                        // TODO what is the semantic of a perpetual IA task?
+                        val timeLeft = max(
+                            0L,
+                            task.duration!! * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                        )
+                        if (timeLeft <= 0) {
+                            task.end()
+                            AuditLogger.taskEnd(this.id, task.taskId, AuditLogSource.INTERNAL, null)
 
 //                        /* Enqueue WS message for sending */
 //                        RunExecutor.broadcastWsMessage(
 //                            teamId,
 //                            ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId)
 //                        )
+                        }
                     }
+
                 }
             } else if (teamHasPreparingTask(teamId)) {
                 this.stateLock.write {

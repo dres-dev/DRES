@@ -23,7 +23,7 @@ data class ApiTaskTemplate(
     val name: String,
     val taskGroup: String,
     val taskType: String,
-    val duration: Long,
+    val duration: Long?,
     val collectionId: CollectionId,
     val targets: List<ApiTarget>,
     val hints: List<ApiHint>,

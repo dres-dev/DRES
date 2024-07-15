@@ -46,7 +46,7 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
     var collection by xdLink1(DbMediaCollection)
 
     /** The duration of the [DbTaskTemplate] in seconds. */
-    var duration by xdRequiredLongProp { min(0L)  }
+    var duration by xdNullableLongProp()
 
     /** The [DbTaskTemplateTarget]s that identify the target. Multiple entries indicate the existence of multiple targets. */
     val targets by xdChildren1_N<DbTaskTemplate, DbTaskTemplateTarget>(DbTaskTemplateTarget::task)

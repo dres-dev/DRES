@@ -29,8 +29,8 @@ class DbTaskType(entity: Entity) : XdEntity(entity) {
     /** The [DbEvaluationTemplate] this [DbTaskType] belongs to. */
     var evaluation: DbEvaluationTemplate by xdParent<DbTaskType,DbEvaluationTemplate>(DbEvaluationTemplate::taskTypes)
 
-    /** The (default) duration of this [DbTaskType] in seconds. */
-    var duration by xdRequiredLongProp() { min(0L) }
+    /** The (default) duration of this [DbTaskType] in seconds. Defaults to no duration, which means perpetually running task. */
+    var duration by xdNullableLongProp()
 
     /** The [DbTargetOption] for this [DbTaskType]. Specifies the type of target. */
     var target by xdLink1(DbTargetOption)

@@ -16,6 +16,10 @@ class KisTaskScorer(
     store: TransientEntityStore?
 ) : AbstractTaskScorer(scoreable, store) {
 
+    init {
+        require(scoreable.duration != null){"Cannot create a KisTaskScorer for perpetual task '${scoreable.taskId}'"}
+    }
+
     constructor(run: TaskRun, parameters: Map<String, String>, store: TransientEntityStore?) : this(
         run,
         parameters.getOrDefault("maxPointsPerTask", "$defaultmaxPointsPerTask").toDoubleOrNull() ?: defaultmaxPointsPerTask,
@@ -39,7 +43,7 @@ class KisTaskScorer(
      * @return A [Map] of [TeamId] to calculated task score.
      */
     override fun calculateScores(submissions: Sequence<Submission>): Map<TeamId, Double>  {
-        val taskDuration = this.scoreable.duration.toDouble() * 1000.0
+        val taskDuration = this.scoreable.duration!!.toDouble() * 1000.0
         val taskStartTime = this.scoreable.started ?: throw IllegalArgumentException("No task start time specified.")
         return this.scoreable.teams.associateWith { teamId ->
             val verdicts = submissions.filter { it.teamId == teamId }.sortedBy { it.timestamp }.flatMap { sub ->

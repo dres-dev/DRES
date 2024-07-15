@@ -22,7 +22,7 @@ import java.nio.file.StandardOpenOption
 @Serializable
 data class ApiTaskType(
     val name: String,
-    val duration: Long,
+    val duration: Long?,
     val targetOption: ApiTargetOption,
     val hintOptions: List<ApiHintOption>,
     val submissionOptions: List<ApiSubmissionOption>,

@@ -33,7 +33,7 @@ interface JudgementValidator {
 
     /** The priority of this [JudgementValidator], higher priorities are represent by a higher number and consumers are expected to respect this */
     val priority: Int
-
+        get() = 0
     /**
      * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'s internal queue.
      *

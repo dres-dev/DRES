@@ -17,7 +17,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSelectModule } from '@angular/material/select';
 import { CompetitionBuilderTaskGroupDialogComponent } from './competition-builder-task-group-dialog/competition-builder-task-group.component';
 import { MatChipsModule } from '@angular/material/chips';
-import { CompetitionBuilderTaskTypeDialogComponent } from './competition-builder-task-type-dialog/competition-builder-task-type-dialog.component';
+import { CreateTaskTypeDialogComponent } from '../../template/template-builder/components/create-task-type-dialog/create-task-type-dialog.component';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { VideoPlayerSegmentBuilderComponent } from './competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component';
@@ -66,7 +66,6 @@ import { ColorPickerModule } from 'ngx-color-picker';
     CompetitionBuilderComponent,
     CompetitionBuilderTaskDialogComponent,
     CompetitionBuilderTaskGroupDialogComponent,
-    CompetitionBuilderTaskTypeDialogComponent,
     VideoPlayerSegmentBuilderComponent,
     AdvancedBuilderDialogComponent,
     VideoPlayerSegmentBuilderDialogComponent,

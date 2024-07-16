@@ -42,7 +42,7 @@
          *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING'"
          class="mat-body" style="align-self: center;"
     >
-      Time left: {{ (runState | async)?.timeLeft | formatTime:false }}
+      Time left: {{ ((runState | async)?.timeLeft  ? ((runState | async)?.timeLeft | formatTime:false) : '∞')}}
     </div>
     <button
       *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING'"

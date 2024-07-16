@@ -371,22 +371,25 @@ class InteractiveAsynchronousRunManager(
     /**
      * Returns the time  in milliseconds that is left until the end of the currently running task for the given team.
      * Only works if the [InteractiveAsynchronousRunManager] is in state [RunManagerStatus.ACTIVE].
-     * If no task is running or is running perpetually, this method returns -1L.
+     * If no task is running, this method returns -1L.
+     * If the task runs perpetually, this method returns NULL.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return Time remaining until the task will end or -1, if no task is running.
+     * @return Time remaining until the task will end or -1, if no task is running. NULL if the task runs perpetually.
      */
-    override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
-
+    override fun timeLeft(context: RunActionContext): Long? = this.stateLock.read {
         val currentTaskRun = this.currentTask(context)
-
-        return if (currentTaskRun?.isRunning == true && currentTaskRun.duration != null) { // TODO what is the semantic of a perpetual IA task?
-            max(
-                0L,
-                currentTaskRun.duration!! * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
-            )
+        return if (currentTaskRun?.duration == null) {
+            null
         } else {
-            -1L
+            if (currentTaskRun.isRunning) {
+                max(
+                    0L,
+                    currentTaskRun.duration!! * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                )
+            } else {
+                -1L
+            }
         }
     }
 

@@ -10,8 +10,9 @@
 
       <mat-form-field style="width: 20%">
         <mat-label>Duration [s]</mat-label>
-        <input type="text" matInput placeholder="Duration [s]" formControlName="defaultTaskDuration" />
-        <mat-error *ngIf="form.get('defaultTaskDuration')?.invalid">Required. Must be between 1 and 999999 seconds.</mat-error>
+        <input type="text" matInput placeholder="Duration [s]" formControlName="defaultTaskDuration"
+        matTooltip="Leave empty for possibly perpetual tasks."/>
+        <mat-error *ngIf="form.get('defaultTaskDuration')?.invalid">Must be between 1 and 999999 seconds.</mat-error>
       </mat-form-field>
     </p>
 

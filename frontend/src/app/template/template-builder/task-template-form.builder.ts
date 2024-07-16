@@ -2,7 +2,7 @@ import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup
 import { filter, first, map, switchMap } from "rxjs/operators";
 import { Observable } from 'rxjs';
 import { RequireMatch } from './require-match';
-import { TimeUtilities } from '../../../utilities/time.utilities';
+import { TimeUtilities } from '../../utilities/time.utilities';
 import {
   ApiHint,
   ApiHintOption, ApiHintType,
@@ -12,22 +12,21 @@ import {
   ApiTaskTemplate,
   ApiTaskType, ApiTemporalPoint, ApiTemporalRange,
   CollectionService
-} from '../../../../../openapi';
-import { TemplateBuilderService } from "../../../template/template-builder/template-builder.service";
+} from '../../../../openapi';
+import { TemplateBuilderService } from "./template-builder.service";
 
-// TODO rename to TemplateFormBuilder
-export class CompetitionFormBuilder {
+export class TaskTemplateFormBuilder {
   /** The default duration of a query hint. This is currently a hard-coded constant. */
   private static DEFAULT_HINT_DURATION = 30;
 
-  /** The {@link UntypedFormGroup} held by this {@link CompetitionFormBuilder}. */
+  /** The {@link UntypedFormGroup} held by this {@link TaskTemplateFormBuilder}. */
   public form: UntypedFormGroup;
 
   /**
    * Constructor for CompetitionFormBuilder.
    *
-   * @param taskGroup The {@link ApiTaskGroup} to create this {@link CompetitionFormBuilder} for.
-   * @param taskType The {@link ApiTaskType} to create this {@link CompetitionFormBuilder} for.
+   * @param taskGroup The {@link ApiTaskGroup} to create this {@link TaskTemplateFormBuilder} for.
+   * @param taskType The {@link ApiTaskType} to create this {@link TaskTemplateFormBuilder} for.
    * @param collectionService The {@link CollectionService} reference used to fetch data through the DRES API.
    * @param builderService The {@link TemplateBuilderService} reference
    * @param data The {@link ApiTaskTemplate} to initialize the form with.
@@ -113,7 +112,7 @@ export class CompetitionFormBuilder {
     } else if (previousItem.get('end').value) {
       component.get('start').setValue(previousItem.get('end').value, {emitEvent: false});
     } else {
-      previousItem.get('end').setValue(previousItem.get('start').value + CompetitionFormBuilder.DEFAULT_HINT_DURATION, {emitEvent: false});
+      previousItem.get('end').setValue(previousItem.get('start').value + TaskTemplateFormBuilder.DEFAULT_HINT_DURATION, {emitEvent: false});
       component.get('start').setValue(previousItem.get('end').value, {emitEvent: false});
     }
 
@@ -312,7 +311,7 @@ export class CompetitionFormBuilder {
       name: new UntypedFormControl(this.data?.name, [Validators.required]),
       comment: new UntypedFormControl(this.data?.comment || ''),
       taskGroup: new UntypedFormControl(taskGroup.name),
-      duration: new UntypedFormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
+      duration: new UntypedFormControl(this.durationInitValue, [Validators.min(1), Validators.max(9999999)]),
       mediaCollection: new UntypedFormControl(this.data?.collectionId ?? this.builderService.defaultCollection, [Validators.required]),
     });
     this.form.addControl('target', this.formForTarget());

@@ -2,7 +2,7 @@ import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
-import {ApiHintOption, ApiScoreOption, ApiSubmissionOption, ApiTargetOption, ApiTaskOption, ApiTaskType} from '../../../../../openapi';
+import {ApiHintOption, ApiScoreOption, ApiSubmissionOption, ApiTargetOption, ApiTaskOption, ApiTaskType} from '../../../../../../openapi';
 
 /**
  * Wrapper to be able to have an enum value boolean tuple
@@ -13,11 +13,11 @@ interface ActivatedType<T> {
 }
 
 @Component({
-  selector: 'app-competition-builder-task-type',
-  templateUrl: './competition-builder-task-type-dialog.component.html',
-  styleUrls: ['./competition-builder-task-type-dialog.component.scss'],
+  selector: 'app-create-task-type',
+  templateUrl: './create-task-type-dialog.component.html',
+  styleUrls: ['./create-task-type-dialog.component.scss'],
 })
-export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterViewInit {
+export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
   /** FromGroup for this dialog. */
   form: UntypedFormGroup;
 
@@ -44,7 +44,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
     });
 
   constructor(
-    public dialogRef: MatDialogRef<CompetitionBuilderTaskTypeDialogComponent>,
+    public dialogRef: MatDialogRef<CreateTaskTypeDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ApiTaskType
   ) {
     this.init();
@@ -165,38 +165,6 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
       console.log(param);
       parameters.push(param);
     }
-    /*
-    --- Legacy. Keep to check validity
-    if (this.data?.targetType?.parameters) {
-      Object.keys(this.data?.targetType?.parameters).forEach((key) => {
-        parameters.push([this.data.score.option, key, this.data.score.parameters[key]]);
-      });
-    }
-
-    if (this.data?.score?.parameters) {
-      Object.keys(this.data?.score?.parameters).forEach((key) => {
-        parameters.push([this.data.score.option, key, this.data.score.parameters[key]]);
-      });
-    }
-
-    this.data?.components?.forEach((domain) => {
-      Object.keys(domain.parameters).forEach((key) => {
-        parameters.push([domain.option, key, domain.parameters[key]]);
-      });
-    });
-
-    this.data?.filter?.forEach((domain) => {
-      Object.keys(domain.parameters).forEach((key) => {
-        parameters.push([domain.option, key, domain.parameters[key]]);
-      });
-    });
-
-    this.data?.options?.forEach((domain) => {
-      Object.keys(domain.parameters).forEach((key) => {
-        parameters.push([domain.option, key, domain.parameters[key]]);
-      });
-    });
-    */
 
     /* Prepare empty FormControl. */
     this.form = new UntypedFormGroup({
@@ -204,7 +172,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
       name: new UntypedFormControl(this.data?.name, [Validators.required, Validators.minLength(3)]),
 
       /* Default Duration. Required */
-      defaultTaskDuration: new UntypedFormControl(this.data?.duration, [Validators.required, Validators.min(1), Validators.max(999999)]),
+      defaultTaskDuration: new UntypedFormControl(this.data?.duration, [Validators.min(1), Validators.max(999999)]),
 
       /* Target Type. Required */
       target: new UntypedFormControl(this.data?.targetOption, [Validators.required]),
@@ -239,7 +207,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
   private fetchFromForm(): ApiTaskType {
     return {
       name: this.form.get('name').value,
-      duration: this.form.get('defaultTaskDuration').value,
+      duration: this.form.get('defaultTaskDuration').value ?? null,
       targetOption: this.form.get('target').value as ApiTargetOption,
       hintOptions: (this.form.get('components') as UntypedFormArray).controls.map((c) => {
         return c.value as ApiHintOption;

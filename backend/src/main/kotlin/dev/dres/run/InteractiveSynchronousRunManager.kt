@@ -116,7 +116,10 @@ class InteractiveSynchronousRunManager(
         /* End ongoing tasks upon initialization (in case server crashed during task execution). */
         for (task in this.evaluation.taskRuns) {
             if (task.isRunning || task.status == ApiTaskStatus.RUNNING) {
-                task.end()
+                /* We exclude perpetual tasks here */
+                if(task.duration != null){
+                    task.end()
+                }
             }
         }
 
@@ -367,12 +370,15 @@ class InteractiveSynchronousRunManager(
     /**
      * Returns the time in milliseconds that is left until the end of the current [DbTask].
      * Only works if the [RunManager] is in right [RunManagerStatus]. If no task is running,
-     * OR a perpetual task is running, this method returns -1L.
+     * this method returns -1L. If the task is to run perpetually, NULL is returned.
      *
-     * @return Time remaining until the task will end or -1, if no task is running.
+     * @return Time remaining until the task will end or -1, if no task is running. NULL if the task runs perpetually.
      */
-    override fun timeLeft(context: RunActionContext): Long {
-        return if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING && this.evaluation.currentTaskRun?.duration != null) {
+    override fun timeLeft(context: RunActionContext): Long? {
+        return if(this.evaluation.currentTaskRun?.duration == null){
+            null
+        }else{
+        if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             max(
@@ -381,7 +387,7 @@ class InteractiveSynchronousRunManager(
             )
         } else {
             -1L
-        }
+        }}
     }
 
     /**

@@ -73,6 +73,7 @@ class NonInteractiveEvaluation(store: TransientEntityStore, evaluation: DbEvalua
                 DbScoreOption.KIS -> throw IllegalStateException("KIS task scorer is not applicable to non-interactive evaluations")
                 DbScoreOption.AVS -> AvsTaskScorer(this, store)
                 DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this, store)
+                DbScoreOption.NOOP -> NoOpTaskScorer(this)
                 else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
             }
         ) }

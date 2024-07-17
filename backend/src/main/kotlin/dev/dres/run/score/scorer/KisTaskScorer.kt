@@ -16,10 +16,6 @@ class KisTaskScorer(
     store: TransientEntityStore?
 ) : AbstractTaskScorer(scoreable, store) {
 
-    init {
-        require(scoreable.duration != null){"Cannot create a KisTaskScorer for perpetual task '${scoreable.taskId}'"}
-    }
-
     constructor(run: TaskRun, parameters: Map<String, String>, store: TransientEntityStore?) : this(
         run,
         parameters.getOrDefault("maxPointsPerTask", "$defaultmaxPointsPerTask").toDoubleOrNull() ?: defaultmaxPointsPerTask,

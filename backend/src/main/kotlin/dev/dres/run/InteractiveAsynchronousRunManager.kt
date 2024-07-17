@@ -727,7 +727,6 @@ class InteractiveAsynchronousRunManager(
                     val task = this.evaluation.currentTaskForTeam(teamId)
                         ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                     if(task.duration != null){
-                        // TODO what is the semantic of a perpetual IA task?
                         val timeLeft = max(
                             0L,
                             task.duration!! * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION

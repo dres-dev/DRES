@@ -34,6 +34,10 @@ class ProlongOnSubmitUpdatable(private val manager: InteractiveRunManager): Upda
     override fun update(runStatus: RunManagerStatus, taskStatus: ApiTaskStatus?, context: RunActionContext) {
         if (runStatus == RunManagerStatus.ACTIVE && taskStatus == ApiTaskStatus.RUNNING) {
             val currentTask = this.manager.currentTask(context) ?: return
+            /* This is only sensible to do, if the task has a duration */
+            if(currentTask.duration == null){
+                return
+            }
             val taskType = this.manager.template.taskTypes.firstOrNull { it.name == currentTask.template.taskType }!!
             val prolongOnSubmit = taskType.taskOptions.contains(ApiTaskOption.PROLONG_ON_SUBMISSION)
             if (prolongOnSubmit) {
@@ -47,7 +51,7 @@ class ProlongOnSubmitUpdatable(private val manager: InteractiveRunManager): Upda
                 if (lastSubmission == null || (correctOnly && lastSubmission.answerSets.asSequence().all { it.status != DbVerdictStatus.CORRECT })) {
                     return
                 }
-                val timeLeft = Math.floorDiv(this.manager.timeLeft(context), 1000)
+                val timeLeft = Math.floorDiv(this.manager.timeLeft(context)!!, 1000)
                 if (timeLeft in 0 until limit) {
                     this.manager.adjustDuration(context, prolongBy)
                 }

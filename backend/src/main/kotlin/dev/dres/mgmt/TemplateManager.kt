@@ -93,9 +93,15 @@ object TemplateManager {
 
         /* Update task type information. */
         val taskTypes = apiEvaluationTemplate.taskTypes.map { it.name }.toTypedArray()
-        dbEvaluationTemplate.taskTypes.removeAll(
-            DbTaskType.query(DbTaskType::evaluation eq dbEvaluationTemplate and not(DbTaskType::name.containsIn(*taskTypes)))
-        )
+        val taskTypesToDeleteQuery = DbTaskType.query(DbTaskType::evaluation eq dbEvaluationTemplate and not(DbTaskType::name.containsIn(*taskTypes)))
+        /* Manual cleanup, as removeAll does not cleanup related children. */
+        val configuredOptionsToDelIds= taskTypesToDeleteQuery.toList().map {
+            it.configurations.toList().map{opt -> opt.entityId}
+        }.flatten().toTypedArray()
+        DbConfiguredOption.all().toList().filter{configuredOptionsToDelIds.contains(it.entityId)}.forEach{it.delete()}
+
+        dbEvaluationTemplate.taskTypes.removeAll(taskTypesToDeleteQuery)
+
         for (apiTaskType in apiEvaluationTemplate.taskTypes) {
             val taskType =
                 DbTaskType.findOrNew(DbTaskType.query((DbTaskType::name eq apiTaskType.name) and (DbTaskType::evaluation eq dbEvaluationTemplate))) {

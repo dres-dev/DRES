@@ -104,9 +104,9 @@ interface InteractiveRunManager : RunManager {
      * this method returns -1L.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return Time remaining until the task will end or -1, if no task is running.
+     * @return Time remaining until the task will end or -1, if no task is running. Null if the task runs perpetually.
      */
-    fun timeLeft(context: RunActionContext): Long
+    fun timeLeft(context: RunActionContext): Long?
 
     /**
      * Returns the time in milliseconds that has elapsed since the start of the currently running task.

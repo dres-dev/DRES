@@ -53,6 +53,8 @@ import { UserListFilterPipe } from './team-builder-dialog/user-list-filter.pipe'
 import { UserListInOtherFilterPipe } from './team-builder-dialog/user-list-in-other-filter.pipe';
 import { BatchAddTargetDialogComponent } from './batch-add-target-dialog/batch-add-target-dialog.component';
 import { MatSortModule } from "@angular/material/sort";
+import { CreateTaskTypeDialogComponent } from "./create-task-type-dialog/create-task-type-dialog.component";
+import { MatCheckbox } from "@angular/material/checkbox";
 
 
 @NgModule({
@@ -76,7 +78,8 @@ import { MatSortModule } from "@angular/material/sort";
     ViewersListComponent,
     UserListFilterPipe,
     UserListInOtherFilterPipe,
-    BatchAddTargetDialogComponent
+    BatchAddTargetDialogComponent,
+    CreateTaskTypeDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -102,7 +105,8 @@ import { MatSortModule } from "@angular/material/sort";
     CdkDropList,
     CdkDrag,
     MatCardModule,
-    MatSortModule
+    MatSortModule,
+    MatCheckbox
   ],
   exports: [TemplateInformationComponent,
     JudgesListComponent,

@@ -32,9 +32,7 @@ address = {New York, NY, USA},
 issn = {1551-6857},
 url = {https://doi.org/10.1145/3678881},
 doi = {10.1145/3678881},
-abstract = {Performance evaluation in multimedia retrieval, as in the information retrieval domain at large, relies heavily on retrieval experiments, employing a broad range of techniques and metrics. These can involve human-in-the-loop and machine-only settings for the retrieval process itself and the subsequent verification of results. Such experiments can be elaborate and use-case-specific, which can make them difficult to compare or replicate. In this paper, we present a formal model to express all relevant aspects of such retrieval experiments, as well as a flexible open-source evaluation infrastructure that implements the model. These contributions intend to make a step towards lowering the hurdles for conducting retrieval experiments and improving their reproducibility.},
-note = {Just Accepted},
-journal = {ACM Trans. Multimedia Comput. Commun. Appl.},
+journal = {ACM Transactions on Multimedia Computing, Communications and Applications},
 month = oct,
 keywords = {Interactive Multimedia Retrieval, Retrieval Evaluation, Interactive Evaluation, Evaluation System}
 }

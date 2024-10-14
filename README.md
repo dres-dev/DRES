@@ -16,7 +16,7 @@ For development, besides the JDK, addtitionally [NPM](https://www.npmjs.com/) an
 
 We kindly ask you to refer to the following paper in publications mentioning or employing DRES:
 
-> Loris Sauter, Ralph Gasser, Heiko Schuldt, Abraham Bernstein, and Luca Rossetto. 2024. Performance Evaluation in Multimedia Retrieval. ACM Trans. Multimedia Comput. Commun. Appl. Just Accepted (October 2024). https://doi.org/10.1145/3678881
+> Loris Sauter, Ralph Gasser, Heiko Schuldt, Abraham Bernstein, and Luca Rossetto. 2024. Performance Evaluation in Multimedia Retrieval. ACM Transactions on Multimedia Computing, Communications and Applications. https://doi.org/10.1145/3678881
 
 **Link:** https://dl.acm.org/doi/10.1145/3678881
 

@@ -9,7 +9,7 @@ import dev.dres.data.model.template.task.DbTargetType
  * @version 1.0.0
  */
 enum class ApiTargetType {
-    JUDGEMENT, JUDGEMENT_WITH_VOTE, MEDIA_ITEM, MEDIA_ITEM_TEMPORAL_RANGE, TEXT;
+    JUDGEMENT, JUDGEMENT_WITH_VOTE, MEDIA_ITEM, MEDIA_ITEM_TEMPORAL_RANGE, TEXT, VQA;
 
     /**
      * Converts this [ApiTargetType] to a [DbTargetType] representation. Requires an ongoing transaction.
@@ -22,5 +22,6 @@ enum class ApiTargetType {
         MEDIA_ITEM -> DbTargetType.MEDIA_ITEM
         MEDIA_ITEM_TEMPORAL_RANGE -> DbTargetType.MEDIA_ITEM_TEMPORAL_RANGE
         TEXT -> DbTargetType.TEXT
+        VQA -> DbTargetType.VQA
     }
 }

@@ -167,6 +167,18 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
                     null
                 } to ApiContentType.VIDEO
             }
+            DbTargetType.VQA -> {
+                this.text
+                val item = this.item ?: throw IllegalStateException("DbHint of type IMAGE is expected to hold a valid media item but doesn't! This is a programmer's error!")
+                val start = this.start ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid start timestamp but doesn't! This is a programmer's error!")
+                val end = this.end ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid end timestamp but doesn't!! This is a programmer's error!")
+                val path = this@GetTaskTargetHandler.cache.asyncPreviewVideo(item, start, end).get() /* This should return immediately, since the previews have been prepared. */
+                if (Files.exists(path)) {
+                    Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                } else {
+                    null
+                } to ApiContentType.VQA
+            }
             else -> throw IllegalStateException("The content type ${this.type.description} is not supported.")
         }
         return ApiContentElement(contentType = type, content = content, offset = 0L)

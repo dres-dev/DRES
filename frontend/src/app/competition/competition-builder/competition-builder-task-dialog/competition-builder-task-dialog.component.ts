@@ -306,7 +306,7 @@ export class CompetitionBuilderTaskDialogComponent {
         this.collectionService.postApiV2CollectionByCollectionIdResolve(mediaCollectionId, r).subscribe((items) => {
           items.forEach((item) => {
             // const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
-            const form = this.builder.addTargetForm(ApiTargetOption.SINGLE_MEDIA_ITEM); // FIXME only to make compiler happy. obviously this is semantically not appropriate
+            const form = this.builder.addTargetForm(ApiTargetOption.SINGLE_MEDIA_ITEM) as UntypedFormGroup; // FIXME only to make compiler happy. obviously this is semantically not appropriate
             console.log(`Adding new mediaItem as target ${mediaCollectionId}/${item.name}`);
             form.get('mediaItem').setValue(item);
           });

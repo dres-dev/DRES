@@ -9,7 +9,7 @@ import dev.dres.data.model.template.task.options.DbTargetOption
  * @version 1.0.0
  */
 enum class ApiTargetOption{
-    SINGLE_MEDIA_ITEM, SINGLE_MEDIA_SEGMENT, JUDGEMENT, VOTE, TEXT;
+    SINGLE_MEDIA_ITEM, SINGLE_MEDIA_SEGMENT, JUDGEMENT, VOTE, TEXT, VQA;
 
     /**
      * Converts this [ApiTargetOption] to a [DbTargetOption] representation. Requires an ongoing transaction.
@@ -22,5 +22,6 @@ enum class ApiTargetOption{
         JUDGEMENT -> DbTargetOption.JUDGEMENT
         VOTE -> DbTargetOption.VOTE
         TEXT -> DbTargetOption.TEXT
+        VQA -> DbTargetOption.VQA
     }
 }

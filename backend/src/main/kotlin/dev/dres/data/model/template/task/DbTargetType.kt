@@ -17,6 +17,7 @@ class DbTargetType(entity: Entity): XdEnumEntity(entity) {
         val MEDIA_ITEM by enumField { description = "MEDIA_ITEM" }
         val MEDIA_ITEM_TEMPORAL_RANGE by enumField { description = "MEDIA_ITEM_TEMPORAL_RANGE" }
         val TEXT by enumField { description = "EXTERNAL_IMAGE" }
+        val VQA by enumField { description = "VQA" }
     }
 
     /** Name / description of the [DbScoreOption]. */

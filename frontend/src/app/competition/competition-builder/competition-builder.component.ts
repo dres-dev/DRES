@@ -76,6 +76,23 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   } as ApiTaskType;*/
 
   /**
+   * The official VBS VQA Known Item Search task type template
+    public static VQA_TEMPLATE = {
+    name: 'Visual QA',
+    taskDuration: 300,
+    targetType: { option: ConfiguredOptionTargetOption.OptionEnum.VQA, parameters: {} },
+    score: { option: ConfiguredOptionScoringOption.OptionEnum.KIS, parameters: {} },
+    components: [{ option: ConfiguredOptionQueryComponentOption.OptionEnum.TEXT, parameters: {} }],
+    filter: [
+      { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: {} },
+      { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: { limit: 1 } },
+      { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {} },
+    ],
+    options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.HIDDEN_RESULTS, parameters: {} }],
+  } as ApiTaskType;
+   */
+
+  /**
    * The official VBS Ad-hoc Video Search task type template
    */
   /*public static AVS_TEMPLATE = {
@@ -155,11 +172,16 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   /**
    * Ref to template for easy access in thml
    */
+  vqaTemplate = null // CompetitionBuilderComponent.VQA_TEMPLATE;
+  /**
+   * Ref to template for easy access in thml
+   */
   avsTemplate = null // CompetitionBuilderComponent.AVS_TEMPLATE;
   /**
    * Ref to template for easy access in thml
    */
   lscTemplate = null // CompetitionBuilderComponent.LSC_TEMPLATE;
+
 
   constructor(
     private competitionService: TemplateService,

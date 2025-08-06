@@ -143,13 +143,22 @@ export class CompetitionFormBuilder {
       case "VOTE":
         console.warn("Judgement and Vote shouldn't have access to add targets. This is a programmer's error.")
         break;
-      case 'TEXT':
+      case "TEXT":
         const form = this.singleTextTargetForm(initialise);
         array.push(form);
         return form;
+      case "VQA":
+        // VQA is a special case, it has both a text and a media item target.
+        const vqaForm = this.singleVQATargetForm(newIndex, initialise);
+        //const vqaForm = this.singleTextTargetForm(initialise);
+        //const mediaItemForm = this.singleMediaSegmentTargetForm(newIndex, initialise);
+        //array.push(mediaItemForm);
+        array.push(vqaForm);
+        return vqaForm;
       default:
         break;
     }
+    
   }
 
   /**
@@ -332,6 +341,8 @@ export class CompetitionFormBuilder {
           text.push(this.singleTextTargetForm());
         }
         return new UntypedFormArray(text);
+      case 'VQA':
+        // VQA is a special case, it has both a text and a media item target.
       case 'SINGLE_MEDIA_SEGMENT':
       case 'SINGLE_MEDIA_ITEM':
         // Handling multiple here, since it's the default.
@@ -455,6 +466,54 @@ export class CompetitionFormBuilder {
     });
   }
 
+  private singleVQATargetForm(index: number, initialize?: ApiTarget) {
+    const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
+    const typeFormControl = new UntypedFormControl(ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE);
+
+    this.dataSources.set(
+      `target.${index}.mediaItem`,
+      mediaItemFormControl.valueChanges.pipe(
+        filter((s) => s.length >= 1),
+        switchMap((s) =>
+          this.collectionService.getApiV2CollectionByCollectionIdByStartsWith(this.form.get('mediaCollection').value, s)
+        )
+      )
+    );
+
+    /* Load media item from API. */
+    if (initialize?.target && this.form.get('mediaCollection')) {
+      this.collectionService
+        .getApiV2MediaItemByMediaItemId(initialize.target)
+        .pipe(first())
+        .subscribe((s) => {
+          mediaItemFormControl.setValue(s, {emitEvent: false});
+        });
+    }
+
+    const formGroup = new UntypedFormGroup({
+      type: typeFormControl,
+      mediaItem: mediaItemFormControl,
+      segment_start: new UntypedFormControl(initialize?.range.start.value, [Validators.required]),
+      segment_end: new UntypedFormControl(initialize?.range.end.value, [Validators.required]),
+      segment_time_unit: new UntypedFormControl(
+        initialize?.range.start.unit ? initialize?.range.start.unit : 'SECONDS',
+        [Validators.required]
+      ),
+    });
+
+    formGroup
+      .get('segment_start')
+      .setValidators([Validators.required, this.temporalPointValidator(formGroup.get('segment_time_unit') as UntypedFormControl)]);
+    formGroup
+      .get('segment_end')
+      .setValidators([Validators.required, this.temporalPointValidator(formGroup.get('segment_time_unit') as UntypedFormControl)]);
+    formGroup.get('segment_start').updateValueAndValidity();
+    formGroup.get('segment_end').updateValueAndValidity();
+    
+
+  }
+
+
   /**
    * Returns the component form for the given {TaskType}
    */
@@ -500,7 +559,7 @@ export class CompetitionFormBuilder {
     const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
     if (
       !initialize?.item &&
-      (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
+      (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM' || this.taskType.targetOption === 'VQA')
     ) {
       mediaItemFormControl.setValue((this.form.get('target') as UntypedFormArray).controls[0].get('mediaItem').value, {emitEvent: false});
     }
@@ -556,7 +615,7 @@ export class CompetitionFormBuilder {
     const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
     if (
       !initialize?.item &&
-      (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
+      (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM' || this.taskType.targetOption === 'VQA')
     ) {
       mediaItemFormControl.setValue((this.form.get('target') as UntypedFormArray).controls[0].get('mediaItem').value, {emitEvent: false});
     }
@@ -608,15 +667,15 @@ export class CompetitionFormBuilder {
     const targetTimeUnit = (this.form.get('target') as UntypedFormArray).controls[0]?.get('segment_time_unit')?.value ?? undefined;
     // Wrap fetching of target temporal information only when such information is present
     if(targetTimeUnit){
-      if (targetTimeUnit && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
+      if (targetTimeUnit && (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'VQA')) {
         group.get('segment_time_unit').setValue(targetTimeUnit, {emitEvent: false});
       }
 
-      if (!group.get('segment_start').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
+      if (!group.get('segment_start').value && (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'VQA')) {
         group.get('segment_start').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_start').value, {emitEvent: false});
       }
 
-      if (!group.get('segment_end').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
+      if (!group.get('segment_end').value && (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'VQA')) {
         group.get('segment_end').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_end').value, {emitEvent: false});
       }
     }

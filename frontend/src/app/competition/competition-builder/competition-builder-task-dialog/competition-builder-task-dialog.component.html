@@ -48,7 +48,14 @@
         >
           <mat-icon>add</mat-icon>
         </button>
-        <!-- <mat-button-toggle-group
+        <button
+          *ngIf="data.taskType.targetOption === 'VQA'"
+          mat-button
+          aria-label="Add target VQA."
+          matTooltip="Add target VQA."
+          (click)="addQueryTarget('VQA')"
+        >
+          <mat-icon>add</mat-icon>
          FIXME multiple is currently default? -->
           <!-- *ngIf="data.taskType.targetType.option == 'MULTIPLE_MEDIA_ITEMS'" -->
         <mat-button-toggle-group
@@ -127,7 +134,7 @@
                   </mat-error>
                 </mat-form-field>
                 <mat-form-field
-                  *ngIf="target.get('mediaItem') && data.taskType.targetOption === 'TEXT'"
+                  *ngIf="target.get('mediaItem') && (data.taskType.targetOption === 'TEXT')"
                   [style]="'width: 100%;'"
                 >
                   <input type="text" matInput placeholder="Target Text" [formControl]="target.get('mediaItem')" />
@@ -139,7 +146,7 @@
                     #targetGridStart
                     [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
                     matInput
-                    placeholder="Segment start"
+                    placeholder=" "
                     [formControl]="target.get('segment_start')"
                   />
                 </mat-form-field>
@@ -220,7 +227,7 @@
           <div style="flex-basis: 100%; flex-grow: 1">
             <p>
               <mat-form-field
-                *ngIf="target.get('mediaItem') && data.taskType.targetOption !== 'TEXT'"
+                *ngIf="target.get('mediaItem') && (data.taskType.targetOption)"
                 [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'"
               >
                 <input

@@ -19,6 +19,7 @@ class DbTargetOption(entity: Entity) : XdEnumEntity(entity) {
         val JUDGEMENT by enumField { description = "JUDGEMENT" }
         val VOTE by enumField { description = "VOTE" }
         val TEXT by enumField { description = "TEXT" }
+        val VQA by enumField { description = "VQA" }
     }
 
     /** Name / description of the [DbTargetOption]. */

@@ -15,4 +15,4 @@ COPY --from=build /dres-src/dres-dist /
 
 EXPOSE 8080
 EXPOSE 8443
-ENTRYPOINT /dres-dist/bin/backend /dres-data/config.json
+ENTRYPOINT [ "sh", "-c", "ls -l /dres-dist/lib/ffmpeg && chmod +x /dres-dist/lib/ffmpeg/ffmpeg && chmod +x /dres-dist/lib/ffmpeg/ffprobe && /dres-dist/bin/backend /dres-data/config.json" ]

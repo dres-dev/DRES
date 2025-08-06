@@ -378,6 +378,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
       .subscribe((r: Array<string>) => {
         let targets : ApiTarget[]
         switch(this.taskType.targetOption){
+          case "VQA":
           case "SINGLE_MEDIA_ITEM":
           case "SINGLE_MEDIA_SEGMENT":
             const obs = r.map(it =>{
@@ -386,10 +387,19 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
             forkJoin(obs).subscribe(itemsList => {
               itemsList.forEach(it => {
                 if(it.length > 0){
-                  const type = this.taskType.targetOption === "SINGLE_MEDIA_ITEM" ? ApiTargetType.MEDIA_ITEM : ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE;
-                  this.formBuilder.addTargetForm(this.taskType.targetOption, {type: type, target: it[0].mediaItemId} as ApiTarget)
+                  switch (this.taskType.targetOption) {
+                    case "SINGLE_MEDIA_ITEM":
+                      this.formBuilder.addTargetForm(this.taskType.targetOption, {type: ApiTargetType.MEDIA_ITEM, target: it[0].mediaItemId} as ApiTarget)
+                      break;
+                    case "SINGLE_MEDIA_SEGMENT":
+                      this.formBuilder.addTargetForm(this.taskType.targetOption, {type: ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE, target: it[0].mediaItemId} as ApiTarget)
+                      break;
+                    case "VQA":
+                      this.formBuilder.addTargetForm(this.taskType.targetOption, {type: ApiTargetType.VQA, target: it[0].mediaItemId} as ApiTarget)
+                      break;
+                  }
                 }
-              })
+              });
             })
             break;
           case "JUDGEMENT":

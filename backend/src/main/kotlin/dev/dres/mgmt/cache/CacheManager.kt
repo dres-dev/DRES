@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import java.awt.Image
 import java.awt.image.BufferedImage
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -355,18 +356,25 @@ class CacheManager(private val config: Config, private val store: TransientEntit
      */
     inner class PreviewImageFromVideoRequest constructor(input: Path, output: Path, private val start: Long, private val size: Int = this@CacheManager.config.cache.previewImageMaxSize): AbstractPreviewRequest(input, output) {
         override fun call(): Path = try {
-            FFmpeg.atPath(this@CacheManager.ffmpegBin).
-            addInput(UrlInput.fromPath(this.input))
+            FFmpeg.atPath(this@CacheManager.ffmpegBin)
+                .addArguments("-ss", millisecondToTimestamp(this.start)) // Seek before decoding for fast access.
+                .addInput(UrlInput.fromPath(this.input))
                 .addOutput(UrlOutput.toPath(this.output))
                 .setOverwriteOutput(true)
-                .addArguments("-ss", millisecondToTimestamp(this.start))
+                .addArguments("-filter:v", "scale=${this.size}:-1")
                 .addArguments("-frames:v", "1")
-                .addArguments("-filter:v", "scale=${this@CacheManager.config.cache.previewImageMaxSize}:-1")
                 .setOutputListener { l -> LOGGER.debug(MARKER, l); }
                 .execute()
+
+            if (Files.notExists(this.output) || Files.size(this.output) == 0L) {
+                Files.deleteIfExists(this.output)
+                throw IOException("FFmpeg failed to produce a valid output file: ${this.output}")
+            }
+
             this.output
         } catch (e: Exception) {
-            LOGGER.error("Error in FFMpeg: ${e.message}")
+            LOGGER.error("Error in FFMpeg: ${e.message}", e)
+            Files.deleteIfExists(this.output)
             throw e
         } finally {
             this@CacheManager.inTransit.remove(this.output) /* Remove this PreviewImageFromVideoRequest. */
@@ -380,24 +388,30 @@ class CacheManager(private val config: Config, private val store: TransientEntit
         override fun call(): Path = try {
             val startTimecode = millisecondToTimestamp(this.start)
             val endTimecode = millisecondToTimestamp(this.end)
+            val duration = this.end - this.start
+            val durationTimecode = millisecondToTimestamp(duration)
+
             LOGGER.info(MARKER, "Start rendering segment for video $input from $startTimecode to $endTimecode")
             FFmpeg.atPath(this@CacheManager.ffmpegBin)
+                .addArguments("-ss", startTimecode) // Fast seek before decoding for quick segment extraction.
                 .addInput(UrlInput.fromPath(this.input))
                 .addOutput(UrlOutput.toPath(this.output))
                 .setOverwriteOutput(true)
-                .addArguments("-ss", startTimecode)
-                .addArguments("-to", endTimecode)
-                .addArguments("-c:v", "libx264")
-                .addArguments("-c:a", "aac")
-                .addArguments("-b:v", "2000k")
-                .addArguments("-filter:v", "scale=${this@CacheManager.config.cache.previewVideoMaxSize}:-1")
-                .addArguments("-tune", "zerolatency")
-                .addArguments("-preset", "slow")
+                .addArguments("-t", durationTimecode)
+                .addArguments("-c:v", "copy")
+                .addArguments("-c:a", "copy")
                 .setOutputListener { l -> LOGGER.debug(MARKER, l); }
                 .execute()
+
+            if (Files.notExists(this.output) || Files.size(this.output) == 0L) {
+                Files.deleteIfExists(this.output)
+                throw IOException("FFmpeg failed to produce a valid preview video: ${this.output}")
+            }
+
             this.output
         } catch (e: Exception) {
-            LOGGER.error("Error in FFMpeg: ${e.message}")
+            LOGGER.error("Error in FFMpeg: ${e.message}", e)
+            Files.deleteIfExists(this.output)
             throw e
         } finally {
             this@CacheManager.inTransit.remove(this.output) /* Remove this PreviewImageFromVideoRequest. */

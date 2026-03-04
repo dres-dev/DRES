@@ -1,0 +1,29 @@
+<ng-container *ngIf="{ 
+  players: playerData$ | async, 
+  groups: taskGroupNames$ | async 
+} as data">
+
+  <div class="leaderboard-container" *ngIf="data.players?.length > 0">
+    <table class="dres-scoreboard-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>User</th>
+          <th>Total</th>
+          <th *ngFor="let group of data.groups">{{ group }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let player of data.players; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ player.userName }}</td>
+          <td>{{ player.totalScore }}</td>
+          <td *ngFor="let group of data.groups">
+            {{ player.taskGroupScores[group] || 0 }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</ng-container>

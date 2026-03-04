@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.leaderboard-container {
+  height: 100%;
+}
+
+table.dres-scoreboard-table {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  th, td {
+    padding: 0px 8px;
+    text-align: left;
+    color: #eee;
+    border-bottom: 1px solid #444;
+    font-size: clamp(12px, 1.8vh, 18px);
+    white-space: nowrap;
+  }
+
+  th {
+    color: #aaa;
+    text-transform: uppercase;
+    font-size: clamp(10px, 1.4vh, 14px);
+  }
+
+  td:first-child, th:first-child {
+    text-align: center;
+    font-weight: bold;
+    color: #fff;
+  }
+
+  td:nth-child(3) {
+    font-weight: bold;
+    color: #fff;
+  }
+
+  /* Gold, Silver, Bronze for top 3 */
+  tr:nth-child(1) td { color: #FFD700 !important; }
+  tr:nth-child(2) td { color: #C0C0C0 !important; }
+  tr:nth-child(3) td { color: #CD7F32 !important; }
+}

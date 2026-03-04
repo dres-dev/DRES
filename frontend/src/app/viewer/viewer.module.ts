@@ -24,6 +24,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SharedModule } from '../shared/shared.module';
 import {FullscreenOverlayContainer, OverlayContainer, OverlayModule} from "@angular/cdk/overlay";
 import { EvaluationModule } from "../evaluation/evaluation.module";
+import { LeaderboardViewerComponent } from './leaderboard-viewer/leaderboard-viewer.component';
 
 @NgModule({
   imports: [
@@ -51,7 +52,7 @@ import { EvaluationModule } from "../evaluation/evaluation.module";
     EvaluationModule
   ],
   exports: [RunViewerComponent],
-  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent],
+  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent, LeaderboardViewerComponent],
   providers: [{provide: OverlayContainer, useClass: FullscreenOverlayContainer}],
 })
 export class ViewerModule {}

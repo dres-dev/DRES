@@ -16,6 +16,7 @@ export class Widget {
     new Widget('player', 'Player'),
     new Widget('competition_score', 'Normalized Competition Scores'),
     new Widget('task_type_score', 'Task Type Score'),
+    new Widget('scoreboard', 'Scoreboard'),
   ];
 
   /** The {@link Widget}s available at the bottom of the viewer. */

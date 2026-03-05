@@ -189,6 +189,12 @@
       [info]="info"
       [state]="state"
     ></app-teams-viewer>
+    <app-compact-teams-viewer
+      *ngSwitchCase="'compact_team_score'"
+      [info]="info"
+      [state]="state"
+      [taskEnded]="taskEnded"
+    ></app-compact-teams-viewer>
   </div>
 </div>
 

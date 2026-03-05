@@ -1,0 +1,30 @@
+<div class="compact-teams-container">
+  <div class="teams-grid" *ngIf="teamsData$ | async as teams">
+    
+    <div 
+      *ngFor="let team of teams" 
+      class="tile"
+      [class.gold]="team.rank === 1 && team.score > 0"
+      [class.silver]="team.rank === 2 && team.score > 0"
+      [class.bronze]="team.rank === 3 && team.score > 0"
+      [@highlight]="(highlight$ | async)?.get(team.id)"
+      (@highlight.done)="resetHighlight.next()"
+    >
+      <div class="tile-header">
+        <span class="rank-badge">#{{ team.rank }}</span>
+        <h3 [matTooltip]="team.name">{{ team.name }}</h3>
+      </div>
+
+      <p class="score" [class.dres-fix-correct]="(highlight$ | async)?.get(team.id) === 'correct'">
+        {{ team.score | number: '1.0-0' }}
+      </p>
+
+      <p class="counter">
+        <span class="CORRECT">{{ team.correct }}</span>
+        <span class="WRONG">{{ team.wrong }}</span>
+        <span class="INDETERMINATE">{{ team.indeterminate }}</span>
+      </p>
+    </div>
+
+  </div>
+</div>

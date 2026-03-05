@@ -1,29 +1,19 @@
-<ng-container *ngIf="{ 
-  players: playerData$ | async, 
-  groups: taskGroupNames$ | async 
-} as data">
+<ng-container *ngIf="playerData$ | async as players">
+  <div class="leaderboard-wrapper">
+    <div class="leaderboard-grid">
+      
+      <div 
+        class="player-row" 
+        *ngFor="let player of players; let i = index"
+        [class.gold]="i === 0 && player.totalScore > 0"
+        [class.silver]="i === 1 && player.totalScore > 0"
+        [class.bronze]="i === 2 && player.totalScore > 0"
+      >
+        <div class="rank">{{ i + 1 }}</div>
+        <div class="name" [matTooltip]="player.userName">{{ player.userName }}</div>
+        <div class="score">{{ player.totalScore }}</div>
+      </div>
 
-  <div class="leaderboard-container" *ngIf="data.players?.length > 0">
-    <table class="dres-scoreboard-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>User</th>
-          <th>Total</th>
-          <th *ngFor="let group of data.groups">{{ group }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let player of data.players; let i = index">
-          <td>{{ i + 1 }}</td>
-          <td>{{ player.userName }}</td>
-          <td>{{ player.totalScore }}</td>
-          <td *ngFor="let group of data.groups">
-            {{ player.taskGroupScores[group] || 0 }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    </div>
   </div>
-
 </ng-container>

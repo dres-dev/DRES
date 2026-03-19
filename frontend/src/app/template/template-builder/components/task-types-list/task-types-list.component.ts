@@ -6,8 +6,8 @@ import { ApiTaskType, TemplateService } from "../../../../../../openapi";
 import { Observable } from "rxjs";
 import { filter, map, shareReplay, tap } from "rxjs/operators";
 import {
-  CompetitionBuilderTaskTypeDialogComponent
-} from "../../../../competition/competition-builder/competition-builder-task-type-dialog/competition-builder-task-type-dialog.component";
+  CreateTaskTypeDialogComponent
+} from "../create-task-type-dialog/create-task-type-dialog.component";
 import {
   ActionableDynamicTable,
   ActionableDynamicTableActionType,
@@ -79,7 +79,7 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
 
 
   public addTaskType(type?: ApiTaskType) {
-    const dialogRef = this.dialog.open(CompetitionBuilderTaskTypeDialogComponent, { data: type ?? null, width: "750px", closeOnNavigation: false });
+    const dialogRef = this.dialog.open(CreateTaskTypeDialogComponent, { data: type ?? null, width: "750px", closeOnNavigation: false });
     dialogRef.afterClosed()
       .pipe(filter((t) => t != null))
       .subscribe((t) => {

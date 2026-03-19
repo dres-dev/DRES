@@ -1,8 +1,8 @@
 import { Component, Input } from "@angular/core";
 import { AbstractControl, UntypedFormControl, UntypedFormGroup } from "@angular/forms";
 import {
-  CompetitionFormBuilder
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/competition-form.builder";
+  TaskTemplateFormBuilder
+} from "../../task-template-form.builder";
 import { ApiHintOption, ApiHintType } from "../../../../../../openapi";
 
 @Component({
@@ -33,7 +33,7 @@ export class QueryDescriptionFormFieldComponent {
   @Input()
   unitControl: UntypedFormControl
   @Input()
-  formBuilder: CompetitionFormBuilder
+  formBuilder: TaskTemplateFormBuilder
   @Input()
   index: number
 

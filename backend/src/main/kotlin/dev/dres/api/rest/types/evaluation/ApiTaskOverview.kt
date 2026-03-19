@@ -9,7 +9,7 @@ data class ApiTaskOverview(
     val name: String,
     val type: String,
     val group: String,
-    val duration: Long,
+    val duration: Long?,
     val taskId: String,
     val status: ApiTaskStatus,
     val started: Long?,

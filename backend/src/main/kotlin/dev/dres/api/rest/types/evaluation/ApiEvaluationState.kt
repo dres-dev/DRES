@@ -18,7 +18,7 @@ data class ApiEvaluationState(
     val taskId: String?,
     val taskStatus: ApiTaskStatus,
     val taskTemplateId: String?,
-    val timeLeft: Long,
+    val timeLeft: Long?,
     val timeElapsed: Long
 ) {
     constructor(run: InteractiveRunManager, context: RunActionContext) : this(
@@ -27,7 +27,7 @@ data class ApiEvaluationState(
         run.currentTask(context)?.taskId,
         run.currentTask(context)?.status ?: ApiTaskStatus.NO_TASK,
         run.currentTaskTemplate(context).templateId,
-        run.timeLeft(context) / 1000,
+        run.timeLeft(context)?.div(1000),
         run.timeElapsed(context) / 1000
     )
 }

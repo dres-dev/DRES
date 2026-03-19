@@ -12,8 +12,8 @@ import {
 } from "../../../../../../openapi";
 import { UntypedFormControl, UntypedFormGroup } from "@angular/forms";
 import {
-  CompetitionFormBuilder
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/competition-form.builder";
+  TaskTemplateFormBuilder
+} from "../../task-template-form.builder";
 import {
   VideoPlayerSegmentBuilderData
 } from "../../../../competition/competition-builder/competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component";
@@ -42,7 +42,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   mediaCollectionSource: Observable<ApiMediaCollection[]>;
 
-  formBuilder: CompetitionFormBuilder;
+  formBuilder: TaskTemplateFormBuilder;
 
   @ViewChild('videoPlayer', {static: false}) video: ElementRef;
 
@@ -99,7 +99,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   }
 
   public init(){
-    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, this.task);
+    this.formBuilder = new TaskTemplateFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, this.task);
     this.form = this.formBuilder.form;
     this.form.valueChanges.subscribe(newValue => {
       this.formBuilder.storeFormData();
@@ -140,7 +140,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   uploaded = (taskData: string) => {
     const task = JSON.parse(taskData) as ApiTaskTemplate;
-    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, task);
+    this.formBuilder = new TaskTemplateFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, task);
     this.form = this.formBuilder.form;
   };
 

@@ -12,7 +12,7 @@ data class ApiClientTaskTemplateInfo(
     val name: String,
     val taskGroup: String,
     val taskType: String,
-    val duration: Long
+    val duration: Long?
 ) {
     constructor(task: ApiTaskTemplate) : this(
         task.name,

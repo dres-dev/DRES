@@ -3,8 +3,8 @@ import {
   QueryDescriptionExternalFormFieldComponent
 } from "../query-description-external-form-field/query-description-external-form-field.component";
 import {
-  CompetitionFormBuilder
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/competition-form.builder";
+  TaskTemplateFormBuilder
+} from "../../task-template-form.builder";
 import { AppConfig } from "../../../../app.config";
 
 @Component({

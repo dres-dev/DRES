@@ -20,8 +20,8 @@ import kotlinx.dnq.query.*
 abstract class AbstractInteractiveTask(store: TransientEntityStore, task: DbTask) : AbstractTask(store, task) {
 
 
-    /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
-    abstract override var duration: Long
+    /** The total duration in seconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
+    abstract override var duration: Long?
 
     /** The [AnswerSetValidator] used to validate [DbSubmission]s. */
     final override val validator: AnswerSetValidator

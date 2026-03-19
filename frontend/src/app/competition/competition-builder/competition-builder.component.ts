@@ -10,7 +10,7 @@ import {
   CompetitionBuilderTaskGroupDialogData,
 } from './competition-builder-task-group-dialog/competition-builder-task-group.component';
 import { MatTable } from '@angular/material/table';
-import { CompetitionBuilderTaskTypeDialogComponent } from './competition-builder-task-type-dialog/competition-builder-task-type-dialog.component';
+import { CreateTaskTypeDialogComponent } from '../../template/template-builder/components/create-task-type-dialog/create-task-type-dialog.component';
 import {
   CompetitionBuilderTaskDialogComponent,
   CompetitionBuilderTaskDialogData,
@@ -257,7 +257,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   }
 
   public addTaskType(type?: ApiTaskType) {
-    const dialogRef = this.dialog.open(CompetitionBuilderTaskTypeDialogComponent, { data: type ? type : null, width: '750px' });
+    const dialogRef = this.dialog.open(CreateTaskTypeDialogComponent, { data: type ? type : null, width: '750px' });
     dialogRef
       .afterClosed()
       .pipe(filter((g) => g != null))

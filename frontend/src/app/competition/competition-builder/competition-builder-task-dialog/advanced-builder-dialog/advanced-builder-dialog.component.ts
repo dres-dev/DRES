@@ -1,11 +1,11 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { CompetitionFormBuilder } from '../competition-form.builder';
+import { TaskTemplateFormBuilder } from '../../../../template/template-builder/task-template-form.builder';
 import { AppConfig } from '../../../../app.config';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { VideoPlayerSegmentBuilderData } from '../video-player-segment-builder/video-player-segment-builder.component';
 
 export class AdvancedBuilderDialogData {
-  builder: CompetitionFormBuilder;
+  builder: TaskTemplateFormBuilder;
 }
 
 // TODO rewrite

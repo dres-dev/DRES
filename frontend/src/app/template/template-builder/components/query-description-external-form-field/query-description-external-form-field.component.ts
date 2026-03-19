@@ -1,8 +1,8 @@
 import { Component, Input } from "@angular/core";
 import { UntypedFormControl } from "@angular/forms";
 import {
-  CompetitionFormBuilder
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/competition-form.builder";
+  TaskTemplateFormBuilder
+} from "../../task-template-form.builder";
 import { AppConfig } from "../../../../app.config";
 
 @Component({
@@ -14,7 +14,7 @@ export class QueryDescriptionExternalFormFieldComponent {
   @Input()
   pathControl: UntypedFormControl
   @Input()
-  formBuilder: CompetitionFormBuilder
+  formBuilder: TaskTemplateFormBuilder
   @Input()
   index: number
 

@@ -4,7 +4,7 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { filter, first } from 'rxjs/operators';
 import { AppConfig } from '../../../app.config';
-import { CompetitionFormBuilder } from './competition-form.builder';
+import { TaskTemplateFormBuilder } from '../../../template/template-builder/task-template-form.builder';
 import { VideoPlayerSegmentBuilderData } from './video-player-segment-builder/video-player-segment-builder.component';
 import {
   AdvancedBuilderDialogComponent,
@@ -47,8 +47,8 @@ export class CompetitionBuilderTaskDialogComponent {
   units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
   /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
   mediaCollectionSource: Observable<ApiMediaCollection[]>;
-  /** The {@link CompetitionFormBuilder} used by this dialogue. */
-  builder: CompetitionFormBuilder;
+  /** The {@link TaskTemplateFormBuilder} used by this dialogue. */
+  builder: TaskTemplateFormBuilder;
   @ViewChild('videoPlayer', { static: false }) video: ElementRef;
   viewLayout = 'list';
   showVideo = false;
@@ -63,7 +63,7 @@ export class CompetitionBuilderTaskDialogComponent {
     public config: AppConfig,
     private builderService: TemplateBuilderService // To make the compiler happy
   ) {
-    this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.builderService, this.data.task);
+    this.builder = new TaskTemplateFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.builderService, this.data.task);
     this.form = this.builder.form;
     this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
   }
@@ -76,7 +76,7 @@ export class CompetitionBuilderTaskDialogComponent {
 
   uploaded = (taskData: string) => {
     const task = JSON.parse(taskData) as ApiTaskTemplate;
-    this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.builderService, task);
+    this.builder = new TaskTemplateFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.builderService, task);
     this.form = this.builder.form;
     console.log('Loaded task: ' + JSON.stringify(task));
   };

@@ -81,6 +81,14 @@
     span.INDETERMINATE { color: #95a5a6; }
   }
 
+  &.status-correct {
+    background: radial-gradient(circle at top left, rgba(46, 204, 113, 0.45) 0%, rgba(46, 204, 113, 0) 100%), #2c2c2e;
+    border-color: rgba(46, 204, 113, 0.8);
+  }  
+  &.status-wrong {
+    background: radial-gradient(circle at top left, rgba(231, 76, 60, 0.45) 0%, rgba(231, 76, 60, 0) 100%), #2c2c2e;
+    border-color: rgba(231, 76, 60, 0.8);
+  }
   &.gold { border-color: #FFD700; .tile-header .rank-badge { background: #FFD700; color: #000; } }
   &.silver { border-color: #C0C0C0; .tile-header .rank-badge { background: #C0C0C0; color: #000; } }
   &.bronze { border-color: #CD7F32; .tile-header .rank-badge { background: #CD7F32; color: #000; } }

@@ -1,0 +1,30 @@
+<div class="feed-wrapper">
+  <div class="feed-header">
+    <h3>Recent Submissions</h3>
+  </div>
+  
+  <div class="feed-list" *ngIf="recentSubmissions$ | async as feed">
+    <div 
+      *ngFor="let sub of feed; trackBy: trackByUniqueId" 
+      class="submission-card"
+      [ngClass]="sub.status"
+    >
+      <ng-container [ngSwitch]="sub.type">
+        <div *ngSwitchCase="'TEXT'" class="preview-text" [matTooltip]="sub.previewText">
+          "{{ sub.previewText }}"
+        </div>
+        
+        <div *ngSwitchDefault class="preview-media">
+          <img *ngIf="sub.previewUrl" [src]="sub.previewUrl" loading="lazy" alt="Preview">
+          <div *ngIf="!sub.previewUrl" class="no-media">N/A</div>
+        </div>
+      </ng-container>
+
+      <div class="card-details">
+        <span class="team" [matTooltip]="sub.teamName">{{ sub.teamName }}</span>
+        <span class="badge">{{ sub.status }}</span>
+      </div>
+      
+    </div>
+  </div>
+</div>

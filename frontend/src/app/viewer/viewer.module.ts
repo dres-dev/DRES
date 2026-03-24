@@ -26,6 +26,7 @@ import {FullscreenOverlayContainer, OverlayContainer, OverlayModule} from "@angu
 import { EvaluationModule } from "../evaluation/evaluation.module";
 import { LeaderboardViewerComponent } from './leaderboard-viewer/leaderboard-viewer.component';
 import { CompactTeamsViewerComponent } from './compact-teams-viewer/compact-teams-viewer.component';
+import { RecentSubmissionsComponent } from './recent-submissions/recent-submissions.component';
 
 @NgModule({
   imports: [
@@ -53,7 +54,7 @@ import { CompactTeamsViewerComponent } from './compact-teams-viewer/compact-team
     EvaluationModule
   ],
   exports: [RunViewerComponent],
-  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent, LeaderboardViewerComponent, CompactTeamsViewerComponent],
+  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent, LeaderboardViewerComponent, CompactTeamsViewerComponent, RecentSubmissionsComponent],
   providers: [{provide: OverlayContainer, useClass: FullscreenOverlayContainer}],
 })
 export class ViewerModule {}

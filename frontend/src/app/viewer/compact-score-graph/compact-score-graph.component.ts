@@ -14,8 +14,12 @@ export class CompactScoreGraphComponent implements OnInit {
 
   graphData$: Observable<any>;
   
-  // A sleek, colorblind-friendly palette for the different task groups
-  colorPalette = ['#9b59b6', '#3498db', '#e67e22', '#2ecc71', '#e74c3c', '#1abc9c'];
+  colorPalette = [
+    '#9b59b6', '#3498db', '#e67e22', '#2ecc71', '#e74c3c', 
+    '#1abc9c', '#f1c40f', '#34495e', '#ff9ff3', '#feca57', 
+    '#ff6b6b', '#48dbfb', '#1dd1a1', '#5f27cd', '#c8d6e5',
+    '#22a6b3', '#badc58', '#eb4d4b', '#686de0', '#30336b'
+  ];
 
   constructor(private scoreService: EvaluationScoresService) {}
 
@@ -31,7 +35,6 @@ export class CompactScoreGraphComponent implements OnInit {
       map(([info, scores]) => {
         if (!info || !info.teams || !scores) return null;
 
-        // 1. Extract valid task groups (ignoring meta-scores)
         const validGroups = scores.filter(s => s.name !== 'sum' && s.name !== 'average');
         const legend = validGroups.map((g, i) => ({
           name: g.name,
@@ -40,7 +43,6 @@ export class CompactScoreGraphComponent implements OnInit {
 
         let globalMaxScore = 0;
 
-        // 2. Map teams and calculate segments
         const teamsData = info.teams.map(team => {
           let totalScore = 0;
           const segments: any[] = [];
@@ -62,10 +64,7 @@ export class CompactScoreGraphComponent implements OnInit {
           return { name: team.name, total: totalScore, segments };
         });
 
-        // 3. Sort descending by total score
         teamsData.sort((a, b) => b.total - a.total);
-
-        // 4. Calculate the width percentages. (Scale to the highest score, or minimum 1000)
         const chartScaleMax = Math.max(globalMaxScore, 1000);
 
         teamsData.forEach(team => {

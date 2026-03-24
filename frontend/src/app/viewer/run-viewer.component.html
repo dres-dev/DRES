@@ -11,7 +11,21 @@
         <app-task-controls *ngIf="(info | async)?.type === 'ASYNCHRONOUS'" [asynchronous]="(info | async)?.type === 'ASYNCHRONOUS'" [runState]="state"></app-task-controls>
         <div class="spacer-flex"></div>
 
-        <button mat-icon-button [matMenuTriggerFor]="animals">
+        <button mat-icon-button [matMenuTriggerFor]="layoutPresetsMenu" matTooltip="Layout Presets">
+          <mat-icon>auto_awesome_motion</mat-icon>
+        </button>
+        <mat-menu #layoutPresetsMenu="matMenu">
+          <button 
+            *ngFor="let preset of layoutPresets" 
+            mat-menu-item 
+            (click)="applyLayoutPreset(preset.config)"
+          >
+            <mat-icon>{{ preset.icon }}</mat-icon>
+            <span>{{ preset.name }}</span>
+          </button>
+        </mat-menu>
+
+        <button mat-icon-button [matMenuTriggerFor]="animals" matTooltip="Component Selection">
           <mat-icon>dashboard</mat-icon>
         </button>
 

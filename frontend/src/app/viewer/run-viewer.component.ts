@@ -57,6 +57,25 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   noUi: Observable<boolean>;
 
+  // Pre-defined layout configurations
+  layoutPresets = [
+    {
+      name: 'Original View',
+      icon: 'dashboard',
+      config: { left: 'task_type_score', center: 'player', right: 'competition_score', bottom: 'team_score' }
+    },
+    {
+      name: 'Compact View',
+      icon: 'view_compact',
+      config: { left: 'scoreboard', center: 'player', right: 'compact_score_graph', bottom: 'compact_team_score' }
+    },
+    {
+      name: 'View with Submissions',
+      icon: 'assignment_turned_in',
+      config: { left: 'scoreboard', center: 'player', right: 'recent_submissions', bottom: 'compact_team_score' }
+    }
+  ];
+
   /** Cached config */
   private p: any;
 
@@ -221,6 +240,37 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     pCopy[position] = widget;
     this.router.navigate([this.router.url.substring(0, this.router.url.indexOf(';')), pCopy]);
+  }
+
+  /**
+   * Applies a predefined layout configuration to the viewer.
+   * 
+   * @param config The layout configuration to apply, containing widget assignments for each position.
+   */
+  public applyLayoutPreset(config: any) {
+    // The current configuration
+    const pCopy = {
+      left: this.p?.left,
+      right: this.p?.right,
+      center: this.p?.center,
+      bottom: this.p?.bottom,
+    };
+
+    // Overwrite with the selected preset
+    // We use undefined instead of null so Angular completely removes the parameter from the URL if it is empty
+    pCopy['left'] = config.left || undefined;
+    pCopy['center'] = config.center || undefined;
+    pCopy['right'] = config.right || undefined;
+    pCopy['bottom'] = config.bottom || undefined;
+
+    // Find the base URL by stripping off all current matrix params
+    let baseUrl = this.router.url;
+    if (baseUrl.includes(';')) {
+      baseUrl = baseUrl.substring(0, baseUrl.indexOf(';'));
+    }
+
+    // Navigate to the base URL, appending the new configuration matrix
+    this.router.navigate([baseUrl, pCopy]);
   }
 
   /**

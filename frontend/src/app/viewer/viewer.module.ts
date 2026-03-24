@@ -27,6 +27,7 @@ import { EvaluationModule } from "../evaluation/evaluation.module";
 import { LeaderboardViewerComponent } from './leaderboard-viewer/leaderboard-viewer.component';
 import { CompactTeamsViewerComponent } from './compact-teams-viewer/compact-teams-viewer.component';
 import { RecentSubmissionsComponent } from './recent-submissions/recent-submissions.component';
+import { CompactScoreGraphComponent } from './compact-score-graph/compact-score-graph.component';
 
 @NgModule({
   imports: [
@@ -54,7 +55,7 @@ import { RecentSubmissionsComponent } from './recent-submissions/recent-submissi
     EvaluationModule
   ],
   exports: [RunViewerComponent],
-  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent, LeaderboardViewerComponent, CompactTeamsViewerComponent, RecentSubmissionsComponent],
+  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent, LeaderboardViewerComponent, CompactTeamsViewerComponent, RecentSubmissionsComponent, CompactScoreGraphComponent],
   providers: [{provide: OverlayContainer, useClass: FullscreenOverlayContainer}],
 })
 export class ViewerModule {}

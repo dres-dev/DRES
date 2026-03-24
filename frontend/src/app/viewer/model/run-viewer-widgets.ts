@@ -18,6 +18,7 @@ export class Widget {
     new Widget('task_type_score', 'Task Type Score'),
     new Widget('scoreboard', 'Scoreboard'),
     new Widget('recent_submissions', 'Recent Submissions'),
+    new Widget('compact_score_graph', 'Compact Score Graph'),
   ];
 
   /** The {@link Widget}s available at the bottom of the viewer. */

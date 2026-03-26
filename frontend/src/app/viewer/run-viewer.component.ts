@@ -17,6 +17,7 @@ import { DOCUMENT } from '@angular/common';
 import {Title} from '@angular/platform-browser';
 import {ApiEvaluationInfo, ApiEvaluationState, EvaluationService} from '../../../openapi';
 import {Overlay} from "@angular/cdk/overlay";
+import { ViewerPreset } from './model/run-viewer-preset';
 
 @Component({
   selector: 'app-run-viewer',
@@ -58,7 +59,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   noUi: Observable<boolean>;
 
   // Pre-defined layout configurations
-  layoutPresets = [
+  layoutPresets: ViewerPreset[] = [
     {
       name: 'Original View',
       icon: 'dashboard',
@@ -245,24 +246,9 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Applies a predefined layout configuration to the viewer.
    * 
-   * @param config The layout configuration to apply, containing widget assignments for each position.
+   * @param config The layout configuration to apply, containing widget assignments for each position ({@link ViewerPreset}).
    */
-  public applyLayoutPreset(config: any) {
-    // The current configuration
-    const pCopy = {
-      left: this.p?.left,
-      right: this.p?.right,
-      center: this.p?.center,
-      bottom: this.p?.bottom,
-    };
-
-    // Overwrite with the selected preset
-    // We use undefined instead of null so Angular completely removes the parameter from the URL if it is empty
-    pCopy['left'] = config.left || undefined;
-    pCopy['center'] = config.center || undefined;
-    pCopy['right'] = config.right || undefined;
-    pCopy['bottom'] = config.bottom || undefined;
-
+  public applyLayoutPreset(config: ViewerPreset['config']) {
     // Find the base URL by stripping off all current matrix params
     let baseUrl = this.router.url;
     if (baseUrl.includes(';')) {
@@ -270,7 +256,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Navigate to the base URL, appending the new configuration matrix
-    this.router.navigate([baseUrl, pCopy]);
+    this.router.navigate([baseUrl, config]);
   }
 
   /**

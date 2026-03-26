@@ -25,11 +25,11 @@
           </button>
         </mat-menu>
 
-        <button mat-icon-button [matMenuTriggerFor]="animals" matTooltip="Component Selection">
+        <button mat-icon-button [matMenuTriggerFor]="componentSelectionMenu" matTooltip="Component Selection">
           <mat-icon>dashboard</mat-icon>
         </button>
 
-        <mat-menu #animals="matMenu">
+        <mat-menu #componentSelectionMenu="matMenu">
           <button mat-menu-item [matMenuTriggerFor]="leftViews">Left</button>
           <button mat-menu-item [matMenuTriggerFor]="rightViews">Right</button>
           <button mat-menu-item [matMenuTriggerFor]="centerViews">Center</button>

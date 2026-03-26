@@ -69,7 +69,7 @@ export class CompactScoreGraphComponent implements OnInit {
 
         teamsData.forEach(team => {
           team.segments.forEach(seg => {
-            seg.widthPct = (seg.value / chartScaleMax) * 100;
+            seg.widthInPercent = (seg.value / chartScaleMax) * 100;
           });
         });
 

@@ -16,10 +16,16 @@ export class Widget {
     new Widget('player', 'Player'),
     new Widget('competition_score', 'Normalized Competition Scores'),
     new Widget('task_type_score', 'Task Type Score'),
+    new Widget('scoreboard', 'Scoreboard'),
+    new Widget('recent_submissions', 'Recent Submissions'),
+    new Widget('compact_score_graph', 'Compact Score Graph'),
   ];
 
   /** The {@link Widget}s available at the bottom of the viewer. */
-  public static BOTTOM_WIDGETS: Array<Widget> = [new Widget('team_score', 'Team Scores')];
+  public static BOTTOM_WIDGETS: Array<Widget> = [
+    new Widget('team_score', 'Team Scores'),
+    new Widget('compact_team_score', 'Compact Team Scores'),
+  ];
 
   /** Given a name and a default, this resolves and returns a {@link Widget} of the group {@link CENTER_WIDGETS} */
   public static resolveCenterWidget(name: string, fallback: string) {

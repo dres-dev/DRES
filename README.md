@@ -16,6 +16,30 @@ For development, besides the JDK, addtitionally [NPM](https://www.npmjs.com/) an
 
 We kindly ask you to refer to the following paper in publications mentioning or employing DRES:
 
+> Loris Sauter, Ralph Gasser, Heiko Schuldt, Abraham Bernstein, and Luca Rossetto. 2024. Performance Evaluation in Multimedia Retrieval. ACM Transactions on Multimedia Computing, Communications and Applications. https://doi.org/10.1145/3678881
+
+**Link:** https://dl.acm.org/doi/10.1145/3678881
+
+**Bibtex:**
+
+```
+@article{10.1145/3678881,
+author = {Sauter, Loris and Gasser, Ralph and Schuldt, Heiko and Bernstein, Abraham and Rossetto, Luca},
+title = {Performance Evaluation in Multimedia Retrieval},
+year = {2024},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+issn = {1551-6857},
+url = {https://doi.org/10.1145/3678881},
+doi = {10.1145/3678881},
+journal = {ACM Transactions on Multimedia Computing, Communications and Applications},
+month = oct,
+keywords = {Interactive Multimedia Retrieval, Retrieval Evaluation, Interactive Evaluation, Evaluation System}
+}
+```
+
+We also have a demo publication:
+
 > Rossetto L., Gasser R., Sauter L., Bernstein A., Schuldt H. (2021) A System for Interactive Multimedia Retrieval Evaluations. In: Lokoč J. et al. (eds) MultiMedia Modeling. MMM 2021. Lecture Notes in Computer Science, vol 12573. Springer, Cham.
 
 **Link:** https://doi.org/10.1007/978-3-030-67835-7_33

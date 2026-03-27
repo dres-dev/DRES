@@ -17,6 +17,7 @@ import { DOCUMENT } from '@angular/common';
 import {Title} from '@angular/platform-browser';
 import {ApiEvaluationInfo, ApiEvaluationState, EvaluationService} from '../../../openapi';
 import {Overlay} from "@angular/cdk/overlay";
+import { ViewerPreset } from './model/run-viewer-preset';
 
 @Component({
   selector: 'app-run-viewer',
@@ -56,6 +57,25 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   bottomWidget: Observable<Widget>;
 
   noUi: Observable<boolean>;
+
+  // Pre-defined layout configurations
+  layoutPresets: ViewerPreset[] = [
+    {
+      name: 'Original View',
+      icon: 'dashboard',
+      config: { left: 'task_type_score', center: 'player', right: 'competition_score', bottom: 'team_score' }
+    },
+    {
+      name: 'Compact View',
+      icon: 'view_compact',
+      config: { left: 'scoreboard', center: 'player', right: 'compact_score_graph', bottom: 'compact_team_score' }
+    },
+    {
+      name: 'View with Submissions',
+      icon: 'assignment_turned_in',
+      config: { left: 'scoreboard', center: 'player', right: 'recent_submissions', bottom: 'compact_team_score' }
+    }
+  ];
 
   /** Cached config */
   private p: any;
@@ -221,6 +241,22 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     pCopy[position] = widget;
     this.router.navigate([this.router.url.substring(0, this.router.url.indexOf(';')), pCopy]);
+  }
+
+  /**
+   * Applies a predefined layout configuration to the viewer.
+   * 
+   * @param config The layout configuration to apply, containing widget assignments for each position ({@link ViewerPreset}).
+   */
+  public applyLayoutPreset(config: ViewerPreset['config']) {
+    // Find the base URL by stripping off all current matrix params
+    let baseUrl = this.router.url;
+    if (baseUrl.includes(';')) {
+      baseUrl = baseUrl.substring(0, baseUrl.indexOf(';'));
+    }
+
+    // Navigate to the base URL, appending the new configuration matrix
+    this.router.navigate([baseUrl, config]);
   }
 
   /**

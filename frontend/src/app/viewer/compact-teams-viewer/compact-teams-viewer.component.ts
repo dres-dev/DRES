@@ -1,0 +1,91 @@
+import { Component, Input, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Observable, combineLatest, of } from 'rxjs';
+import { catchError, map, switchMap, sampleTime, shareReplay, retry, startWith } from 'rxjs/operators';
+import { ApiEvaluationInfo, ApiEvaluationState, EvaluationScoresService, EvaluationService } from '../../../../openapi';
+
+@Component({
+  selector: 'app-compact-teams-viewer',
+  templateUrl: './compact-teams-viewer.component.html',
+  styleUrls: ['./compact-teams-viewer.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class CompactTeamsViewerComponent implements OnInit, OnDestroy {
+  @Input() info: Observable<ApiEvaluationInfo>;
+  @Input() state: Observable<ApiEvaluationState>;
+  @Input() taskEnded: Observable<ApiEvaluationState>;
+
+  teamsData$: Observable<any[]>;
+  private intervalId: any;
+
+  constructor(
+    private evaluationService: EvaluationService,
+    private scoresService: EvaluationScoresService,
+    private ref: ChangeDetectorRef
+  ) {
+    this.ref.detach();
+    this.intervalId = setInterval(() => this.ref.detectChanges(), 500);
+  }
+
+  ngOnInit(): void {
+    // Fetch submissions every 2 seconds
+    const submissions$ = this.state.pipe(
+      sampleTime(2000),
+      switchMap(st => this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(st.evaluationId).pipe(
+        catchError(() => of([]))
+      )),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
+    const scores$ = this.state.pipe(
+      switchMap(st => this.scoresService.getApiV2ScoreEvaluationByEvaluationIdCurrent(st.evaluationId).pipe(
+        retry(3),
+        catchError(() => of(null))
+      )),
+      map(sc => {
+        const scoreMap = new Map<string, number>();
+        if (sc && sc.scores) {
+          sc.scores.forEach(v => scoreMap.set(v.teamId, v.score));
+        }
+        return scoreMap;
+      }),
+      startWith(new Map<string, number>()),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
+    // Combine everything into a single array for the UI
+    this.teamsData$ = combineLatest([this.info, scores$, submissions$]).pipe(
+      map(([info, scoreMap, submissions]) => {
+        if (!info || !info.teams) return [];
+
+        const teamsWithScores = info.teams.map(team => {
+          const teamSubmissions = submissions.filter(s => s.teamId === team.id).flatMap(s => s.answers);
+          
+          return {
+            id: team.id,
+            name: team.name,
+            score: scoreMap.get(team.id) || 0,
+            correct: teamSubmissions.filter(a => a.status === 'CORRECT').length,
+            wrong: teamSubmissions.filter(a => a.status === 'WRONG').length,
+            indeterminate: teamSubmissions.filter(a => a.status === 'INDETERMINATE').length,
+            rank: 0 // to be filled
+          };
+        });
+
+        // Sort a copy by score to determine true ranks
+        const sortedByScore = [...teamsWithScores].sort((a, b) => b.score - a.score);
+        sortedByScore.forEach((team, index) => {
+          const original = teamsWithScores.find(t => t.id === team.id);
+          if (original) {
+            original.rank = index + 1;
+          }
+        });
+
+        return teamsWithScores;
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.intervalId);
+  }
+}

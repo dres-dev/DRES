@@ -1,0 +1,31 @@
+<div class="graph-wrapper" *ngIf="graphData$ | async as data">
+  
+  <div class="legend-container">
+    <div class="legend-item" *ngFor="let group of data.legend">
+      <div class="color-swatch" [style.backgroundColor]="group.color"></div>
+      <span class="group-name">{{ group.name }}</span>
+    </div>
+  </div>
+
+  <div class="chart-scroll-area">
+    <div class="chart-row" *ngFor="let team of data.teams">
+      
+      <div class="row-label">
+        <span class="name" [matTooltip]="team.name">{{ team.name }}</span>
+      </div>
+
+      <div class="track-container">
+        <div class="track">
+          <div 
+            class="segment" 
+            *ngFor="let seg of team.segments"
+            [style.width.%]="seg.widthInPercent"
+            [style.backgroundColor]="seg.color"
+            [matTooltip]="seg.name + ': ' + seg.value">
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>

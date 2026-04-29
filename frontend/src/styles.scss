@@ -11,41 +11,32 @@ body {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
-// ✅ Remove the prebuilt theme import — you're defining a custom theme below
-// @import '@angular/material/prebuilt-themes/purple-green.css';
-
 @use '@angular/material' as mat;
 
-// ✅ Modern replacement for @include mat-core()
+// Angular Material 18 syntax
 @include mat.core();
 
-// ✅ Define palettes using the new API
-$primary: mat.define-palette(mat.$purple-palette);
-$accent:  mat.define-palette(mat.$green-palette, A200);
-$warn:    mat.define-palette(mat.$red-palette, 500);
-
-// ✅ Build and apply the theme
-$theme: mat.define-light-theme((
+$theme: mat.define-theme((
   color: (
-    primary: $primary,
-    accent:  $accent,
-    warn:    $warn,
+    theme-type: light,
+    primary: mat.$violet-palette,
+    tertiary: mat.$green-palette,
   )
 ));
 
-@include mat.all-component-themes($theme);
+:root {
+  @include mat.all-component-themes($theme);
+}
 
-// ✅ Utility color classes using the new mat.get-color-from-palette()
+// Color utility classes
 .primary-color {
-  color: mat.get-color-from-palette($primary) !important;
+  color: mat.get-theme-color($theme, primary) !important;
 }
-
 .accent-color {
-  color: mat.get-color-from-palette($accent) !important;
+  color: mat.get-theme-color($theme, tertiary) !important;
 }
-
 .warn-color {
-  color: mat.get-color-from-palette($warn) !important;
+  color: mat.get-theme-color($theme, error) !important;
 }
 
 .overlay {

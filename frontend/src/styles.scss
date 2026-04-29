@@ -1,5 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
-
+@use '@angular/material' as mat;
 html,
 body {
   height: 100%;
@@ -9,116 +9,78 @@ body {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
-@import '@angular/material/prebuilt-themes/purple-green.css';
+// ✅ Remove the prebuilt theme import — you're defining a custom theme below
+// @import '@angular/material/prebuilt-themes/purple-green.css';
+
+@use '@angular/material' as mat;
+
+// ✅ Modern replacement for @include mat-core()
+@include mat.core();
+
+// ✅ Define palettes using the new API
+$primary: mat.define-palette(mat.$purple-palette);
+$accent:  mat.define-palette(mat.$green-palette, A200);
+$warn:    mat.define-palette(mat.$red-palette, 500);
+
+// ✅ Build and apply the theme
+$theme: mat.define-light-theme((
+  color: (
+    primary: $primary,
+    accent:  $accent,
+    warn:    $warn,
+  )
+));
+
+@include mat.all-component-themes($theme);
+
+// ✅ Utility color classes using the new mat.get-color-from-palette()
+.primary-color {
+  color: mat.get-color-from-palette($primary) !important;
+}
+
+.accent-color {
+  color: mat.get-color-from-palette($accent) !important;
+}
+
+.warn-color {
+  color: mat.get-color-from-palette($warn) !important;
+}
 
 .overlay {
   background-color: black;
   opacity: 0.75;
 }
 
-/* */
 #container {
-  margin-top: 25px; /* Previous 100px seems far too much */
+  margin-top: 25px;
   margin-left: 50px;
   margin-right: 50px;
 }
 
-/* Defines some spacer classes that can be used in flexboxes etc. */
+/* Spacer classes */
+.spacer-xxlarge { padding: 0 80px; }
+.spacer-xlarge  { padding: 0 40px; }
+.spacer-large   { padding: 0 25px; }
+.spacer-medium  { padding: 0 15px; }
+.spacer-small   { padding: 0 10px; }
+.spacer-tiny    { padding: 0 5px;  }
+.spacer-flex    { flex: 1 1 auto;  }
 
-.spacer-xxlarge {
-  padding: 0 80px;
-}
-
-.spacer-xlarge {
-  padding: 0 40px;
-}
-
-.spacer-large {
-  padding: 0 25px;
-}
-
-.spacer-medium {
-  padding: 0 15px;
-}
-
-.spacer-small {
-  padding: 0 10px;
-}
-
-.spacer-tiny {
-  padding: 0 5px;
-}
-
-.spacer-flex {
-  flex: 1 1 auto;
-}
-
-/* Hack for progressbar */
-/* TODO(mdc-migration): The following rule targets internal classes of progress-bar that may no longer apply for the MDC version. */
+/* Progressbar hack */
 app-judgement-media-viewer .mat-progress-bar-buffer {
-  background-color: #e1bee7 !important; /* Not sure why this has to be done manually: https://material.angular.io/components/progress-bar/overview */
+  background-color: #e1bee7 !important;
 }
 
-@import '@angular/material/theming';
-@include mat-core();
+/* Padding utilities */
+.p1r  { padding: 1rem; }
+.p2r  { padding: 2rem; }
+.p1e  { padding: 1em;  }
+.p2e  { padding: 2em;  }
+.pt2e { padding-top: 2em;  }
+.pt1e { padding-top: 1em;  }
+.pt1r { padding-top: 1rem; }
+.pt2r { padding-top: 2rem; }
+.pb1e { padding-bottom: 1em; }
 
-$primary: mat-palette($mat-purple);
-$accent: mat-palette($mat-green, A200);
-$warn: mat-palette($mat-red, 500);
-
-/* Having access to the color palette */
-.primary-color {
-  color: mat-color($primary) !important;
-}
-
-.accent-color {
-  color: mat-color($accent) !important;
-}
-
-.warn-color {
-  color: mat-color($warn) !important;
-}
-
-.p1r {
-  padding: 1rem;
-}
-
-.p2r {
-  padding: 2rem;
-}
-
-.p1e {
-  padding: 1em;
-}
-
-.p2e {
-  padding: 2em;
-}
-
-.pt2e {
-  padding-top: 2em;
-}
-
-.pt1e {
-  padding-top: 1em;
-}
-
-.pt1r {
-  padding-top: 1rem;
-}
-
-.pt2r {
-  padding-top: 2rem;
-}
-
-.pb1e {
-  padding-bottom: 1em;
-}
-
-.width-full {
-  width: 100%;
-}
-
-.strong {
-  font-weight: bold;
-}
+.width-full { width: 100%; }
+.strong     { font-weight: bold; }

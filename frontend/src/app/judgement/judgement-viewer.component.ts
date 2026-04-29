@@ -4,7 +4,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import {animate, keyframes, state, style, transition, trigger} from '@angular/animations';
 import {MatDialog} from '@angular/material/dialog';
 import {JudgementDialogComponent} from './judgement-dialog/judgement-dialog.component';

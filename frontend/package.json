@@ -31,7 +31,6 @@
     "@angular/platform-browser": "17.3.12",
     "@angular/platform-browser-dynamic": "17.3.12",
     "@angular/router": "17.3.12",
-    "angularx-qrcode": "latest",
     "apexcharts": "3.x",
     "ng-apexcharts": "1.x",
     "ngx-color-picker": "^14.0.0",

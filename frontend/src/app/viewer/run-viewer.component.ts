@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef} from '@angular/core';
+import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT} from '@angular/core';
 import { ActivatedRoute, ActivationEnd, Params, Router } from "@angular/router";
 import {interval, merge, mergeMap, Observable, of, zip} from 'rxjs';
 import {
@@ -13,7 +13,7 @@ import { AppConfig } from '../app.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
-import { DOCUMENT } from '@angular/common';
+
 import {Title} from '@angular/platform-browser';
 import {ApiEvaluationInfo, ApiEvaluationState, EvaluationService} from '../../../openapi';
 import {Overlay} from "@angular/cdk/overlay";

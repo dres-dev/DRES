@@ -21,9 +21,10 @@ export interface CombinedRun {
 }
 
 @Component({
-  selector: 'app-run-admin-view',
-  templateUrl: './run-admin-view.component.html',
-  styleUrls: ['./run-admin-view.component.scss'],
+    selector: 'app-run-admin-view',
+    templateUrl: './run-admin-view.component.html',
+    styleUrls: ['./run-admin-view.component.scss'],
+    standalone: false
 })
 export class RunAdminViewComponent {
 

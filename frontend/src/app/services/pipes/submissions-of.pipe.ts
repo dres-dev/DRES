@@ -4,7 +4,8 @@ import { flatMap, Observable } from "rxjs";
 import { filter, tap } from "rxjs/operators";
 
 @Pipe({
-  name: "submissionsOf"
+    name: "submissionsOf",
+    standalone: false
 })
 export class SubmissionsOfPipe implements PipeTransform {
 

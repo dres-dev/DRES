@@ -8,9 +8,10 @@ import { AuthenticationService } from '../../services/session/authentication.sev
 import {ApiUser, ApiUserRequest, UserService} from '../../../../openapi';
 
 @Component({
-  selector: 'app-profile',
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss'],
+    selector: 'app-profile',
+    templateUrl: './profile.component.html',
+    styleUrls: ['./profile.component.scss'],
+    standalone: false
 })
 export class ProfileComponent implements OnInit, OnDestroy {
   user: Observable<ApiUser>;

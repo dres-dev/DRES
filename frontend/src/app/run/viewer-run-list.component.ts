@@ -9,8 +9,9 @@ import {DownloadService, EvaluationAdministratorService, EvaluationScoresService
 import { MatTable } from "@angular/material/table";
 
 @Component({
-  selector: 'app-viewer-run-list',
-  templateUrl: './viewer-run-list.component.html',
+    selector: 'app-viewer-run-list',
+    templateUrl: './viewer-run-list.component.html',
+    standalone: false
 })
 export class ViewerRunListComponent extends AbstractRunListComponent implements AccessChecking {
   judgeGroup = AccessRoleService.JUDGE_GROUP;

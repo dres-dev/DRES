@@ -13,9 +13,10 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatSort } from "@angular/material/sort";
 
 @Component({
-  selector: 'app-teams-list',
-  templateUrl: './teams-list.component.html',
-  styleUrls: ['./teams-list.component.scss']
+    selector: 'app-teams-list',
+    templateUrl: './teams-list.component.html',
+    styleUrls: ['./teams-list.component.scss'],
+    standalone: false
 })
 export class TeamsListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy, AfterViewInit {
 

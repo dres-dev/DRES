@@ -3,7 +3,8 @@ import { ApiMediaItem, CollectionService } from "../../../../openapi";
 import { Observable } from "rxjs";
 
 @Pipe({
-  name: 'resolveMediaItem'
+    name: 'resolveMediaItem',
+    standalone: false
 })
 export class ResolveMediaItemPipe implements PipeTransform {
 

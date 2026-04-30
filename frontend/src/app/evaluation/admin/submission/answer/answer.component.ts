@@ -2,9 +2,10 @@ import { Component, Input } from "@angular/core";
 import { ApiAnswer, ApiAnswerType, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit } from "../../../../../../openapi";
 
 @Component({
-  selector: "app-answer",
-  templateUrl: "./answer.component.html",
-  styleUrls: ["./answer.component.scss"]
+    selector: "app-answer",
+    templateUrl: "./answer.component.html",
+    styleUrls: ["./answer.component.scss"],
+    standalone: false
 })
 export class AnswerComponent {
 

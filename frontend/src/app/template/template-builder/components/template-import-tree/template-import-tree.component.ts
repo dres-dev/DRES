@@ -47,9 +47,10 @@ export class TemplateTreeNode<T> {
 }
 
 @Component({
-  selector: "app-template-import-tree",
-  templateUrl: "./template-import-tree.component.html",
-  styleUrls: ["./template-import-tree.component.scss"]
+    selector: "app-template-import-tree",
+    templateUrl: "./template-import-tree.component.html",
+    styleUrls: ["./template-import-tree.component.scss"],
+    standalone: false
 })
 export class TemplateImportTreeComponent implements OnInit {
 

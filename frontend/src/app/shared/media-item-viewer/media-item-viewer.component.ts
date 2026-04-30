@@ -4,9 +4,10 @@ import { AppConfig } from "../../app.config";
 import { TimeUtilities } from "../../utilities/time.utilities";
 
 @Component({
-  selector: 'app-media-item-viewer',
-  templateUrl: './media-item-viewer.component.html',
-  styleUrls: ['./media-item-viewer.component.scss']
+    selector: 'app-media-item-viewer',
+    templateUrl: './media-item-viewer.component.html',
+    styleUrls: ['./media-item-viewer.component.scss'],
+    standalone: false
 })
 export class MediaItemViewerComponent {
 

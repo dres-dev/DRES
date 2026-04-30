@@ -7,9 +7,10 @@ export interface ColumnDefinition {
 }
 
 @Component({
-  selector: 'app-dynamic-table',
-  templateUrl: './dynamic-table.component.html',
-  styleUrls: ['./dynamic-table.component.scss']
+    selector: 'app-dynamic-table',
+    templateUrl: './dynamic-table.component.html',
+    styleUrls: ['./dynamic-table.component.scss'],
+    standalone: false
 })
 export class DynamicTableComponent<T> {
 

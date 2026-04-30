@@ -10,9 +10,10 @@ import {
 import { TimeUtilities } from "../../../../utilities/time.utilities";
 
 @Component({
-  selector: 'app-query-description-external-video-form-field',
-  templateUrl: './query-description-external-video-form-field.component.html',
-  styleUrls: ['./query-description-external-video-form-field.component.scss']
+    selector: 'app-query-description-external-video-form-field',
+    templateUrl: './query-description-external-video-form-field.component.html',
+    styleUrls: ['./query-description-external-video-form-field.component.scss'],
+    standalone: false
 })
 export class QueryDescriptionExternalVideoFormFieldComponent extends QueryDescriptionExternalFormFieldComponent {
 

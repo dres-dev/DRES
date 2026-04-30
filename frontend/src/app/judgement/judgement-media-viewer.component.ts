@@ -4,12 +4,13 @@ import { AppConfig } from '../app.config';
 import { ApiAnswerType, ApiJudgementRequest } from "../../../openapi";
 
 @Component({
-  selector: 'app-judgement-media-viewer',
-  templateUrl: './judgement-media-viewer.component.html',
-  styleUrls: ['./judgement-media-viewer.component.scss'],
-  providers: [
-    {provide: ErrorHandler, useClass: JudgementMediaViewerComponent}
-  ]
+    selector: 'app-judgement-media-viewer',
+    templateUrl: './judgement-media-viewer.component.html',
+    styleUrls: ['./judgement-media-viewer.component.scss'],
+    providers: [
+        { provide: ErrorHandler, useClass: JudgementMediaViewerComponent }
+    ],
+    standalone: false
 })
 export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterViewChecked, ErrorHandler {
 

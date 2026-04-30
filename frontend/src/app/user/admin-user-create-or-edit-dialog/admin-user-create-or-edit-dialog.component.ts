@@ -4,9 +4,10 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ApiRole, ApiUser, ApiUserRequest } from "../../../../openapi";
 
 @Component({
-  selector: 'app-admin-user-create-or-edit-dialog',
-  templateUrl: './admin-user-create-or-edit-dialog.component.html',
-  styleUrls: ['./admin-user-create-or-edit-dialog.component.scss'],
+    selector: 'app-admin-user-create-or-edit-dialog',
+    templateUrl: './admin-user-create-or-edit-dialog.component.html',
+    styleUrls: ['./admin-user-create-or-edit-dialog.component.scss'],
+    standalone: false
 })
 export class AdminUserCreateOrEditDialogComponent {
   form: UntypedFormGroup = new UntypedFormGroup({

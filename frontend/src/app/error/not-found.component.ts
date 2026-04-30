@@ -37,7 +37,8 @@ import {Component} from "@angular/core";
             <mat-card-content>
                 The page you have requested could not be found. Check with the administrator if you believe this to be an error.
             </mat-card-content>
-        </mat-card>`
+        </mat-card>`,
+    standalone: false
 })
 export class NotFoundComponent {
 

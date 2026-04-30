@@ -24,8 +24,9 @@ export interface RunInfoOverviewTuple {
 }
 
 @Component({
-  selector: 'app-admin-run-list',
-  templateUrl: './admin-run-list.component.html',
+    selector: 'app-admin-run-list',
+    templateUrl: './admin-run-list.component.html',
+    standalone: false
 })
 export class AdminRunListComponent extends AbstractRunListComponent implements AfterViewInit{
 

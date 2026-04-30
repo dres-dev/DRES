@@ -9,9 +9,10 @@ export interface TemplateImportDialogData{
 }
 
 @Component({
-  selector: 'app-template-import-dialog',
-  templateUrl: './template-import-dialog.component.html',
-  styleUrls: ['./template-import-dialog.component.scss']
+    selector: 'app-template-import-dialog',
+    templateUrl: './template-import-dialog.component.html',
+    styleUrls: ['./template-import-dialog.component.scss'],
+    standalone: false
 })
 export class TemplateImportDialogComponent {
 

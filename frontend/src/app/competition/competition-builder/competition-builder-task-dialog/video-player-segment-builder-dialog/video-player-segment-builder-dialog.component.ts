@@ -10,9 +10,10 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
  * @deprecated This component should not be used anymore, as there is no need for a dialog anymore
  */
 @Component({
-  selector: 'app-video-player-segment-builder-dialog',
-  templateUrl: './video-player-segment-builder-dialog.component.html',
-  styleUrls: ['./video-player-segment-builder-dialog.component.scss'],
+    selector: 'app-video-player-segment-builder-dialog',
+    templateUrl: './video-player-segment-builder-dialog.component.html',
+    styleUrls: ['./video-player-segment-builder-dialog.component.scss'],
+    standalone: false
 })
 export class VideoPlayerSegmentBuilderDialogComponent implements OnInit {
   @ViewChild(VideoPlayerSegmentBuilderComponent) videoPlayer: VideoPlayerSegmentBuilderComponent;

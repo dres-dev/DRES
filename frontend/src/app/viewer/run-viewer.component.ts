@@ -20,9 +20,10 @@ import {Overlay} from "@angular/cdk/overlay";
 import { ViewerPreset } from './model/run-viewer-preset';
 
 @Component({
-  selector: 'app-run-viewer',
-  templateUrl: './run-viewer.component.html',
-  styleUrls: ['./run-viewer.component.scss']
+    selector: 'app-run-viewer',
+    templateUrl: './run-viewer.component.html',
+    styleUrls: ['./run-viewer.component.scss'],
+    standalone: false
 })
 export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 

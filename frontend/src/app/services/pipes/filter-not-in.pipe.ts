@@ -4,7 +4,8 @@ import { Pipe, PipeTransform } from '@angular/core';
  * Simple pipe to filter an array such that those element not in the haytack are kept.
  */
 @Pipe({
-  name: 'filterNotIn'
+    name: 'filterNotIn',
+    standalone: false
 })
 export class FilterNotInPipe implements PipeTransform {
 

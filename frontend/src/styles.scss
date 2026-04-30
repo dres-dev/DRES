@@ -1,3 +1,4 @@
+@use '@angular/material' as mat;
 /* You can add global styles to this file, and also import other style files */
 
 html,
@@ -9,7 +10,6 @@ body {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
-@use '@angular/material' as mat;
 
 // Angular Material 18 syntax
 @include mat.core();

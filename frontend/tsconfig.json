@@ -1,22 +1,19 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
-    "ignoreDeprecations": "6.0",
     "experimentalDecorators": true,
     "module": "es2020",
-    "moduleResolution": "node",
     "importHelpers": true,
     "target": "ES2022",
     "lib": [
       "es2020",
       "dom"
     ],
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "moduleResolution": "node"
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,

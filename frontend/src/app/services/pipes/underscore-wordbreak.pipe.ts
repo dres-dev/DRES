@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'underscoreWordBreak'
+    name: 'underscoreWordBreak',
+    standalone: false
 })
 export class UnderscoreWordBreakPipe implements PipeTransform {
 

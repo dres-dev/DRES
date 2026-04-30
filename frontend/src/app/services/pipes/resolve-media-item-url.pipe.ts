@@ -13,7 +13,8 @@ export function isMediaItemUrlOptions(obj: any): obj is MediaItemUrlOptions{
 }
 
 @Pipe({
-  name: 'resolveMediaItemUrl'
+    name: 'resolveMediaItemUrl',
+    standalone: false
 })
 export class ResolveMediaItemUrlPipe implements PipeTransform {
 

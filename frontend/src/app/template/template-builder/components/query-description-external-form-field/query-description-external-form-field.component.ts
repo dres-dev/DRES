@@ -6,9 +6,10 @@ import {
 import { AppConfig } from "../../../../app.config";
 
 @Component({
-  selector: 'app-query-description-external-form-field',
-  templateUrl: './query-description-external-form-field.component.html',
-  styleUrls: ['./query-description-external-form-field.component.scss']
+    selector: 'app-query-description-external-form-field',
+    templateUrl: './query-description-external-form-field.component.html',
+    styleUrls: ['./query-description-external-form-field.component.scss'],
+    standalone: false
 })
 export class QueryDescriptionExternalFormFieldComponent {
   @Input()

@@ -15,9 +15,10 @@ import { AppConfig } from "../../../../app.config";
 import { catchError, filter, map, switchMap, withLatestFrom } from "rxjs/operators";
 
 @Component({
-  selector: 'app-submissions-list',
-  templateUrl: './submissions-list.component.html',
-  styleUrls: ['./submissions-list.component.scss']
+    selector: 'app-submissions-list',
+    templateUrl: './submissions-list.component.html',
+    styleUrls: ['./submissions-list.component.scss'],
+    standalone: false
 })
 export class SubmissionsListComponent implements AfterViewInit, OnDestroy{
 

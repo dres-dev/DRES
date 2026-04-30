@@ -33,9 +33,10 @@ import {
  * @deprecated Replaced with new template builder
  */
 @Component({
-  selector: 'app-competition-builer',
-  templateUrl: './competition-builder.component.html',
-  styleUrls: ['./competition-builder.component.scss'],
+    selector: 'app-competition-builer',
+    templateUrl: './competition-builder.component.html',
+    styleUrls: ['./competition-builder.component.scss'],
+    standalone: false
 })
 export class CompetitionBuilderComponent implements OnInit, OnDestroy, DeactivationGuarded {
 

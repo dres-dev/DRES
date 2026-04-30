@@ -14,9 +14,10 @@ export interface EvaluationStartDialogResult {
 }
 
 @Component({
-  selector: 'app-evaluation-start-dialog',
-  templateUrl: './evaluation-start-dialog.component.html',
-  styleUrls: ['./evaluation-start-dialog.component.scss']
+    selector: 'app-evaluation-start-dialog',
+    templateUrl: './evaluation-start-dialog.component.html',
+    styleUrls: ['./evaluation-start-dialog.component.scss'],
+    standalone: false
 })
 export class EvaluationStartDialogComponent {
 

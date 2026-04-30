@@ -17,9 +17,10 @@ export interface VideoPlayerSegmentBuilderData {
 
 
 @Component({
-  selector: 'app-video-player-segment-builder',
-  templateUrl: './video-player-segment-builder.component.html',
-  styleUrls: ['./video-player-segment-builder.component.scss'],
+    selector: 'app-video-player-segment-builder',
+    templateUrl: './video-player-segment-builder.component.html',
+    styleUrls: ['./video-player-segment-builder.component.scss'],
+    standalone: false
 })
 export class VideoPlayerSegmentBuilderComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() data: VideoPlayerSegmentBuilderData;

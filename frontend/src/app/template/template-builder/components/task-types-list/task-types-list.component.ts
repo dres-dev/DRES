@@ -22,9 +22,10 @@ import { ActivatedRoute } from "@angular/router";
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
-  selector: "app-task-types-list",
-  templateUrl: "./task-types-list.component.html",
-  styleUrls: ["./task-types-list.component.scss"]
+    selector: "app-task-types-list",
+    templateUrl: "./task-types-list.component.html",
+    styleUrls: ["./task-types-list.component.scss"],
+    standalone: false
 })
 export class TaskTypesListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy {
 

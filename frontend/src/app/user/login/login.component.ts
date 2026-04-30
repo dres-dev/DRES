@@ -6,9 +6,10 @@ import { AuthenticationService } from '../../services/session/authentication.sev
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-login-component',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss'],
+    selector: 'app-login-component',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.scss'],
+    standalone: false
 })
 export class LoginComponent implements OnInit, OnDestroy {
   form: UntypedFormGroup = new UntypedFormGroup({

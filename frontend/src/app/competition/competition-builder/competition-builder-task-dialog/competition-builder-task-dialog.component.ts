@@ -38,9 +38,10 @@ export interface CompetitionBuilderTaskDialogData {
  * @deprecated Got replaced by task-template-editor.component.ts
  */
 @Component({
-  selector: 'app-competition-builder-task-dialog',
-  templateUrl: './competition-builder-task-dialog.component.html',
-  styleUrls: ['./competition-builder-task-dialog.component.scss'],
+    selector: 'app-competition-builder-task-dialog',
+    templateUrl: './competition-builder-task-dialog.component.html',
+    styleUrls: ['./competition-builder-task-dialog.component.scss'],
+    standalone: false
 })
 export class CompetitionBuilderTaskDialogComponent {
   form: UntypedFormGroup;

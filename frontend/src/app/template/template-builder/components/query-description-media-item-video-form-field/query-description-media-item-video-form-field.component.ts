@@ -11,9 +11,10 @@ import { TimeUtilities } from "../../../../utilities/time.utilities";
 import { FormatMediaItemPipe, MediaItemDisplayOptions } from "../../../../services/pipes/format-media-item.pipe";
 
 @Component({
-  selector: 'app-query-description-media-item-video-form-field',
-  templateUrl: './query-description-media-item-video-form-field.component.html',
-  styleUrls: ['./query-description-media-item-video-form-field.component.scss']
+    selector: 'app-query-description-media-item-video-form-field',
+    templateUrl: './query-description-media-item-video-form-field.component.html',
+    styleUrls: ['./query-description-media-item-video-form-field.component.scss'],
+    standalone: false
 })
 export class QueryDescriptionMediaItemVideoFormFieldComponent extends QueryDescriptionMediaItemFormFieldComponent{
 

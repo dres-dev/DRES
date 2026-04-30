@@ -4,7 +4,8 @@ import { FormatTemporalUnitPipe } from "./format-temporal-unit.pipe";
 import { FormatTimePipePipe } from "./format-time-pipe.pipe";
 
 @Pipe({
-  name: 'formatTemporalPoint'
+    name: 'formatTemporalPoint',
+    standalone: false
 })
 export class FormatTemporalPointPipe implements PipeTransform {
 

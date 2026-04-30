@@ -28,9 +28,10 @@ import {
 import { BatchAddTargetDialogComponent, BatchAddTargetDialogData } from "../batch-add-target-dialog/batch-add-target-dialog.component";
 
 @Component({
-  selector: 'app-task-template-editor',
-  templateUrl: './task-template-editor.component.html',
-  styleUrls: ['./task-template-editor.component.scss']
+    selector: 'app-task-template-editor',
+    templateUrl: './task-template-editor.component.html',
+    styleUrls: ['./task-template-editor.component.scss'],
+    standalone: false
 })
 export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 

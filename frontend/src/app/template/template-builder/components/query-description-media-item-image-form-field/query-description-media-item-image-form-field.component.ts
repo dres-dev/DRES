@@ -4,9 +4,10 @@ import {
 } from "../query-description-media-item-form-field/query-description-media-item-form-field.component";
 
 @Component({
-  selector: 'app-query-description-media-item-image-form-field',
-  templateUrl: './query-description-media-item-image-form-field.component.html',
-  styleUrls: ['./query-description-media-item-image-form-field.component.scss']
+    selector: 'app-query-description-media-item-image-form-field',
+    templateUrl: './query-description-media-item-image-form-field.component.html',
+    styleUrls: ['./query-description-media-item-image-form-field.component.scss'],
+    standalone: false
 })
 export class QueryDescriptionMediaItemImageFormFieldComponent extends QueryDescriptionMediaItemFormFieldComponent{
 

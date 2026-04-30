@@ -17,9 +17,10 @@ import {
 } from '../../../../openapi';
 
 @Component({
-  selector: 'app-run-async-admin-view',
-  templateUrl: './run-async-admin-view.component.html',
-  styleUrls: ['./run-async-admin-view.component.scss'],
+    selector: 'app-run-async-admin-view',
+    templateUrl: './run-async-admin-view.component.html',
+    styleUrls: ['./run-async-admin-view.component.scss'],
+    standalone: false
 })
 export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   @ViewChild(MatAccordion) accordion: MatAccordion;

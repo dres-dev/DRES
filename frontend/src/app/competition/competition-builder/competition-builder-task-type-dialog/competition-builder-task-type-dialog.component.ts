@@ -13,9 +13,10 @@ interface ActivatedType<T> {
 }
 
 @Component({
-  selector: 'app-competition-builder-task-type',
-  templateUrl: './competition-builder-task-type-dialog.component.html',
-  styleUrls: ['./competition-builder-task-type-dialog.component.scss'],
+    selector: 'app-competition-builder-task-type',
+    templateUrl: './competition-builder-task-type-dialog.component.html',
+    styleUrls: ['./competition-builder-task-type-dialog.component.scss'],
+    standalone: false
 })
 export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterViewInit {
   /** FromGroup for this dialog. */

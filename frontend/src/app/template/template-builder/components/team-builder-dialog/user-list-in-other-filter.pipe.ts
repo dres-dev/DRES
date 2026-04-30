@@ -5,7 +5,8 @@ import { ApiUser } from "../../../../../../openapi";
  * Simple filter which filters a list of [ApiUser]s based on whether they are present in another list.
  */
 @Pipe({
-  name: 'userListInOtherFilter'
+    name: 'userListInOtherFilter',
+    standalone: false
 })
 export class UserListInOtherFilterPipe implements PipeTransform {
 

@@ -6,9 +6,10 @@ import {
 import { ApiHintOption, ApiHintType } from "../../../../../../openapi";
 
 @Component({
-  selector: 'app-query-description-form-field',
-  templateUrl: './query-description-form-field.component.html',
-  styleUrls: ['./query-description-form-field.component.scss']
+    selector: 'app-query-description-form-field',
+    templateUrl: './query-description-form-field.component.html',
+    styleUrls: ['./query-description-form-field.component.scss'],
+    standalone: false
 })
 export class QueryDescriptionFormFieldComponent {
 

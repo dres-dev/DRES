@@ -2,9 +2,10 @@ import { Component, Input, ViewChild } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 
 @Component({
-  selector: 'app-upload-json-button',
-  templateUrl: './upload-json-button.component.html',
-  styleUrls: ['./upload-json-button.component.scss'],
+    selector: 'app-upload-json-button',
+    templateUrl: './upload-json-button.component.html',
+    styleUrls: ['./upload-json-button.component.scss'],
+    standalone: false
 })
 export class UploadJsonButtonComponent {
 

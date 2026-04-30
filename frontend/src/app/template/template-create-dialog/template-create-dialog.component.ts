@@ -4,9 +4,10 @@ import { MatDialogRef } from "@angular/material/dialog";
 import { ApiCreateEvaluation } from "../../../../openapi";
 
 @Component({
-  selector: 'app-template-create-dialog',
-  templateUrl: './template-create-dialog.component.html',
-  styleUrls: ['./template-create-dialog.component.scss']
+    selector: 'app-template-create-dialog',
+    templateUrl: './template-create-dialog.component.html',
+    styleUrls: ['./template-create-dialog.component.scss'],
+    standalone: false
 })
 export class TemplateCreateDialogComponent {
   form: FormGroup = new FormGroup({

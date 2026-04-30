@@ -33,9 +33,10 @@ enum ViewerState {
 }
 
 @Component({
-  selector: 'app-task-viewer',
-  templateUrl: './task-viewer.component.html',
-  styleUrls: ['./task-viewer.component.scss'],
+    selector: 'app-task-viewer',
+    templateUrl: './task-viewer.component.html',
+    styleUrls: ['./task-viewer.component.scss'],
+    standalone: false
 })
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @Input() evaluationId: Observable<string>;

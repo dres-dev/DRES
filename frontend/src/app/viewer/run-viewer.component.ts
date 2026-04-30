@@ -19,9 +19,10 @@ import {ApiEvaluationInfo, ApiEvaluationState, EvaluationService} from '../../..
 import {Overlay} from "@angular/cdk/overlay";
 
 @Component({
-  selector: 'app-run-viewer',
-  templateUrl: './run-viewer.component.html',
-  styleUrls: ['./run-viewer.component.scss']
+    selector: 'app-run-viewer',
+    templateUrl: './run-viewer.component.html',
+    styleUrls: ['./run-viewer.component.scss'],
+    standalone: false
 })
 export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 

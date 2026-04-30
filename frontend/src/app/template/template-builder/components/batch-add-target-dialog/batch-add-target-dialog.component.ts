@@ -7,9 +7,10 @@ export interface BatchAddTargetDialogData{
 }
 
 @Component({
-  selector: 'app-batch-add-target-dialog',
-  templateUrl: './batch-add-target-dialog.component.html',
-  styleUrls: ['./batch-add-target-dialog.component.scss']
+    selector: 'app-batch-add-target-dialog',
+    templateUrl: './batch-add-target-dialog.component.html',
+    styleUrls: ['./batch-add-target-dialog.component.scss'],
+    standalone: false
 })
 export class BatchAddTargetDialogComponent {
 

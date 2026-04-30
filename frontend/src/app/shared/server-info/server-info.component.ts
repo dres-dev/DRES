@@ -7,10 +7,11 @@ import { LOGGER_CONFIG } from "../../services/logging/logger-config.token";
 import { LoggerConfig } from "../../services/logging/logger.config";
 
 @Component({
-  selector: "app-server-info",
-  templateUrl: "./server-info.component.html",
-  styleUrls: ["./server-info.component.scss"],
-  providers:[LogService, {provide: LOGGER_CONFIG, useValue: {identifier: 'ServerInfoComponent'} as LoggerConfig}]
+    selector: "app-server-info",
+    templateUrl: "./server-info.component.html",
+    styleUrls: ["./server-info.component.scss"],
+    providers: [LogService, { provide: LOGGER_CONFIG, useValue: { identifier: 'ServerInfoComponent' } as LoggerConfig }],
+    standalone: false
 })
 export class ServerInfoComponent implements OnInit, OnDestroy, AfterViewInit {
 

@@ -15,7 +15,7 @@ import {animate, keyframes, style, transition, trigger} from '@angular/animation
 import {
   ApiAnswerType, ApiEvaluationInfo, ApiEvaluationState, ApiMediaItem, ApiScoreOverview,
   ApiSubmission, ApiTeam, ApiVerdictStatus, EvaluationScoresService, EvaluationService
-} from "openapi";
+} from '../../../openapi';
 import { HttpErrorResponse } from '@angular/common/http';
 
 /**

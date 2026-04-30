@@ -14,7 +14,7 @@
       "dom"
     ],
     "useDefineForClassFields": false,
-    "moduleResolution": "node"
+    "moduleResolution": "bundler"
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,

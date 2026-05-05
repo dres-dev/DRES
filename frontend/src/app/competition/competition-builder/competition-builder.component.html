@@ -44,14 +44,14 @@
 <div *ngIf="competition">
   <div class="flex flex-column content-between align-stretch">
     <div class="flex flex-row content-between">
-      <!-- Judges and Competition Description -->
+      <!-- Judges and Evaluation Template Description -->
       <div class="flex-70">
-        <!-- Competition  Description -->
+        <!-- Evaluation Template Description -->
         <form [formGroup]="form">
           <p>
             <mat-form-field style="width: 100%">
               <mat-label>Name</mat-label>
-              <input type="text" matInput placeholder="Competition Name" formControlName="name" required />
+              <input type="text" matInput placeholder="Evaluation Template Name" formControlName="name" required />
             </mat-form-field>
           </p>
 
@@ -121,7 +121,7 @@
           </h2>
         </form>
       </div>
-      <!-- END Competition Description -->
+      <!-- END Evaluation Template Description -->
 
       <div class="flex-25">
         <!-- Judges Table -->
@@ -180,7 +180,7 @@
       </div>
       <!-- END Judges Table -->
     </div>
-    <!-- END Judges and Competition Description -->
+    <!-- END Judges and Evaluation Template Description -->
     <div class="flex flex-row content-between" style="display: flex; flex-direction: row">
       <!-- Teams and Tasks -->
       <div style="flex: 1 1 100%">

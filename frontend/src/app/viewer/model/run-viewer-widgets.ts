@@ -14,7 +14,7 @@ export class Widget {
   /** The {@link Widget}s available at the center of the viewer. */
   public static CENTER_WIDGETS: Array<Widget> = [
     new Widget('player', 'Player'),
-    new Widget('competition_score', 'Normalized Competition Scores'),
+    new Widget('competition_score', 'Normalized Evaluation Scores'),
     new Widget('task_type_score', 'Task Type Score'),
   ];
 

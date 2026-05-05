@@ -217,21 +217,30 @@ export class TemplateBuilderService {
   }
 
   public removeTaskType(taskType: ApiTaskType){
-    this.getTemplate().taskTypes.splice(this.getTemplate().taskTypes.indexOf(taskType), 1);
+    const idx = this.getTemplate().taskTypes.findIndex(t => t.name === taskType.name);
+    if (idx > -1) {
+      this.getTemplate().taskTypes.splice(idx, 1);
+    }
     this.getTemplate().taskGroups.filter((g) => g.type === taskType.name)
         .forEach((g) => this.removeTaskGroup(g));
     this.update(this.getTemplate())
   }
 
   public removeTaskGroup(taskGroup: ApiTaskGroup){
-    this.getTemplate().taskGroups.splice(this.getTemplate().taskGroups.indexOf(taskGroup), 1);
+    const idx = this.getTemplate().taskGroups.findIndex(g => taskGroup.id ? g.id === taskGroup.id : g.name === taskGroup.name);
+    if (idx > -1) {
+      this.getTemplate().taskGroups.splice(idx, 1);
+    }
     this.getTemplate().tasks.filter((t) => t.taskGroup === taskGroup.name)
         .forEach((t) => this.removeTask(t));
     this.update(this.getTemplate());
   }
 
   public removeTask(task: ApiTaskTemplate){
-    this.getTemplate().tasks.splice(this.getTemplate().tasks.indexOf(task), 1);
+    const idx = this.getTemplate().tasks.findIndex(t => task.id ? t.id === task.id : t === task);
+    if (idx > -1) {
+      this.getTemplate().tasks.splice(idx, 1);
+    }
     this.update(this.getTemplate());
     if(this.getSelectedTaskTemplate() == task){
       this.selectTaskTemplate(null);

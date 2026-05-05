@@ -174,8 +174,9 @@ export class ScoreboardViewerComponent implements OnInit {
           ] as ApexAxisChartSeries;
         } else {
           const combined = team
-            .map((t, i) => {
-              return { team: t, score: Math.round(scores.scores[i].score) };
+            .map((t) => {
+              const teamScore = scores.scores.find((s) => s.teamId === t.id);
+              return { team: t, score: teamScore ? Math.round(teamScore.score) : 0 };
             })
             .sort((a, b) => b.score - a.score);
           return [

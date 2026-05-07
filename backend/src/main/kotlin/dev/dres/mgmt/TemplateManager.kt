@@ -93,9 +93,12 @@ object TemplateManager {
 
         /* Update task type information. */
         val taskTypes = apiEvaluationTemplate.taskTypes.map { it.name }.toTypedArray()
-        dbEvaluationTemplate.taskTypes.removeAll(
-            DbTaskType.query(DbTaskType::evaluation eq dbEvaluationTemplate and not(DbTaskType::name.containsIn(*taskTypes)))
-        )
+        val taskTypesToDeleteQuery = DbTaskType.query(DbTaskType::evaluation eq dbEvaluationTemplate and not(DbTaskType::name.containsIn(*taskTypes)))
+        val configurationsToDelIds = taskTypesToDeleteQuery.toList().map {
+            it.configurations.toList().map { config -> config.entityId }
+        }.flatten().toTypedArray()
+        dbEvaluationTemplate.taskTypes.removeAll(taskTypesToDeleteQuery)
+        DbConfiguredOption.all().toList().filter { configurationsToDelIds.contains(it.entityId) }.forEach { it.delete() }
         for (apiTaskType in apiEvaluationTemplate.taskTypes) {
             val taskType =
                 DbTaskType.findOrNew(DbTaskType.query((DbTaskType::name eq apiTaskType.name) and (DbTaskType::evaluation eq dbEvaluationTemplate))) {
@@ -211,7 +214,9 @@ object TemplateManager {
             }
 
             /* Update task targets. */
+            val oldTargetIds = task.targets.toList().map { it.entityId }.toTypedArray()
             task.targets.clear()
+            DbTaskTemplateTarget.all().toList().filter { oldTargetIds.contains(it.entityId) }.forEach { it.delete() }
             for (target in apiTask.targets) {
                 task.targets.add(DbTaskTemplateTarget.new {
                     this.type = target.type.toDb()
@@ -226,7 +231,9 @@ object TemplateManager {
             }
 
             /* Update task hints. */
+            val oldHintIds = task.hints.toList().map { it.entityId }.toTypedArray()
             task.hints.clear()
+            DbHint.all().toList().filter { oldHintIds.contains(it.entityId) }.forEach { it.delete() }
             for (hint in apiTask.hints) {
                 task.hints.add(DbHint.new {
                     this.type = hint.type.toDb()

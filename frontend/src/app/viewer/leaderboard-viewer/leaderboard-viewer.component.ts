@@ -2,11 +2,14 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, switchMap, filter } from 'rxjs/operators';
 import { ApiEvaluationInfo, ApiEvaluationState, EvaluationScoresService } from '../../../../openapi';
+import { CommonModule } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-leaderboard-viewer',
   templateUrl: './leaderboard-viewer.component.html',
-  styleUrls: ['./leaderboard-viewer.component.scss']
+  styleUrls: ['./leaderboard-viewer.component.scss'],
+  imports: [CommonModule, MatTooltipModule]
 })
 export class LeaderboardViewerComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;

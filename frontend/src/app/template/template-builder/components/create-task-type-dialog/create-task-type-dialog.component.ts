@@ -14,6 +14,7 @@ interface ActivatedType<T> {
 
 @Component({
   selector: 'app-create-task-type',
+  standalone: false,
   templateUrl: './create-task-type-dialog.component.html',
   styleUrls: ['./create-task-type-dialog.component.scss'],
 })

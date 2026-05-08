@@ -1,6 +1,5 @@
 @use '@angular/material' as mat;
 /* You can add global styles to this file, and also import other style files */
-@use '@angular/material' as mat;
 @include mat.core();
 
 html,
@@ -67,22 +66,6 @@ app-judgement-media-viewer .mat-progress-bar-buffer {
 
 
 
-$primary: mat.define-palette(mat.$purple-palette);
-$accent: mat.define-palette(mat.$green-palette, A200);
-$warn: mat.define-palette(mat.$red-palette, 500);
-
-/* Having access to the color palette */
-.primary-color {
-  color: mat.get-color-from-palette($primary) !important;
-}
-
-.accent-color {
-  color: mat.get-color-from-palette($accent) !important;
-}
-
-.warn-color {
-  color: mat.get-color-from-palette($warn) !important;
-}
 
 .p1r {
   padding: 1rem;

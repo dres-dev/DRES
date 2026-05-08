@@ -307,3 +307,8 @@ frontend/openapi/
 
 ## Do not include the generated yarn.lock when using the build process
 yarn.lock
+<<<<<<< HEAD
+=======
+
+.claude/
+>>>>>>> fdc56b57 (issue 466: added clamped end for if desired length was longer than actual video length)

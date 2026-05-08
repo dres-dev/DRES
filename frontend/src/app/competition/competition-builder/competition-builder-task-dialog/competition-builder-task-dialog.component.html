@@ -10,9 +10,11 @@
       </mat-form-field>
 
       <mat-form-field style="width: 40%" *ngIf="form.get('mediaCollection')">
+        <mat-label>Media Collection</mat-label>
         <mat-select
           [placeholder]="(data.taskType.targetOption === 'JUDGEMENT' ? 'Default ' : '') + 'Media Collection'"
           [formControl]="form.get('mediaCollection')"
+          required
         >
           <mat-option *ngFor="let mediaCollection of mediaCollectionSource | async" [value]="mediaCollection.id">
             <span>{{ mediaCollection.name }}</span> (ID: {{ mediaCollection.id }})

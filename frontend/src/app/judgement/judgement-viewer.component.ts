@@ -270,11 +270,11 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     private stopAll() {
-        this.requestSub.unsubscribe();
+        this.requestSub?.unsubscribe();
         this.requestSub = null;
-        this.statusSub.unsubscribe();
+        this.statusSub?.unsubscribe();
         this.statusSub = null;
-        this.deadMansSwitchSub.unsubscribe();
+        this.deadMansSwitchSub?.unsubscribe();
         this.deadMansSwitchSub = null;
         if (this.judgePlayer) {
             this.judgePlayer.stop();

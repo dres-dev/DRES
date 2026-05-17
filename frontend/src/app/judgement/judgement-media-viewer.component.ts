@@ -126,6 +126,14 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
+  seekToPosition(event: MouseEvent) {
+    const element = event.currentTarget as HTMLElement;
+    const fraction = event.offsetX / element.clientWidth;
+    if (this.video && this.video.nativeElement && this.startInSeconds !== undefined && this.endInSeconds !== undefined) {
+      this.video.nativeElement.currentTime = this.startInSeconds + fraction * (this.endInSeconds - this.startInSeconds);
+    }
+  }
+
   play() {
     if (this.mediaUrl && this.video && this.video.nativeElement) {
       this.video.nativeElement.play();

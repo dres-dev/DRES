@@ -47,6 +47,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     noJudgementMessage = '';
     isJudgmentAvailable = false;
     isNewJudgementDesc = false;
+    previousJudgementRequest: ApiJudgementRequest | null = null;
 
     openSubmissions = new BehaviorSubject(0);
     pendingSubmissions = new BehaviorSubject(0);
@@ -108,6 +109,14 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             case 'w':
                 this.judge('WRONG');
                 break;
+        }
+    }
+
+    @HostListener('document:keydown', ['$event'])
+    handleKeydown(event: KeyboardEvent) {
+        if (event.code === 'Space' && this.judgePlayer) {
+            event.preventDefault();
+            this.judgePlayer.togglePlaying();
         }
     }
 
@@ -242,17 +251,27 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                     this.snackBar.open(res.description, null, {duration: 5000});
                 }
             });
+        this.previousJudgementRequest = this.judgementRequest;
         this.judgePlayer.stop();
         this.judgementRequest = null;
         this.isJudgmentAvailable = false;
     }
 
+    goBack() {
+        if (this.previousJudgementRequest) {
+            this.judgementRequest = this.previousJudgementRequest;
+            this.observableJudgementRequest.next(this.previousJudgementRequest);
+            this.isJudgmentAvailable = true;
+            this.previousJudgementRequest = null;
+        }
+    }
+
     private stopAll() {
-        this.requestSub.unsubscribe();
+        this.requestSub?.unsubscribe();
         this.requestSub = null;
-        this.statusSub.unsubscribe();
+        this.statusSub?.unsubscribe();
         this.statusSub = null;
-        this.deadMansSwitchSub.unsubscribe();
+        this.deadMansSwitchSub?.unsubscribe();
         this.deadMansSwitchSub = null;
         if (this.judgePlayer) {
             this.judgePlayer.stop();

@@ -6,8 +6,8 @@ import { DataUtilities } from '../../utilities/data.utilities';
 import {ApiContentElement, ApiHint} from '../../../../openapi';
 
 @Component({
-  selector: 'app-video-object-preview',
-  template: `
+    selector: 'app-video-object-preview',
+    template: `
     <div class="video-container">
       <video
         #player
@@ -22,6 +22,7 @@ import {ApiContentElement, ApiHint} from '../../../../openapi';
       ></video>
     </div>
   `,
+    standalone: false
 })
 export class VideoObjectPreviewComponent implements OnInit {
   /** Observable of current {@link ContentElement} that should be displayed. Provided by user of this component. */

@@ -4,9 +4,10 @@ import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms
 import {ApiMediaCollection} from '../../../../../openapi';
 
 @Component({
-  selector: 'app-collection-builder-dialog',
-  templateUrl: './collection-builder-dialog.component.html',
-  styleUrls: ['./collection-builder-dialog.component.scss'],
+    selector: 'app-collection-builder-dialog',
+    templateUrl: './collection-builder-dialog.component.html',
+    styleUrls: ['./collection-builder-dialog.component.scss'],
+    standalone: false
 })
 export class CollectionBuilderDialogComponent implements OnInit {
   form: UntypedFormGroup;

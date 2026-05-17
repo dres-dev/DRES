@@ -2,11 +2,14 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, switchMap, filter } from 'rxjs/operators';
 import { ApiEvaluationInfo, ApiEvaluationState, EvaluationScoresService } from '../../../../openapi';
+import { CommonModule } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-compact-score-graph',
   templateUrl: './compact-score-graph.component.html',
-  styleUrls: ['./compact-score-graph.component.scss']
+  styleUrls: ['./compact-score-graph.component.scss'],
+  imports: [CommonModule, MatTooltipModule]
 })
 export class CompactScoreGraphComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;

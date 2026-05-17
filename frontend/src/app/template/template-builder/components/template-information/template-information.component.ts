@@ -8,9 +8,10 @@ import { ActivatedRoute } from "@angular/router";
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
-  selector: "app-template-information",
-  templateUrl: "./template-information.component.html",
-  styleUrls: ["./template-information.component.scss"]
+    selector: "app-template-information",
+    templateUrl: "./template-information.component.html",
+    styleUrls: ["./template-information.component.scss"],
+    standalone: false
 })
 export class TemplateInformationComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy, AfterViewInit {
 

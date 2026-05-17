@@ -25,9 +25,10 @@ import { BatchAddTargetDialogComponent, BatchAddTargetDialogData } from "../batc
 import { NavigationEnd, Router, RouterEvent } from "@angular/router";
 
 @Component({
-  selector: 'app-task-template-editor',
-  templateUrl: './task-template-editor.component.html',
-  styleUrls: ['./task-template-editor.component.scss']
+    selector: 'app-task-template-editor',
+    templateUrl: './task-template-editor.component.html',
+    styleUrls: ['./task-template-editor.component.scss'],
+    standalone: false
 })
 export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 

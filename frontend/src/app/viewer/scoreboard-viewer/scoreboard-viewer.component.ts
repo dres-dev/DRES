@@ -22,9 +22,10 @@ import { HttpErrorResponse } from '@angular/common/http';
  * competitionOverview = false -- In this mode, a bar chart of the current task group is shown
  */
 @Component({
-  selector: 'app-scoreboard-viewer',
-  templateUrl: './scoreboard-viewer.component.html',
-  styleUrls: ['./scoreboard-viewer.component.scss'],
+    selector: 'app-scoreboard-viewer',
+    templateUrl: './scoreboard-viewer.component.html',
+    styleUrls: ['./scoreboard-viewer.component.scss'],
+    standalone: false
 })
 export class ScoreboardViewerComponent implements OnInit {
   /**

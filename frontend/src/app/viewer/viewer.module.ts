@@ -52,10 +52,14 @@ import { CompactScoreGraphComponent } from './compact-score-graph/compact-score-
     BrowserAnimationsModule,
     SharedModule,
     OverlayModule,
-    EvaluationModule
+    EvaluationModule,
+    LeaderboardViewerComponent,
+    CompactTeamsViewerComponent,
+    RecentSubmissionsComponent,
+    CompactScoreGraphComponent,
   ],
   exports: [RunViewerComponent],
-  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent, LeaderboardViewerComponent, CompactTeamsViewerComponent, RecentSubmissionsComponent, CompactScoreGraphComponent],
+  declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent],
   providers: [{provide: OverlayContainer, useClass: FullscreenOverlayContainer}],
 })
 export class ViewerModule {}

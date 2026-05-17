@@ -7,9 +7,10 @@ import { FormatMediaItemPipe, MediaItemDisplayOptions } from "../../../../servic
 import { ApiMediaItem } from "../../../../../../openapi";
 
 @Component({
-  selector: "app-query-description-media-item-form-field",
-  templateUrl: "./query-description-media-item-form-field.component.html",
-  styleUrls: ["./query-description-media-item-form-field.component.scss"]
+    selector: "app-query-description-media-item-form-field",
+    templateUrl: "./query-description-media-item-form-field.component.html",
+    styleUrls: ["./query-description-media-item-form-field.component.scss"],
+    standalone: false
 })
 export class QueryDescriptionMediaItemFormFieldComponent {
   @Input()

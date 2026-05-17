@@ -4,7 +4,8 @@ import { Pipe, PipeTransform } from '@angular/core';
  * Transforms a given number as hours:minutes:seconds
  */
 @Pipe({
-  name: 'formatTime',
+    name: 'formatTime',
+    standalone: false
 })
 export class FormatTimePipePipe implements PipeTransform {
   transform(value: number, inMs = true): string {

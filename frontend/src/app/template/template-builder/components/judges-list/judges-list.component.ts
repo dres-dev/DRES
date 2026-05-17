@@ -12,7 +12,8 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 @Component({
     selector: 'app-judges-list',
     templateUrl: './judges-list.component.html',
-    styleUrls: ['./judges-list.component.scss']
+    styleUrls: ['./judges-list.component.scss'],
+    standalone: false
 })
 export class JudgesListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy {
 

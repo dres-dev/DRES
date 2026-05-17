@@ -8,7 +8,8 @@ export interface MediaItemDisplayOptions {
 }
 
 @Pipe({
-  name: 'formatMediaItem'
+    name: 'formatMediaItem',
+    standalone: false
 })
 export class FormatMediaItemPipe implements PipeTransform {
 

@@ -39,6 +39,7 @@ import {Component} from "@angular/core";
             </mat-card-content>
         </mat-card>
     `,
+    standalone: false
 })
 export class ForbiddenComponent {
 }

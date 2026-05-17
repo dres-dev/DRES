@@ -4,12 +4,15 @@ import { catchError, map, switchMap, filter, sampleTime, shareReplay } from 'rxj
 import { ApiEvaluationInfo, ApiEvaluationState, ApiMediaItem, EvaluationService } from '../../../../openapi';
 import { AppConfig } from '../../app.config';
 import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-recent-submissions',
   templateUrl: './recent-submissions.component.html',
   styleUrls: ['./recent-submissions.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, MatTooltipModule]
 })
 export class RecentSubmissionsComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;

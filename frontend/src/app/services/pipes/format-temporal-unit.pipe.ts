@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { ApiTemporalUnit } from "../../../../openapi";
 
 @Pipe({
-  name: 'formatTemporalUnit'
+    name: 'formatTemporalUnit',
+    standalone: false
 })
 export class FormatTemporalUnitPipe implements PipeTransform {
 

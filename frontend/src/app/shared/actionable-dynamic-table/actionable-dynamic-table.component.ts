@@ -24,9 +24,10 @@ export enum ActionableDynamicTableActionType{
 }
 
 @Component({
-  selector: 'app-actionable-dynamic-table',
-  templateUrl: './actionable-dynamic-table.component.html',
-  styleUrls: ['./actionable-dynamic-table.component.scss']
+    selector: 'app-actionable-dynamic-table',
+    templateUrl: './actionable-dynamic-table.component.html',
+    styleUrls: ['./actionable-dynamic-table.component.scss'],
+    standalone: false
 })
 export class ActionableDynamicTable<T> implements AfterContentInit{
 

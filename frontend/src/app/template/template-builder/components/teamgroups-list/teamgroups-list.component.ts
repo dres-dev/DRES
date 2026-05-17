@@ -16,9 +16,10 @@ import { ActivatedRoute } from "@angular/router";
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
-  selector: 'app-teamgroups-list',
-  templateUrl: './teamgroups-list.component.html',
-  styleUrls: ['./teamgroups-list.component.scss']
+    selector: 'app-teamgroups-list',
+    templateUrl: './teamgroups-list.component.html',
+    styleUrls: ['./teamgroups-list.component.scss'],
+    standalone: false
 })
 export class TeamgroupsListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy{
 

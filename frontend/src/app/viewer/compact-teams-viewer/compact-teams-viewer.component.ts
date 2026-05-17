@@ -2,12 +2,15 @@ import { Component, Input, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, O
 import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, switchMap, sampleTime, shareReplay, retry, startWith } from 'rxjs/operators';
 import { ApiEvaluationInfo, ApiEvaluationState, EvaluationScoresService, EvaluationService } from '../../../../openapi';
+import { CommonModule } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-compact-teams-viewer',
   templateUrl: './compact-teams-viewer.component.html',
   styleUrls: ['./compact-teams-viewer.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, MatTooltipModule]
 })
 export class CompactTeamsViewerComponent implements OnInit, OnDestroy {
   @Input() info: Observable<ApiEvaluationInfo>;

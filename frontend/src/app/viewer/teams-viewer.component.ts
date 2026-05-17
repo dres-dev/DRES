@@ -15,7 +15,7 @@ import {animate, keyframes, style, transition, trigger} from '@angular/animation
 import {
   ApiAnswerType, ApiEvaluationInfo, ApiEvaluationState, ApiMediaItem, ApiScoreOverview,
   ApiSubmission, ApiTeam, ApiVerdictStatus, EvaluationScoresService, EvaluationService
-} from "openapi";
+} from '../../../openapi';
 import { HttpErrorResponse } from '@angular/common/http';
 
 /**
@@ -43,36 +43,25 @@ interface SubmissionPreview {
 
 
 @Component({
-  selector: 'app-teams-viewer',
-  templateUrl: './teams-viewer.component.html',
-  styleUrls: ['./teams-viewer.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('highlight', [
-      transition(
-        'nohighlight => correct',
-        animate(
-          '1500ms',
-          keyframes([
-            style({ backgroundColor: 'initial', offset: 0 }),
-            style({ backgroundColor: 'lightgreen', offset: 0.1 }),
-            style({ backgroundColor: 'initial', offset: 1 }),
-          ])
-        )
-      ),
-      transition(
-        'nohighlight => wrong',
-        animate(
-          '1500ms',
-          keyframes([
-            style({ backgroundColor: 'initial', offset: 0 }),
-            style({ backgroundColor: 'tomato', offset: 0.1 }),
-            style({ backgroundColor: 'initial', offset: 1 }),
-          ])
-        )
-      ),
-    ]),
-  ],
+    selector: 'app-teams-viewer',
+    templateUrl: './teams-viewer.component.html',
+    styleUrls: ['./teams-viewer.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('highlight', [
+            transition('nohighlight => correct', animate('1500ms', keyframes([
+                style({ backgroundColor: 'initial', offset: 0 }),
+                style({ backgroundColor: 'lightgreen', offset: 0.1 }),
+                style({ backgroundColor: 'initial', offset: 1 }),
+            ]))),
+            transition('nohighlight => wrong', animate('1500ms', keyframes([
+                style({ backgroundColor: 'initial', offset: 0 }),
+                style({ backgroundColor: 'tomato', offset: 0.1 }),
+                style({ backgroundColor: 'initial', offset: 1 }),
+            ]))),
+        ]),
+    ],
+    standalone: false
 })
 export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   @Input() runId: Observable<string>;

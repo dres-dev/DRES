@@ -1,5 +1,5 @@
-/* You can add global styles to this file, and also import other style files */
 @use '@angular/material' as mat;
+/* You can add global styles to this file, and also import other style files */
 @include mat.core();
 
 html,
@@ -11,74 +11,61 @@ body {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
-@import '@angular/material/prebuilt-themes/purple-green.css';
+
+// Angular Material 18 syntax
+@include mat.elevation-classes();
+@include mat.app-background();
+
+$theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$violet-palette,
+    tertiary: mat.$green-palette,
+  )
+));
+
+:root {
+  @include mat.all-component-themes($theme);
+}
+
+// Color utility classes
+.primary-color {
+  color: mat.get-theme-color($theme, primary) !important;
+}
+.accent-color {
+  color: mat.get-theme-color($theme, tertiary) !important;
+}
+.warn-color {
+  color: mat.get-theme-color($theme, error) !important;
+}
 
 .overlay {
   background-color: black;
   opacity: 0.75;
 }
 
-/* */
 #container {
-  margin-top: 25px; /* Previous 100px seems far too much */
+  margin-top: 25px;
   margin-left: 50px;
   margin-right: 50px;
 }
 
-/* Defines some spacer classes that can be used in flexboxes etc. */
+/* Spacer classes */
+.spacer-xxlarge { padding: 0 80px; }
+.spacer-xlarge  { padding: 0 40px; }
+.spacer-large   { padding: 0 25px; }
+.spacer-medium  { padding: 0 15px; }
+.spacer-small   { padding: 0 10px; }
+.spacer-tiny    { padding: 0 5px;  }
+.spacer-flex    { flex: 1 1 auto;  }
 
-.spacer-xxlarge {
-  padding: 0 80px;
-}
-
-.spacer-xlarge {
-  padding: 0 40px;
-}
-
-.spacer-large {
-  padding: 0 25px;
-}
-
-.spacer-medium {
-  padding: 0 15px;
-}
-
-.spacer-small {
-  padding: 0 10px;
-}
-
-.spacer-tiny {
-  padding: 0 5px;
-}
-
-.spacer-flex {
-  flex: 1 1 auto;
-}
-
-/* Hack for progressbar */
-/* TODO(mdc-migration): The following rule targets internal classes of progress-bar that may no longer apply for the MDC version. */
+/* Progressbar hack */
 app-judgement-media-viewer .mat-progress-bar-buffer {
-  background-color: #e1bee7 !important; /* Not sure why this has to be done manually: https://material.angular.io/components/progress-bar/overview */
+  background-color: #e1bee7 !important;
 }
 
 
 
-$primary: mat.define-palette(mat.$purple-palette);
-$accent: mat.define-palette(mat.$green-palette, A200);
-$warn: mat.define-palette(mat.$red-palette, 500);
-
-/* Having access to the color palette */
-.primary-color {
-  color: mat.get-color-from-palette($primary) !important;
-}
-
-.accent-color {
-  color: mat.get-color-from-palette($accent) !important;
-}
-
-.warn-color {
-  color: mat.get-color-from-palette($warn) !important;
-}
 
 .p1r {
   padding: 1rem;

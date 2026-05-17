@@ -15,9 +15,10 @@ import { MatSort } from '@angular/material/sort';
 import {ApiMediaItem, ApiPopulatedMediaCollection, CollectionService} from '../../../../openapi';
 
 @Component({
-  selector: 'app-collection-viewer',
-  templateUrl: './collection-viewer.component.html',
-  styleUrls: ['./collection-viewer.component.scss'],
+    selector: 'app-collection-viewer',
+    templateUrl: './collection-viewer.component.html',
+    styleUrls: ['./collection-viewer.component.scss'],
+    standalone: false
 })
 export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
 

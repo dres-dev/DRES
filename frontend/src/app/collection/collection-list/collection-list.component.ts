@@ -10,9 +10,10 @@ import {ApiMediaCollection, CollectionService} from '../../../../openapi';
  * @deprecated
  */
 @Component({
-  selector: 'app-collection-list',
-  templateUrl: './collection-list.component.html',
-  styleUrls: ['./collection-list.component.scss'],
+    selector: 'app-collection-list',
+    templateUrl: './collection-list.component.html',
+    styleUrls: ['./collection-list.component.scss'],
+    standalone: false
 })
 export class CollectionListComponent implements AfterViewInit {
   displayedColumns = ['actions', 'id', 'name', 'description', 'basePath'];

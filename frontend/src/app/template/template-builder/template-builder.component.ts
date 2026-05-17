@@ -33,9 +33,10 @@ import {
 import { InformationDialogComponent } from "../../shared/information-dialog/information-dialog.component";
 
 @Component({
-  selector: 'app-template-builder',
-  templateUrl: './template-builder.component.html',
-  styleUrls: ['./template-builder.component.scss']
+    selector: 'app-template-builder',
+    templateUrl: './template-builder.component.html',
+    styleUrls: ['./template-builder.component.scss'],
+    standalone: false
 })
 export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy, DeactivationGuarded, TaskTemplateEditorLauncher {
   onChange() {

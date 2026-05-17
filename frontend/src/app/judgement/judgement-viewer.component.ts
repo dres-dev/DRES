@@ -4,7 +4,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import {animate, keyframes, state, style, transition, trigger} from '@angular/animations';
 import {MatDialog} from '@angular/material/dialog';
 import {JudgementDialogComponent} from './judgement-dialog/judgement-dialog.component';
@@ -21,21 +21,18 @@ import {ApiJudgement, ApiJudgementRequest, ApiVerdictStatus, JudgementService} f
     styleUrls: ['./judgement-viewer.component.scss'],
     animations: [
         trigger('newDescBg', [
-            state('known', style({backgroundColor: 'transparent'})),
-            state('fresh', style({backgroundColor: 'transparent'})),
-
+            state('known', style({ backgroundColor: 'transparent' })),
+            state('fresh', style({ backgroundColor: 'transparent' })),
             transition('known => fresh', [
-                animate(
-                    '3s',
-                    keyframes([
-                        style({backgroundColor: 'transparent', offset: 0}),
-                        style({backgroundColor: '#FFFFFF', offset: 0.2}),
-                        style({backgroundColor: 'transparent', offset: 1}),
-                    ])
-                ),
+                animate('3s', keyframes([
+                    style({ backgroundColor: 'transparent', offset: 0 }),
+                    style({ backgroundColor: '#FFFFFF', offset: 0.2 }),
+                    style({ backgroundColor: 'transparent', offset: 1 }),
+                ])),
             ]),
         ]),
     ],
+    standalone: false
 })
 export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     status: 'fresh' | 'known' = 'known';

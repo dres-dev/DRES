@@ -10,9 +10,10 @@ import { AdminRunListComponent } from "./admin-run-list.component";
 import { ViewerRunListComponent } from "./viewer-run-list.component";
 
 @Component({
-  selector: 'app-run-list',
-  templateUrl: './run-list.component.html',
-  styleUrls: ['./run-list.component.scss']
+    selector: 'app-run-list',
+    templateUrl: './run-list.component.html',
+    styleUrls: ['./run-list.component.scss'],
+    standalone: false
 })
 export class RunListComponent implements AccessChecking {
   currentRole: Observable<ApiRole>;

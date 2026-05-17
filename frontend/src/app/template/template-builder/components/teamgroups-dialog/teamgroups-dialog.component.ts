@@ -9,9 +9,10 @@ import { map, shareReplay } from "rxjs/operators";
 import { MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
 
 @Component({
-  selector: 'app-teamgroups-dialog',
-  templateUrl: './teamgroups-dialog.component.html',
-  styleUrls: ['./teamgroups-dialog.component.scss']
+    selector: 'app-teamgroups-dialog',
+    templateUrl: './teamgroups-dialog.component.html',
+    styleUrls: ['./teamgroups-dialog.component.scss'],
+    standalone: false
 })
 export class TeamgroupsDialogComponent {
 

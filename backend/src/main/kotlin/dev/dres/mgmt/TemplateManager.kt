@@ -213,7 +213,9 @@ object TemplateManager {
             }
 
             if (task.isNew || task.taskGroup.name != apiTask.taskGroup) {
-                task.taskGroup = DbTaskGroup.query(DbTaskGroup::name eq apiTask.taskGroup).first()
+                task.taskGroup = DbTaskGroup.query(
+                    (DbTaskGroup::name eq apiTask.taskGroup) and (DbTaskGroup::evaluation eq dbEvaluationTemplate)
+                ).firstOrNull() ?: throw IllegalArgumentException("Unknown task group '${apiTask.taskGroup}' for evaluation ${apiEvaluationTemplate.id}.")
             }
 
             /* Update task targets. */

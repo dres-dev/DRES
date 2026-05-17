@@ -19,7 +19,7 @@ export class FormatTemporalPointPipe implements PipeTransform {
       case "SECONDS":
         return `${value.value}${this.unitPipe.transform(value.unit)}`;
       case "MILLISECONDS":
-        return `${Number(value.value) / 1000}${this.unitPipe.transform(value.unit)}`;
+        return this.timePipe.transform(Number(value.value));
       case "TIMECODE":
         return this.timePipe.transform(Number(value.value));
 

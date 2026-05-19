@@ -1,7 +1,15 @@
 package dres.integration
 
+import dev.dres.api.rest.types.evaluation.submission.ApiClientAnswer
+import dev.dres.api.rest.types.evaluation.submission.ApiClientAnswerSet
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.admin.DbUser
+import dev.dres.data.model.submissions.DbAnswer
+import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.submissions.DbAnswerType
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.media.*
 import dev.dres.data.model.run.*
 import dev.dres.data.model.submissions.*
@@ -115,6 +123,7 @@ abstract class AbstractDresIntegrationTest {
                 DbAnswerType.TEMPORAL; DbAnswerType.ITEM; DbAnswerType.TEXT
                 DbVerdictStatus.CORRECT; DbVerdictStatus.WRONG
                 DbVerdictStatus.INDETERMINATE; DbVerdictStatus.UNDECIDABLE
+                DbRole.VIEWER; DbRole.PARTICIPANT; DbRole.JUDGE; DbRole.ADMIN
             }
 
             storeInitialised = true
@@ -237,6 +246,82 @@ abstract class AbstractDresIntegrationTest {
             task
         }
     }
+
+    /** Creates a [DbUser] suitable for use in filter fixtures. */
+    fun createTestUser(nameSuffix: String = UUID.randomUUID().toString()): DbUser {
+        val s = store
+        return s.transactional {
+            val role = DbRole.filter { it.description eq "PARTICIPANT" }.first()
+            DbUser.new {
+                username = "user-$nameSuffix".take(16)
+                password = "password"
+                this.role = role
+            }
+        }
+    }
+
+    /**
+     * Creates a committed [DbTask] for the given [evaluation] and [taskTemplateId].
+     * Used to build filter test fixtures where answer sets must reference a real DB task.
+     */
+    fun createPersistedTask(evaluation: DbEvaluation, taskTemplateId: String): DbTask {
+        val s = store
+        return s.transactional {
+            DbTask.new {
+                status = DbTaskStatus.CREATED
+                this.evaluation = evaluation
+                this.template = DbTaskTemplate.filter { it.id eq taskTemplateId }.first()
+            }
+        }
+    }
+
+    /**
+     * Creates a [DbSubmission] with a single [DbAnswerSet] carrying the given [verdict]
+     * (e.g. "CORRECT", "WRONG", "INDETERMINATE") for the specified [task] and [team]/[user].
+     */
+    fun createSubmission(
+        task: DbTask,
+        team: DbTeam,
+        user: DbUser,
+        verdict: String
+    ): DbSubmission {
+        val s = store
+        return s.transactional {
+            val verdictStatus = DbVerdictStatus.filter { it.description eq verdict }.first()
+            val answerType = DbAnswerType.filter { it.description eq "TEXT" }.first()
+            val submission = DbSubmission.new {
+                this.timestamp = System.currentTimeMillis()
+                this.team = team
+                this.user = user
+            }
+            val answerSet = DbAnswerSet.new {
+                this.submission = submission
+                this.status = verdictStatus
+                this.task = task
+            }
+            DbAnswer.new {
+                this.answerSet = answerSet
+                this.type = answerType
+                this.text = "test-answer"
+            }
+            submission
+        }
+    }
+
+    /**
+     * Builds a minimal [ApiClientSubmission] pointing at [task] for use with DB-backed filters.
+     */
+    fun clientSubmission(task: DbTask, team: DbTeam, user: DbUser): ApiClientSubmission =
+        ApiClientSubmission(
+            answerSets = listOf(
+                ApiClientAnswerSet(
+                    taskId = store.transactional(true) { task.taskId },
+                    answers = listOf(ApiClientAnswer(text = "answer"))
+                )
+            ),
+            teamId = store.transactional(true) { team.teamId },
+            userId = store.transactional(true) { user.id }
+        )
 
     /**
      * Instantiates [template] and wraps it in a [DbEvaluation] of the given [typeDescription]

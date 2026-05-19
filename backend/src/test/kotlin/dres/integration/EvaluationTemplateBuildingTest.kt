@@ -289,7 +289,7 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
         val template = createTemplateShell("no-tasks-${UUID.randomUUID()}")
         addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
 
-        store.transactional(true) {
+        store.transactional {
             val instance = template.toInstance()
             assertEquals(0, instance.tasks.size(), "Instance from no-task template must have 0 tasks")
         }
@@ -302,7 +302,7 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
         val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
         addTask(template, group, col, "T1")
 
-        store.transactional(true) {
+        store.transactional {
             val instance = template.toInstance()
             assertEquals(0, instance.teams.size(), "Instance from no-team template must have 0 teams")
         }

@@ -23,6 +23,27 @@ import java.util.UUID
  */
 class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
 
+    /**
+     * Creates a DbTask (committed), then creates an ISTaskRun in a separate transaction.
+     * Mirrors the two-phase approach used by InteractiveSynchronousRunManager.startTask().
+     */
+    private fun createISTaskRun(
+        eval: InteractiveSynchronousEvaluation,
+        templateId: String,
+        prepare: Boolean = false
+    ): InteractiveSynchronousEvaluation.ISTaskRun {
+        val dbTask = store.transactional {
+            DbTask.new {
+                status = DbTaskStatus.CREATED
+                evaluation = eval.dbEvaluation
+                this.template = DbTaskTemplate.filter { it.id eq templateId }.first()
+            }
+        }
+        return store.transactional {
+            eval.ISTaskRun(dbTask).also { if (prepare) it.prepare() }
+        }
+    }
+
     private fun buildSyncEvaluation(taskCount: Int = 3, teamCount: Int = 2): InteractiveSynchronousEvaluation {
         val col = createTestCollection()
         val template = createTemplateShell("sync-${UUID.randomUUID()}", teamCount = teamCount)
@@ -132,16 +153,9 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
     fun `creating an ISTaskRun adds it to taskRuns`() {
         val eval = buildSyncEvaluation()
         store.transactional { eval.start() }
-        val template = store.transactional(true) { eval.getCurrentTaskTemplate() }
+        val tmplId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
 
-        store.transactional {
-            val dbTask = DbTask.new {
-                status = DbTaskStatus.CREATED
-                evaluation = eval.dbEvaluation
-                this.template = DbTaskTemplate.filter { it.id eq template.id!! }.first()
-            }
-            eval.ISTaskRun(dbTask)
-        }
+        createISTaskRun(eval, tmplId)
 
         assertEquals(1, eval.taskRuns.size)
     }
@@ -150,16 +164,9 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
     fun `ISTaskRun can be prepared and then ended`() {
         val eval = buildSyncEvaluation()
         store.transactional { eval.start() }
-        val template = store.transactional(true) { eval.getCurrentTaskTemplate() }
+        val tmplId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
 
-        val taskRun = store.transactional {
-            val dbTask = DbTask.new {
-                status = DbTaskStatus.CREATED
-                evaluation = eval.dbEvaluation
-                this.template = DbTaskTemplate.filter { it.id eq template.id!! }.first()
-            }
-            eval.ISTaskRun(dbTask).also { it.prepare() }
-        }
+        val taskRun = createISTaskRun(eval, tmplId, prepare = true)
 
         assertEquals(ApiTaskStatus.PREPARING, taskRun.status)
 
@@ -175,30 +182,23 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
     fun `creating second ISTaskRun while first is running throws`() {
         val eval = buildSyncEvaluation(taskCount = 2)
         store.transactional { eval.start() }
-        val template0 = store.transactional(true) { eval.getCurrentTaskTemplate() }
+        val tmplId0 = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
 
-        store.transactional {
-            val dbTask = DbTask.new {
+        createISTaskRun(eval, tmplId0) // first run — not ended
+
+        eval.goTo(1)
+        val tmplId1 = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
+
+        // Pre-create DbTask so the transaction in assertThrows only contains ISTaskRun creation
+        val dbTask2 = store.transactional {
+            DbTask.new {
                 status = DbTaskStatus.CREATED
                 evaluation = eval.dbEvaluation
-                this.template = dev.dres.data.model.template.task.DbTaskTemplate.filter { it.id eq template0.id!! }.first()
+                this.template = DbTaskTemplate.filter { it.id eq tmplId1 }.first()
             }
-            eval.ISTaskRun(dbTask)
         }
-
-        // Navigate to second task
-        eval.goTo(1)
-        val template1 = store.transactional(true) { eval.getCurrentTaskTemplate() }
-
         assertThrows(IllegalStateException::class.java) {
-            store.transactional {
-                val dbTask2 = DbTask.new {
-                    status = DbTaskStatus.CREATED
-                    evaluation = eval.dbEvaluation
-                    this.template = dev.dres.data.model.template.task.DbTaskTemplate.filter { it.id eq template1.id!! }.first()
-                }
-                eval.ISTaskRun(dbTask2)
-            }
+            store.transactional { eval.ISTaskRun(dbTask2) }
         }
     }
 
@@ -206,26 +206,13 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
     fun `task run can be repeated if previous one has ended`() {
         val eval = buildSyncEvaluation(taskCount = 1)
         store.transactional { eval.start() }
-        val template = store.transactional(true) { eval.getCurrentTaskTemplate() }
+        val tmplId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
 
-        val firstRun = store.transactional {
-            val dbTask = DbTask.new {
-                status = DbTaskStatus.CREATED
-                evaluation = eval.dbEvaluation
-                this.template = DbTaskTemplate.filter { it.id eq template.id!! }.first()
-            }
-            eval.ISTaskRun(dbTask).also { it.end() }
-        }
+        val firstRun = createISTaskRun(eval, tmplId)
+        store.transactional { firstRun.end() }
         assertTrue(firstRun.hasEnded)
 
-        val secondRun = store.transactional {
-            val dbTask2 = DbTask.new {
-                status = DbTaskStatus.CREATED
-                evaluation = eval.dbEvaluation
-                this.template = DbTaskTemplate.filter { it.id eq template.id!! }.first()
-            }
-            eval.ISTaskRun(dbTask2)
-        }
+        val secondRun = createISTaskRun(eval, tmplId)
         assertEquals(2, eval.taskRuns.size)
         assertFalse(secondRun.hasEnded)
     }
@@ -259,16 +246,9 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
         val eval = store.transactional { InteractiveSynchronousEvaluation(store, dbEval) }
 
         store.transactional { eval.start() }
-        val tmpl = store.transactional(true) { eval.getCurrentTaskTemplate() }
+        val tmplId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
 
-        val taskRun = store.transactional {
-            val dbTask = DbTask.new {
-                status = DbTaskStatus.CREATED
-                evaluation = eval.dbEvaluation
-                this.template = dev.dres.data.model.template.task.DbTaskTemplate.filter { it.id eq tmpl.id!! }.first()
-            }
-            eval.ISTaskRun(dbTask)
-        }
+        val taskRun = createISTaskRun(eval, tmplId)
 
         assertNull(taskRun.duration, "Perpetual task run must have null duration")
     }

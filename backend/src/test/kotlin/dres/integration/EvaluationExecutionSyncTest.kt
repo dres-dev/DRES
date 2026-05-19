@@ -5,8 +5,12 @@ import dev.dres.data.model.run.DbEvaluationType
 import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.DbTaskStatus
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.data.model.template.task.options.DbTargetOption
+import kotlinx.dnq.query.eq
+import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.first
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -22,9 +26,9 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
     private fun buildSyncEvaluation(taskCount: Int = 3, teamCount: Int = 2): InteractiveSynchronousEvaluation {
         val col = createTestCollection()
         val template = createTemplateShell("sync-${UUID.randomUUID()}", teamCount = teamCount)
-        val group = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_ITEM)
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_ITEM")
         repeat(taskCount) { i -> addTask(template, group, col, "Task-$i", idx = i) }
-        val dbEval = createEvaluation(template, "sync-run-${UUID.randomUUID()}", DbEvaluationType.INTERACTIVE_SYNCHRONOUS)
+        val dbEval = createEvaluation(template, "sync-run-${UUID.randomUUID()}", "INTERACTIVE_SYNCHRONOUS")
         return store.transactional { InteractiveSynchronousEvaluation(store, dbEval) }
     }
 
@@ -134,7 +138,7 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
             val dbTask = DbTask.new {
                 status = DbTaskStatus.CREATED
                 evaluation = eval.dbEvaluation
-                this.template = dev.dres.data.model.template.task.DbTaskTemplate.filter { it.id eq template.id!! }.first()
+                this.template = DbTaskTemplate.filter { it.id eq template.id!! }.first()
             }
             eval.ISTaskRun(dbTask)
         }
@@ -152,7 +156,7 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
             val dbTask = DbTask.new {
                 status = DbTaskStatus.CREATED
                 evaluation = eval.dbEvaluation
-                this.template = dev.dres.data.model.template.task.DbTaskTemplate.filter { it.id eq template.id!! }.first()
+                this.template = DbTaskTemplate.filter { it.id eq template.id!! }.first()
             }
             eval.ISTaskRun(dbTask).also { it.prepare() }
         }
@@ -208,7 +212,7 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
             val dbTask = DbTask.new {
                 status = DbTaskStatus.CREATED
                 evaluation = eval.dbEvaluation
-                this.template = dev.dres.data.model.template.task.DbTaskTemplate.filter { it.id eq template.id!! }.first()
+                this.template = DbTaskTemplate.filter { it.id eq template.id!! }.first()
             }
             eval.ISTaskRun(dbTask).also { it.end() }
         }
@@ -218,7 +222,7 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
             val dbTask2 = DbTask.new {
                 status = DbTaskStatus.CREATED
                 evaluation = eval.dbEvaluation
-                this.template = dev.dres.data.model.template.task.DbTaskTemplate.filter { it.id eq template.id!! }.first()
+                this.template = DbTaskTemplate.filter { it.id eq template.id!! }.first()
             }
             eval.ISTaskRun(dbTask2)
         }
@@ -249,9 +253,9 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
     fun `sync evaluation with perpetual task has null duration on task run`() {
         val col = createTestCollection()
         val template = createTemplateShell("sync-perpetual-${UUID.randomUUID()}")
-        val group = addTaskTypeAndGroup(template, "P-KIS", "P-KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_ITEM, durationSeconds = null)
+        val group = addTaskTypeAndGroup(template, "P-KIS", "P-KIS", "KIS", "MEDIA_ITEM", durationSeconds = null)
         addTask(template, group, col, "Perpetual-Task", durationSeconds = null)
-        val dbEval = createEvaluation(template, "sync-perpetual-run-${UUID.randomUUID()}", DbEvaluationType.INTERACTIVE_SYNCHRONOUS)
+        val dbEval = createEvaluation(template, "sync-perpetual-run-${UUID.randomUUID()}", "INTERACTIVE_SYNCHRONOUS")
         val eval = store.transactional { InteractiveSynchronousEvaluation(store, dbEval) }
 
         store.transactional { eval.start() }

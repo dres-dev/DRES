@@ -4,6 +4,7 @@ import dev.dres.data.model.run.DbEvaluationType
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
 import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.data.model.template.task.options.DbTargetOption
+import kotlinx.dnq.query.asSequence
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -22,11 +23,11 @@ class EvaluationExecutionAsyncTest : AbstractDresIntegrationTest() {
     ): Pair<InteractiveAsynchronousEvaluation, List<String>> {
         val col = createTestCollection()
         val template = createTemplateShell("async-${UUID.randomUUID()}", teamCount = teamCount)
-        val group = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_ITEM)
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_ITEM")
         repeat(taskCount) { i -> addTask(template, group, col, "Task-$i", idx = i) }
-        val dbEval = createEvaluation(template, "async-run-${UUID.randomUUID()}", DbEvaluationType.INTERACTIVE_ASYNCHRONOUS)
+        val dbEval = createEvaluation(template, "async-run-${UUID.randomUUID()}", "INTERACTIVE_ASYNCHRONOUS")
         val eval = store.transactional { InteractiveAsynchronousEvaluation(store, dbEval) }
-        val teamIds = store.transactional(true) { dbEval.template.teams.asSequence().map { it.id!! }.toList() }
+        val teamIds = store.transactional(true) { dbEval.template.teams.asSequence().map { it.teamId }.toList() }
         return eval to teamIds
     }
 
@@ -152,11 +153,11 @@ class EvaluationExecutionAsyncTest : AbstractDresIntegrationTest() {
     fun `async evaluation with perpetual tasks initialises correctly`() {
         val col = createTestCollection()
         val template = createTemplateShell("async-perpetual-${UUID.randomUUID()}", teamCount = 2)
-        val group = addTaskTypeAndGroup(template, "P-KIS", "P-KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_ITEM, durationSeconds = null)
+        val group = addTaskTypeAndGroup(template, "P-KIS", "P-KIS", "KIS", "MEDIA_ITEM", durationSeconds = null)
         repeat(3) { i -> addTask(template, group, col, "Perpetual-$i", durationSeconds = null, idx = i) }
-        val dbEval = createEvaluation(template, "async-perpetual-run-${UUID.randomUUID()}", DbEvaluationType.INTERACTIVE_ASYNCHRONOUS)
+        val dbEval = createEvaluation(template, "async-perpetual-run-${UUID.randomUUID()}", "INTERACTIVE_ASYNCHRONOUS")
         val eval = store.transactional { InteractiveAsynchronousEvaluation(store, dbEval) }
-        val teamIds = store.transactional(true) { dbEval.template.teams.asSequence().map { it.id!! }.toList() }
+        val teamIds = store.transactional(true) { dbEval.template.teams.asSequence().map { it.teamId }.toList() }
 
         store.transactional { eval.start() }
         for (teamId in teamIds) {

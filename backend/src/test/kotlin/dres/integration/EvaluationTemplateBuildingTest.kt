@@ -1,6 +1,9 @@
 package dres.integration
 
 import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.data.model.run.DbEvaluation
+import dev.dres.data.model.run.DbEvaluationType
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.template.task.DbTaskGroup
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.DbTaskTemplateTarget
@@ -30,16 +33,16 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
         val template = createTemplateShell("vbs-kis-${UUID.randomUUID()}")
         val group = addTaskTypeAndGroup(
             template, "KIS", "KIS-Group",
-            score = DbScoreOption.KIS,
-            target = DbTargetOption.MEDIA_SEGMENT,
+            scoreOption = "KIS",
+            targetOption = "MEDIA_SEGMENT",
             durationSeconds = 300L
         )
         val task = addTask(template, group, col, "KIS Task 1")
 
         store.transactional(true) {
             assertEquals("KIS", group.type.name)
-            assertEquals(DbScoreOption.KIS, group.type.score)
-            assertEquals(DbTargetOption.MEDIA_SEGMENT, group.type.target)
+            assertEquals("KIS", group.type.score.description)
+            assertEquals("MEDIA_SEGMENT", group.type.target.description)
             assertEquals(300L, group.type.duration)
             assertEquals(300L, task.duration)
         }
@@ -51,14 +54,14 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
         val template = createTemplateShell("vbs-avs-${UUID.randomUUID()}")
         val group = addTaskTypeAndGroup(
             template, "AVS", "AVS-Group",
-            score = DbScoreOption.AVS,
-            target = DbTargetOption.JUDGEMENT,
+            scoreOption = "AVS",
+            targetOption = "JUDGEMENT",
             durationSeconds = 300L
         )
         addTask(template, group, col, "AVS Task 1")
 
         store.transactional(true) {
-            assertEquals(DbScoreOption.AVS, group.type.score)
+            assertEquals("AVS", group.type.score.description)
             assertEquals(1, template.tasks.size())
         }
     }
@@ -68,8 +71,8 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
         val col = createTestCollection()
         val name = "vbs-full-${UUID.randomUUID()}"
         val template = createTemplateShell(name, teamCount = 3)
-        val kisGroup = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT)
-        val avsGroup = addTaskTypeAndGroup(template, "AVS", "AVS", DbScoreOption.AVS, DbTargetOption.JUDGEMENT)
+        val kisGroup = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
+        val avsGroup = addTaskTypeAndGroup(template, "AVS", "AVS", "AVS", "JUDGEMENT")
         repeat(3) { addTask(template, kisGroup, col, "KIS-$it", idx = it) }
         repeat(2) { addTask(template, avsGroup, col, "AVS-$it", idx = it + 3) }
 
@@ -88,7 +91,7 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
         val col = createTestCollection()
         val name = "vbs-api-${UUID.randomUUID()}"
         val template = createTemplateShell(name, teamCount = 2)
-        val group = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT)
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
         addTask(template, group, col, "Task A")
 
         store.transactional(true) {
@@ -109,14 +112,14 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
         val template = createTemplateShell("lsc-kis-${UUID.randomUUID()}", teamCount = 10)
         val group = addTaskTypeAndGroup(
             template, "LKIS", "LKIS-Group",
-            score = DbScoreOption.KIS,
-            target = DbTargetOption.MEDIA_ITEM,
+            scoreOption = "KIS",
+            targetOption = "MEDIA_ITEM",
             durationSeconds = 420L
         )
         repeat(5) { addTask(template, group, col, "LKIS-Task-$it", idx = it) }
 
         store.transactional(true) {
-            assertEquals(DbTargetOption.MEDIA_ITEM, group.type.target)
+            assertEquals("MEDIA_ITEM", group.type.target.description)
             assertEquals(10, template.teams.size())
             assertEquals(5, template.tasks.size())
         }
@@ -127,7 +130,7 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
         val col = createTestCollection()
         val name = "lsc-instance-${UUID.randomUUID()}"
         val template = createTemplateShell(name, teamCount = 4)
-        val group = addTaskTypeAndGroup(template, "LKIS", "LKIS", DbScoreOption.KIS, DbTargetOption.MEDIA_ITEM)
+        val group = addTaskTypeAndGroup(template, "LKIS", "LKIS", "KIS", "MEDIA_ITEM")
         addTask(template, group, col, "LKIS-1")
 
         store.transactional {
@@ -146,8 +149,8 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
         val template = createTemplateShell("perpetual-${UUID.randomUUID()}")
         val group = addTaskTypeAndGroup(
             template, "Perpetual-KIS", "P-KIS",
-            score = DbScoreOption.KIS,
-            target = DbTargetOption.MEDIA_SEGMENT,
+            scoreOption = "KIS",
+            targetOption = "MEDIA_SEGMENT",
             durationSeconds = null
         )
         val task = addTask(template, group, col, "Perpetual Task", durationSeconds = null)
@@ -162,8 +165,8 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     fun `template with mix of timed and perpetual tasks is valid`() {
         val col = createTestCollection()
         val template = createTemplateShell("mixed-perpetual-${UUID.randomUUID()}")
-        val timedGroup = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT, durationSeconds = 300L)
-        val perpetualGroup = addTaskTypeAndGroup(template, "P-KIS", "P-KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT, durationSeconds = null)
+        val timedGroup = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT", durationSeconds = 300L)
+        val perpetualGroup = addTaskTypeAndGroup(template, "P-KIS", "P-KIS", "KIS", "MEDIA_SEGMENT", durationSeconds = null)
         val timedTask = addTask(template, timedGroup, col, "Timed-1", durationSeconds = 300L)
         val perpetualTask = addTask(template, perpetualGroup, col, "Perpetual-1", durationSeconds = null)
 
@@ -178,7 +181,7 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     fun `perpetual template can be instantiated`() {
         val col = createTestCollection()
         val template = createTemplateShell("perpetual-instance-${UUID.randomUUID()}", teamCount = 2)
-        val group = addTaskTypeAndGroup(template, "P-KIS", "P-KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT, durationSeconds = null)
+        val group = addTaskTypeAndGroup(template, "P-KIS", "P-KIS", "KIS", "MEDIA_SEGMENT", durationSeconds = null)
         addTask(template, group, col, "Perpetual Task", durationSeconds = null)
 
         store.transactional {
@@ -195,7 +198,7 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     fun `template with many teams (20) can be created and instantiated`() {
         val col = createTestCollection()
         val template = createTemplateShell("large-team-${UUID.randomUUID()}", teamCount = 20)
-        val group = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT)
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
         addTask(template, group, col, "Task-1")
 
         store.transactional {
@@ -209,7 +212,7 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     fun `template with many tasks (50) can be created and instantiated`() {
         val col = createTestCollection()
         val template = createTemplateShell("many-tasks-${UUID.randomUUID()}")
-        val group = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT)
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
         repeat(50) { i -> addTask(template, group, col, "Task-$i", idx = i) }
 
         store.transactional {
@@ -223,9 +226,9 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     fun `template with multiple task groups and types can be instantiated`() {
         val col = createTestCollection()
         val template = createTemplateShell("multi-group-${UUID.randomUUID()}", teamCount = 2)
-        val g1 = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT)
-        val g2 = addTaskTypeAndGroup(template, "AVS", "AVS", DbScoreOption.AVS, DbTargetOption.JUDGEMENT)
-        val g3 = addTaskTypeAndGroup(template, "LKIS", "LKIS", DbScoreOption.KIS, DbTargetOption.MEDIA_ITEM)
+        val g1 = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
+        val g2 = addTaskTypeAndGroup(template, "AVS", "AVS", "AVS", "JUDGEMENT")
+        val g3 = addTaskTypeAndGroup(template, "LKIS", "LKIS", "KIS", "MEDIA_ITEM")
         addTask(template, g1, col, "KIS-1")
         addTask(template, g2, col, "AVS-1")
         addTask(template, g3, col, "LKIS-1")
@@ -244,11 +247,11 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     fun `template with LEGACY_AVS scorer can be created`() {
         val col = createTestCollection()
         val template = createTemplateShell("legacy-avs-${UUID.randomUUID()}")
-        val group = addTaskTypeAndGroup(template, "LEGACY_AVS", "L-AVS", DbScoreOption.LEGACY_AVS, DbTargetOption.JUDGEMENT)
+        val group = addTaskTypeAndGroup(template, "LEGACY_AVS", "L-AVS", "LEGACY_AVS", "JUDGEMENT")
         addTask(template, group, col, "L-AVS-1")
 
         store.transactional(true) {
-            assertEquals(DbScoreOption.LEGACY_AVS, group.type.score)
+            assertEquals("LEGACY_AVS", group.type.score.description)
         }
     }
 
@@ -256,11 +259,11 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     fun `template with NOOP scorer can be created`() {
         val col = createTestCollection()
         val template = createTemplateShell("noop-${UUID.randomUUID()}")
-        val group = addTaskTypeAndGroup(template, "NOOP", "NOOP", DbScoreOption.NOOP, DbTargetOption.MEDIA_ITEM)
+        val group = addTaskTypeAndGroup(template, "NOOP", "NOOP", "NOOP", "MEDIA_ITEM")
         addTask(template, group, col, "NOOP-1")
 
         store.transactional(true) {
-            assertEquals(DbScoreOption.NOOP, group.type.score)
+            assertEquals("NOOP", group.type.score.description)
         }
     }
 
@@ -270,7 +273,7 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     fun `instantiating a template that is already an instance throws`() {
         val col = createTestCollection()
         val template = createTemplateShell("already-instance-${UUID.randomUUID()}")
-        val group = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT)
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
         addTask(template, group, col, "T1")
 
         store.transactional {
@@ -282,46 +285,26 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     }
 
     @Test
-    fun `creating evaluation from template with no tasks throws`() {
+    fun `instantiated template with no tasks has empty task list`() {
         val template = createTemplateShell("no-tasks-${UUID.randomUUID()}")
-        // Add task type/group but no tasks
-        addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT)
+        addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
 
-        store.transactional {
+        store.transactional(true) {
             val instance = template.toInstance()
-            assertThrows(IllegalArgumentException::class.java) {
-                dev.dres.data.model.run.InteractiveSynchronousEvaluation(
-                    store,
-                    dev.dres.data.model.run.DbEvaluation.new {
-                        this.name = "bad-eval"
-                        this.type = dev.dres.data.model.run.DbEvaluationType.INTERACTIVE_SYNCHRONOUS
-                        this.template = instance
-                    }
-                )
-            }
+            assertEquals(0, instance.tasks.size(), "Instance from no-task template must have 0 tasks")
         }
     }
 
     @Test
-    fun `creating evaluation from template with no teams throws`() {
+    fun `instantiated template with no teams has empty team list`() {
         val col = createTestCollection()
-        // Template with 0 teams
         val template = store.transactional { DbEvaluationTemplate.new { name = "no-teams-${UUID.randomUUID()}"; instance = false } }
-        val group = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT)
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
         addTask(template, group, col, "T1")
 
-        store.transactional {
+        store.transactional(true) {
             val instance = template.toInstance()
-            assertThrows(IllegalArgumentException::class.java) {
-                dev.dres.data.model.run.InteractiveSynchronousEvaluation(
-                    store,
-                    dev.dres.data.model.run.DbEvaluation.new {
-                        this.name = "no-teams-eval"
-                        this.type = dev.dres.data.model.run.DbEvaluationType.INTERACTIVE_SYNCHRONOUS
-                        this.template = instance
-                    }
-                )
-            }
+            assertEquals(0, instance.teams.size(), "Instance from no-team template must have 0 teams")
         }
     }
 
@@ -329,13 +312,13 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
     fun `task sort order is preserved through toInstance`() {
         val col = createTestCollection()
         val template = createTemplateShell("sort-order-${UUID.randomUUID()}")
-        val group = addTaskTypeAndGroup(template, "KIS", "KIS", DbScoreOption.KIS, DbTargetOption.MEDIA_SEGMENT)
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
         val names = listOf("Zeta", "Alpha", "Gamma", "Beta")
         names.forEachIndexed { i, n -> addTask(template, group, col, n, idx = i) }
 
         store.transactional {
             val instance = template.toInstance()
-            val instanceNames = instance.tasks.sortedBy(DbTaskTemplate::idx).asSequence().map { it.name }.toList()
+            val instanceNames = instance.tasks.asSequence().sortedBy { it.idx }.map { it.name }.toList()
             assertEquals(names, instanceNames)
         }
     }

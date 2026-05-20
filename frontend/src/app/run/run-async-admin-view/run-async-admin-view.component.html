@@ -40,8 +40,7 @@
           <ng-container matColumnDef="past">
             <th mat-header-cell *matHeaderCellDef>Submissions</th>
             <td mat-cell *matCellDef="let task">
-              <!-- {{ (task | enhanceTaskPastInfo: this.pastTasksValue)?.numberOfSubmissions || 'n/a' }} -->
-              {{ (task.templateId | submissionsOf: (runId | async) | async)?.length}}
+              {{ (taskSubmissionCounts | async)?.get(task.templateId) ?? 0 }}
             </td>
           </ng-container>
 
@@ -123,9 +122,9 @@
 
               <!-- Submissions Column -->
               <ng-container matColumnDef="past">
-                <th mat-header-cell *matHeaderCellDef>Submisssions</th>
+                <th mat-header-cell *matHeaderCellDef>Submissions</th>
                 <td mat-cell *matCellDef="let task">
-                  {{ (task.id | submissionsOf: (runId | async) | async)?.length}}
+                  {{ (taskSubmissionCounts | async)?.get(task.id) ?? 0 }}
                 </td>
               </ng-container>
 

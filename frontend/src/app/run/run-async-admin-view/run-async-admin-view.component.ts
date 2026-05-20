@@ -1,10 +1,10 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from "@angular/core";
-import { BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer } from 'rxjs';
+import { BehaviorSubject, combineLatest, forkJoin, merge, Observable, of, Subject, timer } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, filter, map, shareReplay, switchMap } from 'rxjs/operators';
+import { catchError, filter, map, shareReplay, switchMap, take } from 'rxjs/operators';
 import { RunInfoOverviewTuple } from '../admin-run-list.component';
 import { MatAccordion } from '@angular/material/expansion';
 import {
@@ -32,6 +32,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   displayedColumnsTasks: string[] = ['name', 'comment', 'group', 'type', 'duration', 'past'];
   displayedColumnsTeamTasks: string[] = ['name', 'comment', 'state', 'group', 'type', 'duration', 'past', 'action'];
   teams: Observable<ApiTeamInfo[]>;
+  taskSubmissionCounts: Observable<Map<string, number>>;
   pastTasks = new BehaviorSubject<ApiTaskTemplateInfo[]>([]);
   pastTasksValue: ApiTaskTemplateInfo[];
   nbOpenTeamOverviews = 0;
@@ -81,6 +82,26 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
         return runAndOverview.runInfo.teams;
       }),
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
+    );
+
+    this.taskSubmissionCounts = merge(timer(0, 15000), this.update).pipe(
+      switchMap(() => this.run.pipe(take(1))),
+      switchMap(run => {
+        const runId = this.runId.getValue();
+        const templates = run?.runInfo?.taskTemplates ?? [];
+        if (templates.length === 0) return of(new Map<string, number>());
+        return forkJoin(
+          templates.map(t =>
+            this.runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(runId, t.templateId).pipe(
+              map(infos => ({ key: t.templateId, count: infos.flatMap(i => i.submissions).length })),
+              catchError(() => of({ key: t.templateId, count: 0 }))
+            )
+          )
+        ).pipe(
+          map(results => new Map(results.map(r => [r.key, r.count])))
+        );
+      }),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
   }
 

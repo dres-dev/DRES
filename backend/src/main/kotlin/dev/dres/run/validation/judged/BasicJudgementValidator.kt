@@ -102,16 +102,16 @@ open class BasicJudgementValidator(
 
     /** Returns the number of [DbAnswerSet]s pending judgement. */
     override val open: Int
-        get() = this.updateLock.read {
+        get() {
             checkTimeOuts()
-            return this.queue.size
+            return this.updateLock.read { this.queue.size }
         }
 
     /** True, if there are [DbAnswerSet]s pending judgement. */
     override val hasOpen: Boolean
-        get() = updateLock.read {
+        get() {
             checkTimeOuts()
-            return this.queue.isNotEmpty()
+            return this.updateLock.read { this.queue.isNotEmpty() }
         }
 
     /**
@@ -119,29 +119,31 @@ open class BasicJudgementValidator(
      *
      * @param answerSet The [DbAnswerSet] to validate.
      */
-    override fun validate(answerSet: DbAnswerSet) = this.updateLock.read {
+    override fun validate(answerSet: DbAnswerSet) {
         this.store.transactional {
             //only validate submissions which are not already validated
             if (answerSet.status != DbVerdictStatus.INDETERMINATE) {
                 return@transactional
             }
 
-            //check cache first
+            //check cache first — ConcurrentHashMap, safe without lock
             val itemRange = ItemRange(answerSet.answers.first()) //TODO reason about semantics
             val cachedStatus = this.cache[itemRange]
             if (cachedStatus != null) {
                 answerSet.status = cachedStatus
-            } else if (itemRange !in this.queuedItemRanges.keys) {
-                this.updateLock.write {
-                    if(this.lifo){
+                return@transactional
+            }
+
+            // Everything below mutates queue/queuedItemRanges — needs write lock
+            this.updateLock.write {
+                if (itemRange !in this.queuedItemRanges.keys) {
+                    if (this.lifo) {
                         this.queue.offerFirst(answerSet.id to itemRange)
-                    }else{
+                    } else {
                         this.queue.offerLast(answerSet.id to itemRange)
                     }
                     this.queuedItemRanges[itemRange] = mutableListOf(answerSet.id)
-                }
-            } else {
-                this.updateLock.write {
+                } else {
                     this.queuedItemRanges[itemRange]!!.add(answerSet.id)
                 }
             }

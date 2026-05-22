@@ -79,7 +79,7 @@ class NonInteractiveEvaluation(store: TransientEntityStore, evaluation: DbEvalua
         ) }
 
         override val transformer: SubmissionTransformer = store.transactional {
-            if (task.template.taskGroup.type.options.filter { it eq DbTaskOption.MAP_TO_SEGMENT }.any()) {
+            if (task.template.taskGroup.type.options.contains(DbTaskOption.MAP_TO_SEGMENT)) {
                 CombiningSubmissionTransformer(
                     listOf(
                         SubmissionTaskMatchTransformer(this.taskId),

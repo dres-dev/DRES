@@ -144,7 +144,6 @@ class TemplateManagerDeletionTest : AbstractDresIntegrationTest() {
 
     @Test
     fun `deleting a task type removes its DbConfiguredOption children`() {
-        val col = createTestCollection()
         val template = createTemplateShell("del-config-${UUID.randomUUID()}")
         addTaskTypeAndGroup(template, "ConfigType", "CGroup", "KIS", "MEDIA_ITEM")
 

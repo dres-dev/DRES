@@ -27,6 +27,7 @@ export class AppComponent {
   loggedIn: Observable<boolean>;
   canJudge: Observable<boolean>;
   noUi: Observable<boolean>;
+  darkMode = false;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -65,11 +66,21 @@ export class AppComponent {
     this.loggedIn = this.authenticationService.isLoggedIn;
     this.isAdmin = this.authenticationService.user.pipe(map((u) => u?.role === ApiRole.ADMIN));
     this.canJudge = this.authenticationService.user.pipe(map((u) => u?.role === ApiRole.ADMIN || u?.role === ApiRole.JUDGE));
+
+    this.darkMode = localStorage.getItem('darkMode') === 'true';
+    this.applyDarkMode();
   }
 
-  /**
-   *
-   */
+  public toggleDarkMode() {
+    this.darkMode = !this.darkMode;
+    localStorage.setItem('darkMode', String(this.darkMode));
+    this.applyDarkMode();
+  }
+
+  private applyDarkMode() {
+    document.documentElement.classList.toggle('dark-theme', this.darkMode);
+  }
+
   public toggleMute() {
     this.config.config.effects.mute = !this.config.config.effects.mute;
     this.LOGGER.fatal("Mute state", this.config.config.effects.mute)

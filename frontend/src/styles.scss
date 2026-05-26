@@ -9,14 +9,15 @@ body {
 body {
   margin: 0;
   font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background-color: #fffbff;
+  color: #1c1b1f;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-
-// Angular Material 18 syntax
 @include mat.elevation-classes();
 @include mat.app-background();
 
-$theme: mat.define-theme((
+$light-theme: mat.define-theme((
   color: (
     theme-type: light,
     primary: mat.$violet-palette,
@@ -24,19 +25,39 @@ $theme: mat.define-theme((
   )
 ));
 
+$dark-theme: mat.define-theme((
+  color: (
+    theme-type: dark,
+    primary: mat.$violet-palette,
+    tertiary: mat.$green-palette,
+  )
+));
+
 :root {
-  @include mat.all-component-themes($theme);
+  @include mat.all-component-themes($light-theme);
+  color-scheme: light;
+}
+
+// Manual dark mode toggle — class applied to <html> by AppComponent
+.dark-theme {
+  @include mat.all-component-colors($dark-theme);
+  color-scheme: dark;
+
+  body {
+    background-color: #1c1b1f;
+    color: #e6e1e5;
+  }
 }
 
 // Color utility classes
 .primary-color {
-  color: mat.get-theme-color($theme, primary) !important;
+  color: mat.get-theme-color($light-theme, primary) !important;
 }
 .accent-color {
-  color: mat.get-theme-color($theme, tertiary) !important;
+  color: mat.get-theme-color($light-theme, tertiary) !important;
 }
 .warn-color {
-  color: mat.get-theme-color($theme, error) !important;
+  color: mat.get-theme-color($light-theme, error) !important;
 }
 
 .overlay {

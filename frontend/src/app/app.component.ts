@@ -67,7 +67,7 @@ export class AppComponent {
     this.isAdmin = this.authenticationService.user.pipe(map((u) => u?.role === ApiRole.ADMIN));
     this.canJudge = this.authenticationService.user.pipe(map((u) => u?.role === ApiRole.ADMIN || u?.role === ApiRole.JUDGE));
 
-    this.darkMode = localStorage.getItem('darkMode') === 'true';
+    this.darkMode = localStorage.getItem('darkMode') !== 'false';
     this.applyDarkMode();
   }
 

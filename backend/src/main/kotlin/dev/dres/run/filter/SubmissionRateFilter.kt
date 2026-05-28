@@ -2,7 +2,6 @@ package dev.dres.run.filter
 
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.data.model.admin.UserId
-import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.run.filter.basics.AbstractSubmissionFilter
 import dev.dres.run.filter.basics.SubmissionFilter
 import java.util.concurrent.ConcurrentHashMap
@@ -19,7 +18,7 @@ class SubmissionRateFilter(private val minDelayMs: Int = PARAMETER_KEY_DELAY_DEF
 
     companion object {
         /** The name for the delay parameter. */
-        val PARAMETER_KEY_DELAY = "${DbSubmissionOption.MINIMUM_TIME_GAP.description}.delay"
+        const val PARAMETER_KEY_DELAY = "MINIMUM_TIME_GAP.delay"
 
         /** The default value for the limit parameter. */
         const val PARAMETER_KEY_DELAY_DEFAULT = 500
@@ -48,6 +47,6 @@ class SubmissionRateFilter(private val minDelayMs: Int = PARAMETER_KEY_DELAY_DEF
         val lastSubmission = this.submissions[t.userId]
         val currentSubmission = System.currentTimeMillis()
         this.submissions[t.userId!!] = currentSubmission
-        return lastSubmission == null || (currentSubmission - lastSubmission <= minDelayMs)
+        return lastSubmission == null || (currentSubmission - lastSubmission >= minDelayMs)
     }
 }

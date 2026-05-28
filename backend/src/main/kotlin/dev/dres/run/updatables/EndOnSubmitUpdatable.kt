@@ -46,18 +46,20 @@ class EndOnSubmitUpdatable(private val manager: InteractiveRunManager) : Updatab
                     val limit = taskType.configuration["LIMIT_CORRECT_PER_TEAM"]?.toIntOrNull() ?: 1
 
                     /* Count number of correct submissions per team. */
-                    if (this.manager.timeLeft(context) > 0) {
-                        for (s in submissions) {
-                            for (a in s.answerSets.toList()) {
-                                if (a.status == DbVerdictStatus.CORRECT) {
-                                    teams[s.team.id] = teams[s.team.id]!! + 1
+                    if (currentTask.duration != null) {
+                        if (this.manager.timeLeft(context)!! > 0) {
+                            for (s in submissions) {
+                                for (a in s.answerSets.toList()) {
+                                    if (a.status == DbVerdictStatus.CORRECT) {
+                                        teams[s.team.id] = teams[s.team.id]!! + 1
+                                    }
                                 }
                             }
-                        }
 
-                        /* If all teams have reached the limit, end the task. */
-                        if (teams.all { it.value >= limit }) {
-                            this.manager.abortTask(context)
+                            /* If all teams have reached the limit, end the task. */
+                            if (teams.all { it.value >= limit }) {
+                                this.manager.abortTask(context)
+                            }
                         }
                     }
                 }

@@ -21,7 +21,7 @@ configurations {
 def includeConfig = project.hasProperty('includeConfig')
 
 node {
-    version = '18.16.0'
+    version = '22.12.0'
     download = true
     workDir = file("${project.projectDir}/.gradle/nodejs")
     yarnWorkDir = file("${project.projectDir}/.gradle/yarn")
@@ -42,10 +42,10 @@ task packageFrontend(type: Zip) {
         return file("$buildDir/lib/dres-frontend.jar").exists()
     }
     dependsOn buildFrontend
-    baseName 'dres-frontend'
-    extension 'jar'
-    destinationDir file("$buildDir/lib")
-    from("$buildDir/dist") {
+    archiveBaseName = 'dres-frontend'
+    archiveExtension = 'jar'
+    destinationDirectory=  file("$buildDir/lib")
+    from("$buildDir/dist/browser") {
         println("includeConfig: "+includeConfig)
         if(!includeConfig){
             exclude '**/config.json'

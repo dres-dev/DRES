@@ -16,10 +16,7 @@ import dev.dres.run.filter.basics.SubmissionFilter
 import dev.dres.run.filter.basics.CombiningSubmissionFilter
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
-import dev.dres.run.score.scorer.AvsTaskScorer
-import dev.dres.run.score.scorer.CachingTaskScorer
-import dev.dres.run.score.scorer.KisTaskScorer
-import dev.dres.run.score.scorer.LegacyAvsTaskScorer
+import dev.dres.run.score.scorer.*
 import dev.dres.run.transformer.MapToSegmentTransformer
 import dev.dres.run.transformer.SubmissionTaskMatchTransformer
 import dev.dres.run.transformer.basics.SubmissionTransformer
@@ -161,8 +158,8 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
         /** The [CachingTaskScorer] instance used by this [InteractiveAsynchronousEvaluation].*/
         override val scorer: CachingTaskScorer
 
-        /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
-        override var duration: Long = this.template.duration
+        /** The total duration in seconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! NULL represents perpetual task*/
+        override var duration: Long? = this.template.duration
 
         val teamId = this.dbTask.team!!.id
 
@@ -220,6 +217,7 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
 
                         DbScoreOption.AVS -> AvsTaskScorer(this, store)
                         DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this, store)
+                        DbScoreOption.NOOP -> NoOpTaskScorer(this)
                         else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
                     }
                 )

@@ -91,11 +91,47 @@ object TemplateManager {
         dbEvaluationTemplate.description = apiEvaluationTemplate.description
         dbEvaluationTemplate.modified = DateTime.now()
 
-        /* Update task type information. */
-        val taskTypes = apiEvaluationTemplate.taskTypes.map { it.name }.toTypedArray()
-        dbEvaluationTemplate.taskTypes.removeAll(
-            DbTaskType.query(DbTaskType::evaluation eq dbEvaluationTemplate and not(DbTaskType::name.containsIn(*taskTypes)))
+        /*
+         * Deletions in reverse dependency order to avoid Xodus constraint failures.
+         * DbTaskGroup.type has onTargetDelete=CASCADE, so deleting a DbTaskType triggers
+         * cascade deletion of DbTaskGroup. But DbTaskTemplate.taskGroup has no onTargetDelete
+         * (implicit FAIL), so that cascade is blocked while any task template still exists.
+         * Solution: delete task templates first, then groups, then types.
+         */
+
+        /* 1. Delete task templates. */
+        val taskIds = apiEvaluationTemplate.tasks.mapNotNull { it.id }.toTypedArray()
+        val taskTemplatesToDeleteQuery = DbTaskTemplate.query(
+            DbTaskTemplate::evaluation eq dbEvaluationTemplate and not(DbTaskTemplate::id.containsIn(*taskIds))
         )
+        val hintsToDelIds = taskTemplatesToDeleteQuery.toList().map {
+            it.hints.toList().map { hint -> hint.entityId }
+        }.flatten().toTypedArray()
+        val targetsToDelIds = taskTemplatesToDeleteQuery.toList().map {
+            it.targets.toList().map { target -> target.entityId }
+        }.flatten().toTypedArray()
+        dbEvaluationTemplate.tasks.removeAll(taskTemplatesToDeleteQuery)
+        DbHint.all().toList().filter { hintsToDelIds.contains(it.entityId) }.forEach { it.delete() }
+        DbTaskTemplateTarget.all().toList().filter { targetsToDelIds.contains(it.entityId) }.forEach { it.delete() }
+
+        /* 2. Delete task groups. */
+        val taskGroups = apiEvaluationTemplate.taskGroups.map { it.name }.toTypedArray()
+        dbEvaluationTemplate.taskGroups.removeAll(
+            DbTaskGroup.query(DbTaskGroup::evaluation eq dbEvaluationTemplate and not(DbTaskGroup::name.containsIn(*taskGroups)))
+        )
+
+        /* 3. Delete task types — now safe, no task group references them. */
+        val taskTypes = apiEvaluationTemplate.taskTypes.map { it.name }.toTypedArray()
+        val taskTypesToDeleteQuery = DbTaskType.query(DbTaskType::evaluation eq dbEvaluationTemplate and not(DbTaskType::name.containsIn(*taskTypes)))
+        val configuredOptionsToDelIds = taskTypesToDeleteQuery.toList().map {
+            it.configurations.toList().map { opt -> opt.entityId }
+        }.flatten().toTypedArray()
+        DbConfiguredOption.all().toList().filter { configuredOptionsToDelIds.contains(it.entityId) }.forEach { it.delete() }
+        dbEvaluationTemplate.taskTypes.removeAll(taskTypesToDeleteQuery)
+
+        /* Updates/additions in forward dependency order so references can be resolved. */
+
+        /* 4. Update task types. */
         for (apiTaskType in apiEvaluationTemplate.taskTypes) {
             val taskType =
                 DbTaskType.findOrNew(DbTaskType.query((DbTaskType::name eq apiTaskType.name) and (DbTaskType::evaluation eq dbEvaluationTemplate))) {
@@ -112,7 +148,7 @@ object TemplateManager {
             taskType.options.addAll(apiTaskType.taskOptions.map { it.toDb() })
             taskType.configurations.clear()
             taskType.configurations.addAll(apiTaskType.configuration.entries.map {
-                if(!it.key.contains(".") || it.key.split(".").size != 2){
+                if (!it.key.contains(".") || it.key.split(".").size != 2) {
                     throw IllegalArgumentException("Type Configurations must be in the form of DOMAIN.KEY, but ${it.key} given")
                 }
                 DbConfiguredOption.new {
@@ -120,65 +156,29 @@ object TemplateManager {
                     this.value = it.value
                 }
             })
-
-            /* Establish relationship if entry is new. */
             if (taskType.isNew) {
                 dbEvaluationTemplate.taskTypes.add(taskType)
             }
         }
 
-        /* Update task group information. */
-        val taskGroups = apiEvaluationTemplate.taskGroups.map { it.name }.toTypedArray()
-        dbEvaluationTemplate.taskGroups.removeAll(
-            DbTaskGroup.query(DbTaskGroup::evaluation eq dbEvaluationTemplate and not(DbTaskGroup::name.containsIn(*taskGroups)))
-        )
+        /* 5. Update task groups. */
         for (apiTaskGroup in apiEvaluationTemplate.taskGroups) {
             val taskGroup =
                 DbTaskGroup.findOrNew(DbTaskGroup.query((DbTaskGroup::name eq apiTaskGroup.name) and (DbTaskGroup::evaluation eq dbEvaluationTemplate))) {
                     this.name = apiTaskGroup.name
                 }
-
-            /* Update task type if it has changed. */
             if (taskGroup.getSafe(DbTaskGroup::type)?.name != apiTaskGroup.name) {
                 taskGroup.type =
                     DbTaskType.query((DbTaskType::name eq apiTaskGroup.type) and (DbTaskType::evaluation eq dbEvaluationTemplate))
                         .firstOrNull()
                         ?: throw IllegalArgumentException("Unknown task group ${apiTaskGroup.type} for evaluation ${apiEvaluationTemplate.id}.")
             }
-
-            /* Establish relationship if entry is new. */
             if (taskGroup.isNew) {
                 dbEvaluationTemplate.taskGroups.add(taskGroup)
             }
         }
 
-        /* Update task information: Remove deleted tasks. */
-        val taskIds = apiEvaluationTemplate.tasks.mapNotNull { it.id }.toTypedArray()
-        val taskTemplatesToDeleteQuery = DbTaskTemplate.query(
-            DbTaskTemplate::evaluation eq dbEvaluationTemplate and not(
-                DbTaskTemplate::id.containsIn(*taskIds)
-            )
-        )
-        val hintsToDelIds = taskTemplatesToDeleteQuery.toList().map {
-            it.hints.toList().map { hint -> hint.entityId }
-        }.flatten().toTypedArray()
-        val targetsToDelIds = taskTemplatesToDeleteQuery.toList().map{
-            it.targets.toList().map{target -> target.entityId}
-        }.flatten().toTypedArray()
-
-        dbEvaluationTemplate.tasks.removeAll(
-            taskTemplatesToDeleteQuery
-        )
-        /*
-        DbTaskTemplate has children relationships with both, DbHint and DbTaskTarget.
-        Despite being written in the documentation, for some reason the .removeAll above does not
-        delete the children, hence we have to take care of it ourselves.
-        https://jetbrains.github.io/xodus-dnq/properties.html
-         */
-        DbHint.all().toList().filter{hintsToDelIds.contains(it.entityId)}.forEach { it.delete() }
-        DbTaskTemplateTarget.all().toList().filter{targetsToDelIds.contains(it.entityId)}.forEach{it.delete()}
-
-        /*  Update task information: Remaining tasks. */
+        /* 6. Update task templates: remaining tasks. */
         apiEvaluationTemplate.tasks.forEachIndexed { idx, apiTask ->
             val task = if (apiTask.id != null) {
                 dbEvaluationTemplate.tasks.filter { it.id eq apiTask.id }.firstOrNull()
@@ -207,7 +207,9 @@ object TemplateManager {
             }
 
             if (task.isNew || task.taskGroup.name != apiTask.taskGroup) {
-                task.taskGroup = DbTaskGroup.query(DbTaskGroup::name eq apiTask.taskGroup).first()
+                task.taskGroup = DbTaskGroup.query(
+                    (DbTaskGroup::name eq apiTask.taskGroup) and (DbTaskGroup::evaluation eq dbEvaluationTemplate)
+                ).firstOrNull() ?: throw IllegalArgumentException("Unknown task group '${apiTask.taskGroup}' for evaluation ${apiEvaluationTemplate.id}.")
             }
 
             /* Update task targets. */
@@ -365,7 +367,7 @@ object TemplateManager {
                 it.copy(id = null)
             },
             teams = apiTemplate.teams.map {
-                it.copy(id = null, logoData = Base64.getEncoder().encodeToString(getTeamLogo(it.teamId)!!.readAllBytes()))
+                it.copy(id = null, logoData = if(getTeamLogo(it.teamId) != null) {Base64.getEncoder().encodeToString(getTeamLogo(it.teamId)?.readAllBytes())}else{null})
             }
         )
 

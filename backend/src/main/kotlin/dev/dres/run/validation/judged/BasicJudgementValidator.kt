@@ -3,6 +3,7 @@ package dev.dres.run.validation.judged
 import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
 import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
+import dev.dres.api.rest.types.template.tasks.ApiTaskType
 import dev.dres.data.model.submissions.*
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
@@ -22,15 +23,39 @@ import kotlin.concurrent.write
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 2.0.0
+ * @author Loris Sauter
+ *
+ * @version 2.1.0
  */
-open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, protected val store: TransientEntityStore, knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(),
-
+open class BasicJudgementValidator(
+    override val taskTemplate: ApiTaskTemplate,
+    protected val store: TransientEntityStore,
+    private val taskType: ApiTaskType,
+    knownCorrectRanges: Collection<ItemRange> = emptyList(),
+    knownWrongRanges: Collection<ItemRange> = emptyList(),
 ) : AnswerSetValidator, JudgementValidator {
 
     companion object {
         private val counter = AtomicInteger()
         private const val judgementTimeout = 60_000 //ms until a request is re-scheduled
+
+        private const val defaultPriority = 0;
+
+        /**
+         * The key used to read the task type configuration order
+         * The value expected under this key is LIFO, which results in LIFO ordering of the queue,
+         * all other parameters or the absence of one results in the default FIFO behaviour.
+         */
+        private const val CONFIGURATION_ORDER_KEY = "JUDGEMENT.order"
+
+        /**
+         * The key used to read the task type configuration priority.
+         * The value is expected to be a number. Higher number represents higher priority.
+         * Consumers are expected to respect the {priority}
+         */
+        private const val CONFIGURATION_PRIORITY_KEY = "JUDGEMENT.priority"
+
+
     }
 
     /** The [BasicJudgementValidator]'s ID is simply an auto-incrementing number. */
@@ -39,11 +64,14 @@ open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, p
     /** A [BasicJudgementValidator] is always deferring. */
     override val deferring: Boolean = true
 
+    /** The priority of this [JudgementValidator], higher priorities are represent by a higher number and consumers are expected to respect this */
+    override val priority = this.taskType.configuration[CONFIGURATION_PRIORITY_KEY]?.toInt() ?: defaultPriority
+
     /** Internal lock on relevant data structures. */
     private val updateLock = ReentrantReadWriteLock()
 
     /** Internal queue that keeps track of all the [AnswerSetId]s and associated [ItemRange]s that require judgement. */
-    private val queue: Queue<Pair<AnswerSetId,ItemRange>> = LinkedList()
+    private val queue: Deque<Pair<AnswerSetId,ItemRange>> = LinkedList()
 
     /** Internal map of all [AnswerSetId]s and associated [ItemRange]s that have been retrieved by a judge and are pending a verdict. */
     private val waiting = HashMap<String, Pair<AnswerSetId,ItemRange>>()
@@ -57,6 +85,12 @@ open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, p
     /** Internal map of known [ItemRange]s to associated [DbVerdictStatus]. */
     private val cache: MutableMap<ItemRange, DbVerdictStatus> = ConcurrentHashMap()
 
+    /** Internal flag whether to use LIFO */
+    private val lifo = when(this.taskType.configuration.getOrDefault(CONFIGURATION_ORDER_KEY, "fifo")) {
+        "lifo" -> true
+        else -> false
+    }
+
     init {
         knownCorrectRanges.forEach { this.cache[it] = DbVerdictStatus.CORRECT }
         knownWrongRanges.forEach { this.cache[it] = DbVerdictStatus.WRONG }
@@ -68,16 +102,16 @@ open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, p
 
     /** Returns the number of [DbAnswerSet]s pending judgement. */
     override val open: Int
-        get() = this.updateLock.read {
+        get() {
             checkTimeOuts()
-            return this.queue.size
+            return this.updateLock.read { this.queue.size }
         }
 
     /** True, if there are [DbAnswerSet]s pending judgement. */
     override val hasOpen: Boolean
-        get() = updateLock.read {
+        get() {
             checkTimeOuts()
-            return this.queue.isNotEmpty()
+            return this.updateLock.read { this.queue.isNotEmpty() }
         }
 
     /**
@@ -85,25 +119,31 @@ open class BasicJudgementValidator(override val taskTemplate: ApiTaskTemplate, p
      *
      * @param answerSet The [DbAnswerSet] to validate.
      */
-    override fun validate(answerSet: DbAnswerSet) = this.updateLock.read {
+    override fun validate(answerSet: DbAnswerSet) {
         this.store.transactional {
             //only validate submissions which are not already validated
             if (answerSet.status != DbVerdictStatus.INDETERMINATE) {
                 return@transactional
             }
 
-            //check cache first
+            //check cache first — ConcurrentHashMap, safe without lock
             val itemRange = ItemRange(answerSet.answers.first()) //TODO reason about semantics
             val cachedStatus = this.cache[itemRange]
             if (cachedStatus != null) {
                 answerSet.status = cachedStatus
-            } else if (itemRange !in this.queuedItemRanges.keys) {
-                this.updateLock.write {
-                    this.queue.offer(answerSet.id to itemRange)
+                return@transactional
+            }
+
+            // Everything below mutates queue/queuedItemRanges — needs write lock
+            this.updateLock.write {
+                if (itemRange !in this.queuedItemRanges.keys) {
+                    if (this.lifo) {
+                        this.queue.offerFirst(answerSet.id to itemRange)
+                    } else {
+                        this.queue.offerLast(answerSet.id to itemRange)
+                    }
                     this.queuedItemRanges[itemRange] = mutableListOf(answerSet.id)
-                }
-            } else {
-                this.updateLock.write {
+                } else {
                     this.queuedItemRanges[itemRange]!!.add(answerSet.id)
                 }
             }

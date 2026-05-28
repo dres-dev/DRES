@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import {ApiTaskTemplateInfo} from '../../../../openapi';
 
 @Pipe({
-  name: 'enhanceTaskPastInfo',
+    name: 'enhanceTaskPastInfo',
+    standalone: false
 })
 export class EnhanceTaskPastInfoPipe implements PipeTransform {
   // FIXME compiler happiness: not sure whether this is appropriate

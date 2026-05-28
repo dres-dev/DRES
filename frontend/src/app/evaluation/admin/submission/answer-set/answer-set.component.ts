@@ -3,9 +3,10 @@ import { ApiAnswerSet, ApiVerdictStatus, EvaluationAdministratorService } from "
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
-  selector: 'app-answer-set',
-  templateUrl: './answer-set.component.html',
-  styleUrls: ['./answer-set.component.scss']
+    selector: 'app-answer-set',
+    templateUrl: './answer-set.component.html',
+    styleUrls: ['./answer-set.component.scss'],
+    standalone: false
 })
 export class AnswerSetComponent {
 

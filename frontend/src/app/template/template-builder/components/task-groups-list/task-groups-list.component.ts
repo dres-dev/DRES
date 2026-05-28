@@ -23,9 +23,10 @@ import { ActivatedRoute } from "@angular/router";
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
-  selector: "app-task-groups-list",
-  templateUrl: "./task-groups-list.component.html",
-  styleUrls: ["./task-groups-list.component.scss"]
+    selector: "app-task-groups-list",
+    templateUrl: "./task-groups-list.component.html",
+    styleUrls: ["./task-groups-list.component.scss"],
+    standalone: false
 })
 export class TaskGroupsListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy {
   groups: Observable<ApiTaskGroup[]>;

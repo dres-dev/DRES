@@ -13,9 +13,10 @@ import { CdkDragDrop, moveItemInArray, transferArrayItem } from "@angular/cdk/dr
 import { SearchBoxComponent } from "../../../../shared/search-box/search-box.component";
 
 @Component({
-  selector: 'app-team-builder-dialog',
-  templateUrl: './team-builder-dialog.component.html',
-  styleUrls: ['./team-builder-dialog.component.scss']
+    selector: 'app-team-builder-dialog',
+    templateUrl: './team-builder-dialog.component.html',
+    styleUrls: ['./team-builder-dialog.component.scss'],
+    standalone: false
 })
 export class TeamBuilderDialogComponent {
   form: FormGroup;

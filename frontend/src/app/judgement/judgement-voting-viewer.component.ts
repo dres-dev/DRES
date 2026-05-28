@@ -9,9 +9,10 @@ import { JudgementMediaViewerComponent } from './judgement-media-viewer.componen
 import {ApiJudgementRequest, JudgementService} from '../../../openapi';
 
 @Component({
-  selector: 'app-judgement-voting-viewer',
-  templateUrl: './judgement-voting-viewer.component.html',
-  styleUrls: ['./judgement-voting-viewer.component.scss'],
+    selector: 'app-judgement-voting-viewer',
+    templateUrl: './judgement-voting-viewer.component.html',
+    styleUrls: ['./judgement-voting-viewer.component.scss'],
+    standalone: false
 })
 export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
   @Input() pollingFrequency = 1000;

@@ -5,7 +5,8 @@ import { TimeUtilities } from "../../utilities/time.utilities";
 import { isMediaItemUrlOptions } from "./resolve-media-item-url.pipe";
 
 @Pipe({
-  name: 'resolveMediaItemPreview'
+    name: 'resolveMediaItemPreview',
+    standalone: false
 })
 export class ResolveMediaItemPreviewPipe implements PipeTransform {
 

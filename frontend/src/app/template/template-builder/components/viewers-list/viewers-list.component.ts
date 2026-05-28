@@ -10,9 +10,10 @@ import { map, shareReplay, tap } from "rxjs/operators";
 import { MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
 
 @Component({
-  selector: "app-viewers-list",
-  templateUrl: "./viewers-list.component.html",
-  styleUrls: ["./viewers-list.component.scss"]
+    selector: "app-viewers-list",
+    templateUrl: "./viewers-list.component.html",
+    styleUrls: ["./viewers-list.component.scss"],
+    standalone: false
 })
 export class ViewersListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy {
 

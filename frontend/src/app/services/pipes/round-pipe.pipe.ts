@@ -15,7 +15,8 @@ import { Pipe, PipeTransform } from '@angular/core';
  *   formats to 5
  */
 @Pipe({
-  name: 'round',
+    name: 'round',
+    standalone: false
 })
 export class RoundPipePipe implements PipeTransform {
   transform(value: number): number {

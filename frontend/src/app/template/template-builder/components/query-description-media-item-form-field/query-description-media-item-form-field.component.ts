@@ -1,21 +1,22 @@
 import { Component, Injector, Input } from "@angular/core";
 import { UntypedFormControl } from "@angular/forms";
 import {
-  CompetitionFormBuilder
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/competition-form.builder";
+  TaskTemplateFormBuilder
+} from "../../task-template-form.builder";
 import { FormatMediaItemPipe, MediaItemDisplayOptions } from "../../../../services/pipes/format-media-item.pipe";
 import { ApiMediaItem } from "../../../../../../openapi";
 
 @Component({
-  selector: "app-query-description-media-item-form-field",
-  templateUrl: "./query-description-media-item-form-field.component.html",
-  styleUrls: ["./query-description-media-item-form-field.component.scss"]
+    selector: "app-query-description-media-item-form-field",
+    templateUrl: "./query-description-media-item-form-field.component.html",
+    styleUrls: ["./query-description-media-item-form-field.component.scss"],
+    standalone: false
 })
 export class QueryDescriptionMediaItemFormFieldComponent {
   @Input()
   itemControl: UntypedFormControl;
   @Input()
-  formBuilder: CompetitionFormBuilder;
+  formBuilder: TaskTemplateFormBuilder;
   @Input()
   index: number;
 

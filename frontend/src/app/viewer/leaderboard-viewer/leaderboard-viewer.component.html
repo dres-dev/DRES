@@ -1,0 +1,19 @@
+<ng-container *ngIf="playerData$ | async as players">
+  <div class="leaderboard-wrapper">
+    <div class="leaderboard-grid">
+      
+      <div 
+        class="player-row" 
+        *ngFor="let player of players; let i = index"
+        [class.gold]="i === 0 && player.totalScore > 0"
+        [class.silver]="i === 1 && player.totalScore > 0"
+        [class.bronze]="i === 2 && player.totalScore > 0"
+      >
+        <div class="rank">{{ i + 1 }}</div>
+        <div class="name" [matTooltip]="player.userName">{{ player.userName }}</div>
+        <div class="score">{{ player.totalScore }}</div>
+      </div>
+
+    </div>
+  </div>
+</ng-container>

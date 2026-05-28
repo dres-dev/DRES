@@ -9,8 +9,9 @@ export interface CompetitionBuilderTaskGroupDialogData {
 }
 
 @Component({
-  selector: 'app-competition-builder-task-group-dialog',
-  templateUrl: './competition-builder-task-group.component.html',
+    selector: 'app-competition-builder-task-group-dialog',
+    templateUrl: './competition-builder-task-group.component.html',
+    standalone: false
 })
 export class CompetitionBuilderTaskGroupDialogComponent {
   /** List of task types currently supported by the UI. */

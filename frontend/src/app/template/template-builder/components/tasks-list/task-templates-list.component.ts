@@ -28,9 +28,10 @@ export interface TaskTemplateEditorLauncher {
 }
 
 @Component({
-  selector: "app-task-templates-list",
-  templateUrl: "./task-templates-list.component.html",
-  styleUrls: ["./task-templates-list.component.scss"]
+    selector: "app-task-templates-list",
+    templateUrl: "./task-templates-list.component.html",
+    styleUrls: ["./task-templates-list.component.scss"],
+    standalone: false
 })
 export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy {
 

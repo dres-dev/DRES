@@ -20,9 +20,10 @@ import {
 } from '../../../../openapi';
 
 @Component({
-  selector: 'app-run-admin-toolbar',
-  templateUrl: './run-admin-toolbar.component.html',
-  styleUrls: ['./run-admin-toolbar.component.scss'],
+    selector: 'app-run-admin-toolbar',
+    templateUrl: './run-admin-toolbar.component.html',
+    styleUrls: ['./run-admin-toolbar.component.scss'],
+    standalone: false
 })
 export class RunAdminToolbarComponent implements OnInit {
   @Input() runId: string;

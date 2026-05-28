@@ -4,7 +4,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import {animate, keyframes, state, style, transition, trigger} from '@angular/animations';
 import {MatDialog} from '@angular/material/dialog';
 import {JudgementDialogComponent} from './judgement-dialog/judgement-dialog.component';
@@ -21,21 +21,18 @@ import {ApiJudgement, ApiJudgementRequest, ApiVerdictStatus, JudgementService} f
     styleUrls: ['./judgement-viewer.component.scss'],
     animations: [
         trigger('newDescBg', [
-            state('known', style({backgroundColor: 'transparent'})),
-            state('fresh', style({backgroundColor: 'transparent'})),
-
+            state('known', style({ backgroundColor: 'transparent' })),
+            state('fresh', style({ backgroundColor: 'transparent' })),
             transition('known => fresh', [
-                animate(
-                    '3s',
-                    keyframes([
-                        style({backgroundColor: 'transparent', offset: 0}),
-                        style({backgroundColor: '#FFFFFF', offset: 0.2}),
-                        style({backgroundColor: 'transparent', offset: 1}),
-                    ])
-                ),
+                animate('3s', keyframes([
+                    style({ backgroundColor: 'transparent', offset: 0 }),
+                    style({ backgroundColor: '#FFFFFF', offset: 0.2 }),
+                    style({ backgroundColor: 'transparent', offset: 1 }),
+                ])),
             ]),
         ]),
     ],
+    standalone: false
 })
 export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     status: 'fresh' | 'known' = 'known';
@@ -50,6 +47,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     noJudgementMessage = '';
     isJudgmentAvailable = false;
     isNewJudgementDesc = false;
+    previousJudgementRequest: ApiJudgementRequest | null = null;
 
     openSubmissions = new BehaviorSubject(0);
     pendingSubmissions = new BehaviorSubject(0);
@@ -111,6 +109,14 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             case 'w':
                 this.judge('WRONG');
                 break;
+        }
+    }
+
+    @HostListener('document:keydown', ['$event'])
+    handleKeydown(event: KeyboardEvent) {
+        if (event.code === 'Space' && this.judgePlayer) {
+            event.preventDefault();
+            this.judgePlayer.togglePlaying();
         }
     }
 
@@ -245,17 +251,27 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                     this.snackBar.open(res.description, null, {duration: 5000});
                 }
             });
+        this.previousJudgementRequest = this.judgementRequest;
         this.judgePlayer.stop();
         this.judgementRequest = null;
         this.isJudgmentAvailable = false;
     }
 
+    goBack() {
+        if (this.previousJudgementRequest) {
+            this.judgementRequest = this.previousJudgementRequest;
+            this.observableJudgementRequest.next(this.previousJudgementRequest);
+            this.isJudgmentAvailable = true;
+            this.previousJudgementRequest = null;
+        }
+    }
+
     private stopAll() {
-        this.requestSub.unsubscribe();
+        this.requestSub?.unsubscribe();
         this.requestSub = null;
-        this.statusSub.unsubscribe();
+        this.statusSub?.unsubscribe();
         this.statusSub = null;
-        this.deadMansSwitchSub.unsubscribe();
+        this.deadMansSwitchSub?.unsubscribe();
         this.deadMansSwitchSub = null;
         if (this.judgePlayer) {
             this.judgePlayer.stop();

@@ -1,10 +1,11 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { ApiSubmission, EvaluationAdministratorService } from "../../../../openapi";
-import { flatMap, Observable } from "rxjs";
-import { filter, tap } from "rxjs/operators";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 
 @Pipe({
-  name: "submissionsOf"
+    name: "submissionsOf",
+    standalone: false
 })
 export class SubmissionsOfPipe implements PipeTransform {
 
@@ -20,21 +21,7 @@ export class SubmissionsOfPipe implements PipeTransform {
     return this.adminService
       .getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(evaluationId, templateId)
       .pipe(
-        tap(e => {
-          console.log("submissionsOf 1", e);
-        }),
-        filter((submissionInfos, idx) => {
-          return submissionInfos[idx]?.evaluationId === evaluationId || false;
-        }),
-        tap(e => {
-          console.log("submissionsOf 2", e);
-        }),
-        flatMap(submissionInfos => {
-          return submissionInfos.filter(it => it.evaluationId === evaluationId).map(it => it.submissions);
-        }),
-        tap(e => {
-          console.log("submissionsOf 3", e);
-        })
+        map(submissionInfos => submissionInfos.flatMap(info => info.submissions))
       );
   }
 

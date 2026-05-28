@@ -18,7 +18,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'idea'
 
 mainClassName = 'dev.dres.DRES'
-sourceCompatibility = 11
+sourceCompatibility = 17
 
 /* Configuration for frontend classpath files (see dependencies). */
 configurations {
@@ -37,11 +37,11 @@ repositories {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "17"
     compilerOptions.freeCompilerArgs.add("-Xcontext-receivers")
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "17"
     compilerOptions.freeCompilerArgs.add("-Xcontext-receivers")
 }
 
@@ -105,18 +105,18 @@ dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: version_junit
 
     ///// Jackson / Kotlin
-    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.0'
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: version_jackson_kotlin
 
     ///// Kotlin
     implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin
     implementation group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: version_kotlin
-    implementation group: 'org.jetbrains.kotlinx', name:'kotlinx-serialization-json', version: '1.6.2'
+    implementation group: 'org.jetbrains.kotlinx', name:'kotlinx-serialization-json', version: version_kotlinx_serialization
 }
 
 kapt {
     correctErrorTypes true
     useBuildCache true
-    targetCompatibility = 11
+    targetCompatibility = 17
 }
 
 
@@ -220,3 +220,6 @@ startScripts {
         windowsScript.text = windowsScript.text.replaceAll('set CLASSPATH=.*', 'set CLASSPATH=.;%APP_HOME%/lib/*')
     }
 }
+
+/* Exclude logback-classic. 8. July 2024: Leak comes from openapi-annotation */
+configurations.all*.exclude module: "logback-classic"

@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES API",
-    "version" : "2.0.4",
-    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.4",
+    "version" : "2.0.5-SNAPSHOT",
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.5-SNAPSHOT",
     "contact" : {
       "name" : "The DRES Dev Team",
       "url" : "https://dres.dev"
@@ -5573,7 +5573,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "name", "taskGroup", "taskType", "duration" ]
+        "required" : [ "name", "taskGroup", "taskType" ]
       },
       "ApiEvaluation" : {
         "type" : "object",
@@ -5696,7 +5696,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "evaluationId", "evaluationStatus", "taskStatus", "timeLeft", "timeElapsed" ]
+        "required" : [ "evaluationId", "evaluationStatus", "taskStatus", "timeElapsed" ]
       },
       "ApiEvaluationStatus" : {
         "type" : "string",
@@ -5797,7 +5797,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "id", "name", "type", "group", "duration", "taskId", "status" ]
+        "required" : [ "id", "name", "type", "group", "taskId", "status" ]
       },
       "ApiTaskStatus" : {
         "type" : "string",
@@ -5827,7 +5827,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "templateId", "name", "taskGroup", "taskType", "duration" ]
+        "required" : [ "templateId", "name", "taskGroup", "taskType" ]
       },
       "ApiTeamInfo" : {
         "type" : "object",
@@ -6568,7 +6568,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints" ]
+        "required" : [ "name", "taskGroup", "taskType", "collectionId", "targets", "hints" ]
       },
       "ApiTaskType" : {
         "type" : "object",
@@ -6612,7 +6612,7 @@
             }
           }
         },
-        "required" : [ "name", "duration", "targetOption", "hintOptions", "submissionOptions", "taskOptions", "scoreOption", "configuration" ]
+        "required" : [ "name", "targetOption", "hintOptions", "submissionOptions", "taskOptions", "scoreOption", "configuration" ]
       },
       "ApiHintOption" : {
         "type" : "string",
@@ -6620,7 +6620,7 @@
       },
       "ApiScoreOption" : {
         "type" : "string",
-        "enum" : [ "KIS", "AVS", "LEGACY_AVS" ]
+        "enum" : [ "KIS", "AVS", "LEGACY_AVS", "NOOP" ]
       },
       "ApiSubmissionOption" : {
         "type" : "string",

@@ -9,6 +9,8 @@
     autoplay
     loop
     [muted]="(config.configAsObservable | async).effects.mute"
+    (click)="togglePlaying()"
+    style="cursor: pointer"
   ></video>
   <div class="controls-container flex flex-row content-between align-center fill" *ngIf="mediaUrl | async">
     <div class="flex-5">
@@ -16,16 +18,15 @@
         mat-flat-button
         color="primary"
         (click)="togglePlaying()"
-        [matTooltip]="(videoPlayer.paused ? 'Play' : 'Pause') + ' the video'"
+        [matTooltip]="(videoPlayer.paused ? 'Play' : 'Pause') + ' the video (or press Space)'"
       >
         <mat-icon>{{ videoPlayer.paused ? 'play_arrow' : 'pause' }}</mat-icon>
       </button>
     </div>
-    <div class="flex-70">
+    <div class="flex-70" (click)="seekToPosition($event)" style="cursor: pointer" matTooltip="Click to seek">
       <mat-progress-bar
         mode="determinate"
         [value]="playtimeRelative | async"
-        matTooltip="Time relative to the submission, inclusive some temporal context."
       ></mat-progress-bar>
     </div>
     <div class="flex-15">

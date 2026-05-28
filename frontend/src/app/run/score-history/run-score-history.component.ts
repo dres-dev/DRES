@@ -16,9 +16,10 @@ import {
 import {ApiEvaluationInfo, EvaluationScoresService, EvaluationService} from '../../../../openapi';
 
 @Component({
-  selector: 'app-score-history',
-  templateUrl: './run-score-history.component.html',
-  styleUrls: ['./run-score-history.component.scss'],
+    selector: 'app-score-history',
+    templateUrl: './run-score-history.component.html',
+    styleUrls: ['./run-score-history.component.scss'],
+    standalone: false
 })
 export class RunScoreHistoryComponent {
   /** List of available scoreboards (by name). */

@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'notInListFilter'
+    name: 'notInListFilter',
+    standalone: false
 })
 export class NotInListFilterPipe implements PipeTransform {
 

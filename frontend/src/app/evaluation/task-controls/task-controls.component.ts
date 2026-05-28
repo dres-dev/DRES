@@ -13,9 +13,10 @@ import {
 import { AuthenticationService } from "../../services/session/authentication.sevice";
 
 @Component({
-  selector: 'app-task-controls',
-  templateUrl: './task-controls.component.html',
-  styleUrls: ['./task-controls.component.scss']
+    selector: 'app-task-controls',
+    templateUrl: './task-controls.component.html',
+    styleUrls: ['./task-controls.component.scss'],
+    standalone: false
 })
 export class TaskControlsComponent implements OnInit{
 

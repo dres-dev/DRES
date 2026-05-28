@@ -5,7 +5,8 @@ import { ApiUser } from "../../../../../../openapi";
  * A pipe enabling the filtering of a list of [ApiUser]s based on their username.
  */
 @Pipe({
-  name: 'userListFilter'
+    name: 'userListFilter',
+    standalone: false
 })
 export class UserListFilterPipe implements PipeTransform {
 

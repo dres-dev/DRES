@@ -116,7 +116,10 @@ class InteractiveSynchronousRunManager(
         /* End ongoing tasks upon initialization (in case server crashed during task execution). */
         for (task in this.evaluation.taskRuns) {
             if (task.isRunning || task.status == ApiTaskStatus.RUNNING) {
-                task.end()
+                /* We exclude perpetual tasks here */
+                if(task.duration != null){
+                    task.end()
+                }
             }
         }
 
@@ -353,34 +356,38 @@ class InteractiveSynchronousRunManager(
         val task = this.currentTask(context)
             ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
         check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
+        check(task.duration != null){"Task run '${this.name}.${task.position}' runs perpetually. This is a programmer's error!"}
 
         /* Adjust duration. */
-        val newDuration = task.duration + s
+        val newDuration = task.duration!! + s
         if ((newDuration * 1000L - (System.currentTimeMillis() - task.started!!)) < 0) {
             throw IllegalArgumentException("New duration $s can not be applied because too much time has already elapsed.")
         }
         task.duration = newDuration
-        return (task.duration * 1000L - (System.currentTimeMillis() - task.started!!))
+        return (task.duration!! * 1000L - (System.currentTimeMillis() - task.started!!))
     }
 
     /**
      * Returns the time in milliseconds that is left until the end of the current [DbTask].
-     * Only works if the [RunManager] is in wrong [RunManagerStatus]. If no task is running,
-     * this method returns -1L.
+     * Only works if the [RunManager] is in right [RunManagerStatus]. If no task is running,
+     * this method returns -1L. If the task is to run perpetually, NULL is returned.
      *
-     * @return Time remaining until the task will end or -1, if no task is running.
+     * @return Time remaining until the task will end or -1, if no task is running. NULL if the task runs perpetually.
      */
-    override fun timeLeft(context: RunActionContext): Long {
-        return if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
+    override fun timeLeft(context: RunActionContext): Long? {
+        return if(this.evaluation.currentTaskRun?.duration == null){
+            null
+        }else{
+        if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             max(
                 0L,
-                currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                currentTaskRun.duration!! * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
             )
         } else {
             -1L
-        }
+        }}
     }
 
     /**
@@ -677,13 +684,13 @@ class InteractiveSynchronousRunManager(
 //            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_START, this.evaluation.currentTask?.taskId))
         }
 
-        /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
-        if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
+        /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout, if possible */
+        if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING && this.evaluation.currentTaskRun!!.duration != null) {
             this.stateLock.write {
                 val task = this.evaluation.currentTaskRun!!
                 val timeLeft = max(
                     0L,
-                    task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                    task.duration!! * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
                 )
                 if (timeLeft <= 0) {
                     task.end()

@@ -19,9 +19,10 @@ import { EvaluationStartDialogComponent, EvaluationStartDialogResult } from "../
 import {mergeMap} from 'rxjs';
 
 @Component({
-  selector: 'app-template-list',
-  templateUrl: './template-list.component.html',
-  styleUrls: ['./template-list.component.scss']
+    selector: 'app-template-list',
+    templateUrl: './template-list.component.html',
+    styleUrls: ['./template-list.component.scss'],
+    standalone: false
 })
 export class TemplateListComponent implements AfterViewInit{
 

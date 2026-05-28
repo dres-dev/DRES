@@ -2,9 +2,10 @@ import { AfterViewInit, Component, Input } from "@angular/core";
 import { ApiTarget, ApiTaskTemplate } from "../../../../../../openapi";
 
 @Component({
-  selector: 'app-template-info',
-  templateUrl: './template-info.component.html',
-  styleUrls: ['./template-info.component.scss']
+    selector: 'app-template-info',
+    templateUrl: './template-info.component.html',
+    styleUrls: ['./template-info.component.scss'],
+    standalone: false
 })
 export class TemplateInfoComponent implements AfterViewInit{
 

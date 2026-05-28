@@ -9,7 +9,7 @@ We provide a dedicated __client__ DRES OpenApi specifications for systems to be 
 
 ## Requirements
 
-To deploy and run DRES, a JRE of at least Java 11 is required, e.g. the [OpenJDK 11](https://jdk.java.net/java-se-ri/11).
+To deploy and run DRES, a JRE of at least Java 17 is required, e.g. the [OpenJDK 17](https://jdk.java.net/java-se-ri/17).
 For development, besides the JDK, addtitionally [NPM](https://www.npmjs.com/) and the [Angular CLI](https://cli.angular.io/) is recommended.
 
 ## Citation

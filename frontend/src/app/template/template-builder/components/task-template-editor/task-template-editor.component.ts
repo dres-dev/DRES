@@ -1,6 +1,6 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { TemplateBuilderService } from "../../template-builder.service";
-import { forkJoin, Observable, Subscription } from "rxjs";
+import { forkJoin, Observable, Subscription, takeUntil } from "rxjs";
 import {
   ApiHintOption, ApiHintType,
   ApiMediaCollection, ApiMediaItem, ApiTarget, ApiTargetOption, ApiTargetType,
@@ -12,8 +12,8 @@ import {
 } from "../../../../../../openapi";
 import { UntypedFormControl, UntypedFormGroup } from "@angular/forms";
 import {
-  CompetitionFormBuilder
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/competition-form.builder";
+  TaskTemplateFormBuilder
+} from "../../task-template-form.builder";
 import {
   VideoPlayerSegmentBuilderData
 } from "../../../../competition/competition-builder/competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component";
@@ -21,16 +21,14 @@ import { AppConfig } from "../../../../app.config";
 import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
 import { filter, first, map } from "rxjs/operators";
 import { TimeUtilities } from "../../../../utilities/time.utilities";
-import {
-  AdvancedBuilderDialogComponent,
-  AdvancedBuilderDialogData
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component";
 import { BatchAddTargetDialogComponent, BatchAddTargetDialogData } from "../batch-add-target-dialog/batch-add-target-dialog.component";
+import { NavigationEnd, Router, RouterEvent } from "@angular/router";
 
 @Component({
-  selector: 'app-task-template-editor',
-  templateUrl: './task-template-editor.component.html',
-  styleUrls: ['./task-template-editor.component.scss']
+    selector: 'app-task-template-editor',
+    templateUrl: './task-template-editor.component.html',
+    styleUrls: ['./task-template-editor.component.scss'],
+    standalone: false
 })
 export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
@@ -45,7 +43,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   mediaCollectionSource: Observable<ApiMediaCollection[]>;
 
-  formBuilder: CompetitionFormBuilder;
+  formBuilder: TaskTemplateFormBuilder;
 
   @ViewChild('videoPlayer', {static: false}) video: ElementRef;
 
@@ -67,9 +65,17 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   constructor(private builderService: TemplateBuilderService,
               public collectionService: CollectionService,
               public config: AppConfig,
-              private dialog: MatDialog) {}
+              private dialog: MatDialog,
+              private router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.router.events.subscribe((event) => {
+      if(event instanceof NavigationEnd){
+        console.log("NavigationEnd", event);
+        this.builderService?.selectTaskTemplate(null)
+      }
+    })
     this.taskSub = this.builderService.selectedTaskTemplateAsObservable().subscribe((t)=>{
       if(t){
         this.task = t;
@@ -94,7 +100,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   }
 
   public init(){
-    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, this.task);
+    this.formBuilder = new TaskTemplateFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, this.task);
     this.form = this.formBuilder.form;
     this.form.valueChanges.subscribe(newValue => {
       this.formBuilder.storeFormData();
@@ -107,7 +113,20 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   }
 
   public isFormValid(){
-    return this.form == undefined || this.form.valid;
+    if(this.builderService.hasTouchedTasks()){
+      return this?.form?.valid || true;
+    }else{
+      return true;
+    }
+  }
+
+  public hasCollectionSet(){
+    if(this.form){
+      if(this.form.get('mediaCollection')?.value){
+        return true
+      }
+    }
+    return false
   }
 
   public fetchData(){
@@ -122,7 +141,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   uploaded = (taskData: string) => {
     const task = JSON.parse(taskData) as ApiTaskTemplate;
-    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, task);
+    this.formBuilder = new TaskTemplateFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, task);
     this.form = this.formBuilder.form;
   };
 
@@ -380,17 +399,13 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
         switch(this.taskType.targetOption){
           case "SINGLE_MEDIA_ITEM":
           case "SINGLE_MEDIA_SEGMENT":
-            const obs = r.map(it =>{
-              return this.collectionService.getApiV2CollectionByCollectionIdByStartsWith(this.form.get('mediaCollection').value, it.trim())
-            });
-            forkJoin(obs).subscribe(itemsList => {
-              itemsList.forEach(it => {
-                if(it.length > 0){
+            this.collectionService.postApiV2CollectionByCollectionIdResolve(this.form.get('mediaCollection').value, r)
+              .subscribe(items => {
+                items.forEach(it => {
                   const type = this.taskType.targetOption === "SINGLE_MEDIA_ITEM" ? ApiTargetType.MEDIA_ITEM : ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE;
-                  this.formBuilder.addTargetForm(this.taskType.targetOption, {type: type, target: it[0].mediaItemId} as ApiTarget)
-                }
+                  this.formBuilder.addTargetForm(this.taskType.targetOption, {type: type, target: it.mediaItemId} as ApiTarget, true, it)
+                })
               })
-            })
             break;
           case "JUDGEMENT":
           case "VOTE":

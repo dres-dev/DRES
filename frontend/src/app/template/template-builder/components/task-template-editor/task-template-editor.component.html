@@ -60,7 +60,8 @@
 
       <mat-form-field class="flex-20">
         <mat-label>Duration [s]</mat-label>
-        <input type="number" matInput placeholder="Duration" [formControl]="form.get('duration')"/>
+        <input type="number" matInput placeholder="Duration" [formControl]="form.get('duration')"
+        matTooltip="Leave empty for perpetual task."/>
       </mat-form-field>
     </p>
 
@@ -87,7 +88,7 @@
           </mat-button-toggle>
         </mat-button-toggle-group>
         -->
-        <button
+        <button *ngIf="hasCollectionSet()"
           mat-button
           aria-label="Batch Target Add"
           matTooltip="Batch Target Add"

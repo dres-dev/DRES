@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 /**
 Reusable classed to mimic functionality formerly provided by fxFlex
  */
@@ -125,15 +127,15 @@ $basisFlex: 5,10,15,20,22,25,28,30,35,40,45,48,50,55,60,65,68,70,75,80,85,90,95,
 
 @each $f in $basisFlex {
   .flex-#{$f}{
-    flex: 0 1 percentage(calc($f / 100));
+    flex: 0 1 math.percentage(calc($f / 100));
   }
 }
 
 .flex-33{
-  flex: 0 1 percentage(calc(1 / 3));
+  flex: 0 1 math.percentage(calc(1 / 3));
 }
 .flex-66{
-  flex: 0 1 percentage(calc(2 / 3));
+  flex: 0 1 math.percentage(calc(2 / 3));
 }
 
 .self-flex-start {

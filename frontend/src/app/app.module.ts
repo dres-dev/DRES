@@ -7,7 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { ServicesModule } from './services/services.module';
 import { MatMenuModule } from '@angular/material/menu';
 import { CompetitionModule } from './competition/competition.module';
@@ -40,45 +40,39 @@ export function initializeApp(appConfig: AppConfig) {
   return () => appConfig.load();
 }
 
-@NgModule({
-  declarations: [AppComponent],
-  imports: [
-    /* Imported modules. */
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatButtonModule,
-    MatSnackBarModule,
-    MatMenuModule,
-    MatTooltipModule,
-    HttpClientModule,
-    DragDropModule,
-    MatTableModule,
-
-    /* Our own modules. */
-    SharedModule,
-    ServicesModule,
-    UserModule,
-    CompetitionModule,
-    CompetitionBuilderModule,
-    ViewerModule,
-    RunModule,
-    CollectionModule,
-    JudgementModule,
-    TemplateModule,
-    EvaluationModule,
-    ErrorModule,
-    LoggingModule,
-    ErrorHandlingModule,
-  ],
-  providers: [
-    AppConfig,
-    { provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true },
-    AccessRoleService,
-    {provide: HTTP_INTERCEPTORS, useClass: DresBackendUnauthorisedHandlerService, deps: [AppConfig], multi:true}
-  ],
-  bootstrap: [AppComponent],
-})
+@NgModule({ declarations: [AppComponent],
+    bootstrap: [AppComponent], imports: [
+        /* Imported modules. */
+        BrowserModule,
+        AppRoutingModule,
+        BrowserAnimationsModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatButtonModule,
+        MatSnackBarModule,
+        MatMenuModule,
+        MatTooltipModule,
+        DragDropModule,
+        MatTableModule,
+        /* Our own modules. */
+        SharedModule,
+        ServicesModule,
+        UserModule,
+        CompetitionModule,
+        CompetitionBuilderModule,
+        ViewerModule,
+        RunModule,
+        CollectionModule,
+        JudgementModule,
+        TemplateModule,
+        EvaluationModule,
+        ErrorModule,
+        LoggingModule,
+        ErrorHandlingModule], providers: [
+        AppConfig,
+        { provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true },
+        AccessRoleService,
+        { provide: HTTP_INTERCEPTORS, useClass: DresBackendUnauthorisedHandlerService, deps: [AppConfig], multi: true },
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
 export class AppModule {}

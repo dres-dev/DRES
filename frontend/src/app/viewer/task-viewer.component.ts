@@ -33,9 +33,10 @@ enum ViewerState {
 }
 
 @Component({
-  selector: 'app-task-viewer',
-  templateUrl: './task-viewer.component.html',
-  styleUrls: ['./task-viewer.component.scss'],
+    selector: 'app-task-viewer',
+    templateUrl: './task-viewer.component.html',
+    styleUrls: ['./task-viewer.component.scss'],
+    standalone: false
 })
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @Input() evaluationId: Observable<string>;
@@ -248,6 +249,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         map(([info, state]) => info.taskTemplates.find(t => t.templateId == state.taskTemplateId)?.name)
     )
 
+
     /* Observable for the time that is still left. */
     this.timeLeft = this.state.pipe(
       map((s) => s.timeLeft) /* Compensating for added countdown. */,
@@ -277,14 +279,18 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
    *
    * @param sec The number of seconds to convert.
    */
-  public toFormattedTime(sec: number): string {
-    const hours = Math.floor(sec / 3600);
-    const minutes = Math.floor(sec / 60) % 60;
-    const seconds = sec % 60;
+  public toFormattedTime(sec?: number): string {
+    if (sec) {
+      const hours = Math.floor(sec / 3600);
+      const minutes = Math.floor(sec / 60) % 60;
+      const seconds = sec % 60;
 
-    return [hours, minutes, seconds]
-      .map((v) => (v < 10 ? '0' + v : v))
-      .filter((v, i) => v !== '00' || i > 0)
-      .join(':');
+      return [hours, minutes, seconds]
+        .map((v) => (v < 10 ? "0" + v : v))
+        .filter((v, i) => v !== "00" || i > 0)
+        .join(":");
+    } else {
+      return "∞";
+    }
   }
 }

@@ -21,7 +21,7 @@ configurations {
 def includeConfig = project.hasProperty('includeConfig')
 
 node {
-    version = '18.16.0'
+    version = '20.19.2'
     download = true
     workDir = file("${project.projectDir}/.gradle/nodejs")
     yarnWorkDir = file("${project.projectDir}/.gradle/yarn")

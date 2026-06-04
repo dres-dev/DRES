@@ -17,8 +17,14 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'idea'
 
-mainClassName = 'dev.dres.DRES'
-sourceCompatibility = 17
+application {
+    mainClass = 'dev.dres.DRES'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 /* Configuration for frontend classpath files (see dependencies). */
 configurations {
@@ -116,7 +122,6 @@ dependencies {
 kapt {
     correctErrorTypes true
     useBuildCache true
-    targetCompatibility = 17
 }
 
 
@@ -222,4 +227,6 @@ startScripts {
 }
 
 /* Exclude logback-classic. 8. July 2024: Leak comes from openapi-annotation */
-configurations.all*.exclude module: "logback-classic"
+configurations.configureEach {
+    exclude module: "logback-classic"
+}

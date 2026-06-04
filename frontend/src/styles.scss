@@ -38,6 +38,11 @@ $dark-theme: mat.define-theme((
   color-scheme: light;
 }
 
+mat-toolbar {
+  background-color: #9c27b0 !important;
+  color: #ffffff !important;
+}
+
 // Manual dark mode toggle — class applied to <html> by AppComponent
 .dark-theme {
   @include mat.all-component-colors($dark-theme);
@@ -46,6 +51,11 @@ $dark-theme: mat.define-theme((
   body {
     background-color: #1c1b1f;
     color: #e6e1e5;
+  }
+
+  mat-toolbar {
+    background-color: #9c27b0 !important;
+    color: #ffffff !important;
   }
 }
 

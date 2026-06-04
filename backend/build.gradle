@@ -44,11 +44,9 @@ repositories {
 
 compileKotlin {
     kotlinOptions.jvmTarget = "17"
-    compilerOptions.freeCompilerArgs.add("-Xcontext-receivers")
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "17"
-    compilerOptions.freeCompilerArgs.add("-Xcontext-receivers")
 }
 
 dependencies {

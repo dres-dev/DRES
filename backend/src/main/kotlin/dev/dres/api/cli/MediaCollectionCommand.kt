@@ -105,7 +105,7 @@ class MediaCollectionCommand(private val config: Config) :
      * Base command for media collection related commands.
      * Provides infrastructure to get the collection specified by the user
      */
-    abstract inner class AbstractCollectionCommand(
+    abstract class AbstractCollectionCommand(
         name: String,
         help: String
     ) :

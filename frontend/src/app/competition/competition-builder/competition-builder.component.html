@@ -5,7 +5,8 @@
     </button>
   </div>
   <div>
-    <h1>Edit evaluation template {{ competitionId }}
+    <h1>
+      Edit evaluation template {{ competitionId }}
       <span *ngIf="dirty" class="warn-color">(unsaved changes)</span>
     </h1>
   </div>
@@ -13,7 +14,8 @@
   <div class="spacer-flex"></div>
 
   <div>
-    <button mat-icon-button
+    <button
+      mat-icon-button
       aria-label="Save changes to evaluation template."
       matTooltip="Save changes to evaluation template."
       (click)="save()"

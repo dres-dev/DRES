@@ -6,13 +6,13 @@ import { AppConfig } from '../app.config';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { JudgementMediaViewerComponent } from './judgement-media-viewer.component';
-import {ApiJudgementRequest, JudgementService} from '../../../openapi';
+import { ApiJudgementRequest, JudgementService } from '../../../openapi';
 
 @Component({
-    selector: 'app-judgement-voting-viewer',
-    templateUrl: './judgement-voting-viewer.component.html',
-    styleUrls: ['./judgement-voting-viewer.component.scss'],
-    standalone: false
+  selector: 'app-judgement-voting-viewer',
+  templateUrl: './judgement-voting-viewer.component.html',
+  styleUrls: ['./judgement-voting-viewer.component.scss'],
+  standalone: false,
 })
 export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
   @Input() pollingFrequency = 1000;
@@ -92,8 +92,8 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
       });
   }
 
-  allAnswers(){
-    return this.observableJudgementRequest?.value?.answerSet?.answers || []
+  allAnswers() {
+    return this.observableJudgementRequest?.value?.answerSet?.answers || [];
   }
 
   ngOnDestroy(): void {

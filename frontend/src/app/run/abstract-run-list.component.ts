@@ -1,14 +1,16 @@
-import {combineLatest, merge, mergeMap, Observable, Subject, timer} from 'rxjs';
+import { combineLatest, merge, mergeMap, Observable, Subject, timer } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ApiRunProperties,
-  ApiTaskStatus, DownloadService,
+  ApiTaskStatus,
+  DownloadService,
   EvaluationAdministratorService,
   EvaluationScoresService,
-  EvaluationService, RunManagerStatus
-} from "../../../openapi";
+  EvaluationService,
+  RunManagerStatus,
+} from '../../../openapi';
 
 export interface RunInfoWithState {
   id: string;
@@ -49,7 +51,7 @@ export class AbstractRunListComponent {
    * @param runId ID of the run to navigate to.
    */
   public navigateToViewer(runId: string) {
-    console.log("Navigate (AbstractList): ", runId)
+    console.log('Navigate (AbstractList): ', runId);
     /* TODO: Setup depends on type of competition run. */
     this.router.navigate([
       '/evaluation/viewer',
@@ -131,9 +133,9 @@ export class AbstractRunListComponent {
     return item.id;
   }
 
-  public refresh(){
+  public refresh() {
     this.initStateUpdates();
-    this.postRefresh()
+    this.postRefresh();
   }
 
   protected initStateUpdates() {
@@ -155,7 +157,7 @@ export class AbstractRunListComponent {
             runStatus: s.evaluationStatus,
             taskRunStatus: s.taskStatus,
             currentTask: s.taskTemplateId,
-            currentTaskName: v.taskTemplates.find(it => it.templateId === s.taskTemplateId)?.name,
+            currentTaskName: v.taskTemplates.find((it) => it.templateId === s.taskTemplateId)?.name,
             timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
             timeElapsed: s.timeElapsed,
             asynchronous: v.type === 'ASYNCHRONOUS',

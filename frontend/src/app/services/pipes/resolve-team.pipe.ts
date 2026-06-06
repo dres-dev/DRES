@@ -1,9 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import {ApiTeam, ApiTeamInfo} from '../../../../openapi';
+import { ApiTeam, ApiTeamInfo } from '../../../../openapi';
 
 @Pipe({
-    name: 'resolveTeam',
-    standalone: false
+  name: 'resolveTeam',
+  standalone: false,
 })
 export class ResolveTeamPipe implements PipeTransform {
   transform(teamId: string, teams: ApiTeamInfo[]): ApiTeamInfo | null {

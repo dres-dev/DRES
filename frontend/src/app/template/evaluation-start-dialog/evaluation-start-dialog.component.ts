@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { FormControl, FormGroup } from "@angular/forms";
-import { ApiEvaluationType } from "../../../../openapi";
-import { MatDialogRef } from "@angular/material/dialog";
-import { Observable, Subscription } from "rxjs";
+import { FormControl, FormGroup } from '@angular/forms';
+import { ApiEvaluationType } from '../../../../openapi';
+import { MatDialogRef } from '@angular/material/dialog';
+import { Observable, Subscription } from 'rxjs';
 
 export interface EvaluationStartDialogResult {
   name: string;
@@ -14,41 +14,40 @@ export interface EvaluationStartDialogResult {
 }
 
 @Component({
-    selector: 'app-evaluation-start-dialog',
-    templateUrl: './evaluation-start-dialog.component.html',
-    styleUrls: ['./evaluation-start-dialog.component.scss'],
-    standalone: false
+  selector: 'app-evaluation-start-dialog',
+  templateUrl: './evaluation-start-dialog.component.html',
+  styleUrls: ['./evaluation-start-dialog.component.scss'],
+  standalone: false,
 })
 export class EvaluationStartDialogComponent {
-
   form: FormGroup = new FormGroup({
-    name: new FormControl('', {nonNullable: true}),
-    type: new FormControl('', {nonNullable: true}),
+    name: new FormControl('', { nonNullable: true }),
+    type: new FormControl('', { nonNullable: true }),
     participantsCanView: new FormControl(true),
     shuffleTasks: new FormControl(false),
     allowRepeatedTasks: new FormControl(false),
-    limit: new FormControl(0, {nonNullable: true})
-  })
+    limit: new FormControl(0, { nonNullable: true }),
+  });
 
   evaluationTypes: ApiEvaluationType[] = [ApiEvaluationType.SYNCHRONOUS, ApiEvaluationType.ASYNCHRONOUS];
 
   typeObservable: Observable<ApiEvaluationType> = this.form.get('type').valueChanges;
 
-  sub: Subscription
+  sub: Subscription;
 
   constructor(public dialogRef: MatDialogRef<EvaluationStartDialogComponent>) {
-    this.form.get('shuffleTasks')?.disable({emitEvent: false})
+    this.form.get('shuffleTasks')?.disable({ emitEvent: false });
     this.sub = this.typeObservable.subscribe((type) => {
-      if(type !== "ASYNCHRONOUS"){
-        this.form.get('shuffleTasks')?.disable({emitEvent: false})
-      }else{
-        this.form.get('shuffleTasks')?.enable({emitEvent: false})
+      if (type !== 'ASYNCHRONOUS') {
+        this.form.get('shuffleTasks')?.disable({ emitEvent: false });
+      } else {
+        this.form.get('shuffleTasks')?.enable({ emitEvent: false });
       }
-    })
+    });
   }
 
-  public create(){
-    if(this.form.valid){
+  public create() {
+    if (this.form.valid) {
       this.dialogRef.close({
         name: this.form.get('name').value,
         type: this.form.get('type').value,
@@ -60,9 +59,8 @@ export class EvaluationStartDialogComponent {
     }
   }
 
-  public close(){
+  public close() {
     this.sub.unsubscribe();
     this.dialogRef.close(null);
   }
-
 }

@@ -1,13 +1,13 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, interval, Subscription } from 'rxjs';
 import { catchError, filter, switchMap } from 'rxjs/operators';
-import {CurrentTime, StatusService} from '../../../../openapi';
+import { CurrentTime, StatusService } from '../../../../openapi';
 
 @Component({
-    selector: 'app-api-status',
-    templateUrl: './api-status.component.html',
-    styleUrls: ['./api-status.component.scss'],
-    standalone: false
+  selector: 'app-api-status',
+  templateUrl: './api-status.component.html',
+  styleUrls: ['./api-status.component.scss'],
+  standalone: false,
 })
 export class ApiStatusComponent implements OnInit, OnDestroy {
   @Input() public pingFrequency = 10_000; // ms

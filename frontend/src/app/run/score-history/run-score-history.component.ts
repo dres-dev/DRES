@@ -13,13 +13,13 @@ import {
   ApexXAxis,
   ApexYAxis,
 } from 'ng-apexcharts';
-import {ApiEvaluationInfo, EvaluationScoresService, EvaluationService} from '../../../../openapi';
+import { ApiEvaluationInfo, EvaluationScoresService, EvaluationService } from '../../../../openapi';
 
 @Component({
-    selector: 'app-score-history',
-    templateUrl: './run-score-history.component.html',
-    styleUrls: ['./run-score-history.component.scss'],
-    standalone: false
+  selector: 'app-score-history',
+  templateUrl: './run-score-history.component.html',
+  styleUrls: ['./run-score-history.component.scss'],
+  standalone: false,
 })
 export class RunScoreHistoryComponent {
   /** List of available scoreboards (by name). */
@@ -200,7 +200,7 @@ export class RunScoreHistoryComponent {
     const series = combineLatest([scores, this.runInfo]).pipe(
       map(([data, run]) => {
         /* Prepare data structure for ApexCharts. */
-        /*
+    /*
         const array: ApexAxisChartSeries = [];
         for (const s of data) {
           const team = run.teams.find((t) => t.uid === s.team);

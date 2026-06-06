@@ -1,25 +1,30 @@
-import { Component, Input, OnInit } from "@angular/core";
-import { Observable, Subject } from "rxjs";
-import { CombinedRun } from "../../run/run-admin-view.component";
-import { map, switchMap, tap } from "rxjs/operators";
-import { ActivatedRoute, Router } from "@angular/router";
-import { ApiEvaluationState, ApiRole, EvaluationAdministratorService, EvaluationService, TemplateService } from "../../../../openapi";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import { MatDialog } from "@angular/material/dialog";
+import { Component, Input, OnInit } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { CombinedRun } from '../../run/run-admin-view.component';
+import { map, switchMap, tap } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  ApiEvaluationState,
+  ApiRole,
+  EvaluationAdministratorService,
+  EvaluationService,
+  TemplateService,
+} from '../../../../openapi';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import {
   ConfirmationDialogComponent,
-  ConfirmationDialogComponentData
-} from "../../shared/confirmation-dialog/confirmation-dialog.component";
-import { AuthenticationService } from "../../services/session/authentication.sevice";
+  ConfirmationDialogComponentData,
+} from '../../shared/confirmation-dialog/confirmation-dialog.component';
+import { AuthenticationService } from '../../services/session/authentication.sevice';
 
 @Component({
-    selector: 'app-task-controls',
-    templateUrl: './task-controls.component.html',
-    styleUrls: ['./task-controls.component.scss'],
-    standalone: false
+  selector: 'app-task-controls',
+  templateUrl: './task-controls.component.html',
+  styleUrls: ['./task-controls.component.scss'],
+  standalone: false,
 })
-export class TaskControlsComponent implements OnInit{
-
+export class TaskControlsComponent implements OnInit {
   @Input() runState: Observable<ApiEvaluationState>;
   @Input() refreshSubject: Subject<void> = new Subject();
 
@@ -41,20 +46,21 @@ export class TaskControlsComponent implements OnInit{
   }
 
   ngOnInit(): void {
-    console.log("Show Time: ", this.showTime)
-    if(!this.runId){
+    console.log('Show Time: ', this.showTime);
+    if (!this.runId) {
       this.runId = this.activatedRoute.params.pipe(
-        tap((a) => console.log("PARAMS:", a)),
+        tap((a) => console.log('PARAMS:', a)),
         map((a) => {
-          if(a.runId.includes(';')){
-            return a.runId.substring(0, a.runId.indexOf(';'))
-          }else{
-            return a.runId
+          if (a.runId.includes(';')) {
+            return a.runId.substring(0, a.runId.indexOf(';'));
+          } else {
+            return a.runId;
           }
         }),
-        tap((runId) => console.log("RUNID: ",runId)));
+        tap((runId) => console.log('RUNID: ', runId))
+      );
     }
-    }
+  }
 
   public startTask() {
     this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskStart(id))).subscribe(
@@ -127,5 +133,4 @@ export class TaskControlsComponent implements OnInit{
         }
       );
   }
-
 }

@@ -1,4 +1,3 @@
-
 <div>
   <table #table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
     <!-- Name Column -->
@@ -45,7 +44,7 @@
         >
           <mat-icon>flaky</mat-icon>
         </button>
-<!-- This isn't used anymore
+        <!-- This isn't used anymore
         <button
           *ngIf="row.asynchronous && row.taskRunStatus == 'ENDED'"
           mat-icon-button

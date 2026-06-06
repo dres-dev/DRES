@@ -1,5 +1,5 @@
 <div>
-  <mat-form-field style="width: 90%;">
+  <mat-form-field style="width: 90%">
     <input type="text" matInput placeholder="Media item" [formControl]="itemControl" [matAutocomplete]="autoGroup" />
     <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="displayWithMediaItem">
       <mat-option
@@ -14,10 +14,18 @@
       Please select a valid media item, i.e., use the autocomplete to select a value.
     </mat-error>
   </mat-form-field>
-  <button mat-icon-button aria-label="Toggle preview media item" matTooltip="Toggle preview media item"
-          (click)="showing = !showing; $event.stopPropagation()">
-    <mat-icon>visibility{{showing ? '_off' : ''}}</mat-icon>
+  <button
+    mat-icon-button
+    aria-label="Toggle preview media item"
+    matTooltip="Toggle preview media item"
+    (click)="showing = !showing; $event.stopPropagation()"
+  >
+    <mat-icon>visibility{{ showing ? '_off' : '' }}</mat-icon>
   </button>
 </div>
-<app-media-item-viewer *ngIf="showing" [item]="itemControl.value" [toggleable]="false"
-                       [displayNameAndId]="false"></app-media-item-viewer>
+<app-media-item-viewer
+  *ngIf="showing"
+  [item]="itemControl.value"
+  [toggleable]="false"
+  [displayNameAndId]="false"
+></app-media-item-viewer>

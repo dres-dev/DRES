@@ -3,6 +3,8 @@ import { ActivatedRoute, ActivationEnd, Params, Router } from '@angular/router';
 import { interval, merge, mergeMap, Observable, of, zip } from 'rxjs';
 import { catchError, filter, map, pairwise, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { WebSocketService } from '../services/websocket.service';
+import { ServerMessageType } from '../model/ws/server-message-type.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
@@ -84,6 +86,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     private snackBar: MatSnackBar,
     private titleService: Title,
     private overlay: Overlay,
+    private wsService: WebSocketService,
     @Inject(DOCUMENT) private document: Document,
     private _viewContainerRef: ViewContainerRef
   ) {
@@ -212,6 +215,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
    * Unregisters this RunViewerComponent on view destruction and cleans the WebSocket subscription.
    */
   ngOnDestroy(): void {
+    this.wsService.disconnect();
     this.titleService.setTitle('DRES');
   }
 

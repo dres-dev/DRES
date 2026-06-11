@@ -117,7 +117,7 @@ object DRES {
         RunExecutor.init(store)
 
         /* Initialize EventStreamProcessor */
-        EventStreamProcessor.register( /* Add handlers here */)
+        EventStreamProcessor.register(RunExecutor)
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */

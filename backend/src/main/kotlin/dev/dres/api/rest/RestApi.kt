@@ -30,6 +30,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.config.Config
 import dev.dres.mgmt.cache.CacheManager
+import dev.dres.run.RunExecutor
 import dev.dres.utilities.NamedThreadFactory
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
@@ -328,7 +329,7 @@ object RestApi {
                             }
                         }
                     }
-                    //ws("ws/run", runExecutor)
+                    ws("ws/run", RunExecutor::accept)
                 }
             }
 

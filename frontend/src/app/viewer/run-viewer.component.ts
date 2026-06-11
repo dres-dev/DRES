@@ -1,15 +1,19 @@
 import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT} from '@angular/core';
 import { ActivatedRoute, ActivationEnd, Params, Router } from "@angular/router";
-import {interval, merge, mergeMap, Observable, of, zip} from 'rxjs';
+import {merge, Observable, of, zip} from 'rxjs';
 import {
   catchError,
   filter,
   map,
   pairwise,
   shareReplay,
-  switchMap, tap
+  switchMap,
+  take,
+  tap
 } from "rxjs/operators";
 import { AppConfig } from '../app.config';
+import { WebSocketService } from '../services/websocket.service';
+import { ServerMessageType } from '../model/ws/server-message-type.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
@@ -92,6 +96,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     private snackBar: MatSnackBar,
     private titleService: Title,
     private overlay: Overlay,
+    private wsService: WebSocketService,
     @Inject(DOCUMENT) private document: Document,
     private _viewContainerRef: ViewContainerRef
   ) {
@@ -158,7 +163,21 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    this.state = interval(1000).pipe(mergeMap(() => this.evaluationId)).pipe(
+    /* Trigger a state fetch on route change or on any relevant WebSocket event. */
+    const wsRefresh$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_START,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+      ].includes(msg.type)),
+      switchMap(() => this.evaluationId.pipe(take(1)))
+    );
+
+    this.state = merge(this.evaluationId, wsRefresh$).pipe(
       switchMap((id) => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
       catchError((err, o) => {
         console.log(
@@ -209,7 +228,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
    * Registers this RunViewerComponent on view initialization and creates the WebSocket subscription.
    */
   ngOnInit(): void {
-    
+    this.evaluationId.subscribe((id) => this.wsService.connect(id));
   }
 
   /**
@@ -224,6 +243,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
    * Unregisters this RunViewerComponent on view destruction and cleans the WebSocket subscription.
    */
   ngOnDestroy(): void {
+    this.wsService.disconnect();
     this.titleService.setTitle('DRES');
   }
 

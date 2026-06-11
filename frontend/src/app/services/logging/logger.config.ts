@@ -1,3 +1,3 @@
 export interface LoggerConfig {
-  identifier: string
+  identifier: string;
 }

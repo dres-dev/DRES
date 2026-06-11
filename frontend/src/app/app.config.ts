@@ -71,7 +71,7 @@ export class AppConfig {
    * @param mediaItemId The media item's id to resolve the url for
    * @param version The API version
    */
-  public resolveMediaItemUrl(mediaItemId: string, version: string = "v2"): string{
+  public resolveMediaItemUrl(mediaItemId: string, version: string = 'v2'): string {
     return this.resolveApiUrl(`/media/${mediaItemId}`, version);
   }
 
@@ -80,8 +80,8 @@ export class AppConfig {
    * @param mediaItemId The media item's id to resolve the PREVIEW url for
    * @param version The API version
    */
-  public resolveImagePreviewUrl(mediaItemId: string, timeInMs?:string,version: string = "v2"): string{
-    return this.resolveApiUrl(`/preview/${mediaItemId}${timeInMs ? `/${timeInMs}` : ''}`, version)
+  public resolveImagePreviewUrl(mediaItemId: string, timeInMs?: string, version: string = 'v2'): string {
+    return this.resolveApiUrl(`/preview/${mediaItemId}${timeInMs ? `/${timeInMs}` : ''}`, version);
   }
 
   /**
@@ -89,11 +89,9 @@ export class AppConfig {
    * @param file The file including extension to resolve the URL for
    * @param version The API version
    */
-  public resolveExternalUrl(file: string, version: string= "v2"): string {
-    return this.resolveApiUrl(`/media/external/${file}`, version)
+  public resolveExternalUrl(file: string, version: string = 'v2'): string {
+    return this.resolveApiUrl(`/media/external/${file}`, version);
   }
-
-
 
   /**
    * (Re-)loads the default configuration from a JSON file.

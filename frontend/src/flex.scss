@@ -11,7 +11,7 @@ Flex containers
   display: flex;
 }
 
-.flex-inline{
+.flex-inline {
   display: inline-flex;
 }
 
@@ -23,18 +23,18 @@ Flex containers
   flex-flow: column;
 }
 
-.flex-nowrap{
+.flex-nowrap {
   flex-wrap: nowrap;
 }
 
-.content-start{
+.content-start {
   justify-content: flex-start;
 }
-.content-end{
+.content-end {
   justify-content: flex-end;
 }
 
-.content-center{
+.content-center {
   justify-content: center;
 }
 
@@ -46,11 +46,11 @@ Flex containers
   justify-content: space-around;
 }
 
-.content-evenly{
+.content-evenly {
   justify-content: space-evenly;
 }
 
-.align-start{
+.align-start {
   align-items: flex-start;
 }
 
@@ -58,15 +58,15 @@ Flex containers
   align-items: flex-end;
 }
 
-.align-center{
+.align-center {
   align-items: center;
 }
 
-.align-stretch{
+.align-stretch {
   align-items: stretch;
 }
 
-.align-baseline{
+.align-baseline {
   align-items: baseline;
 }
 /**
@@ -115,7 +115,7 @@ Flex items
   gap: 2em;
 }
 
-$growFlex: 1,2,3,4,5;
+$growFlex: 1, 2, 3, 4, 5;
 
 @each $f in $growFlex {
   .flex-#{$f} {
@@ -123,18 +123,18 @@ $growFlex: 1,2,3,4,5;
   }
 }
 
-$basisFlex: 5,10,15,20,22,25,28,30,35,40,45,48,50,55,60,65,68,70,75,80,85,90,95,100;
+$basisFlex: 5, 10, 15, 20, 22, 25, 28, 30, 35, 40, 45, 48, 50, 55, 60, 65, 68, 70, 75, 80, 85, 90, 95, 100;
 
 @each $f in $basisFlex {
-  .flex-#{$f}{
+  .flex-#{$f} {
     flex: 0 1 math.percentage(calc($f / 100));
   }
 }
 
-.flex-33{
+.flex-33 {
   flex: 0 1 math.percentage(calc(1 / 3));
 }
-.flex-66{
+.flex-66 {
   flex: 0 1 math.percentage(calc(2 / 3));
 }
 
@@ -142,7 +142,7 @@ $basisFlex: 5,10,15,20,22,25,28,30,35,40,45,48,50,55,60,65,68,70,75,80,85,90,95,
   align-self: flex-start;
 }
 
-.self-flex-end{
+.self-flex-end {
   align-self: flex-end;
 }
 

@@ -6,13 +6,13 @@ import { DataUtilities } from '../../utilities/data.utilities';
 import { ApiContentElement } from '../../../../openapi';
 
 @Component({
-    selector: 'app-image-object-preview',
-    template: `
+  selector: 'app-image-object-preview',
+  template: `
     <div class="image-container" *ngIf="imageUrl | async" [style.text-align]="'center'">
       <img class="image" style="max-width: 100%;" [src]="imageUrl | async" alt="image" />
     </div>
   `,
-    standalone: false
+  standalone: false,
 })
 export class ImageObjectPreviewComponent implements OnInit {
   /** Observable of current {@link QueryContentElement} that should be displayed. */

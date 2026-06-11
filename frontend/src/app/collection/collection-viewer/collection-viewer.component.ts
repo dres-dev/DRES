@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import {BehaviorSubject, mergeMap, Observable, of, Subject, Subscription} from 'rxjs';
+import { BehaviorSubject, mergeMap, Observable, of, Subject, Subscription } from 'rxjs';
 import { catchError, filter, map, retry, shareReplay, switchMap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import {
@@ -12,16 +12,15 @@ import {
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
-import {ApiMediaItem, ApiPopulatedMediaCollection, CollectionService} from '../../../../openapi';
+import { ApiMediaItem, ApiPopulatedMediaCollection, CollectionService } from '../../../../openapi';
 
 @Component({
-    selector: 'app-collection-viewer',
-    templateUrl: './collection-viewer.component.html',
-    styleUrls: ['./collection-viewer.component.scss'],
-    standalone: false
+  selector: 'app-collection-viewer',
+  templateUrl: './collection-viewer.component.html',
+  styleUrls: ['./collection-viewer.component.scss'],
+  standalone: false,
 })
 export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
-
   public isLoading = true;
 
   displayedColumns = ['actions', 'id', 'name', 'location', 'type', 'durationMs', 'fps'];
@@ -68,7 +67,8 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     /* Custom filter: on ID, Name and Location */
-    this.dataSource.filterPredicate = (data: ApiMediaItem, value: string) => data.mediaItemId.includes(value) || data.name.includes(value) || data.location.includes(value)
+    this.dataSource.filterPredicate = (data: ApiMediaItem, value: string) =>
+      data.mediaItemId.includes(value) || data.name.includes(value) || data.location.includes(value);
 
     /*
      * Initialize subscription for collection data.
@@ -98,11 +98,11 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  applyFilter(event: Event){
+  applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
-    if(this.dataSource.paginator){
+    if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
   }
@@ -120,11 +120,11 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
       this.collectionService.deleteApiV2MediaItemByMediaId(id).subscribe({
         next: (r) => {
           this.refreshSubject.next();
-          this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
         },
         error: (r) => {
-          this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-        }
+          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+        },
       });
     }
   }
@@ -143,7 +143,10 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     this.collectionId.subscribe((colId: string) => {
       const config = { width: '500px' } as MatDialogConfig<Partial<MediaItemBuilderData>>;
       if (id) {
-        config.data = { item: this.dataSource.data.find((it) => it.mediaItemId === id), collectionId: colId } as MediaItemBuilderData;
+        config.data = {
+          item: this.dataSource.data.find((it) => it.mediaItemId === id),
+          collectionId: colId,
+        } as MediaItemBuilderData;
       } else {
         config.data = { collectionId: colId } as Partial<MediaItemBuilderData>;
       }
@@ -163,11 +166,11 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
         .subscribe({
           next: (r) => {
             this.refreshSubject.next();
-            this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+            this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
           },
           error: (r) => {
-            this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-          }
+            this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+          },
         });
     });
   }

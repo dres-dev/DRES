@@ -1,16 +1,14 @@
-import { Pipe, PipeTransform } from "@angular/core";
-import { ApiSubmission, EvaluationAdministratorService } from "../../../../openapi";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { Pipe, PipeTransform } from '@angular/core';
+import { ApiSubmission, EvaluationAdministratorService } from '../../../../openapi';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Pipe({
-    name: "submissionsOf",
-    standalone: false
+  name: 'submissionsOf',
+  standalone: false,
 })
 export class SubmissionsOfPipe implements PipeTransform {
-
-  constructor(private adminService: EvaluationAdministratorService) {
-  }
+  constructor(private adminService: EvaluationAdministratorService) {}
 
   /**
    * Returns the submissions of the given task template for the specified evaluation.
@@ -20,9 +18,6 @@ export class SubmissionsOfPipe implements PipeTransform {
   transform(templateId: string, evaluationId: string): Observable<ApiSubmission[]> {
     return this.adminService
       .getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(evaluationId, templateId)
-      .pipe(
-        map(submissionInfos => submissionInfos.flatMap(info => info.submissions))
-      );
+      .pipe(map((submissionInfos) => submissionInfos.flatMap((info) => info.submissions)));
   }
-
 }

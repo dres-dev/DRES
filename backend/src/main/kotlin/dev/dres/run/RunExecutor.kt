@@ -213,19 +213,25 @@ object RunExecutor : StreamEventHandler {
     }
 
     /**
+     * Maps a [StreamEvent] to the [ServerMessage] that should be broadcast, or null
+     * if the event type requires no WebSocket notification.
+     */
+    internal fun eventToMessage(event: StreamEvent): ServerMessage? = when (event) {
+        is RunStartEvent   -> ServerMessage(event.runId, ServerMessageType.COMPETITION_START)
+        is RunEndEvent     -> ServerMessage(event.runId, ServerMessageType.COMPETITION_END)
+        is TaskStartEvent  -> ServerMessage(event.runId, ServerMessageType.TASK_START, event.taskId)
+        is TaskEndEvent    -> ServerMessage(event.runId, ServerMessageType.TASK_END,   event.taskId)
+        is ScoreUpdateEvent -> ServerMessage(event.runId, ServerMessageType.COMPETITION_UPDATE)
+        is SubmissionEvent  -> ServerMessage(event.runId, ServerMessageType.TASK_UPDATED)
+        else -> null
+    }
+
+    /**
      * Handles [StreamEvent]s from the [EventStreamProcessor] by broadcasting
      * the appropriate [ServerMessage] to all registered observers.
      */
     override fun handleStreamEvent(event: StreamEvent) {
-        when (event) {
-            is RunStartEvent -> broadcastWsMessage(ServerMessage(event.runId, ServerMessageType.COMPETITION_START))
-            is RunEndEvent -> broadcastWsMessage(ServerMessage(event.runId, ServerMessageType.COMPETITION_END))
-            is TaskStartEvent -> broadcastWsMessage(ServerMessage(event.runId, ServerMessageType.TASK_START, event.taskId))
-            is TaskEndEvent -> broadcastWsMessage(ServerMessage(event.runId, ServerMessageType.TASK_END, event.taskId))
-            is ScoreUpdateEvent -> broadcastWsMessage(ServerMessage(event.runId, ServerMessageType.COMPETITION_UPDATE))
-            is SubmissionEvent -> broadcastWsMessage(ServerMessage(event.runId, ServerMessageType.TASK_UPDATED))
-            else -> {}
-        }
+        eventToMessage(event)?.let { broadcastWsMessage(it) }
     }
 
     /**

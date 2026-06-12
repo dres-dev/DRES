@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, HostListener, Input, OnDestroy, ViewChild} from '@angular/core';
-import {BehaviorSubject, interval, Observable, of, Subscription, timer} from 'rxjs';
+import {BehaviorSubject, merge, Observable, of, Subscription, timer} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';
-import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, map, switchMap, take, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
@@ -10,6 +10,8 @@ import {MatDialog} from '@angular/material/dialog';
 import {JudgementDialogComponent} from './judgement-dialog/judgement-dialog.component';
 import {JudgementDialogContent} from './judgement-dialog/judgement-dialog-content.model';
 import {ApiJudgement, ApiJudgementRequest, ApiVerdictStatus, JudgementService} from '../../../openapi';
+import {WebSocketService} from '../services/websocket.service';
+import {ServerMessageType} from '../model/ws/server-message-type.enum';
 
 /**
  * This component subscribes to the websocket for submissions.
@@ -63,11 +65,14 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
         private activeRoute: ActivatedRoute,
         private snackBar: MatSnackBar,
         private router: Router,
-        private dialog: MatDialog
+        private dialog: MatDialog,
+        private wsService: WebSocketService
     ) {
     }
 
     ngAfterViewInit(): void {
+        this.activeRoute.params.pipe(map((p) => p.runId), take(1)).subscribe((id) => this.wsService.connect(id));
+
         const dialogRef = this.dialog.open(JudgementDialogComponent, {
             width: '400px',
             data: {
@@ -123,11 +128,22 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     init(): void {
         /* Subscription and current run id */
         this.runId = this.activeRoute.params.pipe(map((p) => p.runId));
-        /* Poll for score status in a given interval */
-        this.statusSub = interval(this.pollingFrequency)
+
+        /* Trigger on relevant WebSocket events, with a 30s fallback poll in case the socket drops. */
+        const wsRefresh$ = this.wsService.messages$.pipe(
+            filter((msg) => [
+                ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+                ServerMessageType.ServerMessageTypeEnum.TASK_START,
+                ServerMessageType.ServerMessageTypeEnum.TASK_END,
+            ].includes(msg.type))
+        );
+        const trigger$ = merge(timer(0, 30_000), wsRefresh$);
+
+        /* Fetch judge status on websocket event or fallback interval. */
+        this.statusSub = trigger$
             .pipe(
                 withLatestFrom(this.runId),
-                switchMap(([i, runId]) => {
+                switchMap(([_, runId]) => {
                     return this.judgementService.getApiV2EvaluationByEvaluationIdJudgeStatus(runId).pipe(
                         catchError((err) => {
                             console.log('Error in JudgeStatus');
@@ -149,12 +165,12 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                 this.updateProgress(pending, open);
             });
 
-        /* Poll for score updates in a given interval. */
-        this.requestSub = interval(this.pollingFrequency)
+        /* Fetch next judgement request on websocket event or fallback interval. */
+        this.requestSub = trigger$
             .pipe(
                 withLatestFrom(this.runId),
-                switchMap(([i, runId]) => {
-                    /* Stop polling while judgment is ongooing */
+                switchMap(([_, runId]) => {
+                    /* Only fetch when no judgement is currently in progress. */
                     if (this.runId && !this.isJudgmentAvailable) {
                         return this.judgementService.getApiV2EvaluationByEvaluationIdJudgeNext(runId, 'response').pipe(
                             map((req: HttpResponse<ApiJudgementRequest>) => {
@@ -217,6 +233,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
      *
      */
     ngOnDestroy(): void {
+        this.wsService.disconnect();
         this.stopAll();
     }
 

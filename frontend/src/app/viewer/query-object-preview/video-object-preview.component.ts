@@ -3,11 +3,11 @@ import { Observable } from 'rxjs';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { filter, map } from 'rxjs/operators';
 import { DataUtilities } from '../../utilities/data.utilities';
-import {ApiContentElement, ApiHint} from '../../../../openapi';
+import { ApiContentElement, ApiHint } from '../../../../openapi';
 
 @Component({
-    selector: 'app-video-object-preview',
-    template: `
+  selector: 'app-video-object-preview',
+  template: `
     <div class="video-container">
       <video
         #player
@@ -22,7 +22,7 @@ import {ApiContentElement, ApiHint} from '../../../../openapi';
       ></video>
     </div>
   `,
-    standalone: false
+  standalone: false,
 })
 export class VideoObjectPreviewComponent implements OnInit {
   /** Observable of current {@link ContentElement} that should be displayed. Provided by user of this component. */

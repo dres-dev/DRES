@@ -1,19 +1,18 @@
-import {Component, Input} from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 export interface ColumnDefinition {
-  property: string,
-  type: string, // TODO enumize it
-  header: string
+  property: string;
+  type: string; // TODO enumize it
+  header: string;
 }
 
 @Component({
-    selector: 'app-dynamic-table',
-    templateUrl: './dynamic-table.component.html',
-    styleUrls: ['./dynamic-table.component.scss'],
-    standalone: false
+  selector: 'app-dynamic-table',
+  templateUrl: './dynamic-table.component.html',
+  styleUrls: ['./dynamic-table.component.scss'],
+  standalone: false,
 })
 export class DynamicTableComponent<T> {
-
   @Input()
   public dataSource: Array<T>;
 
@@ -23,6 +22,5 @@ export class DynamicTableComponent<T> {
   @Input()
   public displayedColumns: string[];
 
-  constructor() { }
-
+  constructor() {}
 }

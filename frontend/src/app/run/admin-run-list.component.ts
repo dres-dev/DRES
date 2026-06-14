@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { AbstractRunListComponent, RunInfoWithState } from './abstract-run-list.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -7,16 +7,18 @@ import {
   ConfirmationDialogComponent,
   ConfirmationDialogComponentData,
 } from '../shared/confirmation-dialog/confirmation-dialog.component';
-import {forkJoin, merge, mergeMap, timer} from 'rxjs';
+import { forkJoin, merge, mergeMap, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import {
-  ApiEvaluationInfo, ApiEvaluationOverview, ApiTaskStatus,
+  ApiEvaluationInfo,
+  ApiEvaluationOverview,
+  ApiTaskStatus,
   DownloadService,
   EvaluationAdministratorService,
   EvaluationScoresService,
-  EvaluationService
+  EvaluationService,
 } from '../../../openapi';
-import { MatTable } from "@angular/material/table";
+import { MatTable } from '@angular/material/table';
 
 export interface RunInfoOverviewTuple {
   runInfo: ApiEvaluationInfo;
@@ -24,17 +26,16 @@ export interface RunInfoOverviewTuple {
 }
 
 @Component({
-    selector: 'app-admin-run-list',
-    templateUrl: './admin-run-list.component.html',
-    standalone: false
+  selector: 'app-admin-run-list',
+  templateUrl: './admin-run-list.component.html',
+  standalone: false,
 })
-export class AdminRunListComponent extends AbstractRunListComponent implements AfterViewInit{
-
-  @ViewChild('table', {static: true}) table: MatTable<any>;
+export class AdminRunListComponent extends AbstractRunListComponent implements AfterViewInit {
+  @ViewChild('table', { static: true }) table: MatTable<any>;
 
   postRefresh: () => void = () => {
-    if(this.table){
-      this.table.renderRows()
+    if (this.table) {
+      this.table.renderRows();
     }
   };
 
@@ -74,7 +75,7 @@ export class AdminRunListComponent extends AbstractRunListComponent implements A
         this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
           (r) => {
             /* Attempt to prevent senting requests twice to the backend */
-            if(this.refreshSubject && this.refreshSubject?.closed){
+            if (this.refreshSubject && this.refreshSubject?.closed) {
               this.refreshSubject.complete();
               this.refreshSubject.unsubscribe();
             }
@@ -142,13 +143,16 @@ export class AdminRunListComponent extends AbstractRunListComponent implements A
                 runProperties: run.properties,
               } as RunInfoWithState;
 
-              if(!infoState.asynchronous){
-                const teamOverview = overview?.teamOverviews[0]?.tasks[overview?.teamOverviews[0]?.tasks.length -1]
-                if(teamOverview){
-                  infoState.currentTaskName = teamOverview.name
-                  infoState.currentTask = teamOverview.id
-                  infoState.taskRunStatus = teamOverview?.status
-                  infoState.timeLeft = teamOverview?.status === ApiTaskStatus.RUNNING ? ''+  (teamOverview.duration -  Math.round(-1*((teamOverview.started - Date.now()) / 1000 ) )) : '0'
+              if (!infoState.asynchronous) {
+                const teamOverview = overview?.teamOverviews[0]?.tasks[overview?.teamOverviews[0]?.tasks.length - 1];
+                if (teamOverview) {
+                  infoState.currentTaskName = teamOverview.name;
+                  infoState.currentTask = teamOverview.id;
+                  infoState.taskRunStatus = teamOverview?.status;
+                  infoState.timeLeft =
+                    teamOverview?.status === ApiTaskStatus.RUNNING
+                      ? '' + (teamOverview.duration - Math.round(-1 * ((teamOverview.started - Date.now()) / 1000)))
+                      : '0';
                 }
               }
 

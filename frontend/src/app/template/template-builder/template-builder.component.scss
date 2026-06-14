@@ -10,7 +10,7 @@
   grid-area: center;
 }
 
-.content-center-right{
+.content-center-right {
   grid-area: center-right;
 }
 
@@ -18,8 +18,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto;
-  grid-template-areas:
-  "left right";
+  grid-template-areas: 'left right';
   column-gap: 1em;
 
   > * {
@@ -31,7 +30,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: auto;
-  grid-template-areas: "left left right";
+  grid-template-areas: 'left left right';
   column-gap: 1em;
 
   > * {
@@ -43,7 +42,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-template-rows: auto;
-  grid-template-areas: "left left left right";
+  grid-template-areas: 'left left left right';
   column-gap: 1em;
 
   > * {
@@ -55,7 +54,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: auto;
-  grid-template-areas: "left right right";
+  grid-template-areas: 'left right right';
   column-gap: 1em;
 
   > * {
@@ -66,7 +65,7 @@
 .tb-container-2col-1col-1col {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-areas: "left left center right";
+  grid-template-areas: 'left left center right';
   column-gap: 1em;
 
   > * {
@@ -77,7 +76,7 @@
 .tb-container-2col-2col-1col {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  grid-template-areas: "left left center center right";
+  grid-template-areas: 'left left center center right';
   column-gap: 1em;
 
   > * {
@@ -88,7 +87,7 @@
 .tb-container-2col-2col-1col-1col {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-  grid-template-areas: "left left center center center-right right";
+  grid-template-areas: 'left left center center center-right right';
   column-gap: 1em;
 
   > * {

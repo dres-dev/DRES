@@ -1,20 +1,19 @@
-import { Component, Input } from "@angular/core";
-import { ApiAnswer, ApiAnswerType, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit } from "../../../../../../openapi";
+import { Component, Input } from '@angular/core';
+import { ApiAnswer, ApiAnswerType, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit } from '../../../../../../openapi';
 
 @Component({
-    selector: "app-answer",
-    templateUrl: "./answer.component.html",
-    styleUrls: ["./answer.component.scss"],
-    standalone: false
+  selector: 'app-answer',
+  templateUrl: './answer.component.html',
+  styleUrls: ['./answer.component.scss'],
+  standalone: false,
 })
 export class AnswerComponent {
-
   @Input()
   public answers: ApiAnswer[];
 
-  public displayedColumnsWithoutText = ["type", "item", "start", "end", "preview"];
-  public displayedColumnsText = ["type", "text"];
-  public displayedHeaders = ["type", "text", "item", "start", "end", "preview"];
+  public displayedColumnsWithoutText = ['type', 'item', 'start', 'end', 'preview'];
+  public displayedColumnsText = ['type', 'text'];
+  public displayedHeaders = ['type', 'text', 'item', 'start', 'end', 'preview'];
 
   /**
    *
@@ -24,8 +23,8 @@ export class AnswerComponent {
     if (answer.type == ApiAnswerType.TEMPORAL) {
       if (answer.start !== undefined && answer.end !== undefined) {
         return {
-          start: { value: "" + answer.start, unit: ApiTemporalUnit.MILLISECONDS } as ApiTemporalPoint,
-          end: { value: "" + answer.end, unit: ApiTemporalUnit.MILLISECONDS } as ApiTemporalPoint
+          start: { value: '' + answer.start, unit: ApiTemporalUnit.MILLISECONDS } as ApiTemporalPoint,
+          end: { value: '' + answer.end, unit: ApiTemporalUnit.MILLISECONDS } as ApiTemporalPoint,
         } as ApiTemporalRange;
       }
     }

@@ -1,8 +1,8 @@
-import {Inject, Injectable} from '@angular/core';
-import {catchError, filter, map, shareReplay, tap, withLatestFrom} from 'rxjs/operators';
-import {BehaviorSubject, mergeMap, Observable, of, Subscription} from 'rxjs';
-import {ApiRole, ApiUser, LoginRequest, ApiUserRequest, UserService} from '../../../../openapi';
-import {ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree} from "@angular/router";
+import { Inject, Injectable } from '@angular/core';
+import { catchError, filter, map, shareReplay, tap, withLatestFrom } from 'rxjs/operators';
+import { BehaviorSubject, mergeMap, Observable, of, Subscription } from 'rxjs';
+import { ApiRole, ApiUser, LoginRequest, ApiUserRequest, UserService } from '../../../../openapi';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 
 /**
  * This service class is used to facilitate login and logout through the UserService API.
@@ -11,9 +11,8 @@ import {ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree} from "@ang
   providedIn: 'root',
 })
 export class AuthenticationService {
-
   /** A {@link BehaviorSubject} that captures the current login-state. */
-  private _loggedIn: BehaviorSubject<boolean> = new BehaviorSubject(false)
+  private _loggedIn: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   /**
    * Constructor
@@ -22,7 +21,7 @@ export class AuthenticationService {
     this.userService.getApiV2User().subscribe(
       () => this._loggedIn.next(true),
       () => this._loggedIn.next(false)
-    )
+    );
   }
 
   /**
@@ -36,7 +35,7 @@ export class AuthenticationService {
       mergeMap(() => this.userService.getApiV2User()),
       tap((data) => {
         this._loggedIn.next(true);
-        console.log(`Successfully logged in as '${data.username}'.`)
+        console.log(`Successfully logged in as '${data.username}'.`);
       })
     );
   }
@@ -46,11 +45,11 @@ export class AuthenticationService {
    */
   public logout() {
     return this.userService.getApiV2Logout().pipe(
-        catchError((e) => of(null)),
-        tap(() => {
-          this._loggedIn.next(false);
-          console.log(`User was logged out.`)
-        })
+      catchError((e) => of(null)),
+      tap(() => {
+        this._loggedIn.next(false);
+        console.log(`User was logged out.`);
+      })
     );
   }
 
@@ -60,9 +59,7 @@ export class AuthenticationService {
    * @param user The UserRequest object to update the profile with.
    */
   public updateUser(user: ApiUserRequest) {
-    return this.user.pipe(
-      mergeMap((u: ApiUser) => this.userService.patchApiV2UserByUserId(u.id, user))
-    );
+    return this.user.pipe(mergeMap((u: ApiUser) => this.userService.patchApiV2UserByUserId(u.id, user)));
   }
 
   /**
@@ -72,28 +69,29 @@ export class AuthenticationService {
    * that the user is still logged in.
    */
   get isLoggedIn(): Observable<boolean> {
-    return this._loggedIn.asObservable()
+    return this._loggedIn.asObservable();
   }
 
   /**
    * Returns the currently logged in {@link ApiUser} as Observable.
    */
-  get user(): Observable<ApiUser |null> {
+  get user(): Observable<ApiUser | null> {
     return this.isLoggedIn.pipe(
-        mergeMap(loggedIn=> {
+      mergeMap((loggedIn) => {
         if (loggedIn) {
-          return this.userService.getApiV2User()
+          return this.userService.getApiV2User();
         } else {
-          return of(null)
+          return of(null);
         }
-      }))
+      })
+    );
   }
 
   /**
    * Returns the {@link ApiRole} of the current user as Observable.
    */
   get role(): Observable<ApiRole | null> {
-    return this.user.pipe(map((u) => u?.role))
+    return this.user.pipe(map((u) => u?.role));
   }
 
   /**
@@ -104,18 +102,22 @@ export class AuthenticationService {
    * @param route The {@link ActivatedRouteSnapshot}
    * @param state The {@link RouterStateSnapshot}
    */
-  public canActivate(rolesAllows: Array<ApiRole>, route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
+  public canActivate(
+    rolesAllows: Array<ApiRole>,
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<boolean | UrlTree> {
     return this.role.pipe(
-        map((role) => {
-          if (!role) {
-            return this.router.parseUrl(`/login?returnUrl=${state.url}`)
-          } else if (route.data.roles && route.data.roles.indexOf(role) === -1) {
-            //return this.router.parseUrl('/forbidden');
-            return this.router.parseUrl(`/login?returnUrl=${state.url}`)
-          } else {
-            return true;
-          }
-        })
+      map((role) => {
+        if (!role) {
+          return this.router.parseUrl(`/login?returnUrl=${state.url}`);
+        } else if (route.data.roles && route.data.roles.indexOf(role) === -1) {
+          //return this.router.parseUrl('/forbidden');
+          return this.router.parseUrl(`/login?returnUrl=${state.url}`);
+        } else {
+          return true;
+        }
+      })
     );
   }
 }

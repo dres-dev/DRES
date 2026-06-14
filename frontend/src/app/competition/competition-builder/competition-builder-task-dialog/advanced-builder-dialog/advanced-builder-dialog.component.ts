@@ -13,10 +13,10 @@ export class AdvancedBuilderDialogData {
  * @deprecated This has to be replaced by a proper, more sophisticated component.
  */
 @Component({
-    selector: 'app-advanced-builder-dialog',
-    templateUrl: './advanced-builder-dialog.component.html',
-    styleUrls: ['./advanced-builder-dialog.component.scss'],
-    standalone: false
+  selector: 'app-advanced-builder-dialog',
+  templateUrl: './advanced-builder-dialog.component.html',
+  styleUrls: ['./advanced-builder-dialog.component.scss'],
+  standalone: false,
 })
 export class AdvancedBuilderDialogComponent implements OnInit {
   public textualInput = '';

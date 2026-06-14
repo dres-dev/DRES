@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatest, forkJoin, merge, Observable, of, Subject, timer } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
@@ -11,18 +11,22 @@ import { RunInfoOverviewTuple } from '../admin-run-list.component';
 import { MatAccordion } from '@angular/material/expansion';
 import {
   ApiTaskTemplateInfo,
-  ApiTeam, ApiTeamInfo, ApiTeamTaskOverview, DownloadService,
+  ApiTeam,
+  ApiTeamInfo,
+  ApiTeamTaskOverview,
+  DownloadService,
   EvaluationAdministratorService,
   EvaluationClientService,
   EvaluationScoresService,
-  EvaluationService, TemplateService
+  EvaluationService,
+  TemplateService,
 } from '../../../../openapi';
 
 @Component({
-    selector: 'app-run-async-admin-view',
-    templateUrl: './run-async-admin-view.component.html',
-    styleUrls: ['./run-async-admin-view.component.scss'],
-    standalone: false
+  selector: 'app-run-async-admin-view',
+  templateUrl: './run-async-admin-view.component.html',
+  styleUrls: ['./run-async-admin-view.component.scss'],
+  standalone: false,
 })
 export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   @ViewChild(MatAccordion) accordion: MatAccordion;
@@ -101,27 +105,25 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
 
     this.taskSubmissionCounts = merge(timer(0, 30_000), this.update, wsRefresh$).pipe(
       switchMap(() => this.run.pipe(take(1))),
-      switchMap(run => {
+      switchMap((run) => {
         const runId = this.runId.getValue();
         const templates = run?.runInfo?.taskTemplates ?? [];
         if (templates.length === 0) return of(new Map<string, number>());
         return forkJoin(
-          templates.map(t =>
+          templates.map((t) =>
             this.runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(runId, t.templateId).pipe(
-              map(infos => ({ key: t.templateId, count: infos.flatMap(i => i.submissions).length })),
+              map((infos) => ({ key: t.templateId, count: infos.flatMap((i) => i.submissions).length })),
               catchError(() => of({ key: t.templateId, count: 0 }))
             )
           )
-        ).pipe(
-          map(results => new Map(results.map(r => [r.key, r.count])))
-        );
+        ).pipe(map((results) => new Map(results.map((r) => [r.key, r.count]))));
       }),
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
 
   public submissionsOf(task, property = 'id') {
-    console.log("S of ", task);
+    console.log('S of ', task);
     this.runId.subscribe((r) => {
       this.router.navigateByUrl(`evaluation/admin/submissions/${r}/${task[property]}`);
     });
@@ -140,18 +142,24 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
 
     /* Cache past tasks initially */
     this.runId.subscribe((runId) => {
-      this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService
+        .getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId)
+        .subscribe((arr) => (this.pastTasksValue = arr));
     });
 
     /* On each update, update past tasks */
     this.update.subscribe((_) => {
       this.runId.subscribe((runId) => {
-        this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+        this.runAdminService
+          .getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId)
+          .subscribe((arr) => (this.pastTasksValue = arr));
       });
     });
 
     this.run.subscribe((r) => {
-      this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(r.runInfo.id).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService
+        .getApiV2EvaluationAdminByEvaluationIdTaskPastList(r.runInfo.id)
+        .subscribe((arr) => (this.pastTasksValue = arr));
     });
   }
 

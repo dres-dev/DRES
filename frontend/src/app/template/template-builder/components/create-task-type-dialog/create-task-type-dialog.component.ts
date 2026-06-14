@@ -2,7 +2,14 @@ import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
-import {ApiHintOption, ApiScoreOption, ApiSubmissionOption, ApiTargetOption, ApiTaskOption, ApiTaskType} from '../../../../../../openapi';
+import {
+  ApiHintOption,
+  ApiScoreOption,
+  ApiSubmissionOption,
+  ApiTargetOption,
+  ApiTaskOption,
+  ApiTaskType,
+} from '../../../../../../openapi';
 
 /**
  * Wrapper to be able to have an enum value boolean tuple
@@ -156,13 +163,16 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
   }
 
   private init() {
-
     const parameters: Array<[string, string, string]> = [];
     /* Load all configuration parameters. */
     for (let configurationKey in this.data?.configuration) {
       const keyParts = configurationKey.split('.');
-      console.log(configurationKey, this?.data.configuration[configurationKey])
-      const param: [string,string,string] = [keyParts[0] as ApiSubmissionOption, keyParts[1], this?.data.configuration[configurationKey]];
+      console.log(configurationKey, this?.data.configuration[configurationKey]);
+      const param: [string, string, string] = [
+        keyParts[0] as ApiSubmissionOption,
+        keyParts[1],
+        this?.data.configuration[configurationKey],
+      ];
       console.log(param);
       parameters.push(param);
     }
@@ -190,14 +200,21 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
       scoring: new UntypedFormControl(this.data?.scoreOption, [Validators.required]),
 
       /* Submission Filters: Optional*/
-      filters: this.data?.submissionOptions ? new UntypedFormArray(this.data.submissionOptions.map((v) => new UntypedFormControl(v))) : new UntypedFormArray([]),
+      filters: this.data?.submissionOptions
+        ? new UntypedFormArray(this.data.submissionOptions.map((v) => new UntypedFormControl(v)))
+        : new UntypedFormArray([]),
 
       /* Options: Optional */
-      options: this.data?.taskOptions ? new UntypedFormArray(this.data.taskOptions.map((v) => new UntypedFormControl(v))) : new UntypedFormArray([]),
+      options: this.data?.taskOptions
+        ? new UntypedFormArray(this.data.taskOptions.map((v) => new UntypedFormControl(v)))
+        : new UntypedFormArray([]),
 
       /* Parameters: Optional */
       parameters: new UntypedFormArray(
-        parameters.map((v) => new UntypedFormArray([new UntypedFormControl(v[0]), new UntypedFormControl(v[1]), new UntypedFormControl(v[2])]))
+        parameters.map(
+          (v) =>
+            new UntypedFormArray([new UntypedFormControl(v[0]), new UntypedFormControl(v[1]), new UntypedFormControl(v[2])])
+        )
       ),
     });
   }
@@ -220,7 +237,7 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
       taskOptions: (this.form.get('options') as UntypedFormArray).controls.map((c) => {
         return c.value as ApiTaskOption;
       }) as Array<ApiTaskOption>,
-      configuration: this.fetchConfigurationParameters()
+      configuration: this.fetchConfigurationParameters(),
     } as ApiTaskType;
   }
 
@@ -234,7 +251,7 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
     const obj = {};
     (this.form.get('parameters') as UntypedFormArray).controls.forEach((c) => {
       const cast = (c as UntypedFormArray).controls;
-        obj[`${cast[0].value}.${cast[1].value}`] = cast[2].value;
+      obj[`${cast[0].value}.${cast[1].value}`] = cast[2].value;
     });
     return obj;
   }

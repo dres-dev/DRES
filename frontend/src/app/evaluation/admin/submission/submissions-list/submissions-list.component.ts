@@ -1,12 +1,13 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild } from "@angular/core";
-import { merge, Observable, of, Subject, Subscription, timer } from "rxjs";
-import { MatButtonToggleGroup } from "@angular/material/button-toggle";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import { MatDialog } from "@angular/material/dialog";
-import { ActivatedRoute } from "@angular/router";
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { merge, Observable, of, Subject, Subscription, timer } from 'rxjs';
+import { MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute } from '@angular/router';
 import {
   ApiSubmission,
-  ApiSubmissionInfo, ApiTaskTemplate,
+  ApiSubmissionInfo,
+  ApiTaskTemplate,
   EvaluationAdministratorService,
   EvaluationService,
   TemplateService
@@ -17,32 +18,33 @@ import { WebSocketService } from "../../../../services/websocket.service";
 import { ServerMessageType } from "../../../../model/ws/server-message-type.enum";
 
 @Component({
-    selector: 'app-submissions-list',
-    templateUrl: './submissions-list.component.html',
-    styleUrls: ['./submissions-list.component.scss'],
-    standalone: false
+  selector: 'app-submissions-list',
+  templateUrl: './submissions-list.component.html',
+  styleUrls: ['./submissions-list.component.scss'],
+  standalone: false,
 })
-export class SubmissionsListComponent implements AfterViewInit, OnDestroy{
+export class SubmissionsListComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('toggleGroup', { static: true }) toggleGroup: MatButtonToggleGroup;
 
-  @ViewChild('toggleGroup', {static: true}) toggleGroup: MatButtonToggleGroup;
+  public runId: Observable<string>;
+  public taskId: Observable<string>;
 
-   public runId: Observable<string>;
-   public taskId: Observable<string>;
+  public pollingFrequencyInSeconds = 30;
 
-   public pollingFrequencyInSeconds = 30;
+  public polling = true;
 
-   public polling = true;
+  public anonymize = true;
 
-   public anonymize = true;
+  public refreshSubject: Subject<null> = new Subject();
 
-   public refreshSubject: Subject<null> = new Subject();
+  public taskRunIds: string[] = [];
+  public submissionInfosByRunId: Map<string, ApiSubmissionInfo> = new Map();
 
-   public taskRunIds: string[] = [];
-   public submissionInfosByRunId: Map<string, ApiSubmissionInfo> = new Map();
+  public taskTemplate: ApiTaskTemplate;
 
-   public taskTemplate: ApiTaskTemplate;
+  private subscription: Subscription;
 
-   private subscription: Subscription;
+  private sub: Subscription;
 
    private sub: Subscription;
 
@@ -119,12 +121,11 @@ export class SubmissionsListComponent implements AfterViewInit, OnDestroy{
      this.sub = null;
   }
 
-  trackById(_: number, item: ApiSubmissionInfo){
-     return item.taskId;
+  trackById(_: number, item: ApiSubmissionInfo) {
+    return item.taskId;
   }
 
-  trackBySelf(_: number, item: string){
-     return item;
+  trackBySelf(_: number, item: string) {
+    return item;
   }
-
 }

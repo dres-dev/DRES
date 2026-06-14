@@ -3,10 +3,10 @@ import { MatButton } from '@angular/material/button';
 import { Observable } from 'rxjs';
 
 @Component({
-    selector: 'app-download-button',
-    templateUrl: './download-button.component.html',
-    styleUrls: ['./download-button.component.scss'],
-    standalone: false
+  selector: 'app-download-button',
+  templateUrl: './download-button.component.html',
+  styleUrls: ['./download-button.component.scss'],
+  standalone: false,
 })
 export class DownloadButtonComponent {
   /**

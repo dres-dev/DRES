@@ -6,10 +6,10 @@ import { AuthenticationService } from '../../services/session/authentication.sev
 import { Subscription } from 'rxjs';
 
 @Component({
-    selector: 'app-login-component',
-    templateUrl: './login.component.html',
-    styleUrls: ['./login.component.scss'],
-    standalone: false
+  selector: 'app-login-component',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss'],
+  standalone: false,
 })
 export class LoginComponent implements OnInit, OnDestroy {
   form: UntypedFormGroup = new UntypedFormGroup({
@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.returnUrl = this.route.snapshot.queryParams.returnUrl || '/evaluation/list';
     this.authenticationServiceSubscription = this.authenticationService.isLoggedIn.subscribe((b) => {
-      if (b) this.router.navigate([this.returnUrl]).then(r => {})
+      if (b) this.router.navigate([this.returnUrl]).then((r) => {});
     });
   }
 
@@ -42,7 +42,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   public submit() {
     if (this.form.valid) {
       this.authenticationService.login(this.form.controls.username.value, this.form.controls.password.value).subscribe(
-        (r) => this.router.navigateByUrl(this.returnUrl).then(r => this.snackBar.open(`Login successful!`, null, { duration: 5000 })),
+        (r) =>
+          this.router
+            .navigateByUrl(this.returnUrl)
+            .then((r) => this.snackBar.open(`Login successful!`, null, { duration: 5000 })),
         (err) => this.snackBar.open(`Login failed due to error: ${err?.error?.description}!`, null, { duration: 5000 })
       );
     }

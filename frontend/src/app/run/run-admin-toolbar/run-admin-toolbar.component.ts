@@ -16,14 +16,14 @@ import {
   EvaluationAdministratorService,
   EvaluationScoresService,
   EvaluationService,
-  TemplateService
+  TemplateService,
 } from '../../../../openapi';
 
 @Component({
-    selector: 'app-run-admin-toolbar',
-    templateUrl: './run-admin-toolbar.component.html',
-    styleUrls: ['./run-admin-toolbar.component.scss'],
-    standalone: false
+  selector: 'app-run-admin-toolbar',
+  templateUrl: './run-admin-toolbar.component.html',
+  styleUrls: ['./run-admin-toolbar.component.scss'],
+  standalone: false,
 })
 export class RunAdminToolbarComponent implements OnInit {
   @Input() runId: string;
@@ -71,10 +71,10 @@ export class RunAdminToolbarComponent implements OnInit {
           const runId = this.runId;
           this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
             (r) => {
-              this.refreshSubject.complete()
+              this.refreshSubject.complete();
               this.refreshSubject.unsubscribe();
               this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-              this.navigation.back(true)
+              this.navigation.back(true);
             },
             (r) => {
               this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
@@ -86,7 +86,7 @@ export class RunAdminToolbarComponent implements OnInit {
 
   public navigateToViewer() {
     const runId = this.runId;
-    console.log("Navigate (Admin): ", runId)
+    console.log('Navigate (Admin): ', runId);
     /* TODO: Setup depends on type of evaluation run. */
     this.router.navigate([
       '/evaluation/viewer',
@@ -146,10 +146,12 @@ export class RunAdminToolbarComponent implements OnInit {
   }
 
   scoreDownloadProvider = (runId: string) => {
-    return this.downloadService
+    return (
+      this.downloadService
         // FIXME httpHeaderAccept was text/csv -- might have to adjust openapi info
-      .getApiV2DownloadEvaluationByEvaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' })
-      .pipe(take(1));
+        .getApiV2DownloadEvaluationByEvaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' })
+        .pipe(take(1))
+    );
   };
 
   scoreFileProvider = (name: string) => {

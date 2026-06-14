@@ -11,7 +11,7 @@ import { CanDeactivateGuard } from './can-deactivate.guard';
 import { EnhanceTaskPastInfoPipe } from './pipes/enhance-task-past-info.pipe';
 import { ResolveTeamPipe } from './pipes/resolve-team.pipe';
 import { EnhanceTaskSubmissionInfoPipe } from './pipes/enhance-task-submission-info.pipe';
-import {ApiModule, Configuration} from '../../../openapi';
+import { ApiModule, Configuration } from '../../../openapi';
 import { SpaceToNewlinePipe } from './pipes/space-to-newline.pipe';
 import { FormatTemporalUnitPipe } from './pipes/format-temporal-unit.pipe';
 import { FormatTemporalPointPipe } from './pipes/format-temporal-point.pipe';
@@ -61,7 +61,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     FilterNotInPipe,
     UnderscoreWordBreakPipe,
     SubmissionsOfPipe,
-    NotInListFilterPipe
+    NotInListFilterPipe,
   ],
   declarations: [
     RoundPipePipe,
@@ -93,6 +93,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     FormatTemporalUnitPipe,
     FormatTimePipePipe,
     Epoch2DatePipePipe,
-    FormatMediaItemPipe],
+    FormatMediaItemPipe,
+  ],
 })
 export class ServicesModule {}

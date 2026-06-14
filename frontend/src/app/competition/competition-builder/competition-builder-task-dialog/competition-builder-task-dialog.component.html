@@ -52,12 +52,8 @@
         </button>
         <!-- <mat-button-toggle-group
          FIXME multiple is currently default? -->
-          <!-- *ngIf="data.taskType.targetType.option == 'MULTIPLE_MEDIA_ITEMS'" -->
-        <mat-button-toggle-group
-
-          #group="matButtonToggleGroup"
-          [(value)]="viewLayout"
-        >
+        <!-- *ngIf="data.taskType.targetType.option == 'MULTIPLE_MEDIA_ITEMS'" -->
+        <mat-button-toggle-group #group="matButtonToggleGroup" [(value)]="viewLayout">
           <mat-button-toggle value="list" aria-label="Display targets as list">
             <mat-icon>list</mat-icon>
           </mat-button-toggle>
@@ -67,13 +63,7 @@
         </mat-button-toggle-group>
         <!-- <button FIXME multiple is default?
           *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'" -->
-        <button
-
-          mat-button
-          aria-label="Batch Target Add"
-          matTooltip="Batch Target Add"
-          (click)="batchAddTargets()"
-        >
+        <button mat-button aria-label="Batch Target Add" matTooltip="Batch Target Add" (click)="batchAddTargets()">
           <mat-icon>library_add</mat-icon>
         </button>
       </h2>
@@ -96,7 +86,11 @@
             <mat-grid-tile-footer>
               <p>
                 <mat-form-field
-                  *ngIf="target.get('mediaItem') &&(data.taskType.targetOption === 'SINGLE_MEDIA_ITEM' || data.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT')"
+                  *ngIf="
+                    target.get('mediaItem') &&
+                    (data.taskType.targetOption === 'SINGLE_MEDIA_ITEM' ||
+                      data.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT')
+                  "
                   [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'"
                 >
                   <input
@@ -201,9 +195,7 @@
             <mat-grid-tile-header style="text-align: right">
               <!-- remove button -->
               <!-- FIXME multiple is default now? -->
-              <div
-                *ngIf="data.taskType.targetOption === 'TEXT'"
-              >
+              <div *ngIf="data.taskType.targetOption === 'TEXT'">
                 <button
                   mat-icon-button
                   (click)="removeQueryTarget(i)"
@@ -254,10 +246,7 @@
                   Please select a valid media item i.e. use the autocomplete to select a value.
                 </mat-error>
               </mat-form-field>
-              <mat-form-field
-                *ngIf="target.get('mediaItem') && data.taskType.targetOption === 'TEXT'"
-                [style]="'width: 100%;'"
-              >
+              <mat-form-field *ngIf="target.get('mediaItem') && data.taskType.targetOption === 'TEXT'" [style]="'width: 100%;'">
                 <input
                   type="text"
                   matInput

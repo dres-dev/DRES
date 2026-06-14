@@ -7,6 +7,7 @@ import { of, Subject } from 'rxjs';
 import { JudgementViewerComponent } from './judgement-viewer.component';
 import { JudgementService } from '../../../openapi';
 import { ApiJudgementRequest } from '../../../openapi';
+import { WebSocketService } from '../services/websocket.service';
 
 function makeRequest(token: string, desc = 'Find a cat'): ApiJudgementRequest {
   return { token, taskDescription: desc, validator: 'v1', answerSet: { answers: [] } } as any;
@@ -38,6 +39,10 @@ describe('JudgementViewerComponent', () => {
         { provide: MatSnackBar, useValue: jasmine.createSpyObj('MatSnackBar', ['open']) },
         { provide: Router, useValue: jasmine.createSpyObj('Router', ['navigate']) },
         { provide: MatDialog, useValue: mockDialog },
+        {
+          provide: WebSocketService,
+          useValue: jasmine.createSpyObj('WebSocketService', ['connect', 'disconnect'], { messages$: new Subject().asObservable() }),
+        },
       ],
     });
 

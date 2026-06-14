@@ -1,7 +1,12 @@
 <div class="flex-inline">
-
   <button
-    *ngIf="asynchronous ? ((runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING' && (runState | async)?.taskStatus !== 'ENDED' ) : (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
+    *ngIf="
+      asynchronous
+        ? (runState | async)?.taskStatus !== 'PREPARING' &&
+          (runState | async)?.taskStatus !== 'RUNNING' &&
+          (runState | async)?.taskStatus !== 'ENDED'
+        : (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'
+    "
     mat-icon-button
     aria-label="Start task."
     matTooltip="Start task '{{ (runState | async)?.taskTemplateId }}'."
@@ -20,7 +25,7 @@
     <mat-icon>cancel</mat-icon>
   </button>
   <button
-    *ngIf="!asynchronous && ((runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING')"
+    *ngIf="!asynchronous && (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
     mat-icon-button
     aria-label="Previous task."
     matTooltip="Got to previous task."
@@ -29,23 +34,34 @@
     <mat-icon>skip_previous</mat-icon>
   </button>
   <button
-    *ngIf="asynchronous ? (runState | async)?.taskStatus === 'ENDED' || (((runState | async)?.taskStatus === 'RUNNING') && (!(runState | async)?.timeLeft)) : (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'"
+    *ngIf="
+      asynchronous
+        ? (runState | async)?.taskStatus === 'ENDED' ||
+          ((runState | async)?.taskStatus === 'RUNNING' && !(runState | async)?.timeLeft)
+        : (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'
+    "
     mat-icon-button
     aria-label="Next task."
-    matTooltip="{{ (((runState | async)?.taskStatus === 'RUNNING') && (!(runState | async)?.timeLeft)) ? 'Abort current task and go to next one.' : 'Go to next task'}}"
+    matTooltip="{{
+      (runState | async)?.taskStatus === 'RUNNING' && !(runState | async)?.timeLeft
+        ? 'Abort current task and go to next one.'
+        : 'Go to next task'
+    }}"
     (click)="nextTask()"
   >
     <mat-icon>skip_next</mat-icon>
   </button>
   <ng-container *ngIf="showTime">
-    <div #timer
-         *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING'"
-         class="mat-body" style="align-self: center;"
+    <div
+      #timer
+      *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING'"
+      class="mat-body"
+      style="align-self: center"
     >
-      Time left: {{ ((runState | async)?.timeLeft  ? ((runState | async)?.timeLeft | formatTime:false) : '∞')}}
+      Time left: {{ (runState | async)?.timeLeft ? ((runState | async)?.timeLeft | formatTime: false) : '∞' }}
     </div>
     <button
-      *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING' && (runState | async)?.timeLeft "
+      *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING' && (runState | async)?.timeLeft"
       mat-icon-button
       aria-label="Adjust duration."
       matTooltip="Adjust duration of task '{{ (runState | async)?.taskTemplateId }}'."

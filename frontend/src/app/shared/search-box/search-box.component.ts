@@ -1,28 +1,28 @@
-import { Component, EventEmitter, OnInit, Output } from "@angular/core";
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 
 @Component({
-    selector: 'app-search-box',
-    templateUrl: './search-box.component.html',
-    styleUrls: ['./search-box.component.scss'],
-    standalone: false
+  selector: 'app-search-box',
+  templateUrl: './search-box.component.html',
+  styleUrls: ['./search-box.component.scss'],
+  standalone: false,
 })
-export class SearchBoxComponent{
+export class SearchBoxComponent {
   // Source: https://angular-htpgvx.stackblitz.io
   @Output() filterChanged = new EventEmitter<string>();
   public searchBoxActive = false;
   filter: string;
 
-  onFilterClear(){
+  onFilterClear() {
     this.filter = '';
     this.searchBoxActive = false;
     this.filterChanged.emit(this.filter);
   }
 
-  onTextChanged(){
+  onTextChanged() {
     this.filterChanged.emit(this.filter);
   }
 
-  public clear(){
+  public clear() {
     this.onFilterClear();
   }
 }

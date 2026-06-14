@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {ApiMediaItem, ApiMediaType} from '../../../../../openapi';
+import { ApiMediaItem, ApiMediaType } from '../../../../../openapi';
 
 export interface MediaItemBuilderData {
   item?: ApiMediaItem;
@@ -9,10 +9,10 @@ export interface MediaItemBuilderData {
 }
 
 @Component({
-    selector: 'app-media-item-builder-dialog',
-    templateUrl: './media-item-builder-dialog.component.html',
-    styleUrls: ['./media-item-builder-dialog.component.scss'],
-    standalone: false
+  selector: 'app-media-item-builder-dialog',
+  templateUrl: './media-item-builder-dialog.component.html',
+  styleUrls: ['./media-item-builder-dialog.component.scss'],
+  standalone: false,
 })
 export class MediaItemBuilderDialogComponent implements OnInit {
   form: UntypedFormGroup;
@@ -31,7 +31,10 @@ export class MediaItemBuilderDialogComponent implements OnInit {
       collectionId: new UntypedFormControl(data.collectionId),
     });
     if (data?.item?.type === ApiMediaType.VIDEO) {
-      this.form.addControl('durationMs', new UntypedFormControl(data?.item?.durationMs, [Validators.required, Validators.min(1)]));
+      this.form.addControl(
+        'durationMs',
+        new UntypedFormControl(data?.item?.durationMs, [Validators.required, Validators.min(1)])
+      );
       this.form.addControl(
         'fps',
         new UntypedFormControl(data?.item?.fps, [Validators.required, Validators.min(1), Validators.max(200)])

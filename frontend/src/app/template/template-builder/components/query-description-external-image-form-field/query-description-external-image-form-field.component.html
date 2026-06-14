@@ -1,5 +1,5 @@
 <div>
-  <mat-form-field #externalInput style="width: 85%;">
+  <mat-form-field #externalInput style="width: 85%">
     <input
       type="text"
       matInput
@@ -8,8 +8,7 @@
       [matAutocomplete]="autoGroup"
     />
     <mat-autocomplete #autoGroup="matAutocomplete">
-      <mat-option *ngFor="let path of this.formBuilder.dataSource('components.' + index + '.path') | async"
-                  [value]="path">
+      <mat-option *ngFor="let path of this.formBuilder.dataSource('components.' + index + '.path') | async" [value]="path">
         <span>{{ path }}</span>
       </mat-option>
       <mat-error *ngIf="pathControl.hasError('incorrect')">
@@ -17,9 +16,13 @@
       </mat-error>
     </mat-autocomplete>
   </mat-form-field>
-  <button mat-icon-button aria-label="Toggle preview" matTooltip="Toggle preview"
-          (click)="showing = !showing; $event.stopPropagation()">
-    <mat-icon>visibility{{showing ? '_off' : ''}}</mat-icon>
+  <button
+    mat-icon-button
+    aria-label="Toggle preview"
+    matTooltip="Toggle preview"
+    (click)="showing = !showing; $event.stopPropagation()"
+  >
+    <mat-icon>visibility{{ showing ? '_off' : '' }}</mat-icon>
   </button>
 </div>
 <img *ngIf="showing" [src]="this.config.resolveExternalUrl(pathControl.value)" />

@@ -25,14 +25,14 @@
           <mat-label>Members (Teams)</mat-label>
           <mat-chip-grid #chipList aria-label="Teams">
             <mat-chip-row *ngFor="let team of form.get('teams').value" [removable]="true" (removed)="removeTeam(team)">
-              {{team.name}}
+              {{ team.name }}
               <mat-icon matChipRemove>cancel</mat-icon>
             </mat-chip-row>
             <input placeholder="Add team..." [matAutocomplete]="auto" [matChipInputFor]="chipList" />
           </mat-chip-grid>
           <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addTeam($event)">
             <mat-option *ngFor="let team of availableTeams | async" [value]="team">
-              {{team.name}}
+              {{ team.name }}
             </mat-option>
           </mat-autocomplete>
           <mat-error *ngIf="form.get('teams')?.invalid">There must be at least one team</mat-error>

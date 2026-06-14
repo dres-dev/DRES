@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import {ApiTaskGroup, ApiTaskType} from '../../../../../openapi';
+import { ApiTaskGroup, ApiTaskType } from '../../../../../openapi';
 
 export interface CompetitionBuilderTaskGroupDialogData {
   types: ApiTaskType[];
@@ -9,9 +9,9 @@ export interface CompetitionBuilderTaskGroupDialogData {
 }
 
 @Component({
-    selector: 'app-competition-builder-task-group-dialog',
-    templateUrl: './competition-builder-task-group.component.html',
-    standalone: false
+  selector: 'app-competition-builder-task-group-dialog',
+  templateUrl: './competition-builder-task-group.component.html',
+  standalone: false,
 })
 export class CompetitionBuilderTaskGroupDialogComponent {
   /** List of task types currently supported by the UI. */

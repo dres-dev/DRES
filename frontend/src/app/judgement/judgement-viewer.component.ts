@@ -18,47 +18,50 @@ import {ServerMessageType} from '../model/ws/server-message-type.enum';
  * If the current task is an AVS task, a new submission triggers judgment.
  */
 @Component({
-    selector: 'app-judgement-viewer',
-    templateUrl: './judgement-viewer.component.html',
-    styleUrls: ['./judgement-viewer.component.scss'],
-    animations: [
-        trigger('newDescBg', [
-            state('known', style({ backgroundColor: 'transparent' })),
-            state('fresh', style({ backgroundColor: 'transparent' })),
-            transition('known => fresh', [
-                animate('3s', keyframes([
-                    style({ backgroundColor: 'transparent', offset: 0 }),
-                    style({ backgroundColor: '#FFFFFF', offset: 0.2 }),
-                    style({ backgroundColor: 'transparent', offset: 1 }),
-                ])),
-            ]),
-        ]),
-    ],
-    standalone: false
+  selector: 'app-judgement-viewer',
+  templateUrl: './judgement-viewer.component.html',
+  styleUrls: ['./judgement-viewer.component.scss'],
+  animations: [
+    trigger('newDescBg', [
+      state('known', style({ backgroundColor: 'transparent' })),
+      state('fresh', style({ backgroundColor: 'transparent' })),
+      transition('known => fresh', [
+        animate(
+          '3s',
+          keyframes([
+            style({ backgroundColor: 'transparent', offset: 0 }),
+            style({ backgroundColor: '#FFFFFF', offset: 0.2 }),
+            style({ backgroundColor: 'transparent', offset: 1 }),
+          ])
+        ),
+      ]),
+    ]),
+  ],
+  standalone: false,
 })
 export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
-    status: 'fresh' | 'known' = 'known';
+  status: 'fresh' | 'known' = 'known';
 
-    @Input() debug = false;
-    @Input() pollingFrequency = 1000;
-    @Input() timeout = 60;
-    @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
-    observableJudgementRequest: BehaviorSubject<ApiJudgementRequest> = new BehaviorSubject<ApiJudgementRequest>(null);
-    judgementRequest: ApiJudgementRequest;
-    prevDescHash: number;
-    noJudgementMessage = '';
-    isJudgmentAvailable = false;
-    isNewJudgementDesc = false;
-    previousJudgementRequest: ApiJudgementRequest | null = null;
+  @Input() debug = false;
+  @Input() pollingFrequency = 1000;
+  @Input() timeout = 60;
+  @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
+  observableJudgementRequest: BehaviorSubject<ApiJudgementRequest> = new BehaviorSubject<ApiJudgementRequest>(null);
+  judgementRequest: ApiJudgementRequest;
+  prevDescHash: number;
+  noJudgementMessage = '';
+  isJudgmentAvailable = false;
+  isNewJudgementDesc = false;
+  previousJudgementRequest: ApiJudgementRequest | null = null;
 
-    openSubmissions = new BehaviorSubject(0);
-    pendingSubmissions = new BehaviorSubject(0);
+  openSubmissions = new BehaviorSubject(0);
+  pendingSubmissions = new BehaviorSubject(0);
 
-    private runId: Observable<string>;
-    private requestSub: Subscription;
-    private statusSub: Subscription;
-    private deadMansSwitchSub: Subscription;
-    private deadMansSwitchTime = 0;
+  private runId: Observable<string>;
+  private requestSub: Subscription;
+  private statusSub: Subscription;
+  private deadMansSwitchSub: Subscription;
+  private deadMansSwitchTime = 0;
 
     constructor(
         private judgementService: JudgementService,
@@ -100,30 +103,30 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
         });
     }
 
-    @HostListener('document:keypress', ['$event'])
-    handleKeyboardEvent(event: KeyboardEvent) {
-        switch (event.key.toLowerCase()) {
-            case 'a':
-            case 'c':
-                this.judge('CORRECT');
-                break;
-            case 'u':
-                this.judge('UNDECIDABLE');
-                break;
-            case 'r':
-            case 'w':
-                this.judge('WRONG');
-                break;
-        }
+  @HostListener('document:keypress', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    switch (event.key.toLowerCase()) {
+      case 'a':
+      case 'c':
+        this.judge('CORRECT');
+        break;
+      case 'u':
+        this.judge('UNDECIDABLE');
+        break;
+      case 'r':
+      case 'w':
+        this.judge('WRONG');
+        break;
     }
+  }
 
-    @HostListener('document:keydown', ['$event'])
-    handleKeydown(event: KeyboardEvent) {
-        if (event.code === 'Space' && this.judgePlayer) {
-            event.preventDefault();
-            this.judgePlayer.togglePlaying();
-        }
+  @HostListener('document:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent) {
+    if (event.code === 'Space' && this.judgePlayer) {
+      event.preventDefault();
+      this.judgePlayer.togglePlaying();
     }
+  }
 
     init(): void {
         /* Subscription and current run id */
@@ -218,16 +221,53 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                         this.status = 'known';
                     }
                 }
-                this.judgementRequest = req;
-                this.observableJudgementRequest.next(req);
-                this.isJudgmentAvailable = true;
-                this.prevDescHash = this.hashCode(this.judgementRequest.taskDescription);
-            });
-    }
+              }),
+              catchError((err) => {
+                const httperr = err as HttpErrorResponse;
+                if (httperr) {
+                  if (httperr.status === 404) {
+                    this.router.navigate(['/run/list']);
+                  } else if (httperr.status === 408) {
+                    this.snackBar.open(`You were inactive for too long and the verdict was not accepted by teh server`, null, {
+                      duration: 2000,
+                    });
+                    return of(null);
+                  }
+                }
+                console.log('[Judgem.View] Error in getJudgeNext: ');
+                console.log(err);
+                return of(null);
+              })
+            );
+          } else {
+            return of(null);
+          }
+        }),
+        filter((x) => x != null)
+      )
+      .subscribe((req) => {
+        console.log('[Judgem.View] Received request');
+        console.log(req);
+        if (this.prevDescHash) {
+          this.isNewJudgementDesc = this.prevDescHash !== this.hashCode(req.taskDescription);
+          console.log('new: ' + this.isNewJudgementDesc);
+          if (this.isNewJudgementDesc) {
+            this.status = 'fresh';
+            window.scroll(0, 0);
+          } else {
+            this.status = 'known';
+          }
+        }
+        this.judgementRequest = req;
+        this.observableJudgementRequest.next(req);
+        this.isJudgmentAvailable = true;
+        this.prevDescHash = this.hashCode(this.judgementRequest.taskDescription);
+      });
+  }
 
-    allAnswers(){
-        return this.observableJudgementRequest?.value?.answerSet?.answers || []
-    }
+  allAnswers() {
+    return this.observableJudgementRequest?.value?.answerSet?.answers || [];
+  }
 
     /**
      *
@@ -237,109 +277,113 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
         this.stopAll();
     }
 
-    public updateProgress(pending: number, open: number) {
-        this.openSubmissions.next(Math.round(open));
-        this.pendingSubmissions.next(Math.round(pending));
-    }
+  public updateProgress(pending: number, open: number) {
+    this.openSubmissions.next(Math.round(open));
+    this.pendingSubmissions.next(Math.round(pending));
+  }
 
-    public judge(status: ApiVerdictStatus) {
-        this.deadMansSwitchTime = 0;
-        const judgement = {
-            token: this.judgementRequest.token,
-            validator: this.judgementRequest.validator,
-            verdict: status,
-        } as ApiJudgement;
-        this.runId
-            .pipe(switchMap((runId) => this.judgementService.postApiV2EvaluationByEvaluationIdJudge(runId, judgement)),
-                catchError((err) => {
-                    const httperr = err as HttpErrorResponse;
-                    if (httperr) {
-                        if (httperr.status === 408) {
-                            this.snackBar.open(`You were inactive for too long and the verdict was not accepted by the server`, null, {duration: 2000});
-                            return of(null);
-                        }
-                    }
-                    console.log('[Judgem.View] Error in judge: ');
-                    console.log(err);
-                    return of(null);
-                }))
-            .subscribe((res) => {
-                if (res) {
-                    this.snackBar.open(res.description, null, {duration: 5000});
-                }
-            });
-        this.previousJudgementRequest = this.judgementRequest;
-        this.judgePlayer.stop();
-        this.judgementRequest = null;
-        this.isJudgmentAvailable = false;
-    }
-
-    goBack() {
-        if (this.previousJudgementRequest) {
-            this.judgementRequest = this.previousJudgementRequest;
-            this.observableJudgementRequest.next(this.previousJudgementRequest);
-            this.isJudgmentAvailable = true;
-            this.previousJudgementRequest = null;
-        }
-    }
-
-    private stopAll() {
-        this.requestSub?.unsubscribe();
-        this.requestSub = null;
-        this.statusSub?.unsubscribe();
-        this.statusSub = null;
-        this.deadMansSwitchSub?.unsubscribe();
-        this.deadMansSwitchSub = null;
-        if (this.judgePlayer) {
-            this.judgePlayer.stop();
-        }
-    }
-
-    private initialiseDeadMansSwitch() {
-        /* Dead Man's Switch: Timeout upon no action */
-        this.deadMansSwitchSub = timer(1000, 1000).subscribe((val) => {
-            /* emits the second value every second, with a single second delay in the beginning */
-            this.deadMansSwitchTime++;
-            /* If there's a timeout, display the reactivate dialog */
-            if (this.deadMansSwitchTime >= this.timeout) {
-                /* No more polling */
-                this.stopAll();
-                /* Reset time, to be safe */
-                this.deadMansSwitchTime = 0;
-                /* Show the dialog */
-                const ref = this.dialog.open(JudgementDialogComponent, {
-                    width: '400px',
-                    data: {
-                        title: 'Judgement Inactive',
-                        body:
-                            '<h3>Judgement Deactivated</h3>\n' +
-                            '<p>Jugement was deactivated due to inactivity. You can continue judging by closing this dialog.</p>',
-                    } as JudgementDialogContent,
-                });
-                ref.afterClosed().subscribe((_) => {
-                    /* Apparently, the judge is back, so restart everything */
-                    this.init();
-                    this.initialiseDeadMansSwitch();
-                    this.observableJudgementRequest.next(this.judgementRequest);
-                });
+  public judge(status: ApiVerdictStatus) {
+    this.deadMansSwitchTime = 0;
+    const judgement = {
+      token: this.judgementRequest.token,
+      validator: this.judgementRequest.validator,
+      verdict: status,
+    } as ApiJudgement;
+    this.runId
+      .pipe(
+        switchMap((runId) => this.judgementService.postApiV2EvaluationByEvaluationIdJudge(runId, judgement)),
+        catchError((err) => {
+          const httperr = err as HttpErrorResponse;
+          if (httperr) {
+            if (httperr.status === 408) {
+              this.snackBar.open(`You were inactive for too long and the verdict was not accepted by the server`, null, {
+                duration: 2000,
+              });
+              return of(null);
             }
-        });
-    }
-
-    /**
-     * Kindly provided by https://stackoverflow.com/a/7616484
-     */
-    private hashCode(str: string) {
-        let hash = 0;
-        let i;
-        let chr;
-        for (i = 0; i < str.length; i++) {
-            chr = str.charCodeAt(i);
-            // eslint-disable-next-line no-bitwise
-            hash = (hash << 5) - hash + chr;
-            // eslint-disable-next-line no-bitwise
-            hash |= 0; // Convert to 32bit integer
+          }
+          console.log('[Judgem.View] Error in judge: ');
+          console.log(err);
+          return of(null);
+        })
+      )
+      .subscribe((res) => {
+        if (res) {
+          this.snackBar.open(res.description, null, { duration: 5000 });
         }
-        return hash as number;
+      });
+    this.previousJudgementRequest = this.judgementRequest;
+    this.judgePlayer.stop();
+    this.judgementRequest = null;
+    this.isJudgmentAvailable = false;
+  }
+
+  goBack() {
+    if (this.previousJudgementRequest) {
+      this.judgementRequest = this.previousJudgementRequest;
+      this.observableJudgementRequest.next(this.previousJudgementRequest);
+      this.isJudgmentAvailable = true;
+      this.previousJudgementRequest = null;
     }
+  }
+
+  private stopAll() {
+    this.requestSub?.unsubscribe();
+    this.requestSub = null;
+    this.statusSub?.unsubscribe();
+    this.statusSub = null;
+    this.deadMansSwitchSub?.unsubscribe();
+    this.deadMansSwitchSub = null;
+    if (this.judgePlayer) {
+      this.judgePlayer.stop();
+    }
+  }
+
+  private initialiseDeadMansSwitch() {
+    /* Dead Man's Switch: Timeout upon no action */
+    this.deadMansSwitchSub = timer(1000, 1000).subscribe((val) => {
+      /* emits the second value every second, with a single second delay in the beginning */
+      this.deadMansSwitchTime++;
+      /* If there's a timeout, display the reactivate dialog */
+      if (this.deadMansSwitchTime >= this.timeout) {
+        /* No more polling */
+        this.stopAll();
+        /* Reset time, to be safe */
+        this.deadMansSwitchTime = 0;
+        /* Show the dialog */
+        const ref = this.dialog.open(JudgementDialogComponent, {
+          width: '400px',
+          data: {
+            title: 'Judgement Inactive',
+            body:
+              '<h3>Judgement Deactivated</h3>\n' +
+              '<p>Jugement was deactivated due to inactivity. You can continue judging by closing this dialog.</p>',
+          } as JudgementDialogContent,
+        });
+        ref.afterClosed().subscribe((_) => {
+          /* Apparently, the judge is back, so restart everything */
+          this.init();
+          this.initialiseDeadMansSwitch();
+          this.observableJudgementRequest.next(this.judgementRequest);
+        });
+      }
+    });
+  }
+
+  /**
+   * Kindly provided by https://stackoverflow.com/a/7616484
+   */
+  private hashCode(str: string) {
+    let hash = 0;
+    let i;
+    let chr;
+    for (i = 0; i < str.length; i++) {
+      chr = str.charCodeAt(i);
+      // eslint-disable-next-line no-bitwise
+      hash = (hash << 5) - hash + chr;
+      // eslint-disable-next-line no-bitwise
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash as number;
+  }
 }

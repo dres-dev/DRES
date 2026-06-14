@@ -9,10 +9,17 @@ import {
   ApexPlotOptions,
   ApexStroke,
   ApexTheme,
-  ChartComponent
+  ChartComponent,
 } from 'ng-apexcharts';
 import { catchError, map, switchMap } from 'rxjs/operators';
-import {ApiEvaluationInfo, ApiEvaluationState, ApiScore, ApiScoreOverview, ApiTeamInfo, EvaluationScoresService} from '../../../../openapi';
+import {
+  ApiEvaluationInfo,
+  ApiEvaluationState,
+  ApiScore,
+  ApiScoreOverview,
+  ApiTeamInfo,
+  EvaluationScoresService,
+} from '../../../../openapi';
 import { HttpErrorResponse } from '@angular/common/http';
 
 /**
@@ -22,10 +29,10 @@ import { HttpErrorResponse } from '@angular/common/http';
  * competitionOverview = false -- In this mode, a bar chart of the current task group is shown
  */
 @Component({
-    selector: 'app-scoreboard-viewer',
-    templateUrl: './scoreboard-viewer.component.html',
-    styleUrls: ['./scoreboard-viewer.component.scss'],
-    standalone: false
+  selector: 'app-scoreboard-viewer',
+  templateUrl: './scoreboard-viewer.component.html',
+  styleUrls: ['./scoreboard-viewer.component.scss'],
+  standalone: false,
 })
 export class ScoreboardViewerComponent implements OnInit {
   /**
@@ -61,14 +68,14 @@ export class ScoreboardViewerComponent implements OnInit {
     bar: {
       horizontal: true,
       dataLabels: {
-        total: { 
+        total: {
           enabled: this.competitionOverview, //show total when bars are stacked
           offsetX: 5,
           style: {
-            color: '#fff'
-          }
+            color: '#fff',
+          },
         },
-      }
+      },
     },
   } as ApexPlotOptions;
 
@@ -95,8 +102,8 @@ export class ScoreboardViewerComponent implements OnInit {
   dataLabels: ApexDataLabels = {
     enabled: true,
     dropShadow: {
-        enabled: true
-    }
+      enabled: true,
+    },
   } as ApexDataLabels;
 
   series: Observable<ApexAxisChartSeries>;
@@ -114,9 +121,9 @@ export class ScoreboardViewerComponent implements OnInit {
     this.teams = this.info.pipe(map((i) => i.teams));
 
     /* Create observable for current task group. */
-    this.currentTaskGroup =  combineLatest([this.state, this.info]).pipe(
-        map(([state, info]) => info.taskTemplates.filter((t) => t.templateId === state.taskTemplateId)[0].taskGroup)
-    )
+    this.currentTaskGroup = combineLatest([this.state, this.info]).pipe(
+      map(([state, info]) => info.taskTemplates.filter((t) => t.templateId === state.taskTemplateId)[0].taskGroup)
+    );
 
     if (this.competitionOverview) {
       /* Create observable for series. */
@@ -136,7 +143,8 @@ export class ScoreboardViewerComponent implements OnInit {
       switchMap((s) => {
         return this.scoreService.getApiV2ScoreEvaluationByEvaluationIdCurrent(s.evaluationId).pipe(
           catchError((err: HttpErrorResponse) => {
-            if (err.status != 404) { //log anything but 404
+            if (err.status != 404) {
+              //log anything but 404
               console.log('Error when retrieving scores.', err);
             }
             return of(null);

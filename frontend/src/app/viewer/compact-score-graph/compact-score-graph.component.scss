@@ -7,7 +7,10 @@
 
 .graph-wrapper {
   position: absolute;
-  top: 0; bottom: 0; left: 0; right: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   background: rgba(0, 0, 0, 0.1);
@@ -31,8 +34,17 @@
   align-items: center;
   gap: 6px;
 
-  .color-swatch { width: 10px; height: 10px; border-radius: 2px; }
-  .group-name { color: #ccc; font-size: 11px; text-transform: uppercase; font-weight: 600; }
+  .color-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+  .group-name {
+    color: #ccc;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
 }
 
 /* --- SCROLLABLE CHART --- */
@@ -50,8 +62,10 @@
   align-items: center;
   gap: 6px;
   height: 12px;
-  
-  &:hover .track { filter: brightness(1.2); }
+
+  &:hover .track {
+    filter: brightness(1.2);
+  }
 }
 
 .row-label {
@@ -87,6 +101,8 @@
   height: 100%;
   transition: width 0.4s ease-in-out;
   cursor: pointer;
-  
-  &:hover { filter: brightness(1.3); }
+
+  &:hover {
+    filter: brightness(1.3);
+  }
 }

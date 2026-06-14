@@ -1,5 +1,7 @@
 <mat-toolbar *ngIf="!(noUi | async)" color="primary">
-  <button mat-button (click)="openInfoDialog()" matTooltip="Click for server information"><h2 style="margin: 0;">DRES</h2></button>
+  <button mat-button (click)="openInfoDialog()" matTooltip="Click for server information">
+    <h2 style="margin: 0">DRES</h2>
+  </button>
   <div class="spacer-small"></div>
   <app-api-status></app-api-status>
 
@@ -44,11 +46,7 @@
       <mat-icon *ngIf="!(config.configAsObservable | async).effects.mute">volume_up</mat-icon>
       <mat-icon *ngIf="(config.configAsObservable | async).effects.mute">volume_off</mat-icon>
     </button>
-    <button
-      mat-button
-      (click)="toggleDarkMode()"
-      [matTooltip]="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-    >
+    <button mat-button (click)="toggleDarkMode()" [matTooltip]="darkMode ? 'Switch to light mode' : 'Switch to dark mode'">
       <mat-icon>{{ darkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
     </button>
   </div>
@@ -56,7 +54,7 @@
   <div *ngIf="!(loggedIn | async)">
     <button mat-button routerLink="/login">Login</button>
   </div>
-  <div *ngIf="(loggedIn | async)">
+  <div *ngIf="loggedIn | async">
     <mat-menu #userMenu="matMenu">
       <button mat-menu-item (click)="profile()">User profile</button>
       <button mat-menu-item (click)="logout()">Logout</button>

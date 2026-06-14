@@ -1,7 +1,7 @@
 /**
  * A class with time related utilities. Basically a port of dev.dres.utilities.TimeUtil.kt
  */
-import {ApiTemporalPoint, ApiTemporalRange} from '../../../openapi';
+import { ApiTemporalPoint, ApiTemporalRange } from '../../../openapi';
 
 export class TimeUtilities {
   /**
@@ -86,7 +86,7 @@ for testing at e.g. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
     return this.timeCode2Milliseconds(timecode, 24);
   }
 
-  static temporalPointEquals(a: ApiTemporalPoint, b: ApiTemporalPoint){
-    return a.value === b.value && a.unit === b.unit
+  static temporalPointEquals(a: ApiTemporalPoint, b: ApiTemporalPoint) {
+    return a.value === b.value && a.unit === b.unit;
   }
 }

@@ -1,13 +1,13 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import {ApiMediaCollection} from '../../../../../openapi';
+import { ApiMediaCollection } from '../../../../../openapi';
 
 @Component({
-    selector: 'app-collection-builder-dialog',
-    templateUrl: './collection-builder-dialog.component.html',
-    styleUrls: ['./collection-builder-dialog.component.scss'],
-    standalone: false
+  selector: 'app-collection-builder-dialog',
+  templateUrl: './collection-builder-dialog.component.html',
+  styleUrls: ['./collection-builder-dialog.component.scss'],
+  standalone: false,
 })
 export class CollectionBuilderDialogComponent implements OnInit {
   form: UntypedFormGroup;

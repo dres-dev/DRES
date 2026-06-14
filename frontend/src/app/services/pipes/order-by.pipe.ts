@@ -1,20 +1,19 @@
-import { Pipe, PipeTransform } from "@angular/core";
+import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-    name: "orderBy",
-    standalone: false
+  name: 'orderBy',
+  standalone: false,
 })
 export class OrderByPipe implements PipeTransform {
-
-  transform(value: any[], order = "", compare: (a: any, b: any) => number): any[] {
-    if (!value || order === "" || !order) {
+  transform(value: any[], order = '', compare: (a: any, b: any) => number): any[] {
+    if (!value || order === '' || !order) {
       return value;
     }
     if (value.length <= 1) {
       return value;
     }
     if (!compare) {
-      if (order === "asc") {
+      if (order === 'asc') {
         return value.sort();
       } else {
         return value.sort().reverse();
@@ -23,5 +22,4 @@ export class OrderByPipe implements PipeTransform {
       return value.sort(compare);
     }
   }
-
 }

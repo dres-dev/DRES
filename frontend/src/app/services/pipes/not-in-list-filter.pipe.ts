@@ -1,19 +1,17 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-    name: 'notInListFilter',
-    standalone: false
+  name: 'notInListFilter',
+  standalone: false,
 })
 export class NotInListFilterPipe implements PipeTransform {
-
   transform(list: any[], filter: any): any[] {
-    if(!list){
+    if (!list) {
       return [];
     }
-    if(!filter){
+    if (!filter) {
       return list;
     }
-    return list.filter(it => it != filter);
+    return list.filter((it) => it != filter);
   }
-
 }

@@ -8,18 +8,18 @@
         <mat-card-subtitle><strong>Description:</strong> {{ (info | async)?.name }}</mat-card-subtitle>
 
         <div class="spacer-flex"></div>
-        <app-task-controls *ngIf="(info | async)?.type === 'ASYNCHRONOUS'" [asynchronous]="(info | async)?.type === 'ASYNCHRONOUS'" [runState]="state"></app-task-controls>
+        <app-task-controls
+          *ngIf="(info | async)?.type === 'ASYNCHRONOUS'"
+          [asynchronous]="(info | async)?.type === 'ASYNCHRONOUS'"
+          [runState]="state"
+        ></app-task-controls>
         <div class="spacer-flex"></div>
 
         <button mat-icon-button [matMenuTriggerFor]="layoutPresetsMenu" matTooltip="Layout Presets">
           <mat-icon>auto_awesome_motion</mat-icon>
         </button>
         <mat-menu #layoutPresetsMenu="matMenu">
-          <button 
-            *ngFor="let preset of layoutPresets" 
-            mat-menu-item 
-            (click)="applyLayoutPreset(preset.config)"
-          >
+          <button *ngFor="let preset of layoutPresets" mat-menu-item (click)="applyLayoutPreset(preset.config)">
             <mat-icon>{{ preset.icon }}</mat-icon>
             <span>{{ preset.name }}</span>
           </button>
@@ -119,21 +119,9 @@
         [info]="info"
         [state]="state"
       ></app-scoreboard-viewer>
-      <app-leaderboard-viewer
-        *ngSwitchCase="'scoreboard'"
-        [info]="info"
-        [state]="state"
-      ></app-leaderboard-viewer>
-      <app-recent-submissions
-        *ngSwitchCase="'recent_submissions'"
-        [info]="info"
-        [state]="state"
-      ></app-recent-submissions>
-      <app-compact-score-graph
-        *ngSwitchCase="'compact_score_graph'"
-        [info]="info"
-        [state]="state"
-      ></app-compact-score-graph>
+      <app-leaderboard-viewer *ngSwitchCase="'scoreboard'" [info]="info" [state]="state"></app-leaderboard-viewer>
+      <app-recent-submissions *ngSwitchCase="'recent_submissions'" [info]="info" [state]="state"></app-recent-submissions>
+      <app-compact-score-graph *ngSwitchCase="'compact_score_graph'" [info]="info" [state]="state"></app-compact-score-graph>
     </div>
 
     <div
@@ -163,21 +151,9 @@
         [info]="info"
         [state]="state"
       ></app-scoreboard-viewer>
-      <app-leaderboard-viewer
-        *ngSwitchCase="'scoreboard'"
-        [info]="info"
-        [state]="state"
-      ></app-leaderboard-viewer>
-      <app-recent-submissions
-        *ngSwitchCase="'recent_submissions'"
-        [info]="info"
-        [state]="state"
-      ></app-recent-submissions>
-      <app-compact-score-graph
-        *ngSwitchCase="'compact_score_graph'"
-        [info]="info"
-        [state]="state"
-      ></app-compact-score-graph>
+      <app-leaderboard-viewer *ngSwitchCase="'scoreboard'" [info]="info" [state]="state"></app-leaderboard-viewer>
+      <app-recent-submissions *ngSwitchCase="'recent_submissions'" [info]="info" [state]="state"></app-recent-submissions>
+      <app-compact-score-graph *ngSwitchCase="'compact_score_graph'" [info]="info" [state]="state"></app-compact-score-graph>
     </div>
 
     <div
@@ -207,21 +183,9 @@
         [info]="info"
         [state]="state"
       ></app-scoreboard-viewer>
-      <app-leaderboard-viewer
-        *ngSwitchCase="'scoreboard'"
-        [info]="info"
-        [state]="state"
-      ></app-leaderboard-viewer>
-      <app-recent-submissions
-        *ngSwitchCase="'recent_submissions'"
-        [info]="info"
-        [state]="state"
-      ></app-recent-submissions>
-      <app-compact-score-graph
-        *ngSwitchCase="'compact_score_graph'"
-        [info]="info"
-        [state]="state"
-      ></app-compact-score-graph>
+      <app-leaderboard-viewer *ngSwitchCase="'scoreboard'" [info]="info" [state]="state"></app-leaderboard-viewer>
+      <app-recent-submissions *ngSwitchCase="'recent_submissions'" [info]="info" [state]="state"></app-recent-submissions>
+      <app-compact-score-graph *ngSwitchCase="'compact_score_graph'" [info]="info" [state]="state"></app-compact-score-graph>
     </div>
   </div>
 
@@ -241,4 +205,3 @@
     ></app-compact-teams-viewer>
   </div>
 </div>
-

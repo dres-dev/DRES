@@ -1,23 +1,21 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { ApiUser } from "../../../../../../openapi";
+import { ApiUser } from '../../../../../../openapi';
 
 /**
  * Simple filter which filters a list of [ApiUser]s based on whether they are present in another list.
  */
 @Pipe({
-    name: 'userListInOtherFilter',
-    standalone: false
+  name: 'userListInOtherFilter',
+  standalone: false,
 })
 export class UserListInOtherFilterPipe implements PipeTransform {
-
   transform(list: ApiUser[], other: ApiUser[]): ApiUser[] {
-    if(!list){
+    if (!list) {
       return [];
     }
-    if(!other){
+    if (!other) {
       return list;
     }
-    return list.filter(it => !other.includes(it))
+    return list.filter((it) => !other.includes(it));
   }
-
 }

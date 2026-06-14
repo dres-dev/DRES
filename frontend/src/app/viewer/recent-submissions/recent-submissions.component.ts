@@ -12,39 +12,37 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   templateUrl: './recent-submissions.component.html',
   styleUrls: ['./recent-submissions.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatTooltipModule]
+  imports: [CommonModule, MatTooltipModule],
 })
 export class RecentSubmissionsComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;
   @Input() state: Observable<ApiEvaluationState>;
 
   recentSubmissions$: Observable<any[]>;
-  
+
   private serverTimeOffset = 0;
   private currentTaskId: string | null = null;
   private currentTaskStartTime: number = 0;
 
-  constructor(
-    private evaluationService: EvaluationService,
-    private config: AppConfig,
-    private http: HttpClient
-  ) {}
+  constructor(private evaluationService: EvaluationService, private config: AppConfig, private http: HttpClient) {}
 
   ngOnInit(): void {
     // Calculate the offset between server time and client time
-    this.http.get(this.config.resolveApiUrl('/client/evaluation/list'), { observe: 'response', responseType: 'text' }).subscribe(res => {
-      const serverDateStr = res.headers.get('Date');
-      if (serverDateStr) {
-        const serverTime = new Date(serverDateStr).getTime();
-        this.serverTimeOffset = Date.now() - serverTime; 
-      }
-    });
+    this.http
+      .get(this.config.resolveApiUrl('/client/evaluation/list'), { observe: 'response', responseType: 'text' })
+      .subscribe((res) => {
+        const serverDateStr = res.headers.get('Date');
+        if (serverDateStr) {
+          const serverTime = new Date(serverDateStr).getTime();
+          this.serverTimeOffset = Date.now() - serverTime;
+        }
+      });
 
     const submissions$ = this.state.pipe(
       sampleTime(2000),
-      switchMap(st => this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(st.evaluationId).pipe(
-        catchError(() => of([]))
-      )),
+      switchMap((st) =>
+        this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(st.evaluationId).pipe(catchError(() => of([])))
+      ),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
@@ -58,23 +56,23 @@ export class RecentSubmissionsComponent implements OnInit {
           if (this.currentTaskId !== state.taskId) {
             this.currentTaskId = state.taskId;
             const syncedServerTime = Date.now() - this.serverTimeOffset;
-            this.currentTaskStartTime = syncedServerTime - (state.timeElapsed * 1000);
+            this.currentTaskStartTime = syncedServerTime - state.timeElapsed * 1000;
           }
         } else {
           this.currentTaskId = null;
         }
 
         const teamMap = new Map<string, string>();
-        info.teams.forEach(t => teamMap.set(t.id, t.name));
+        info.teams.forEach((t) => teamMap.set(t.id, t.name));
 
         const feed: any[] = [];
 
-        submissions.forEach(sub => {
+        submissions.forEach((sub) => {
           const teamName = teamMap.get(sub.teamId) || 'Unknown';
-          
+
           sub.answers.forEach((ans, index) => {
             const firstAns = ans.answers && ans.answers.length > 0 ? ans.answers[0] : null;
-            
+
             let timeDisplay = '';
 
             // Branch for different time display logic based on whether the task is still running or not
@@ -93,7 +91,7 @@ export class RecentSubmissionsComponent implements OnInit {
               const ss = d.getSeconds().toString().padStart(2, '0');
               timeDisplay = `${hh}:${mm}:${ss}`;
             }
-            
+
             feed.push({
               uniqueId: `${sub.submissionId}-${index}`,
               teamName: teamName,
@@ -101,7 +99,7 @@ export class RecentSubmissionsComponent implements OnInit {
               type: firstAns?.type,
               previewUrl: this.previewOfItem(firstAns?.item, firstAns?.start),
               previewText: firstAns?.text,
-              relativeTime: timeDisplay 
+              relativeTime: timeDisplay,
             });
           });
         });

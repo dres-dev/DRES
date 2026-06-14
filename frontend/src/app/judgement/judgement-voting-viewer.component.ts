@@ -11,10 +11,10 @@ import { WebSocketService } from '../services/websocket.service';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
 
 @Component({
-    selector: 'app-judgement-voting-viewer',
-    templateUrl: './judgement-voting-viewer.component.html',
-    styleUrls: ['./judgement-voting-viewer.component.scss'],
-    standalone: false
+  selector: 'app-judgement-voting-viewer',
+  templateUrl: './judgement-voting-viewer.component.html',
+  styleUrls: ['./judgement-voting-viewer.component.scss'],
+  standalone: false,
 })
 export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
   @Input() pollingFrequency = 1000;
@@ -105,8 +105,8 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
       });
   }
 
-  allAnswers(){
-    return this.observableJudgementRequest?.value?.answerSet?.answers || []
+  allAnswers() {
+    return this.observableJudgementRequest?.value?.answerSet?.answers || [];
   }
 
   ngOnDestroy(): void {

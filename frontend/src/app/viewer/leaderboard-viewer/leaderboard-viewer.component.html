@@ -1,9 +1,8 @@
 <ng-container *ngIf="playerData$ | async as players">
   <div class="leaderboard-wrapper">
     <div class="leaderboard-grid">
-      
-      <div 
-        class="player-row" 
+      <div
+        class="player-row"
         *ngFor="let player of players; let i = index"
         [class.gold]="i === 0 && player.totalScore > 0"
         [class.silver]="i === 1 && player.totalScore > 0"
@@ -13,7 +12,6 @@
         <div class="name" [matTooltip]="player.userName">{{ player.userName }}</div>
         <div class="score">{{ player.totalScore }}</div>
       </div>
-
     </div>
   </div>
 </ng-container>

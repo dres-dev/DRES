@@ -6,7 +6,11 @@ import { AppConfig } from '../app.config';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { JudgementMediaViewerComponent } from './judgement-media-viewer.component';
+<<<<<<< HEAD
 import { ApiJudgementRequest, JudgementService } from '../../../openapi';
+=======
+import {ApiJudgementRequest, JudgementService} from '../../../openapi';
+>>>>>>> d4e51a229d945ba8e81455762fa7bf0759518b7a
 import { WebSocketService } from '../services/websocket.service';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
 

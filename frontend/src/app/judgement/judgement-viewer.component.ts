@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { AfterViewInit, Component, HostListener, Input, OnDestroy, ViewChild } from '@angular/core';
 import { BehaviorSubject, merge, Observable, of, Subscription, timer } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -12,6 +13,22 @@ import { JudgementDialogContent } from './judgement-dialog/judgement-dialog-cont
 import { ApiJudgement, ApiJudgementRequest, ApiVerdictStatus, JudgementService } from '../../../openapi';
 import { WebSocketService } from '../services/websocket.service';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
+=======
+import {AfterViewInit, Component, HostListener, Input, OnDestroy, ViewChild} from '@angular/core';
+import {BehaviorSubject, merge, Observable, of, Subscription, timer} from 'rxjs';
+import {ActivatedRoute, Router} from '@angular/router';
+import {catchError, filter, map, switchMap, take, withLatestFrom} from 'rxjs/operators';
+import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import {animate, keyframes, state, style, transition, trigger} from '@angular/animations';
+import {MatDialog} from '@angular/material/dialog';
+import {JudgementDialogComponent} from './judgement-dialog/judgement-dialog.component';
+import {JudgementDialogContent} from './judgement-dialog/judgement-dialog-content.model';
+import {ApiJudgement, ApiJudgementRequest, ApiVerdictStatus, JudgementService} from '../../../openapi';
+import {WebSocketService} from '../services/websocket.service';
+import {ServerMessageType} from '../model/ws/server-message-type.enum';
+>>>>>>> d4e51a229d945ba8e81455762fa7bf0759518b7a
 
 /**
  * This component subscribes to the websocket for submissions.
@@ -63,6 +80,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
   private deadMansSwitchSub: Subscription;
   private deadMansSwitchTime = 0;
 
+<<<<<<< HEAD
   constructor(
     private judgementService: JudgementService,
     private activeRoute: ActivatedRoute,
@@ -121,9 +139,19 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
       case 'w':
         this.judge('WRONG');
         break;
+=======
+    constructor(
+        private judgementService: JudgementService,
+        private activeRoute: ActivatedRoute,
+        private snackBar: MatSnackBar,
+        private router: Router,
+        private dialog: MatDialog,
+        private wsService: WebSocketService
+    ) {
+>>>>>>> d4e51a229d945ba8e81455762fa7bf0759518b7a
     }
-  }
 
+<<<<<<< HEAD
   @HostListener('document:keydown', ['$event'])
   handleKeydown(event: KeyboardEvent) {
     if (event.code === 'Space' && this.judgePlayer) {
@@ -191,6 +219,155 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                   return null;
                 } else {
                   return req.body;
+=======
+    ngAfterViewInit(): void {
+        this.activeRoute.params.pipe(map((p) => p.runId), take(1)).subscribe((id) => this.wsService.connect(id));
+
+        const dialogRef = this.dialog.open(JudgementDialogComponent, {
+            width: '400px',
+            data: {
+                title: 'Judgement Intro',
+                body:
+                    '<h3>Hello Judge</h3>\n' +
+                    '    <p>\n' +
+                    '        Once you clicked any of the button below, the judging view will open.\n' +
+                    '        Your task will be to judge, whether the shown video segment fulfills the given description or not.\n' +
+                    '        In case of doubt, you also can opt for <i>don\'t know</i>.\n' +
+                    '    </p>\n' +
+                    '    <p>\n' +
+                    '        <b>Information:</b>\n' +
+                    '        Red border means this is for context only: You shall not judge what is in a red border.\n' +
+                    '        The colour change indicates a new task, hence a new description. Read it before you make a verdict.\n' +
+                    '    </p>' +
+                    '    <p>\n' +
+                    '        Thank you for being a fair Judge!\n' +
+                    '    </p>',
+            } as JudgementDialogContent,
+        });
+        dialogRef.afterClosed().subscribe((_) => {
+            this.init();
+            this.initialiseDeadMansSwitch();
+        });
+    }
+
+  @HostListener('document:keypress', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    switch (event.key.toLowerCase()) {
+      case 'a':
+      case 'c':
+        this.judge('CORRECT');
+        break;
+      case 'u':
+        this.judge('UNDECIDABLE');
+        break;
+      case 'r':
+      case 'w':
+        this.judge('WRONG');
+        break;
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent) {
+    if (event.code === 'Space' && this.judgePlayer) {
+      event.preventDefault();
+      this.judgePlayer.togglePlaying();
+    }
+  }
+
+    init(): void {
+        /* Subscription and current run id */
+        this.runId = this.activeRoute.params.pipe(map((p) => p.runId));
+
+        /* Trigger on relevant WebSocket events, with a 30s fallback poll in case the socket drops. */
+        const wsRefresh$ = this.wsService.messages$.pipe(
+            filter((msg) => [
+                ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+                ServerMessageType.ServerMessageTypeEnum.TASK_START,
+                ServerMessageType.ServerMessageTypeEnum.TASK_END,
+            ].includes(msg.type))
+        );
+        const trigger$ = merge(timer(0, 30_000), wsRefresh$);
+
+        /* Fetch judge status on websocket event or fallback interval. */
+        this.statusSub = trigger$
+            .pipe(
+                withLatestFrom(this.runId),
+                switchMap(([_, runId]) => {
+                    return this.judgementService.getApiV2EvaluationByEvaluationIdJudgeStatus(runId).pipe(
+                        catchError((err) => {
+                            console.log('Error in JudgeStatus');
+                            console.log(err);
+                            return of(null);
+                        }),
+                        filter((x) => x !== null)
+                    );
+                }),
+                filter((x) => x != null)
+            )
+            .subscribe((value) => {
+                let pending = 0;
+                let open = 0;
+                value.forEach((j) => {
+                    pending += j.pending;
+                    open += j.open;
+                });
+                this.updateProgress(pending, open);
+            });
+
+        /* Fetch next judgement request on websocket event or fallback interval. */
+        this.requestSub = trigger$
+            .pipe(
+                withLatestFrom(this.runId),
+                switchMap(([_, runId]) => {
+                    /* Only fetch when no judgement is currently in progress. */
+                    if (this.runId && !this.isJudgmentAvailable) {
+                        return this.judgementService.getApiV2EvaluationByEvaluationIdJudgeNext(runId, 'response').pipe(
+                            map((req: HttpResponse<ApiJudgementRequest>) => {
+                                if (req.status === 202) {
+                                    this.noJudgementMessage = 'There is currently no submission awaiting judgement.';
+                                    /* Don't penalise if there's nothing to do*/
+                                    this.deadMansSwitchTime = 0;
+                                    this.isJudgmentAvailable = false;
+                                    return null;
+                                } else {
+                                    return req.body;
+                                }
+                            }),
+                            catchError((err) => {
+                                const httperr = err as HttpErrorResponse;
+                                if (httperr) {
+                                    if (httperr.status === 404) {
+                                        this.router.navigate(['/run/list']);
+                                    } else if (httperr.status === 408) {
+                                        this.snackBar.open(`You were inactive for too long and the verdict was not accepted by teh server`, null, {duration: 2000});
+                                        return of(null);
+                                    }
+                                }
+                                console.log('[Judgem.View] Error in getJudgeNext: ');
+                                console.log(err);
+                                return of(null);
+                            })
+                        );
+                    } else {
+                        return of(null);
+                    }
+                }),
+                filter((x) => x != null)
+            )
+            .subscribe((req) => {
+                console.log('[Judgem.View] Received request');
+                console.log(req);
+                if (this.prevDescHash) {
+                    this.isNewJudgementDesc = this.prevDescHash !== this.hashCode(req.taskDescription);
+                    console.log('new: ' + this.isNewJudgementDesc);
+                    if (this.isNewJudgementDesc) {
+                        this.status = 'fresh';
+                        window.scroll(0,0);
+                    } else {
+                        this.status = 'known';
+                    }
+>>>>>>> d4e51a229d945ba8e81455762fa7bf0759518b7a
                 }
               }),
               catchError((err) => {
@@ -240,6 +417,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     return this.observableJudgementRequest?.value?.answerSet?.answers || [];
   }
 
+<<<<<<< HEAD
   /**
    *
    */
@@ -247,6 +425,15 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     this.wsService.disconnect();
     this.stopAll();
   }
+=======
+    /**
+     *
+     */
+    ngOnDestroy(): void {
+        this.wsService.disconnect();
+        this.stopAll();
+    }
+>>>>>>> d4e51a229d945ba8e81455762fa7bf0759518b7a
 
   public updateProgress(pending: number, open: number) {
     this.openSubmissions.next(Math.round(open));

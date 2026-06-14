@@ -1,7 +1,23 @@
+<<<<<<< HEAD
 import { AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT } from '@angular/core';
 import { ActivatedRoute, ActivationEnd, Params, Router } from '@angular/router';
 import { merge, Observable, of, zip } from 'rxjs';
 import { catchError, filter, map, pairwise, shareReplay, switchMap, take, tap } from 'rxjs/operators';
+=======
+import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT} from '@angular/core';
+import { ActivatedRoute, ActivationEnd, Params, Router } from "@angular/router";
+import {merge, Observable, of, zip} from 'rxjs';
+import {
+  catchError,
+  filter,
+  map,
+  pairwise,
+  shareReplay,
+  switchMap,
+  take,
+  tap
+} from "rxjs/operators";
+>>>>>>> d4e51a229d945ba8e81455762fa7bf0759518b7a
 import { AppConfig } from '../app.config';
 import { WebSocketService } from '../services/websocket.service';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';

@@ -11,6 +11,7 @@ import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import io.javalin.http.Context
+import io.javalin.websocket.WsContext
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.flatMapDistinct
 import kotlinx.dnq.query.isNotEmpty
@@ -71,6 +72,12 @@ fun Context.sendFile(file: File) {
 }
 
 fun Context.sessionToken(): String? = this.attribute<String>("session")
+
+/**
+ * Returns the session token for this [WsContext], as set by the `before` handler on the
+ * underlying HTTP upgrade request.
+ */
+fun WsContext.sessionToken(): String? = this.attribute<String>("session")
 
 fun Context.getOrCreateSessionToken(): String {
     val attributeId = this.attribute<String>("session")

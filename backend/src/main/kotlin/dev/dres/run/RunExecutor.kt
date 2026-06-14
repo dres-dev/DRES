@@ -47,10 +47,7 @@ object RunExecutor : StreamEventHandler {
     private val connectedClients = ConcurrentHashMap<String, WsContext>()
 
     /** Session IDs currently observing each evaluation. */
-    private val observingClients = HashMap<EvaluationId, MutableSet<String>>()
-
-    /** Lock for WebSocket client data structures. */
-    private val clientLock = ReentrantReadWriteLock()
+    private val observingClients = ConcurrentHashMap<EvaluationId, MutableSet<String>>()
 
     /** Lock for accessing and changing all data structures related to [RunManager]s. */
     private val runManagerLock = ReentrantReadWriteLock()
@@ -95,26 +92,26 @@ object RunExecutor : StreamEventHandler {
             throw IllegalArgumentException("This RunExecutor already runs a RunManager with the given ID ${manager.id}. The same RunManager cannot be executed twice!")
         }
         this.runManagers[manager.id] = manager
-        this.observingClients[manager.id] = HashSet()
+        this.observingClients[manager.id] = ConcurrentHashMap.newKeySet()
         this.results[this.executor.submit(manager)] = manager.id
     }
 
     /** A thread that cleans after [RunManager]s have finished. */
     private val cleanerThread = Thread {
         while (!this@RunExecutor.executor.isShutdown) {
-            this@RunExecutor.runManagerLock.read {
-                this@RunExecutor.results.entries.removeIf { entry ->
-                    val k = entry.key
-                    val v = entry.value
-                    if (k.isDone || k.isCancelled) {
+            /* Determine which futures have finished without holding the write lock. */
+            val finished = this@RunExecutor.runManagerLock.read {
+                this@RunExecutor.results.entries.filter { (k, _) -> k.isDone || k.isCancelled }
+            }
+            if (finished.isNotEmpty()) {
+                /* Acquiring the write lock separately (rather than upgrading from the read lock above,
+                 * which ReentrantReadWriteLock does not support and would deadlock). */
+                this@RunExecutor.runManagerLock.write {
+                    finished.forEach { (k, v) ->
                         logger.info("RunManager $v (done = ${k.isDone}, cancelled = ${k.isCancelled}) will be removed!")
-                        this@RunExecutor.runManagerLock.write {
-                            this@RunExecutor.runManagers.remove(v)
-                            this@RunExecutor.observingClients.remove(v)
-                        }
-                        true
-                    } else {
-                        false
+                        this@RunExecutor.results.remove(k)
+                        this@RunExecutor.runManagers.remove(v)
+                        this@RunExecutor.observingClients.remove(v)
                     }
                 }
             }
@@ -136,19 +133,13 @@ object RunExecutor : StreamEventHandler {
      */
     fun accept(ws: WsConfig) {
         ws.onConnect { ctx ->
-            this.clientLock.write {
-                this.connectedClients[ctx.sessionId()] = ctx
-            }
+            this.connectedClients[ctx.sessionId()] = ctx
             logger.debug("WebSocket client connected: ${ctx.sessionId()}")
         }
 
         ws.onClose { ctx ->
-            this.clientLock.write {
-                this.connectedClients.remove(ctx.sessionId())
-                this.runManagerLock.read {
-                    this.observingClients.values.forEach { it.remove(ctx.sessionId()) }
-                }
-            }
+            this.connectedClients.remove(ctx.sessionId())
+            this.observingClients.values.forEach { it.remove(ctx.sessionId()) }
             logger.debug("WebSocket client disconnected: ${ctx.sessionId()}")
         }
 
@@ -164,12 +155,8 @@ object RunExecutor : StreamEventHandler {
                 if (this.runManagers.containsKey(message.evaluationId)) {
                     when (message.type) {
                         ClientMessageType.ACK -> {}
-                        ClientMessageType.REGISTER -> this.clientLock.write {
-                            this.observingClients[message.evaluationId]?.add(ctx.sessionId())
-                        }
-                        ClientMessageType.UNREGISTER -> this.clientLock.write {
-                            this.observingClients[message.evaluationId]?.remove(ctx.sessionId())
-                        }
+                        ClientMessageType.REGISTER -> this.observingClients[message.evaluationId]?.add(ctx.sessionId())
+                        ClientMessageType.UNREGISTER -> this.observingClients[message.evaluationId]?.remove(ctx.sessionId())
                         ClientMessageType.PING -> ctx.send(
                             mapper.writeValueAsString(ServerMessage(message.evaluationId, ServerMessageType.PING))
                         )
@@ -180,9 +167,7 @@ object RunExecutor : StreamEventHandler {
 
         ws.onError { ctx ->
             logger.error("WebSocket error for session ${ctx.sessionId()}: ${ctx.error()?.message}")
-            this.clientLock.write {
-                this.connectedClients.remove(ctx.sessionId())
-            }
+            this.connectedClients.remove(ctx.sessionId())
         }
     }
 
@@ -198,11 +183,7 @@ object RunExecutor : StreamEventHandler {
             logger.error("Failed to serialize ServerMessage: ${e.message}")
             return
         }
-        val observers = this.clientLock.read {
-            this.runManagerLock.read {
-                this.observingClients[message.evaluationId]?.toSet() ?: emptySet()
-            }
-        }
+        val observers = this.observingClients[message.evaluationId]?.toSet() ?: emptySet()
         observers.forEach { sessionId ->
             try {
                 this.connectedClients[sessionId]?.send(json)

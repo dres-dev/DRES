@@ -12,7 +12,9 @@ import {
   TemplateService
 } from "../../../../../../openapi";
 import { AppConfig } from "../../../../app.config";
-import { catchError, filter, map, switchMap, withLatestFrom } from "rxjs/operators";
+import { catchError, filter, map, switchMap, take, withLatestFrom } from "rxjs/operators";
+import { WebSocketService } from "../../../../services/websocket.service";
+import { ServerMessageType } from "../../../../model/ws/server-message-type.enum";
 
 @Component({
     selector: 'app-submissions-list',
@@ -53,15 +55,27 @@ export class SubmissionsListComponent implements AfterViewInit, OnDestroy{
      private evaluationService: EvaluationAdministratorService,
      private templateService: TemplateService,
      public config: AppConfig,
+     private wsService: WebSocketService,
    ) {
      this.runId = this.activeRoute.paramMap.pipe(map((params) => params.get('runId')));
      this.taskId = this.activeRoute.paramMap.pipe(map((params) => params.get('taskId')));
    }
   ngAfterViewInit(): void {
+     this.runId.pipe(take(1)).subscribe((id) => this.wsService.connect(id));
+
+     /* Refresh on new/updated submissions pushed via WebSocket, in addition to manual refresh and periodic polling. */
+     const wsRefresh$ = this.wsService.messages$.pipe(
+       filter((msg) => [
+         ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+         ServerMessageType.ServerMessageTypeEnum.TASK_END,
+       ].includes(msg.type))
+     );
+
      this.subscription = merge(
        timer(0, this.pollingFrequencyInSeconds * 1000)
          .pipe(filter((_) => this.polling)),
-       this.refreshSubject)
+       this.refreshSubject,
+       wsRefresh$)
        .pipe(
          withLatestFrom(this.runId, this.taskId),
          switchMap(([_,r,t]) => this.evaluationService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(r,t)),
@@ -98,6 +112,7 @@ export class SubmissionsListComponent implements AfterViewInit, OnDestroy{
   }
 
   ngOnDestroy(): void {
+     this.wsService.disconnect();
      this.subscription?.unsubscribe();
      this.subscription = null;
      this.sub?.unsubscribe();

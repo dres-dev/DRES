@@ -1,8 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
-import { combineLatest, merge, mergeMap, Observable, of, Subject, timer } from 'rxjs';
-import { catchError, filter, map, shareReplay, switchMap } from 'rxjs/operators';
+import { combineLatest, merge, mergeMap, Observable, of, Subject, timer} from 'rxjs';
+import { catchError, filter, map, shareReplay, switchMap, take } from "rxjs/operators";
+import { WebSocketService } from '../services/websocket.service';
+import { ServerMessageType } from '../model/ws/server-message-type.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { RunInfoOverviewTuple } from './admin-run-list.component';
@@ -29,7 +31,8 @@ export interface CombinedRun {
   styleUrls: ['./run-admin-view.component.scss'],
   standalone: false,
 })
-export class RunAdminViewComponent {
+export class RunAdminViewComponent implements OnInit, OnDestroy {
+
   private static VIEWER_POLLING_FREQUENCY = 3 * 1000; //ms
   private static STATE_POLLING_FREQUENCY = 1 * 1000; //ms
   private static OVERVIEW_POLLING_FREQUENCY = 5 * 1000; //ms
@@ -52,8 +55,20 @@ export class RunAdminViewComponent {
     private competitionService: TemplateService,
     private runAdminService: EvaluationAdministratorService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private wsService: WebSocketService
   ) {
+    const wsRefresh$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
+        ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+      ].includes(msg.type))
+    );
+
     this.runId = this.activeRoute.params.pipe(map((a) => a.runId));
     this.run = this.runId.pipe(
       switchMap((runId) =>
@@ -73,9 +88,7 @@ export class RunAdminViewComponent {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, RunAdminViewComponent.STATE_POLLING_FREQUENCY), this.refreshSubject).pipe(
-            switchMap((index) => this.runService.getApiV2EvaluationByEvaluationIdState(runId))
-          ),
+          merge(timer(0, 30_000), this.refreshSubject, wsRefresh$).pipe(switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(runId))),
         ])
       ),
       map(([i, s]) => {
@@ -148,8 +161,8 @@ export class RunAdminViewComponent {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, RunAdminViewComponent.OVERVIEW_POLLING_FREQUENCY), this.refreshSubject).pipe(
-            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+          merge(timer(0, 30_000), this.refreshSubject, wsRefresh$).pipe(
+            switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
           ),
         ])
       ),
@@ -160,11 +173,7 @@ export class RunAdminViewComponent {
     );
 
     this.viewers = this.runId.pipe(
-      mergeMap((runId) =>
-        timer(0, RunAdminViewComponent.VIEWER_POLLING_FREQUENCY).pipe(
-          switchMap((i) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))
-        )
-      )
+      mergeMap((runId) => merge(timer(0, 30_000), wsRefresh$).pipe(switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
     );
 
     this.teams = this.run.pipe(
@@ -175,8 +184,16 @@ export class RunAdminViewComponent {
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
-  stateFromCombined(combined: Observable<CombinedRun>): Observable<ApiEvaluationState> {
-    return combined.pipe(map((c) => c.state));
+  ngOnInit(): void {
+    this.runId.pipe(take(1)).subscribe((id) => this.wsService.connect(id));
+  }
+
+  ngOnDestroy(): void {
+    this.wsService.disconnect();
+  }
+
+  stateFromCombined(combined: Observable<CombinedRun>): Observable<ApiEvaluationState>{
+    return combined.pipe(map((c) => c.state))
   }
 
   public switchTask(idx: number) {

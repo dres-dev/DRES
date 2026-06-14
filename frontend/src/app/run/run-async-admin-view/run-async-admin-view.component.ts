@@ -5,6 +5,8 @@ import { AppConfig } from '../../app.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { catchError, filter, map, shareReplay, switchMap, take } from 'rxjs/operators';
+import { WebSocketService } from '../../services/websocket.service';
+import { ServerMessageType } from '../../model/ws/server-message-type.enum';
 import { RunInfoOverviewTuple } from '../admin-run-list.component';
 import { MatAccordion } from '@angular/material/expansion';
 import {
@@ -51,9 +53,22 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
     private scoreService: EvaluationScoresService,
     private downloadService: DownloadService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private wsService: WebSocketService
   ) {
     this.activeRoute.params.pipe(map((a) => a.runId)).subscribe(this.runId);
+
+    const wsRefresh$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
+        ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+      ].includes(msg.type))
+    );
+
     this.run = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
@@ -70,8 +85,8 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 1000), this.update).pipe(
-            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+          merge(timer(0, 30_000), this.update, wsRefresh$).pipe(
+            switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
           ),
         ])
       ),
@@ -88,7 +103,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
 
-    this.taskSubmissionCounts = merge(timer(0, 15000), this.update).pipe(
+    this.taskSubmissionCounts = merge(timer(0, 30_000), this.update, wsRefresh$).pipe(
       switchMap(() => this.run.pipe(take(1))),
       switchMap((run) => {
         const runId = this.runId.getValue();
@@ -123,6 +138,8 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.runId.pipe(take(1)).subscribe((id) => this.wsService.connect(id));
+
     /* Cache past tasks initially */
     this.runId.subscribe((runId) => {
       this.runAdminService
@@ -157,6 +174,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.wsService.disconnect();
     this.update?.unsubscribe();
   }
 }

@@ -56,19 +56,25 @@
     text-align: right;
   }
 
-  &.gold { 
-    border-left-color: #FFD700; 
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent); 
-    .rank { color: #FFD700; } 
+  &.gold {
+    border-left-color: #ffd700;
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent);
+    .rank {
+      color: #ffd700;
+    }
   }
-  &.silver { 
-    border-left-color: #C0C0C0; 
-    background: linear-gradient(90deg, rgba(192, 192, 192, 0.15), transparent); 
-    .rank { color: #C0C0C0; } 
+  &.silver {
+    border-left-color: #c0c0c0;
+    background: linear-gradient(90deg, rgba(192, 192, 192, 0.15), transparent);
+    .rank {
+      color: #c0c0c0;
+    }
   }
-  &.bronze { 
-    border-left-color: #CD7F32; 
-    background: linear-gradient(90deg, rgba(205, 127, 50, 0.15), transparent); 
-    .rank { color: #CD7F32; } 
+  &.bronze {
+    border-left-color: #cd7f32;
+    background: linear-gradient(90deg, rgba(205, 127, 50, 0.15), transparent);
+    .rank {
+      color: #cd7f32;
+    }
   }
 }

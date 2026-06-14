@@ -41,8 +41,6 @@ import { MatSortModule } from '@angular/material/sort';
     MatSortModule,
     FormsModule,
   ],
-  exports: [
-    LoginComponent
-  ]
+  exports: [LoginComponent],
 })
 export class UserModule {}

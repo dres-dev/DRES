@@ -65,7 +65,9 @@
     color: #fff;
     margin: 4px 0;
     text-align: center;
-    &.dres-fix-correct { color: #00ff9d; }
+    &.dres-fix-correct {
+      color: #00ff9d;
+    }
   }
 
   p.counter {
@@ -76,20 +78,44 @@
     justify-content: center;
     gap: 8px;
 
-    span.CORRECT { color: #2ecc71; }
-    span.WRONG { color: #e74c3c; }
-    span.INDETERMINATE { color: #95a5a6; }
+    span.CORRECT {
+      color: #2ecc71;
+    }
+    span.WRONG {
+      color: #e74c3c;
+    }
+    span.INDETERMINATE {
+      color: #95a5a6;
+    }
   }
 
   &.status-correct {
     background: radial-gradient(circle at top left, rgba(46, 204, 113, 0.45) 0%, rgba(46, 204, 113, 0) 100%), #2c2c2e;
     border-color: rgba(46, 204, 113, 0.8);
-  }  
+  }
   &.status-wrong {
     background: radial-gradient(circle at top left, rgba(231, 76, 60, 0.45) 0%, rgba(231, 76, 60, 0) 100%), #2c2c2e;
     border-color: rgba(231, 76, 60, 0.8);
   }
-  &.gold { border-color: #FFD700; .tile-header .rank-badge { background: #FFD700; color: #000; } }
-  &.silver { border-color: #C0C0C0; .tile-header .rank-badge { background: #C0C0C0; color: #000; } }
-  &.bronze { border-color: #CD7F32; .tile-header .rank-badge { background: #CD7F32; color: #000; } }
+  &.gold {
+    border-color: #ffd700;
+    .tile-header .rank-badge {
+      background: #ffd700;
+      color: #000;
+    }
+  }
+  &.silver {
+    border-color: #c0c0c0;
+    .tile-header .rank-badge {
+      background: #c0c0c0;
+      color: #000;
+    }
+  }
+  &.bronze {
+    border-color: #cd7f32;
+    .tile-header .rank-badge {
+      background: #cd7f32;
+      color: #000;
+    }
+  }
 }

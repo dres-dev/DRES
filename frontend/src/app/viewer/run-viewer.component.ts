@@ -1,16 +1,7 @@
-import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT} from '@angular/core';
-import { ActivatedRoute, ActivationEnd, Params, Router } from "@angular/router";
-import {merge, Observable, of, zip} from 'rxjs';
-import {
-  catchError,
-  filter,
-  map,
-  pairwise,
-  shareReplay,
-  switchMap,
-  take,
-  tap
-} from "rxjs/operators";
+import { AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT } from '@angular/core';
+import { ActivatedRoute, ActivationEnd, Params, Router } from '@angular/router';
+import { merge, Observable, of, zip } from 'rxjs';
+import { catchError, filter, map, pairwise, shareReplay, switchMap, take, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { WebSocketService } from '../services/websocket.service';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
@@ -18,19 +9,18 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
 
-import {Title} from '@angular/platform-browser';
-import {ApiEvaluationInfo, ApiEvaluationState, EvaluationService} from '../../../openapi';
-import {Overlay} from "@angular/cdk/overlay";
+import { Title } from '@angular/platform-browser';
+import { ApiEvaluationInfo, ApiEvaluationState, EvaluationService } from '../../../openapi';
+import { Overlay } from '@angular/cdk/overlay';
 import { ViewerPreset } from './model/run-viewer-preset';
 
 @Component({
-    selector: 'app-run-viewer',
-    templateUrl: './run-viewer.component.html',
-    styleUrls: ['./run-viewer.component.scss'],
-    standalone: false
+  selector: 'app-run-viewer',
+  templateUrl: './run-viewer.component.html',
+  styleUrls: ['./run-viewer.component.scss'],
+  standalone: false,
 })
 export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
-
   /** Observable for current run ID. */
   evaluationId: Observable<string>;
 
@@ -68,18 +58,18 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     {
       name: 'Original View',
       icon: 'dashboard',
-      config: { left: 'task_type_score', center: 'player', right: 'competition_score', bottom: 'team_score' }
+      config: { left: 'task_type_score', center: 'player', right: 'competition_score', bottom: 'team_score' },
     },
     {
       name: 'Compact View',
       icon: 'view_compact',
-      config: { left: 'scoreboard', center: 'player', right: 'compact_score_graph', bottom: 'compact_team_score' }
+      config: { left: 'scoreboard', center: 'player', right: 'compact_score_graph', bottom: 'compact_team_score' },
     },
     {
       name: 'View with Submissions',
       icon: 'assignment_turned_in',
-      config: { left: 'scoreboard', center: 'player', right: 'recent_submissions', bottom: 'compact_team_score' }
-    }
+      config: { left: 'scoreboard', center: 'player', right: 'recent_submissions', bottom: 'compact_team_score' },
+    },
   ];
 
   /** Cached config */
@@ -100,7 +90,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     @Inject(DOCUMENT) private document: Document,
     private _viewContainerRef: ViewContainerRef
   ) {
-
     /** Observable for the current run ID. */
     this.evaluationId = this.activeRoute.params.pipe(
       map((a) => {
@@ -135,11 +124,11 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     );
     this.noUi = this.activeRoute.paramMap.pipe(
       map((a) => {
-        console.log("A", a);
-        const map = this.parseMatrixParams(a.get('runId'))
-        return Object.keys(map).includes("noUi") && map['noUi'] === "true"
+        console.log('A', a);
+        const map = this.parseMatrixParams(a.get('runId'));
+        return Object.keys(map).includes('noUi') && map['noUi'] === 'true';
       })
-    )
+    );
 
     /* Basic observable for general run info; this information is static and does not change over the course of a run. */
     this.info = this.evaluationId.pipe(
@@ -165,15 +154,17 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     /* Trigger a state fetch on route change or on any relevant WebSocket event. */
     const wsRefresh$ = this.wsService.messages$.pipe(
-      filter((msg) => [
-        ServerMessageType.ServerMessageTypeEnum.TASK_START,
-        ServerMessageType.ServerMessageTypeEnum.TASK_END,
-        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
-        ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
-        ServerMessageType.ServerMessageTypeEnum.COMPETITION_START,
-        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
-        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
-      ].includes(msg.type)),
+      filter((msg) =>
+        [
+          ServerMessageType.ServerMessageTypeEnum.TASK_START,
+          ServerMessageType.ServerMessageTypeEnum.TASK_END,
+          ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+          ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+          ServerMessageType.ServerMessageTypeEnum.COMPETITION_START,
+          ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+          ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+        ].includes(msg.type)
+      ),
       switchMap(() => this.evaluationId.pipe(take(1)))
     );
 
@@ -220,8 +211,8 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     this.info.subscribe((info: ApiEvaluationInfo) => {
-        this.titleService.setTitle(info.name + ' - DRES');
-    })
+      this.titleService.setTitle(info.name + ' - DRES');
+    });
   }
 
   /**
@@ -234,12 +225,9 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Prepare the overlay that is being displayed when WebSocket connection times out.
    */
-  ngAfterViewInit() {
-    
+  ngAfterViewInit() {}
 
-  }
-
-    /**
+  /**
    * Unregisters this RunViewerComponent on view destruction and cleans the WebSocket subscription.
    */
   ngOnDestroy(): void {
@@ -266,7 +254,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Applies a predefined layout configuration to the viewer.
-   * 
+   *
    * @param config The layout configuration to apply, containing widget assignments for each position ({@link ViewerPreset}).
    */
   public applyLayoutPreset(config: ViewerPreset['config']) {

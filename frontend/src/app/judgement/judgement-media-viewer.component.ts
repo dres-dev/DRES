@@ -1,19 +1,26 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, ErrorHandler, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  Component,
+  ElementRef,
+  ErrorHandler,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { AppConfig } from '../app.config';
-import { ApiAnswerType, ApiJudgementRequest } from "../../../openapi";
+import { ApiAnswerType, ApiJudgementRequest } from '../../../openapi';
 
 @Component({
-    selector: 'app-judgement-media-viewer',
-    templateUrl: './judgement-media-viewer.component.html',
-    styleUrls: ['./judgement-media-viewer.component.scss'],
-    providers: [
-        { provide: ErrorHandler, useClass: JudgementMediaViewerComponent }
-    ],
-    standalone: false
+  selector: 'app-judgement-media-viewer',
+  templateUrl: './judgement-media-viewer.component.html',
+  styleUrls: ['./judgement-media-viewer.component.scss'],
+  providers: [{ provide: ErrorHandler, useClass: JudgementMediaViewerComponent }],
+  standalone: false,
 })
 export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterViewChecked, ErrorHandler {
-
   /**
    * The zero-based index in the answerset to which this viewer is for
    */
@@ -55,24 +62,23 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
   private relativePlaytimeSeconds = 0;
   private originalLengthInSeconds: number;
 
-
   constructor(public config: AppConfig) {}
 
   handleError(error: Error): void {
-        if(error?.message?.includes("uncaught in Promise")){
-          // silently ignore
-        }else{
-          throw error;
-        }
+    if (error?.message?.includes('uncaught in Promise')) {
+      // silently ignore
+    } else {
+      throw error;
     }
+  }
 
   private static log(msg: string) {
     console.log(`[JudgeMedia] ${msg}`);
   }
 
   private static detectType(req: ApiJudgementRequest, index: number): ApiAnswerType {
-    console.log("Detect type: ", index)
-    return req?.answerSet?.answers[index]?.type
+    console.log('Detect type: ', index);
+    return req?.answerSet?.answers[index]?.type;
   }
 
   ngOnInit(): void {
@@ -82,13 +88,13 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
         JudgementMediaViewerComponent.log(`Request=${JSON.stringify(req)}`);
         this.activeType.next(JudgementMediaViewerComponent.detectType(req, this.answerIndex));
         switch (this.activeType.value) {
-          case "ITEM":
+          case 'ITEM':
             this.initItem(req);
             break;
-          case "TEMPORAL":
+          case 'TEMPORAL':
             this.initSegment(req);
             break;
-          case "TEXT":
+          case 'TEXT':
             this.initText(req);
             break;
         }
@@ -166,7 +172,7 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
     if (this.video) {
       this.videoPlayerInitialized = true;
       this.video.nativeElement.addEventListener('timeupdate', () => {
-        if(this.video && this.video.nativeElement){
+        if (this.video && this.video.nativeElement) {
           const playtime =
             ((this.video.nativeElement.currentTime - this.startInSeconds) / (this.endInSeconds - this.startInSeconds)) * 100;
           this.playtimeRelative = new Observable<number>((subscriber) => subscriber.next(playtime));
@@ -206,16 +212,18 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
       /* custom handler to force-start when loaded. */
       this.video.nativeElement.addEventListener('loadeddata', () => {
         JudgementMediaViewerComponent.log('Event loadeddata fired.');
-        if(this.startInSeconds === undefined){
+        if (this.startInSeconds === undefined) {
           this.req.subscribe((req) => {
             this.calculateTime(req);
-            if(this?.video?.nativeElement){
+            if (this?.video?.nativeElement) {
               this.video.nativeElement.currentTime = this.startInSeconds;
-              this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired, recalc done'))
+              this.video.nativeElement
+                .play()
+                .then((r) => JudgementMediaViewerComponent.log('Playing video after event fired, recalc done'));
             }
-          })
-        }else{
-          if(this?.video?.nativeElement){
+          });
+        } else {
+          if (this?.video?.nativeElement) {
             this.video.nativeElement.currentTime = this.startInSeconds;
             this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired'));
           }
@@ -241,7 +249,7 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
     this.startInSeconds = 0;
     /* Parse start time, given in millis */
     if (req.answerSet.answers[this.answerIndex].start) {
-      this.startInSeconds = Math.floor(req.answerSet.answers[this.answerIndex].start/ 1000);
+      this.startInSeconds = Math.floor(req.answerSet.answers[this.answerIndex].start / 1000);
     }
     /* Parse end time, given in millis */
     if (req.answerSet.answers[this.answerIndex].end) {
@@ -250,7 +258,7 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
     this.originalLengthInSeconds = this.endInSeconds - this.startInSeconds;
     JudgementMediaViewerComponent.log(`Length: ${this.originalLengthInSeconds}, Threshold: ${this.tooShortThreshold}`);
     /* If only a frame is given OR too short is shown, add padding */
-    if(this.hasTemporalPadding){
+    if (this.hasTemporalPadding) {
       if (this.originalLengthInSeconds < this.tooShortThreshold) {
         JudgementMediaViewerComponent.log(
           `Start: ${this.startInSeconds}, Padding: ${this.padding}, diff: ${this.startInSeconds - this.padding}`
@@ -266,13 +274,13 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  onTemporalContextToggle(event){
+  onTemporalContextToggle(event) {
     /* Reload everything to correctly recalculate the temporal context (either if its enabled or disabled) */
     this.stop();
     this.ngOnInit();
   }
 
-  private resolvePath(req: ApiJudgementRequest,index: number, time = true): string {
+  private resolvePath(req: ApiJudgementRequest, index: number, time = true): string {
     const timeSuffix = time ? `#t=${this.startInSeconds},${this.endInSeconds}` : '';
     return this.config.resolveApiUrl(`/media/${req.answerSet.answers[index].item.mediaItemId}${timeSuffix}`);
   }

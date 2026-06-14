@@ -7,7 +7,10 @@
 
 .feed-wrapper {
   position: absolute;
-  top: 0; bottom: 0; left: 0; right: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   background: rgba(0, 0, 0, 0.2);
@@ -18,7 +21,7 @@
   background: #222;
   border-bottom: 1px solid #444;
   flex-shrink: 0;
-  
+
   h3 {
     margin: 0;
     font-size: 13px;
@@ -46,19 +49,34 @@
   overflow: hidden;
   height: 44px;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 
   /* Status specific styles */
-  &.CORRECT { border-left: 3px solid #2ecc71; .badge { color: #2ecc71; } }
-  &.WRONG { border-left: 3px solid #e74c3c; .badge { color: #e74c3c; } }
-  &.INDETERMINATE { border-left: 3px solid #95a5a6; .badge { color: #95a5a6; } }
+  &.CORRECT {
+    border-left: 3px solid #2ecc71;
+    .badge {
+      color: #2ecc71;
+    }
+  }
+  &.WRONG {
+    border-left: 3px solid #e74c3c;
+    .badge {
+      color: #e74c3c;
+    }
+  }
+  &.INDETERMINATE {
+    border-left: 3px solid #95a5a6;
+    .badge {
+      color: #95a5a6;
+    }
+  }
 
   .preview-media {
     width: 78px;
     height: 100%;
     background: #111;
     flex-shrink: 0;
-    
+
     img {
       display: block;
       width: 100%;
@@ -103,7 +121,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    
+
     .time {
       color: #aaa;
       font-family: monospace;

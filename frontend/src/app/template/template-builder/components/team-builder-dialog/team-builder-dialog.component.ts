@@ -1,29 +1,29 @@
-import { Component, ElementRef, Inject, ViewChild } from "@angular/core";
-import { FormControl, FormGroup, Validators } from "@angular/forms";
-import { Observable, startWith } from "rxjs";
-import { ApiTeam, ApiUser, UserService } from "../../../../../../openapi";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
-import { AppConfig } from "../../../../app.config";
-import { map, shareReplay, tap } from "rxjs/operators";
-import { MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
-import { COMMA, ENTER } from "@angular/cdk/keycodes";
-import { MatChipInput, MatChipInputEvent } from "@angular/material/chips";
-import { TemplateBuilderService } from "../../template-builder.service";
-import { CdkDragDrop, moveItemInArray, transferArrayItem } from "@angular/cdk/drag-drop";
-import { SearchBoxComponent } from "../../../../shared/search-box/search-box.component";
+import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Observable, startWith } from 'rxjs';
+import { ApiTeam, ApiUser, UserService } from '../../../../../../openapi';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { AppConfig } from '../../../../app.config';
+import { map, shareReplay, tap } from 'rxjs/operators';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { MatChipInput, MatChipInputEvent } from '@angular/material/chips';
+import { TemplateBuilderService } from '../../template-builder.service';
+import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { SearchBoxComponent } from '../../../../shared/search-box/search-box.component';
 
 @Component({
-    selector: 'app-team-builder-dialog',
-    templateUrl: './team-builder-dialog.component.html',
-    styleUrls: ['./team-builder-dialog.component.scss'],
-    standalone: false
+  selector: 'app-team-builder-dialog',
+  templateUrl: './team-builder-dialog.component.html',
+  styleUrls: ['./team-builder-dialog.component.scss'],
+  standalone: false,
 })
 export class TeamBuilderDialogComponent {
   form: FormGroup;
   separatorKeyCodes: number[] = [ENTER, COMMA];
-  @ViewChild('userInput') userInput: ElementRef<HTMLInputElement>
-  @ViewChild('memberFilter') memberFilter: SearchBoxComponent
-  @ViewChild('userFilter') userFilter: SearchBoxComponent
+  @ViewChild('userInput') userInput: ElementRef<HTMLInputElement>;
+  @ViewChild('memberFilter') memberFilter: SearchBoxComponent;
+  @ViewChild('userFilter') userFilter: SearchBoxComponent;
 
   logoName = '';
   users: ApiUser[];
@@ -71,10 +71,10 @@ export class TeamBuilderDialogComponent {
       users: new FormControl(team?.users || []),
       userInput: new FormControl(''),
     });
-    this.filterUsers()
+    this.filterUsers();
     this.availableUsers = this.form.get('userInput').valueChanges.pipe(
       startWith(''),
-      map(value => this.filterAvailableUsers(value || ''))
+      map((value) => this.filterAvailableUsers(value || ''))
     );
   }
 
@@ -82,47 +82,44 @@ export class TeamBuilderDialogComponent {
 
   downloadProvider = () => this.asJson();
 
-
   /**
    * Selected user gets added to the list of users
    */
-  public selectedUser(event: MatAutocompleteSelectedEvent){
+  public selectedUser(event: MatAutocompleteSelectedEvent) {
     this.form.get('users').value.push(event.option.value);
-    this.form.get('userInput').setValue(null,{emit: false});
+    this.form.get('userInput').setValue(null, { emit: false });
     this.userInput.nativeElement.value = '';
   }
 
   public filterUsers() {
-    this.userService.getApiV2UserList().subscribe(value => {
-      const roles = value
-        .filter(u =>  u.role === "PARTICIPANT" || u.role === "ADMIN");
-      this.users = roles.filter(u => {
+    this.userService.getApiV2UserList().subscribe((value) => {
+      const roles = value.filter((u) => u.role === 'PARTICIPANT' || u.role === 'ADMIN');
+      this.users = roles.filter((u) => {
         return !this.builder.isUserInTeam(u);
       });
     });
   }
 
-  public drop(event: CdkDragDrop<ApiUser[]>){
+  public drop(event: CdkDragDrop<ApiUser[]>) {
     let prevList = event.previousContainer.data;
     let newList = event.container.data;
-    if(event.previousContainer === event.container){
-      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex)
-    }else{
-      if(event.previousContainer.id === "memberList"){
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      if (event.previousContainer.id === 'memberList') {
         prevList = this.form.get('users').value;
         newList = this.users;
-      }else{
+      } else {
         newList = this.form.get('users').value;
         prevList = this.users;
       }
-      let prevIdx = prevList.indexOf(event.previousContainer.data[event.previousIndex])
-      let currIdx = newList.indexOf(event.container.data[event.currentIndex])
-      transferArrayItem(prevList, newList, prevIdx, currIdx)
+      let prevIdx = prevList.indexOf(event.previousContainer.data[event.previousIndex]);
+      let currIdx = newList.indexOf(event.container.data[event.currentIndex]);
+      transferArrayItem(prevList, newList, prevIdx, currIdx);
     }
-    this.memberFilter?.clear()
+    this.memberFilter?.clear();
     this.userFilter?.clear();
   }
-
 
   /**
    * Removes the selected user from the list of users.
@@ -153,10 +150,10 @@ export class TeamBuilderDialogComponent {
   public teamLogo(): string {
     if (this.form.get('logoData').value != null) {
       return this.form.get('logoData').value;
-    } else if(this.team){
+    } else if (this.team) {
       return this.config.resolveApiUrl(`/template/logo/${this.team.id}`);
     } else {
-      return "";
+      return '';
     }
   }
 
@@ -183,12 +180,12 @@ export class TeamBuilderDialogComponent {
     } as ApiTeam;
   }
 
-  onMemberFilterChanged(filter: string){
+  onMemberFilterChanged(filter: string) {
     this.memberFilterText = filter;
   }
 
-  onAvailalbeFilterChanged(filter: string){
-    this.availableFilterText= filter;
+  onAvailalbeFilterChanged(filter: string) {
+    this.availableFilterText = filter;
   }
 
   /**
@@ -229,19 +226,25 @@ export class TeamBuilderDialogComponent {
    * @private
    */
   private filterAvailableUsers(value: string | ApiUser): ApiUser[] {
-    let users : ApiUser[];
-    if(! (typeof value === 'string')){
+    let users: ApiUser[];
+    if (!(typeof value === 'string')) {
       users = this.users;
-    }else {
+    } else {
       if (value) {
         const filterValue = (value as string).toLowerCase();
 
-        users = this.users?.filter(user => user.username.toLowerCase().includes(filterValue));
+        users = this.users?.filter((user) => user.username.toLowerCase().includes(filterValue));
       } else {
         users = this.users;
       }
     }
     /* always exclude members */
-    return users?.filter(user => !this.form.get('users').value.map(u => u.username).includes(user.username))
+    return users?.filter(
+      (user) =>
+        !this.form
+          .get('users')
+          .value.map((u) => u.username)
+          .includes(user.username)
+    );
   }
 }

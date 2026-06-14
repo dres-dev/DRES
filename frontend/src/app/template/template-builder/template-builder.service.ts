@@ -1,18 +1,16 @@
 import { Injectable } from '@angular/core';
-import { ApiEvaluationTemplate, ApiTaskGroup, ApiTaskTemplate, ApiTaskType, ApiTeamGroup, ApiUser } from "../../../../openapi";
-import { BehaviorSubject, Observable } from "rxjs";
-import { map } from "rxjs/operators";
-
+import { ApiEvaluationTemplate, ApiTaskGroup, ApiTaskTemplate, ApiTaskType, ApiTeamGroup, ApiUser } from '../../../../openapi';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
  * A service to manage the currently actively edited evaluation template.
  * The service provides the means to modify the template as needed and orchestrates updates.
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TemplateBuilderService {
-
   private touchedTasks: Array<ApiTaskTemplate> = [];
 
   set defaultCollection(value: string) {
@@ -23,10 +21,10 @@ export class TemplateBuilderService {
   }
   private _defaultCollection: string = '';
 
-  set defaultSegmentLength(value: number){
+  set defaultSegmentLength(value: number) {
     this._defaultSegmentLength = value;
   }
-  get defaultSegmentLength():number{
+  get defaultSegmentLength(): number {
     return this._defaultSegmentLength;
   }
   private _defaultSegmentLength: number = 0;
@@ -38,7 +36,6 @@ export class TemplateBuilderService {
     return this._selectedTaskType;
   }
 
-
   // TODO might be worthwhile to be the sole provider for a template, i.e. fetching the template from the API would be handled here as well...
 
   private shouldLogDirtyChanges = true;
@@ -49,17 +46,16 @@ export class TemplateBuilderService {
   private _selectedTaskType: ApiTaskType;
   private _selectedTaskGroup: ApiTaskGroup;
 
-  constructor() {
-  }
+  constructor() {}
 
-  public selectTaskTemplate(task: ApiTaskTemplate){
-    console.log("BuilderService.selectTaskTemplate task", task);
+  public selectTaskTemplate(task: ApiTaskTemplate) {
+    console.log('BuilderService.selectTaskTemplate task', task);
     console.log("BuilderService.selectTaskTemplate template's tasks", this.getTemplate().tasks);
-    if(task){
+    if (task) {
       const index = this.getTemplate().tasks.indexOf(task);
-      console.log("BuilderService.selectTaskTemplate, index", index);
-      if(index < 0){
-        console.log("BuilderService.selectTaskTemplate, NEW Task");
+      console.log('BuilderService.selectTaskTemplate, index', index);
+      if (index < 0) {
+        console.log('BuilderService.selectTaskTemplate, NEW Task');
         /* new task: we'll have to add id */
         this.getTemplate().tasks.push(task);
         this.update(this.getTemplate());
@@ -68,131 +64,137 @@ export class TemplateBuilderService {
       this._selectedTaskType = this.findTypeByName(task.taskType);
       this.touchedTasks.push(task);
       this.selectedTaskTemplate.next(task);
-    }else{
-      console.log("BuilderService.selectTaskTemplate UNSELECT");
+    } else {
+      console.log('BuilderService.selectTaskTemplate UNSELECT');
       this.selectedTaskTemplate.next(null);
       this._selectedTaskGroup = null;
       this._selectedTaskType = null;
     }
   }
 
-  public hasTouchedTasks(){
+  public hasTouchedTasks() {
     return this.touchedTasks?.length > 0 || false;
   }
 
-  public selectedTaskTemplateAsObservable(){
+  public selectedTaskTemplateAsObservable() {
     return this.selectedTaskTemplate.asObservable();
   }
 
-  public getSelectedTaskTemplate(){
+  public getSelectedTaskTemplate() {
     return this.selectedTaskTemplate.getValue();
   }
 
-  public findTypeForGroup(group: ApiTaskGroup){
+  public findTypeForGroup(group: ApiTaskGroup) {
     return this.getTemplate().taskTypes.find((v) => v.name === group.type);
   }
 
-  public findGroupByName(name: string){
+  public findGroupByName(name: string) {
     return this.getTemplate().taskGroups.find((v) => v.name === name);
   }
 
-  public findTypeByName(name: string){
+  public findTypeByName(name: string) {
     return this.getTemplate().taskTypes.find((v) => v.name === name);
   }
 
   public findGroupsByType(type: ApiTaskType) {
-    return this.getTemplate().taskGroups.filter(g => g.type === type.name);
+    return this.getTemplate().taskGroups.filter((g) => g.type === type.name);
   }
 
-  public initialise(template: ApiEvaluationTemplate){
+  public initialise(template: ApiEvaluationTemplate) {
     this.unmarkDirty();
-    console.log("BuilderService.init", template);
+    console.log('BuilderService.init', template);
     this.templateSubject.next(template);
   }
 
-  public getTemplate(){
+  public getTemplate() {
     return this.templateSubject.getValue();
   }
 
   /**
    * @deprecated
    */
-  public getTemplateCleaned(){
+  public getTemplateCleaned() {
     const template = this.templateSubject.getValue();
     return template;
   }
 
-  public templateAsObservable(){
+  public templateAsObservable() {
     return this.templateSubject.asObservable();
   }
 
-  public taskTemplatesAsObservable(): Observable<ApiTaskTemplate[]>{
-    return this.templateAsObservable().pipe(map((t) => {
-      if(t){
-        return t.tasks;
-      }else{
-        return [];
-      }
-    }));
+  public taskTemplatesAsObservable(): Observable<ApiTaskTemplate[]> {
+    return this.templateAsObservable().pipe(
+      map((t) => {
+        if (t) {
+          return t.tasks;
+        } else {
+          return [];
+        }
+      })
+    );
   }
 
-  public taskTypesAsObservable(): Observable<ApiTaskType[]>{
-    return this.templateAsObservable().pipe(map((t) => {
-      if(t){
-        return t.taskTypes;
-      }else{
-        return [];
-      }
-    }));
+  public taskTypesAsObservable(): Observable<ApiTaskType[]> {
+    return this.templateAsObservable().pipe(
+      map((t) => {
+        if (t) {
+          return t.taskTypes;
+        } else {
+          return [];
+        }
+      })
+    );
   }
 
-  public taskGroupsAsObservable(): Observable<ApiTaskGroup[]>{
-    return this.templateAsObservable().pipe(map((t) => {
-      if(t){
-        return t.taskGroups;
-      }else{
-        return [];
-      }
-    }))
+  public taskGroupsAsObservable(): Observable<ApiTaskGroup[]> {
+    return this.templateAsObservable().pipe(
+      map((t) => {
+        if (t) {
+          return t.taskGroups;
+        } else {
+          return [];
+        }
+      })
+    );
   }
 
-  public update(template: ApiEvaluationTemplate = null){
+  public update(template: ApiEvaluationTemplate = null) {
     template = template ? template : this.templateSubject.getValue();
-    console.log("BuilderService.update", template)
+    console.log('BuilderService.update', template);
     this.templateSubject.next(template);
     this.markDirty();
   }
 
-  public updateTask(task: ApiTaskTemplate){
+  public updateTask(task: ApiTaskTemplate) {
     console.log('update task', task);
     console.log('update task, all', this.getTemplate().tasks);
     let idx: number;
-    if(task.id){
-      for (let i = 0; i <this.getTemplate().tasks.length; i++) {
-        if(this.getTemplate().tasks[i].id === task.id){
+    if (task.id) {
+      for (let i = 0; i < this.getTemplate().tasks.length; i++) {
+        if (this.getTemplate().tasks[i].id === task.id) {
           idx = i;
           break;
         }
       }
       // TODO handle not found?
-    }else{
+    } else {
       // TODO how to map tasks that do not have an id
     }
     console.log('update task, index', idx);
-    if(idx === -1){
+    if (idx === -1) {
       this.templateSubject.getValue().tasks.push(task);
-    }else{
+    } else {
       this.templateSubject.getValue().tasks[idx] = task;
     }
     this.update(this.getTemplate());
     this.markDirty();
   }
 
-  public hasTemplate(){
+  public hasTemplate() {
     return this.templateSubject != undefined && this.templateSubject.getValue();
   }
 
-  public clear(){
+  public clear() {
     this.unmarkDirty();
     this.templateSubject.unsubscribe();
     this.templateSubject = undefined;
@@ -201,56 +203,60 @@ export class TemplateBuilderService {
     this._selectedTaskGroup = null;
   }
 
-  public checkDirty(){
-    if(!this.dirtySubject.value){
+  public checkDirty() {
+    if (!this.dirtySubject.value) {
       return true;
     }
-    return confirm('There are unsaved changes in this evaluation template that will be lost. Do you really want to proceed?')
+    return confirm('There are unsaved changes in this evaluation template that will be lost. Do you really want to proceed?');
   }
 
-  public markDirty(){
+  public markDirty() {
     this.dirtySubject.next(true);
   }
 
-  public unmarkDirty(){
+  public unmarkDirty() {
     this.dirtySubject.next(false);
   }
 
-  public isDirty(){
+  public isDirty() {
     return this.dirtySubject.value;
   }
 
-  public dirty(){
+  public dirty() {
     return this.dirtySubject.asObservable();
   }
 
-  public removeTaskType(taskType: ApiTaskType){
-    const idx = this.getTemplate().taskTypes.findIndex(t => t.name === taskType.name);
+  public removeTaskType(taskType: ApiTaskType) {
+    const idx = this.getTemplate().taskTypes.findIndex((t) => t.name === taskType.name);
     if (idx > -1) {
       this.getTemplate().taskTypes.splice(idx, 1);
     }
-    this.getTemplate().taskGroups.filter((g) => g.type === taskType.name)
-        .forEach((g) => this.removeTaskGroup(g));
-    this.update(this.getTemplate())
-  }
-
-  public removeTaskGroup(taskGroup: ApiTaskGroup){
-    const idx = this.getTemplate().taskGroups.findIndex(g => taskGroup.id ? g.id === taskGroup.id : g.name === taskGroup.name);
-    if (idx > -1) {
-      this.getTemplate().taskGroups.splice(idx, 1);
-    }
-    this.getTemplate().tasks.filter((t) => t.taskGroup === taskGroup.name)
-        .forEach((t) => this.removeTask(t));
+    this.getTemplate()
+      .taskGroups.filter((g) => g.type === taskType.name)
+      .forEach((g) => this.removeTaskGroup(g));
     this.update(this.getTemplate());
   }
 
-  public removeTask(task: ApiTaskTemplate){
-    const idx = this.getTemplate().tasks.findIndex(t => task.id ? t.id === task.id : t === task);
+  public removeTaskGroup(taskGroup: ApiTaskGroup) {
+    const idx = this.getTemplate().taskGroups.findIndex((g) =>
+      taskGroup.id ? g.id === taskGroup.id : g.name === taskGroup.name
+    );
+    if (idx > -1) {
+      this.getTemplate().taskGroups.splice(idx, 1);
+    }
+    this.getTemplate()
+      .tasks.filter((t) => t.taskGroup === taskGroup.name)
+      .forEach((t) => this.removeTask(t));
+    this.update(this.getTemplate());
+  }
+
+  public removeTask(task: ApiTaskTemplate) {
+    const idx = this.getTemplate().tasks.findIndex((t) => (task.id ? t.id === task.id : t === task));
     if (idx > -1) {
       this.getTemplate().tasks.splice(idx, 1);
     }
     this.update(this.getTemplate());
-    if(this.getSelectedTaskTemplate() == task){
+    if (this.getSelectedTaskTemplate() == task) {
       this.selectTaskTemplate(null);
     }
   }
@@ -263,92 +269,114 @@ export class TemplateBuilderService {
   /**
    * Returns all the users that are in a team.
    */
-  usersOfAllTeams(): ApiUser[]{
-    return this.getTemplate().teams.map(team => team.users).flat() // TODO cache for large templates?
+  usersOfAllTeams(): ApiUser[] {
+    return this.getTemplate()
+      .teams.map((team) => team.users)
+      .flat(); // TODO cache for large templates?
   }
 
   isUserInTeam(user: ApiUser): boolean {
     const used = this.usersOfAllTeams();
     let result = false;
-    used.forEach(u => {
-      if(user.id === u.id){
+    used.forEach((u) => {
+      if (user.id === u.id) {
         result = true;
-        return
+        return;
       }
-    })
+    });
     return result;
   }
 
-  importFrom(from: ApiEvaluationTemplate, nameCollisionSuffix = "(Imported)") {
+  importFrom(from: ApiEvaluationTemplate, nameCollisionSuffix = '(Imported)') {
     /* Import check is currently on name, may switch to completely UUID based matching */
 
-    const alteredTypes: Map<string,ApiTaskType> = new Map<string, ApiTaskType>()
-    const alteredGroups: Map<string,ApiTaskGroup> = new Map<string, ApiTaskGroup>()
+    const alteredTypes: Map<string, ApiTaskType> = new Map<string, ApiTaskType>();
+    const alteredGroups: Map<string, ApiTaskGroup> = new Map<string, ApiTaskGroup>();
 
     /* types */
-    from.taskTypes.forEach(it => {
-      if(!this.getTemplate().taskTypes.map(that => that.name).includes(it.name)){
-        this.getTemplate().taskTypes.push(it)
-      }else{
-        const legacyName = it.name
-        it.name = `${it.name} ${nameCollisionSuffix}`
-        alteredTypes.set(legacyName, it)
-        this.getTemplate().taskTypes.push(it)
+    from.taskTypes.forEach((it) => {
+      if (
+        !this.getTemplate()
+          .taskTypes.map((that) => that.name)
+          .includes(it.name)
+      ) {
+        this.getTemplate().taskTypes.push(it);
+      } else {
+        const legacyName = it.name;
+        it.name = `${it.name} ${nameCollisionSuffix}`;
+        alteredTypes.set(legacyName, it);
+        this.getTemplate().taskTypes.push(it);
       }
-    })
+    });
     /* task groups */
-    from.taskGroups.forEach(it => {
-      if(alteredTypes.has(it.type)){
-        it.type = alteredTypes.get(it.type).name
+    from.taskGroups.forEach((it) => {
+      if (alteredTypes.has(it.type)) {
+        it.type = alteredTypes.get(it.type).name;
       }
-      if(!this.getTemplate().taskGroups.map(that => that.name).includes(it.name)){
-        this.getTemplate().taskGroups.push(it)
-      }else{
-        const legacyName = it.name
-        it.name = `${it.name} ${nameCollisionSuffix}`
-        alteredGroups.set(legacyName, it)
-        this.getTemplate().taskGroups.push(it)
+      if (
+        !this.getTemplate()
+          .taskGroups.map((that) => that.name)
+          .includes(it.name)
+      ) {
+        this.getTemplate().taskGroups.push(it);
+      } else {
+        const legacyName = it.name;
+        it.name = `${it.name} ${nameCollisionSuffix}`;
+        alteredGroups.set(legacyName, it);
+        this.getTemplate().taskGroups.push(it);
       }
-    })
+    });
     /* tasks */
-    from.tasks.forEach(it => {
-      if(alteredTypes.has(it.taskType)){
-        it.taskType = alteredTypes.get(it.taskType).name
+    from.tasks.forEach((it) => {
+      if (alteredTypes.has(it.taskType)) {
+        it.taskType = alteredTypes.get(it.taskType).name;
       }
-      if(alteredGroups.has(it.taskGroup)){
-        it.taskGroup = alteredGroups.get(it.taskGroup).name
+      if (alteredGroups.has(it.taskGroup)) {
+        it.taskGroup = alteredGroups.get(it.taskGroup).name;
       }
-      if(!this.getTemplate().tasks.map(that => that.name).includes(it.name)){
-        this.getTemplate().tasks.push(it)
-      }else{
-        it.name = `${it.name} ${nameCollisionSuffix}`
-        this.getTemplate().tasks.push(it)
+      if (
+        !this.getTemplate()
+          .tasks.map((that) => that.name)
+          .includes(it.name)
+      ) {
+        this.getTemplate().tasks.push(it);
+      } else {
+        it.name = `${it.name} ${nameCollisionSuffix}`;
+        this.getTemplate().tasks.push(it);
       }
-    })
+    });
     /* teams */
-    from.teams.forEach(it => {
-      if(!this.getTemplate().teams.map(that => that.name).includes(it.name)){
-        this.getTemplate().teams.push(it)
-      }else{
-        it.name = `${it.name} (Imported)`
-        this.getTemplate().teams.push(it)
+    from.teams.forEach((it) => {
+      if (
+        !this.getTemplate()
+          .teams.map((that) => that.name)
+          .includes(it.name)
+      ) {
+        this.getTemplate().teams.push(it);
+      } else {
+        it.name = `${it.name} (Imported)`;
+        this.getTemplate().teams.push(it);
       }
-    })
+    });
     /* team groups */
-    from.teamGroups.forEach(it => {
-      if(!this.getTemplate().teamGroups.map(that => that.name).includes(it.name)){
-        this.getTemplate().teamGroups.push(it)
-      }else{
-        it.name = `${it.name} (Imported)`
-        this.getTemplate().teamGroups.push(it)
+    from.teamGroups.forEach((it) => {
+      if (
+        !this.getTemplate()
+          .teamGroups.map((that) => that.name)
+          .includes(it.name)
+      ) {
+        this.getTemplate().teamGroups.push(it);
+      } else {
+        it.name = `${it.name} (Imported)`;
+        this.getTemplate().teamGroups.push(it);
       }
-    })
+    });
     /* judges are userids, hence no renaming */
-    from.judges.forEach(it => {
-      if(!this.getTemplate().judges.includes(it)){
-        this.getTemplate().judges.push(it)
+    from.judges.forEach((it) => {
+      if (!this.getTemplate().judges.includes(it)) {
+        this.getTemplate().judges.push(it);
       }
-    })
+    });
     this.update(this.getTemplate());
   }
 }

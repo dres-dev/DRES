@@ -5,13 +5,13 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { first } from 'rxjs/operators';
 import { AuthenticationService } from '../../services/session/authentication.sevice';
-import {ApiUser, ApiUserRequest, UserService} from '../../../../openapi';
+import { ApiUser, ApiUserRequest, UserService } from '../../../../openapi';
 
 @Component({
-    selector: 'app-profile',
-    templateUrl: './profile.component.html',
-    styleUrls: ['./profile.component.scss'],
-    standalone: false
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.scss'],
+  standalone: false,
 })
 export class ProfileComponent implements OnInit, OnDestroy {
   user: Observable<ApiUser>;
@@ -67,7 +67,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           },
           error: (error) => {
             this.snackBar.open(`Save failed: ${error.error.description}!`, null, { duration: 5000 });
-          }
+          },
         });
     }
   }

@@ -12,16 +12,20 @@ import {
 } from './advanced-builder-dialog/advanced-builder-dialog.component';
 import { TimeUtilities } from '../../../utilities/time.utilities';
 import {
-  ApiHintOption, ApiHintType,
+  ApiHintOption,
+  ApiHintType,
   ApiMediaCollection,
   ApiMediaItem,
   ApiTargetOption,
   ApiTaskGroup,
   ApiTaskTemplate,
-  ApiTaskType, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit,
-  CollectionService
+  ApiTaskType,
+  ApiTemporalPoint,
+  ApiTemporalRange,
+  ApiTemporalUnit,
+  CollectionService,
 } from '../../../../../openapi';
-import { TemplateBuilderService } from "../../../template/template-builder/template-builder.service";
+import { TemplateBuilderService } from '../../../template/template-builder/template-builder.service';
 
 /**
  * Its expected that the taskGroup and taskType properties are correctly given
@@ -38,10 +42,10 @@ export interface CompetitionBuilderTaskDialogData {
  * @deprecated Got replaced by task-template-editor.component.ts
  */
 @Component({
-    selector: 'app-competition-builder-task-dialog',
-    templateUrl: './competition-builder-task-dialog.component.html',
-    styleUrls: ['./competition-builder-task-dialog.component.scss'],
-    standalone: false
+  selector: 'app-competition-builder-task-dialog',
+  templateUrl: './competition-builder-task-dialog.component.html',
+  styleUrls: ['./competition-builder-task-dialog.component.scss'],
+  standalone: false,
 })
 export class CompetitionBuilderTaskDialogComponent {
   form: UntypedFormGroup;
@@ -64,7 +68,13 @@ export class CompetitionBuilderTaskDialogComponent {
     public config: AppConfig,
     private builderService: TemplateBuilderService // To make the compiler happy
   ) {
-    this.builder = new TaskTemplateFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.builderService, this.data.task);
+    this.builder = new TaskTemplateFormBuilder(
+      this.data.taskGroup,
+      this.data.taskType,
+      this.collectionService,
+      this.builderService,
+      this.data.task
+    );
     this.form = this.builder.form;
     this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
   }
@@ -77,7 +87,13 @@ export class CompetitionBuilderTaskDialogComponent {
 
   uploaded = (taskData: string) => {
     const task = JSON.parse(taskData) as ApiTaskTemplate;
-    this.builder = new TaskTemplateFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.builderService, task);
+    this.builder = new TaskTemplateFormBuilder(
+      this.data.taskGroup,
+      this.data.taskType,
+      this.collectionService,
+      this.builderService,
+      task
+    );
     this.form = this.builder.form;
     console.log('Loaded task: ' + JSON.stringify(task));
   };
@@ -103,7 +119,7 @@ export class CompetitionBuilderTaskDialogComponent {
    */
   public addQueryComponent(componentType: ApiHintOption, previous: number = null) {
     // FIXME: push switch to builder
-    switch(componentType){
+    switch (componentType) {
       case 'IMAGE_ITEM':
         this.builder.addComponentForm(ApiHintType.IMAGE, previous);
         break;
@@ -148,9 +164,9 @@ export class CompetitionBuilderTaskDialogComponent {
    * Handler for 'save' button.
    */
   public save() {
-    console.log(this.builder.fetchFormData())
+    console.log(this.builder.fetchFormData());
     if (this.form.valid) {
-      console.log("Valid!")
+      console.log('Valid!');
       this.dialogRef.close(this.builder.fetchFormData());
     }
   }
@@ -189,7 +205,12 @@ export class CompetitionBuilderTaskDialogComponent {
    * @param endControl The target {@link FormControl} to apply the value to.
    * @param unitControl The target {@link FormControl} to apply the value to.
    */
-  public pickRandomSegment(item: ApiMediaItem, startControl: UntypedFormControl, endControl: UntypedFormControl, unitControl: UntypedFormControl) {
+  public pickRandomSegment(
+    item: ApiMediaItem,
+    startControl: UntypedFormControl,
+    endControl: UntypedFormControl,
+    unitControl: UntypedFormControl
+  ) {
     const start = CompetitionBuilderTaskDialogComponent.randInt(1, item.durationMs / 1000 / 2); // always in first half
     let end = 1;
     do {
@@ -200,7 +221,12 @@ export class CompetitionBuilderTaskDialogComponent {
     unitControl.setValue('SECONDS');
   }
 
-  toggleVideoPlayer(mediaItem: ApiMediaItem, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
+  toggleVideoPlayer(
+    mediaItem: ApiMediaItem,
+    startControl?: UntypedFormControl,
+    endControl?: UntypedFormControl,
+    unitControl?: UntypedFormControl
+  ) {
     /* Add to toggleVideoPlayer button if
         [disabled]="!target.get('mediaItem').value && !target.get('segment_start').value && !target.get('segment_end').value"
          */
@@ -215,8 +241,7 @@ export class CompetitionBuilderTaskDialogComponent {
       if (unitControl.value === 'TIMECODE') {
         start = TimeUtilities.timeCode2Milliseconds(startControl.value, mediaItem.fps) / 1000;
       } else {
-        start =
-          TimeUtilities.point2Milliseconds({ value: startControl.value, unit } as ApiTemporalPoint, mediaItem.fps) / 1000;
+        start = TimeUtilities.point2Milliseconds({ value: startControl.value, unit } as ApiTemporalPoint, mediaItem.fps) / 1000;
       }
       // start = Number.parseInt(startControl.value, 10);
     }
@@ -245,7 +270,12 @@ export class CompetitionBuilderTaskDialogComponent {
     this.showVideo = !this.showVideo;
   }
 
-  onRangeChange(range: ApiTemporalRange, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
+  onRangeChange(
+    range: ApiTemporalRange,
+    startControl?: UntypedFormControl,
+    endControl?: UntypedFormControl,
+    unitControl?: UntypedFormControl
+  ) {
     startControl?.setValue(range.start.value);
     endControl?.setValue(range.end.value);
     unitControl?.setValue(ApiTemporalUnit.SECONDS);

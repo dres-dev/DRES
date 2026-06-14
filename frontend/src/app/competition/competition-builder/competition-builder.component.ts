@@ -21,25 +21,28 @@ import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import {
   ApiCreateEvaluation,
   ApiEvaluationTemplate,
-  ApiRole, ApiTaskGroup, ApiTaskTemplate, ApiTaskType, ApiTeam,
+  ApiRole,
+  ApiTaskGroup,
+  ApiTaskTemplate,
+  ApiTaskType,
+  ApiTeam,
   ApiUser,
   DownloadService,
   SuccessStatus,
   TemplateService,
-  UserService
+  UserService,
 } from '../../../../openapi';
 
 /**
  * @deprecated Replaced with new template builder
  */
 @Component({
-    selector: 'app-competition-builer',
-    templateUrl: './competition-builder.component.html',
-    styleUrls: ['./competition-builder.component.scss'],
-    standalone: false
+  selector: 'app-competition-builer',
+  templateUrl: './competition-builder.component.html',
+  styleUrls: ['./competition-builder.component.scss'],
+  standalone: false,
 })
 export class CompetitionBuilderComponent implements OnInit, OnDestroy, DeactivationGuarded {
-
   // FIXME make compiler happy fast. care about templates later
 
   /**
@@ -62,7 +65,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   /**
    * The official VBS Visual Known Item Search task type template
    */
- /* public static VKIS_TEMPLATE = {
+  /* public static VKIS_TEMPLATE = {
     name: 'Visual KIS',
     taskDuration: 300,
     targetType: { option: ConfiguredOptionTargetOption.OptionEnum.SINGLE_MEDIA_SEGMENT, parameters: {} },
@@ -148,19 +151,19 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   /**
    * Ref to template for easy access in thml
    */
-  tkisTemplate = null // CompetitionBuilderComponent.TKIS_TEMPLATE;
+  tkisTemplate = null; // CompetitionBuilderComponent.TKIS_TEMPLATE;
   /**
    * Ref to template for easy access in thml
    */
-  vkisTemplate = null // CompetitionBuilderComponent.VKIS_TEMPLATE;
+  vkisTemplate = null; // CompetitionBuilderComponent.VKIS_TEMPLATE;
   /**
    * Ref to template for easy access in thml
    */
-  avsTemplate = null // CompetitionBuilderComponent.AVS_TEMPLATE;
+  avsTemplate = null; // CompetitionBuilderComponent.AVS_TEMPLATE;
   /**
    * Ref to template for easy access in thml
    */
-  lscTemplate = null // CompetitionBuilderComponent.LSC_TEMPLATE;
+  lscTemplate = null; // CompetitionBuilderComponent.LSC_TEMPLATE;
 
   constructor(
     private competitionService: TemplateService,
@@ -203,12 +206,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     if (this.form.valid) {
       this.fetchDataToCompetition();
       let obs: Observable<SuccessStatus>;
-      if(this.competition.id){
+      if (this.competition.id) {
         /* saving existing */
-        obs = this.competitionService.patchApiV2TemplateByTemplateId(this.competitionId, this.competition)
-      }else{
+        obs = this.competitionService.patchApiV2TemplateByTemplateId(this.competitionId, this.competition);
+      } else {
         /* saving new */
-        obs = this.competitionService.postApiV2Template(this.competition as ApiCreateEvaluation)
+        obs = this.competitionService.postApiV2Template(this.competition as ApiCreateEvaluation);
       }
       obs.subscribe(
         (c) => {
@@ -220,8 +223,8 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         }
       );
     } else {
-      console.log("Save failed due to validation error:")
-      console.log(this.form.errors)
+      console.log('Save failed due to validation error:');
+      console.log(this.form.errors);
     }
   }
 

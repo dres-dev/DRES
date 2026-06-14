@@ -135,14 +135,14 @@ describe('JudgementViewerComponent', () => {
 
       component.handleKeydown(event);
 
-      expect((component.judgePlayer.togglePlaying as jasmine.Spy)).toHaveBeenCalled();
+      expect(component.judgePlayer.togglePlaying as jasmine.Spy).toHaveBeenCalled();
       expect(event.preventDefault).toHaveBeenCalled();
     });
 
     it('does not call togglePlaying for other keys', () => {
       const event = new KeyboardEvent('keydown', { code: 'KeyA' });
       component.handleKeydown(event);
-      expect((component.judgePlayer.togglePlaying as jasmine.Spy)).not.toHaveBeenCalled();
+      expect(component.judgePlayer.togglePlaying as jasmine.Spy).not.toHaveBeenCalled();
     });
 
     it('does not crash when judgePlayer is null', () => {

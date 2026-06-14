@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { Observable, of, Subscription } from 'rxjs';
 import { ApiMediaItem, ApiTemporalPoint, ApiTemporalRange } from '../../../../../../openapi';
 import { AppConfig } from '../../../../app.config';
@@ -12,20 +12,19 @@ export interface VideoPlayerSegmentBuilderData {
   mediaItem?: ApiMediaItem;
   segmentStart?: number;
   segmentEnd?: number;
-  externalPath?:string;
+  externalPath?: string;
 }
 
-
 @Component({
-    selector: 'app-video-player-segment-builder',
-    templateUrl: './video-player-segment-builder.component.html',
-    styleUrls: ['./video-player-segment-builder.component.scss'],
-    standalone: false
+  selector: 'app-video-player-segment-builder',
+  templateUrl: './video-player-segment-builder.component.html',
+  styleUrls: ['./video-player-segment-builder.component.scss'],
+  standalone: false,
 })
 export class VideoPlayerSegmentBuilderComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() data: VideoPlayerSegmentBuilderData;
   @Output() rangeChange = new EventEmitter<ApiTemporalRange>();
-  @Input() showTitle = true
+  @Input() showTitle = true;
 
   @ViewChild('videoPlayer', { static: false }) video: ElementRef;
   videoUrl: Observable<string>;
@@ -45,12 +44,11 @@ export class VideoPlayerSegmentBuilderComponent implements OnInit, AfterViewInit
     public config: AppConfig /*,
                 public dialogRef: MatDialogRef<VideoPlayerSegmentBuilderData>,
                 @Inject(MAT_DIALOG_DATA) public data: VideoPlayerSegmentBuilderData*/
-  ) {
-  }
+  ) {}
 
   ngAfterViewInit(): void {
-    console.log("VIDEO DATA: ",this.data);
-    console.log("MEDIA ITEM", this.isMediaItemPlayer)
+    console.log('VIDEO DATA: ', this.data);
+    console.log('MEDIA ITEM', this.isMediaItemPlayer);
     setTimeout(() => {
       /*
        * timeout because of value changed after checking thingy
@@ -58,7 +56,9 @@ export class VideoPlayerSegmentBuilderComponent implements OnInit, AfterViewInit
        */
       if (this.data) {
         this.videoUrl = of(
-          this.isMediaItemPlayer ? this.config.resolveMediaItemUrl(this.data.mediaItem.mediaItemId) : this.config.resolveExternalUrl(this.data.externalPath)
+          this.isMediaItemPlayer
+            ? this.config.resolveMediaItemUrl(this.data.mediaItem.mediaItemId)
+            : this.config.resolveExternalUrl(this.data.externalPath)
         );
       }
       if (this.data.segmentStart) {
@@ -96,7 +96,6 @@ export class VideoPlayerSegmentBuilderComponent implements OnInit, AfterViewInit
       });
     });
   }
-
 
   stop() {
     this.videoUrl = undefined;
@@ -169,9 +168,9 @@ export class VideoPlayerSegmentBuilderComponent implements OnInit, AfterViewInit
   }
 
   ngOnInit(): void {
-    if(this.data){
-      if(this.data.mediaItem && this.data.mediaItem.mediaItemId){
-        console.log("media item!")
+    if (this.data) {
+      if (this.data.mediaItem && this.data.mediaItem.mediaItemId) {
+        console.log('media item!');
         this.isMediaItemPlayer = true;
       }
     }

@@ -4,7 +4,14 @@
     <div class="team-grid">
       <div class="grid-element-logo">
         <span style="text-align: center" [style.text-align]="'center'">
-            <img [src]="teamLogo()" alt="The logo of the team" style="max-height: 75px; max-width: 150px"  [style.width]="'100px'" [style.height]="'100px'" [style.object-fit]="'contain'"/>
+          <img
+            [src]="teamLogo()"
+            alt="The logo of the team"
+            style="max-height: 75px; max-width: 150px"
+            [style.width]="'100px'"
+            [style.height]="'100px'"
+            [style.object-fit]="'contain'"
+          />
         </span>
         <input hidden type="file" #logoInput (change)="processImage($event)" />
         <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
@@ -40,24 +47,29 @@
         <p [style.width]="'100%'">
           <label>Team Color</label> <br />
           <!-- Has been a span before: https://github.com/dres-dev/DRES/blob/a01889625c069256b7645fef95563feb1f4ce12a/frontend/src/app/competition/competition-builder/competition-builder-team-dialog/competition-builder-team-dialog.component.html -->
-          <span [style.background]="form.get('color').value"
-                [style.width]="'100%'"
-                [style.height]="'20px'"
-                [style.display]="'inline-block'"
-                [colorPicker]="form.get('color').value"
-                [cpPresetLabel]="'Color Palette'"
-                [cpPresetColors]="colorPalette"
-                [cpPosition]="'top-right'"
-                (colorPickerChange)="onColorChange($event)" ></span>
+          <span
+            [style.background]="form.get('color').value"
+            [style.width]="'100%'"
+            [style.height]="'20px'"
+            [style.display]="'inline-block'"
+            [colorPicker]="form.get('color').value"
+            [cpPresetLabel]="'Color Palette'"
+            [cpPresetColors]="colorPalette"
+            [cpPosition]="'top-right'"
+            (colorPickerChange)="onColorChange($event)"
+          ></span>
         </p>
         <div>
           <div class="member-list-container">
             <div class="tb-container-2col">
-              <h3 class="content-left">Users in Team
-                <mat-icon matTooltip="To add users to this team, drag'n'drop them from the available users list. To remove users from this team, dragn'n'drop them to the available users list.">help</mat-icon>
+              <h3 class="content-left">
+                Users in Team
+                <mat-icon
+                  matTooltip="To add users to this team, drag'n'drop them from the available users list. To remove users from this team, dragn'n'drop them to the available users list."
+                  >help</mat-icon
+                >
               </h3>
-              <app-search-box class="content-right width-full"
-                              #memberFilter (filterChanged)="onMemberFilterChanged($event)">
+              <app-search-box class="content-right width-full" #memberFilter (filterChanged)="onMemberFilterChanged($event)">
               </app-search-box>
             </div>
             <div
@@ -68,19 +80,31 @@
               [cdkDropListData]="form.get('users').value | userListFilter: memberFilterText"
               [cdkDropListConnectedTo]="[userList]"
               class="member-list"
-              (cdkDropListDropped)="drop($event)">
-              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of (form.get('users').value | userListFilter: memberFilterText)" cdkDrag>
-                <mat-card-content>{{user.username}}</mat-card-content>
+              (cdkDropListDropped)="drop($event)"
+            >
+              <mat-card
+                class="member-list-item-border member-list-item"
+                *ngFor="let user of form.get('users').value | userListFilter: memberFilterText"
+                cdkDrag
+              >
+                <mat-card-content>{{ user.username }}</mat-card-content>
               </mat-card>
             </div>
           </div>
           <div class="member-list-container">
             <div class="tb-container-2col">
-              <h3 class="content-left">Users Available
-                <mat-icon matTooltip="To add users to the team, drag'n'drop them from this list. To remove users from the team, dragn'n'drop them to the this list.">help</mat-icon>
+              <h3 class="content-left">
+                Users Available
+                <mat-icon
+                  matTooltip="To add users to the team, drag'n'drop them from this list. To remove users from the team, dragn'n'drop them to the this list."
+                  >help</mat-icon
+                >
               </h3>
-              <app-search-box class="content-right"
-                #userFilter (filterChanged)="onAvailalbeFilterChanged($event)"></app-search-box>
+              <app-search-box
+                class="content-right"
+                #userFilter
+                (filterChanged)="onAvailalbeFilterChanged($event)"
+              ></app-search-box>
             </div>
             <div
               cdkDropList
@@ -90,9 +114,14 @@
               [cdkDropListData]="users | userListFilter: availableFilterText"
               [cdkDropListConnectedTo]="[memberList]"
               class="member-list"
-              (cdkDropListDropped)="drop($event)">
-              <mat-card class="member-list-item-border member-list-item" *ngFor="let user of (users|userListFilter: availableFilterText)" cdkDrag>
-                <mat-card-content>{{user.username}}</mat-card-content>
+              (cdkDropListDropped)="drop($event)"
+            >
+              <mat-card
+                class="member-list-item-border member-list-item"
+                *ngFor="let user of users | userListFilter: availableFilterText"
+                cdkDrag
+              >
+                <mat-card-content>{{ user.username }}</mat-card-content>
               </mat-card>
             </div>
           </div>

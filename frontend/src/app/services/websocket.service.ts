@@ -9,10 +9,16 @@ import { ClientMessageType } from '../model/ws/client-message-type.enum';
   providedIn: 'root',
 })
 export class WebSocketService implements OnDestroy {
+  /** Base delay for the first reconnect attempt. */
+  private static readonly RECONNECT_BASE_DELAY_MS = 1_000;
+  /** Upper bound for the reconnect delay, reached after repeated failures. */
+  private static readonly RECONNECT_MAX_DELAY_MS = 30_000;
+
   private socket: WebSocket | null = null;
   private messageSubject = new Subject<IWsServerMessage>();
   private pingSubscription: Subscription | null = null;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempts = 0;
   private currentEvaluationId: string | null = null;
 
   /** Observable stream of messages pushed by the server. */
@@ -44,6 +50,7 @@ export class WebSocketService implements OnDestroy {
     this.socket = new WebSocket(url);
 
     this.socket.onopen = () => {
+      this.reconnectAttempts = 0;
       this.send({
         evaluationId: this.currentEvaluationId,
         type: ClientMessageType.ClientMessageTypeEnum.REGISTER,
@@ -63,7 +70,8 @@ export class WebSocketService implements OnDestroy {
     this.socket.onclose = () => {
       this.stopPing();
       if (this.currentEvaluationId) {
-        this.reconnectTimeout = setTimeout(() => this.openConnection(), 5000);
+        const delay = this.nextReconnectDelay();
+        this.reconnectTimeout = setTimeout(() => this.openConnection(), delay);
       }
     };
 
@@ -79,6 +87,7 @@ export class WebSocketService implements OnDestroy {
   }
 
   private closeSocket(): void {
+    this.reconnectAttempts = 0;
     if (this.reconnectTimeout !== null) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
@@ -94,6 +103,17 @@ export class WebSocketService implements OnDestroy {
       }
       this.socket = null;
     }
+  }
+
+  /**
+   * Computes the delay before the next reconnect attempt using exponential backoff with jitter,
+   * capped at {@link RECONNECT_MAX_DELAY_MS}.
+   */
+  private nextReconnectDelay(): number {
+    const exponentialDelay = WebSocketService.RECONNECT_BASE_DELAY_MS * 2 ** this.reconnectAttempts;
+    const delay = Math.min(exponentialDelay, WebSocketService.RECONNECT_MAX_DELAY_MS);
+    this.reconnectAttempts++;
+    return delay / 2 + Math.random() * (delay / 2);
   }
 
   private startPing(): void {

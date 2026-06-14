@@ -165,4 +165,21 @@ object AccessManager {
     fun getRunManagerForUser(userId: UserId): Set<RunManager> = this.locks.read {
         return this.usersToRunMap[userId] ?: emptySet()
     }
+
+    /**
+     * Checks whether the user associated with the given [SessionToken] is allowed to observe
+     * (e.g., via WebSocket) the given [runManager], mirroring the access rules applied to the REST API.
+     *
+     * @param sessionId The [SessionToken] to check.
+     * @param runManager The [RunManager] the session wants to observe.
+     * @return True if access is permitted, false otherwise.
+     */
+    fun canViewEvaluation(sessionId: SessionToken?, runManager: RunManager): Boolean {
+        val roles = rolesOfSession(sessionId)
+        if (roles.contains(ApiRole.ADMIN)) return true
+        val userId = userIdForSession(sessionId) ?: return false
+        return (roles.contains(ApiRole.JUDGE) && runManager.template.judges.contains(userId)) ||
+            (roles.contains(ApiRole.VIEWER) && runManager.template.viewers.contains(userId)) ||
+            (roles.contains(ApiRole.PARTICIPANT) && runManager.template.hasParticipant(userId))
+    }
 }

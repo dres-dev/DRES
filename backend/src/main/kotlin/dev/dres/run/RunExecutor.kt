@@ -1,6 +1,7 @@
 package dev.dres.run
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
@@ -10,6 +11,7 @@ import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.run.eventstream.*
 import dev.dres.run.validation.interfaces.JudgementValidator
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import jetbrains.exodus.database.TransientEntityStore
@@ -152,10 +154,17 @@ object RunExecutor : StreamEventHandler {
             }
             logger.debug("Received WebSocket message: $message from ${ctx.sessionId()}")
             this.runManagerLock.read {
-                if (this.runManagers.containsKey(message.evaluationId)) {
+                val manager = this.runManagers[message.evaluationId]
+                if (manager != null) {
                     when (message.type) {
                         ClientMessageType.ACK -> {}
-                        ClientMessageType.REGISTER -> this.observingClients[message.evaluationId]?.add(ctx.sessionId())
+                        ClientMessageType.REGISTER -> {
+                            if (AccessManager.canViewEvaluation(ctx.sessionToken(), manager)) {
+                                this.observingClients[message.evaluationId]?.add(ctx.sessionId())
+                            } else {
+                                logger.warn("WebSocket session ${ctx.sessionId()} is not permitted to observe evaluation ${message.evaluationId}")
+                            }
+                        }
                         ClientMessageType.UNREGISTER -> this.observingClients[message.evaluationId]?.remove(ctx.sessionId())
                         ClientMessageType.PING -> ctx.send(
                             mapper.writeValueAsString(ServerMessage(message.evaluationId, ServerMessageType.PING))

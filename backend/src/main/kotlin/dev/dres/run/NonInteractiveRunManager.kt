@@ -87,7 +87,7 @@ class NonInteractiveRunManager(
         /* Update status. */
         this.status = RunManagerStatus.TERMINATED
 
-        LOGGER.info("SynchronousRunManager ${this.id} terminated")
+        LOGGER.info("NonInteractiveRunManager ${this.id} terminated")
     }
 
     override fun updateProperties(properties: ApiRunProperties) {
@@ -103,15 +103,6 @@ class NonInteractiveRunManager(
     private val viewerMap: MutableMap<ViewerInfo, Boolean> = mutableMapOf()
 
     override fun viewers(): Map<ViewerInfo, Boolean> = viewerMap
-
-//    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean {
-//        when (message.type) {
-//            ClientMessageType.REGISTER -> this.viewerMap[connection] = true
-//            ClientMessageType.UNREGISTER -> this.viewerMap.remove(connection)
-//            ClientMessageType.ACK, ClientMessageType.PING -> {} //nop
-//        }
-//        return true
-//    }
 
     override fun viewerPreparing(
         taskTemplateId: dev.dres.data.model.run.TaskId,

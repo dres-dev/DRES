@@ -5,9 +5,13 @@ import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskId
+import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.isEmpty
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -87,7 +91,11 @@ class NonInteractiveRunManager(
     }
 
     override fun updateProperties(properties: ApiRunProperties) {
-        TODO("Not yet implemented")
+        store.transactional {
+            this.evaluation.participantCanView = properties.participantCanView
+            this.evaluation.allowRepeatedTasks = properties.allowRepeatedTasks
+            this.evaluation.limitSubmissionPreviews = properties.limitSubmissionPreviews
+        }
     }
 
     override fun taskCount(context: RunActionContext): Int = this.evaluation.taskRuns.size
@@ -146,67 +154,63 @@ class NonInteractiveRunManager(
     private val taskMap = this.evaluation.taskRuns.associateBy { it.taskId }
 
     /**
+     * Posts a [ApiClientSubmission] to this [NonInteractiveRunManager].
      *
+     * Each answer set in the submission must reference a valid task ID for this evaluation.
+     * Answer sets are grouped per task, transformed and filtered by that task's rules,
+     * then persisted as a single [DbSubmission] and validated.
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) : ApiSubmission {
+    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission): ApiSubmission {
 
+        /* Phase 1: Validate, transform and filter (read-only). */
+        val transformedSubmission = this.stateLock.read {
+            this.store.transactional(true) {
 
-        TODO("Not yet implemented")
+                /* Attach context to submission. */
+                submission.userId = context.userId
+                submission.teamId = resolveTeamId(context)
 
-        /*val submissionByTask =
-            submission.answers.groupBy { it.taskId }.mapValues { submission.copy(answers = it.value) }
+                /* Reject submission if any answer set references an unknown task. */
+                val unknownTaskIds = submission.answerSets.mapNotNull { it.taskId }.filter { !taskMap.containsKey(it) }
+                require(unknownTaskIds.isEmpty()) { "Submission references unknown task ID(s): $unknownTaskIds" }
 
-        if (submissionByTask.keys.any { !taskMap.containsKey(it) }) {
-            throw IllegalStateException("Unknown task")
+                /* Per task: transform then filter the answer sets that belong to it. */
+                val processedAnswerSets = submission.answerSets
+                    .groupBy { it.taskId }
+                    .flatMap { (taskId, answerSets) ->
+                        val task = taskMap[taskId] ?: throw IllegalArgumentException("Unknown task $taskId")
+                        val taskSubmission = submission.copy(answerSets = answerSets)
+                        val transformed = task.transformer.transform(taskSubmission)
+                        task.filter.acceptOrThrow(transformed)
+                        transformed.answerSets
+                    }
+
+                submission.copy(answerSets = processedAnswerSets)
+            }
         }
 
-        this.stateLock.write {
+        /* Phase 2: Persist and validate (write). */
+        return this.store.transactional {
+            val db = transformedSubmission.toNewDb()
 
-            val errorBuffer = StringBuilder()
+            check(!db.answerSets.isEmpty) { "Submission contains no valid answer sets after transformation." }
 
-            submissionByTask.forEach { (taskId, submission) ->
-
-                val task = taskMap[taskId] ?: throw IllegalStateException("Unknown task $taskId")
-
-                try {
-
-                    /* Check if ApiSubmission meets formal requirements. */
-                    task.filter.acceptOrThrow(submission)
-
-                    /* Apply transformations to submissions */
-                    val transformedSubmission = task.transformer.transform(submission)
-
-                    /* Check if there are answers left after transformation */
-                    if (transformedSubmission.answers.isEmpty()) {
-                        return@forEach
-                    }
-
-                    /* At this point, the submission is considered valid and is persisted */
-                    /* Validator is applied to each answer set */
-                    transformedSubmission.answerSets().forEach {
-                        task.validator.validate(it)
-                    }
-
-                    /* Persist the submission. */
-                    transformedSubmission.toNewDb()
-
-                    /* Enqueue submission for post-processing. */
-                    this.scoresUpdatable.enqueue(task)
-
-                } catch (e: SubmissionRejectedException) {
-                    errorBuffer.append(e.message)
-                    errorBuffer.append('\n')
-                }
+            db.answerSets.asSequence().forEach { answerSet: DbAnswerSet ->
+                val task = taskMap[answerSet.task.taskId]
+                    ?: throw IllegalArgumentException("Unknown task ${answerSet.task.taskId}")
+                task.validator.validate(answerSet)
             }
 
-            if (errorBuffer.isNotBlank()) {
-                throw SubmissionRejectedException(submission, errorBuffer.toString())
-            }
-
-        } */
+            db.toApi()
+        }
     }
 
     override fun reScore(taskId: TaskId) {
-        TODO("Not yet implemented")
+        taskMap[taskId]?.scorer?.invalidate()
     }
+
+    /** Resolves the [TeamId] for the user in the given [RunActionContext]. */
+    private fun resolveTeamId(context: RunActionContext): TeamId =
+        this.template.teams.firstOrNull { team -> team.users.any { it.id == context.userId } }?.teamId
+            ?: throw IllegalArgumentException("Could not find a matching team for user ${context.userId}.")
 }

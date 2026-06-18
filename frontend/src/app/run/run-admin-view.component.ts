@@ -58,13 +58,31 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private wsService: WebSocketService
   ) {
-    const wsRefresh$ = this.wsService.messages$.pipe(
+    /* WS messages that carry a task-state diff (TASK_START, TASK_END, TASK_PREPARE). */
+    const taskStateWs$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+      ].includes(msg.type))
+    );
+
+    /* WS messages that carry an overview diff (submissions, scores, task transitions). */
+    const overviewWs$ = this.wsService.messages$.pipe(
       filter((msg) => [
         ServerMessageType.ServerMessageTypeEnum.TASK_START,
         ServerMessageType.ServerMessageTypeEnum.TASK_END,
         ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
-        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
         ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+      ].includes(msg.type))
+    );
+
+    /* Any WS event that previously triggered a viewer-list refresh. */
+    const viewerWs$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
         ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
       ].includes(msg.type))
     );
@@ -88,7 +106,22 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 30_000), this.refreshSubject, wsRefresh$).pipe(switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(runId))),
+          merge(
+            /* Safety fallback: full HTTP fetch every 30 s or on manual refresh. */
+            merge(timer(0, 30_000), this.refreshSubject).pipe(
+              switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(runId))
+            ),
+            /* Apply diff directly when the WS message carries state — no HTTP needed. */
+            taskStateWs$.pipe(
+              filter((msg) => msg.state != null),
+              map((msg) => msg.state as ApiEvaluationState)
+            ),
+            /* Fallback HTTP for task-state events whose payload is absent. */
+            taskStateWs$.pipe(
+              filter((msg) => msg.state == null),
+              switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(runId))
+            )
+          ),
         ])
       ),
       map(([i, s]) => {
@@ -116,6 +149,12 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
         )
       ),
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
+    );
+
+    /* Fires when a task-state event OR a new submission arrives — needed to keep the
+       submission count current without waiting for the next 30 s poll. */
+    const submissionWs$ = this.wsService.messages$.pipe(
+      filter((msg) => msg.type === ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED)
     );
 
     /** Observable for list of submissions for current task. */
@@ -161,8 +200,21 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 30_000), this.refreshSubject, wsRefresh$).pipe(
-            switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+          merge(
+            /* Safety fallback: full HTTP fetch every 30 s or on manual refresh. */
+            merge(timer(0, 30_000), this.refreshSubject).pipe(
+              switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+            ),
+            /* Apply diff directly when the WS message carries overview — no HTTP needed. */
+            overviewWs$.pipe(
+              filter((msg) => msg.overview != null),
+              map((msg) => msg.overview as ApiEvaluationOverview)
+            ),
+            /* Fallback HTTP for events whose overview payload is absent. */
+            overviewWs$.pipe(
+              filter((msg) => msg.overview == null),
+              switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+            )
           ),
         ])
       ),
@@ -173,7 +225,7 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
     );
 
     this.viewers = this.runId.pipe(
-      mergeMap((runId) => merge(timer(0, 30_000), wsRefresh$).pipe(switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
+      mergeMap((runId) => merge(timer(0, 30_000), viewerWs$).pipe(switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
     );
 
     this.teams = this.run.pipe(

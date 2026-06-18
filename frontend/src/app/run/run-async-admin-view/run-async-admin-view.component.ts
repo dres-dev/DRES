@@ -10,6 +10,7 @@ import { ServerMessageType } from '../../model/ws/server-message-type.enum';
 import { RunInfoOverviewTuple } from '../admin-run-list.component';
 import { MatAccordion } from '@angular/material/expansion';
 import {
+  ApiEvaluationOverview,
   ApiTaskTemplateInfo,
   ApiTeam,
   ApiTeamInfo,
@@ -58,14 +59,13 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   ) {
     this.activeRoute.params.pipe(map((a) => a.runId)).subscribe(this.runId);
 
-    const wsRefresh$ = this.wsService.messages$.pipe(
+    /* WS messages that carry an overview diff (submissions, scores, task transitions). */
+    const overviewWs$ = this.wsService.messages$.pipe(
       filter((msg) => [
         ServerMessageType.ServerMessageTypeEnum.TASK_START,
         ServerMessageType.ServerMessageTypeEnum.TASK_END,
         ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
-        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
         ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
-        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
       ].includes(msg.type))
     );
 
@@ -85,8 +85,21 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 30_000), this.update, wsRefresh$).pipe(
-            switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+          merge(
+            /* Safety fallback: full HTTP fetch every 30 s or on manual update trigger. */
+            merge(timer(0, 30_000), this.update).pipe(
+              switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+            ),
+            /* Apply diff directly when the WS message carries overview — no HTTP needed. */
+            overviewWs$.pipe(
+              filter((msg) => msg.overview != null),
+              map((msg) => msg.overview as ApiEvaluationOverview)
+            ),
+            /* Fallback HTTP for events whose overview payload is absent. */
+            overviewWs$.pipe(
+              filter((msg) => msg.overview == null),
+              switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+            )
           ),
         ])
       ),
@@ -103,7 +116,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
 
-    this.taskSubmissionCounts = merge(timer(0, 30_000), this.update, wsRefresh$).pipe(
+    this.taskSubmissionCounts = merge(timer(0, 30_000), this.update, overviewWs$).pipe(
       switchMap(() => this.run.pipe(take(1))),
       switchMap((run) => {
         const runId = this.runId.getValue();

@@ -3,6 +3,8 @@ package dev.dres.run
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.ViewerInfo
+import dev.dres.api.rest.types.evaluation.ApiEvaluationOverview
+import dev.dres.api.rest.types.evaluation.ApiEvaluationState
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
@@ -203,16 +205,78 @@ object RunExecutor : StreamEventHandler {
     }
 
     /**
+     * Builds an [ApiEvaluationState] for the given [InteractiveRunManager] inside a readonly
+     * transaction. Returns null on any failure so callers can fall back to an HTTP fetch.
+     */
+    private fun InteractiveRunManager.buildState(): ApiEvaluationState? = runCatching {
+        this.store.transactional(readonly = true) {
+            ApiEvaluationState(this@buildState, RunActionContext.INTERNAL)
+        }
+    }.onFailure { logger.warn("Failed to build state diff for WS message: ${it.message}") }.getOrNull()
+
+    /**
+     * Builds an [ApiEvaluationOverview] for the given [InteractiveRunManager] inside a readonly
+     * transaction. Returns null on any failure so callers can fall back to an HTTP fetch.
+     */
+    private fun InteractiveRunManager.buildOverview(): ApiEvaluationOverview? = runCatching {
+        this.store.transactional(readonly = true) {
+            ApiEvaluationOverview.of(this@buildOverview)
+        }
+    }.onFailure { logger.warn("Failed to build overview diff for WS message: ${it.message}") }.getOrNull()
+
+    /**
      * Maps a [StreamEvent] to the [ServerMessage] that should be broadcast, or null
      * if the event type requires no WebSocket notification.
+     *
+     * When the event carries enough information, [ServerMessage.state] and/or
+     * [ServerMessage.overview] are populated so that receivers can update their local
+     * state without issuing a separate HTTP request.
      */
     internal fun eventToMessage(event: StreamEvent): ServerMessage? = when (event) {
-        is RunStartEvent   -> ServerMessage(event.runId, ServerMessageType.COMPETITION_START)
-        is RunEndEvent     -> ServerMessage(event.runId, ServerMessageType.COMPETITION_END)
-        is TaskStartEvent  -> ServerMessage(event.runId, ServerMessageType.TASK_START, event.taskId)
-        is TaskEndEvent    -> ServerMessage(event.runId, ServerMessageType.TASK_END,   event.taskId)
-        is ScoreUpdateEvent -> ServerMessage(event.runId, ServerMessageType.COMPETITION_UPDATE)
-        is SubmissionEvent  -> ServerMessage(event.runId, ServerMessageType.TASK_UPDATED)
+        is RunStartEvent -> ServerMessage(event.runId, ServerMessageType.COMPETITION_START)
+
+        is RunEndEvent -> ServerMessage(event.runId, ServerMessageType.COMPETITION_END)
+
+        is TaskStartEvent -> {
+            val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
+            ServerMessage(
+                event.runId,
+                ServerMessageType.TASK_START,
+                event.taskId,
+                state = manager?.buildState(),
+                overview = manager?.buildOverview()
+            )
+        }
+
+        is TaskEndEvent -> {
+            val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
+            ServerMessage(
+                event.runId,
+                ServerMessageType.TASK_END,
+                event.taskId,
+                state = manager?.buildState(),
+                overview = manager?.buildOverview()
+            )
+        }
+
+        is ScoreUpdateEvent -> {
+            val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
+            ServerMessage(
+                event.runId,
+                ServerMessageType.COMPETITION_UPDATE,
+                overview = manager?.buildOverview()
+            )
+        }
+
+        is SubmissionEvent -> {
+            val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
+            ServerMessage(
+                event.runId,
+                ServerMessageType.TASK_UPDATED,
+                overview = manager?.buildOverview()
+            )
+        }
+
         else -> null
     }
 

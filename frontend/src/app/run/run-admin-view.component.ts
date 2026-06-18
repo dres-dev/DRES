@@ -78,13 +78,9 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
       ].includes(msg.type))
     );
 
-    /* Any WS event that previously triggered a viewer-list refresh. */
+    /* Fires only when a viewer actually connects or signals ready. */
     const viewerWs$ = this.wsService.messages$.pipe(
-      filter((msg) => [
-        ServerMessageType.ServerMessageTypeEnum.TASK_START,
-        ServerMessageType.ServerMessageTypeEnum.TASK_END,
-        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
-      ].includes(msg.type))
+      filter((msg) => msg.type === ServerMessageType.ServerMessageTypeEnum.VIEWER_UPDATE)
     );
 
     this.runId = this.activeRoute.params.pipe(map((a) => a.runId));

@@ -24,6 +24,7 @@ import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
+import dev.dres.run.eventstream.ViewerUpdateEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
@@ -469,6 +470,7 @@ class InteractiveSynchronousRunManager(
 
         if (taskTemplateId == currentTemplateId) {
             this.readyLatch.register(viewerInfo)
+            EventStreamProcessor.event(ViewerUpdateEvent(this.id))
         }
 
     }
@@ -483,6 +485,7 @@ class InteractiveSynchronousRunManager(
             /* Since the viewer does send the ready message too early, we cannot care whether the task is (already) preparing or not */
                 this.readyLatch.register(viewerInfo) //avoid redying previously untracked viewers
                 this.readyLatch.setReady(viewerInfo)
+                EventStreamProcessor.event(ViewerUpdateEvent(this.id))
 //            }
         }
 

@@ -205,14 +205,20 @@ object RunExecutor : StreamEventHandler {
     }
 
     /**
-     * Builds an [ApiEvaluationState] for the given [InteractiveRunManager] inside a readonly
-     * transaction. Returns null on any failure so callers can fall back to an HTTP fetch.
+     * Builds both [ApiEvaluationState] and [ApiEvaluationOverview] in a single readonly
+     * transaction. Used when a task-state event needs both payloads so we avoid opening
+     * two separate transactions for the same snapshot.
      */
-    private fun InteractiveRunManager.buildState(): ApiEvaluationState? = runCatching {
-        this.store.transactional(readonly = true) {
-            ApiEvaluationState(this@buildState, RunActionContext.INTERNAL)
-        }
-    }.onFailure { logger.warn("Failed to build state diff for WS message: ${it.message}") }.getOrNull()
+    private fun InteractiveRunManager.buildStateAndOverview(): Pair<ApiEvaluationState?, ApiEvaluationOverview?> =
+        runCatching {
+            this.store.transactional(readonly = true) {
+                Pair(
+                    ApiEvaluationState(this@buildStateAndOverview, RunActionContext.INTERNAL),
+                    ApiEvaluationOverview.of(this@buildStateAndOverview)
+                )
+            }
+        }.onFailure { logger.warn("Failed to build state+overview diff for WS message: ${it.message}") }
+         .getOrElse { Pair(null, null) }
 
     /**
      * Builds an [ApiEvaluationOverview] for the given [InteractiveRunManager] inside a readonly
@@ -239,43 +245,27 @@ object RunExecutor : StreamEventHandler {
 
         is TaskStartEvent -> {
             val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
-            ServerMessage(
-                event.runId,
-                ServerMessageType.TASK_START,
-                event.taskId,
-                state = manager?.buildState(),
-                overview = manager?.buildOverview()
-            )
+            val (state, overview) = manager?.buildStateAndOverview() ?: Pair(null, null)
+            ServerMessage(event.runId, ServerMessageType.TASK_START, event.taskId, state = state, overview = overview)
         }
 
         is TaskEndEvent -> {
             val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
-            ServerMessage(
-                event.runId,
-                ServerMessageType.TASK_END,
-                event.taskId,
-                state = manager?.buildState(),
-                overview = manager?.buildOverview()
-            )
+            val (state, overview) = manager?.buildStateAndOverview() ?: Pair(null, null)
+            ServerMessage(event.runId, ServerMessageType.TASK_END, event.taskId, state = state, overview = overview)
         }
 
         is ScoreUpdateEvent -> {
             val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
-            ServerMessage(
-                event.runId,
-                ServerMessageType.COMPETITION_UPDATE,
-                overview = manager?.buildOverview()
-            )
+            ServerMessage(event.runId, ServerMessageType.COMPETITION_UPDATE, overview = manager?.buildOverview())
         }
 
         is SubmissionEvent -> {
             val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
-            ServerMessage(
-                event.runId,
-                ServerMessageType.TASK_UPDATED,
-                overview = manager?.buildOverview()
-            )
+            ServerMessage(event.runId, ServerMessageType.TASK_UPDATED, overview = manager?.buildOverview())
         }
+
+        is ViewerUpdateEvent -> ServerMessage(event.runId, ServerMessageType.VIEWER_UPDATE)
 
         else -> null
     }

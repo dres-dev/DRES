@@ -24,3 +24,4 @@ class InvalidRequestEvent(session: String?, val runId: EvaluationId, val request
 class ScoreUpdateEvent(val runId: EvaluationId, val scoreboardName: String, val scores: List<Score>) : StreamEvent() {
     constructor(runId: EvaluationId, scoreboardName: String, scores: Map<TeamId, Double>): this(runId, scoreboardName, scores.map { Score(it.key, it.value) })
 }
+class ViewerUpdateEvent(val runId: EvaluationId) : StreamEvent()

@@ -201,7 +201,11 @@ class InteractiveAsynchronousRunManager(
      *
      */
     override fun updateProperties(properties: ApiRunProperties) {
-        TODO("Not yet implemented")
+        store.transactional {
+            this.evaluation.participantCanView = properties.participantCanView
+            this.evaluation.allowRepeatedTasks = properties.allowRepeatedTasks
+            this.evaluation.limitSubmissionPreviews = properties.limitSubmissionPreviews
+        }
     }
 
     /**

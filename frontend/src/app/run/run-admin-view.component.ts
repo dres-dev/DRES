@@ -2,12 +2,13 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
 import { combineLatest, merge, mergeMap, Observable, of, Subject, timer} from 'rxjs';
-import { catchError, filter, map, shareReplay, switchMap, take } from "rxjs/operators";
+import { catchError, filter, map, scan, shareReplay, switchMap, take } from "rxjs/operators";
 import { WebSocketService } from '../services/websocket.service';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { RunInfoOverviewTuple } from './admin-run-list.component';
+import { mergeTeamOverview } from '../utilities/api.utilities';
 import {
   ApiEvaluationInfo,
   ApiEvaluationState,
@@ -68,14 +69,18 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
       ].includes(msg.type))
     );
 
-    /* WS messages that carry an overview diff (submissions, scores, task transitions). */
+    /* WS messages that may carry a full overview diff (task transitions, score changes). */
     const overviewWs$ = this.wsService.messages$.pipe(
       filter((msg) => [
         ServerMessageType.ServerMessageTypeEnum.TASK_START,
         ServerMessageType.ServerMessageTypeEnum.TASK_END,
-        ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
         ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
       ].includes(msg.type))
+    );
+
+    /* WS messages that carry a single-team overview diff (a submission from that team). */
+    const teamOverviewWs$ = this.wsService.messages$.pipe(
+      filter((msg) => msg.type === ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED)
     );
 
     /* Fires only when a viewer actually connects or signals ready. */
@@ -197,20 +202,36 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
             filter((q) => q != null)
           ),
           merge(
-            /* Safety fallback: full HTTP fetch every 30 s or on manual refresh. */
-            merge(timer(0, 30_000), this.refreshSubject).pipe(
-              switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+            /* Safety fallback: full HTTP fetch every 30 s, on manual refresh, or whenever a
+               relevant WS message arrives without a usable payload. */
+            merge(
+              timer(0, 30_000),
+              this.refreshSubject,
+              overviewWs$.pipe(filter((msg) => msg.overview == null)),
+              teamOverviewWs$.pipe(filter((msg) => msg.teamOverview == null))
+            ).pipe(
+              switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId)),
+              map((overview) => ({ full: overview } as { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview }))
             ),
-            /* Apply diff directly when the WS message carries overview — no HTTP needed. */
+            /* Apply diff directly when the WS message carries a full overview — no HTTP needed. */
             overviewWs$.pipe(
               filter((msg) => msg.overview != null),
-              map((msg) => msg.overview as ApiEvaluationOverview)
+              map((msg) => ({ full: msg.overview as ApiEvaluationOverview }))
             ),
-            /* Fallback HTTP for events whose overview payload is absent. */
-            overviewWs$.pipe(
-              filter((msg) => msg.overview == null),
-              switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+            /* Apply a scoped single-team diff directly — no HTTP needed, and no need to touch
+               any other team's overview. */
+            teamOverviewWs$.pipe(
+              filter((msg) => msg.teamOverview != null),
+              map((msg) => ({ team: msg.teamOverview as ApiTeamTaskOverview }))
             )
+          ).pipe(
+            scan((acc: ApiEvaluationOverview, update: { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview }) => {
+              if (update.full) {
+                return update.full;
+              }
+              return acc ? mergeTeamOverview(acc, update.team) : acc;
+            }, null as ApiEvaluationOverview),
+            filter((overview) => overview != null)
           ),
         ])
       ),

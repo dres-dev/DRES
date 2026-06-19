@@ -86,6 +86,19 @@ class RunExecutorWebSocketTest {
     }
 
     @Test
+    fun `SubmissionEvent carries no full overview, only a scoped teamOverview`() {
+        // No run manager is registered for runId in this test, and the fixture submission has no
+        // teamId, so both end up null here -- this asserts the *shape* (overview unset, teamOverview
+        // the only possible diff carrier) rather than relying on a live run manager.
+        val msg = RunExecutor.eventToMessage(
+            SubmissionEvent("session-1", runId, ApiClientSubmission(answerSets = emptyList()))
+        )
+        assertNotNull(msg)
+        assertNull(msg!!.overview)
+        assertNull(msg.teamOverview)
+    }
+
+    @Test
     fun `unhandled event type maps to null`() {
         val msg = RunExecutor.eventToMessage(InvalidRequestEvent("session-1", runId, "bad data"))
         assertNull(msg)

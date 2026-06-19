@@ -1,7 +1,15 @@
-import { AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT } from '@angular/core';
-import { ActivatedRoute, ActivationEnd, Params, Router } from '@angular/router';
-import { interval, merge, mergeMap, Observable, of, zip } from 'rxjs';
-import { catchError, filter, map, pairwise, shareReplay, switchMap, tap } from 'rxjs/operators';
+import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT} from '@angular/core';
+import { ActivatedRoute, ActivationEnd, Params, Router } from "@angular/router";
+import {merge, Observable, of, zip} from 'rxjs';
+import {
+  catchError,
+  filter,
+  map,
+  pairwise,
+  shareReplay,
+  switchMap,
+  tap
+} from "rxjs/operators";
 import { AppConfig } from '../app.config';
 import { WebSocketService } from '../services/websocket.service';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
@@ -152,25 +160,57 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    this.state = interval(1000)
-      .pipe(mergeMap(() => this.evaluationId))
-      .pipe(
-        switchMap((id) => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
-        catchError((err, o) => {
-          console.log(
-            `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
-          );
-          this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
-            duration: 5000,
-          });
-          if (err.status === 404) {
-            this.router.navigate(['/evaluation/list']);
-          }
-          return of(null);
-        }),
-        filter((q) => q != null),
-        shareReplay({ bufferSize: 1, refCount: true })
-      );
+    /* WS messages that carry a state diff directly (TASK_START, TASK_END). */
+    const stateWs$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
+      ].includes(msg.type))
+    );
+
+    /* WS messages that signal a state change but carry no payload of their own. */
+    const stateRefreshWs$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_START,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+      ].includes(msg.type))
+    );
+
+    this.state = this.evaluationId.pipe(
+      switchMap((id) =>
+        merge(
+          /* Initial load for this evaluation. */
+          this.runService.getApiV2EvaluationByEvaluationIdState(id),
+          /* Apply diff directly when the WS message carries state — no HTTP needed. */
+          stateWs$.pipe(
+            filter((msg) => msg.state != null),
+            map((msg) => msg.state as ApiEvaluationState)
+          ),
+          /* Fallback HTTP fetch for state-carrying messages without a payload, and for
+             messages that signal a state change without carrying one. */
+          merge(stateWs$.pipe(filter((msg) => msg.state == null)), stateRefreshWs$).pipe(
+            switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(id))
+          )
+        )
+      ),
+      catchError((err, o) => {
+        console.log(
+          `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
+        );
+        this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
+          duration: 5000,
+        });
+        if (err.status === 404) {
+          this.router.navigate(['/evaluation/list']);
+        }
+        return of(null);
+      }),
+      filter((q) => q != null),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
 
     /* Basic observable that fires when a task starts.  */
     this.taskStarted = merge(of(null as ApiEvaluationState), this.state).pipe(

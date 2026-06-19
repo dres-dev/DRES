@@ -1,10 +1,4 @@
-import {
-  ApiEvaluation,
-  ApiEvaluationInfo,
-  ApiEvaluationOverview,
-  ApiEvaluationTemplate,
-  DownloadService,
-} from '../../../openapi';
+import { ApiEvaluation, ApiEvaluationInfo, ApiEvaluationOverview, ApiEvaluationTemplate, ApiTeamTaskOverview, DownloadService } from "../../../openapi";
 
 /**
  * Type guard for ApiEvaluationTemplate.
@@ -25,8 +19,23 @@ export function instanceOfTemplate(obj: any): obj is ApiEvaluationTemplate {
   return idCheck && minimumPropsCheck;
 }
 
-export function instanceOfEvaluation(obj: any): obj is ApiEvaluation {
-  const idCheck = 'evaluationId' in obj || 'id' in obj;
-  const minimumPropsCheck = 'name' in obj && 'type' in obj && 'template' in obj && 'created' in obj && 'tasks' in obj;
-  return idCheck && minimumPropsCheck;
+export function instanceOfEvaluation(obj: any): obj is ApiEvaluation{
+  const idCheck = 'evaluationId' in obj || 'id' in obj
+  const minimumPropsCheck = 'name' in obj && 'type' in obj && 'template' in obj && 'created' in obj && 'tasks' in obj
+  return idCheck && minimumPropsCheck
+}
+
+/**
+ * Returns a copy of `overview` with `teamOverview` inserted in place of the entry for the same
+ * team (or appended, if no such entry exists yet), leaving every other team's overview untouched.
+ *
+ * Used to apply the single-team overview diffs carried by TASK_UPDATED WebSocket messages without
+ * having to refetch every team's overview just because one team submitted.
+ */
+export function mergeTeamOverview(overview: ApiEvaluationOverview, teamOverview: ApiTeamTaskOverview): ApiEvaluationOverview {
+  const exists = overview.teamOverviews.some((t) => t.teamId === teamOverview.teamId);
+  const teamOverviews = exists
+    ? overview.teamOverviews.map((t) => (t.teamId === teamOverview.teamId ? teamOverview : t))
+    : [...overview.teamOverviews, teamOverview];
+  return { ...overview, teamOverviews };
 }

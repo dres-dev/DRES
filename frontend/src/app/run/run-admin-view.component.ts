@@ -59,22 +59,29 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private wsService: WebSocketService
   ) {
-    /* WS messages that carry a task-state diff (TASK_START, TASK_END, TASK_PREPARE). */
+    /* WS messages that signal the run's state may have changed (some carry a state diff
+       directly, others — TASK_PREPARE, TASK_UPDATED, COMPETITION_UPDATE, COMPETITION_END —
+       never do and always fall back to an HTTP fetch). */
     const taskStateWs$ = this.wsService.messages$.pipe(
       filter((msg) => [
         ServerMessageType.ServerMessageTypeEnum.TASK_START,
         ServerMessageType.ServerMessageTypeEnum.TASK_END,
         ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
         ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
       ].includes(msg.type))
     );
 
-    /* WS messages that may carry a full overview diff (task transitions, score changes). */
+    /* WS messages that may carry a full overview diff (task transitions, score changes),
+       plus the two lifecycle types that never carry one and always need an HTTP refetch. */
     const overviewWs$ = this.wsService.messages$.pipe(
       filter((msg) => [
         ServerMessageType.ServerMessageTypeEnum.TASK_START,
         ServerMessageType.ServerMessageTypeEnum.TASK_END,
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
         ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
       ].includes(msg.type))
     );
 
@@ -242,7 +249,7 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
     );
 
     this.viewers = this.runId.pipe(
-      mergeMap((runId) => merge(timer(0, 30_000), viewerWs$).pipe(switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
+      mergeMap((runId) => merge(timer(0, 30_000), viewerWs$, taskStateWs$).pipe(switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
     );
 
     this.teams = this.run.pipe(

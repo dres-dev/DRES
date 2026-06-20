@@ -60,12 +60,15 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   ) {
     this.activeRoute.params.pipe(map((a) => a.runId)).subscribe(this.runId);
 
-    /* WS messages that may carry a full overview diff (task transitions, score changes). */
+    /* WS messages that may carry a full overview diff (task transitions, score changes),
+       plus the two lifecycle types that never carry one and always need an HTTP refetch. */
     const overviewWs$ = this.wsService.messages$.pipe(
       filter((msg) => [
         ServerMessageType.ServerMessageTypeEnum.TASK_START,
         ServerMessageType.ServerMessageTypeEnum.TASK_END,
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
         ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
       ].includes(msg.type))
     );
 

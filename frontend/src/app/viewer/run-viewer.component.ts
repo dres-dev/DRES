@@ -189,9 +189,10 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
             filter((msg) => msg.state != null),
             map((msg) => msg.state as ApiEvaluationState)
           ),
-          /* Fallback HTTP fetch for state-carrying messages without a payload, and for
-             messages that signal a state change without carrying one. */
-          merge(stateWs$.pipe(filter((msg) => msg.state == null)), stateRefreshWs$).pipe(
+          /* Fallback HTTP fetch for state-carrying messages without a payload, for
+             messages that signal a state change without carrying one, and after a
+             WebSocket reconnect — any event missed while disconnected needs a full resync. */
+          merge(stateWs$.pipe(filter((msg) => msg.state == null)), stateRefreshWs$, this.wsService.reconnected$).pipe(
             switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(id))
           )
         )

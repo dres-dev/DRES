@@ -115,8 +115,9 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
             filter((q) => q != null)
           ),
           merge(
-            /* Safety fallback: full HTTP fetch every 30 s or on manual refresh. */
-            merge(timer(0, 30_000), this.refreshSubject).pipe(
+            /* Safety fallback: full HTTP fetch every 30 s, on manual refresh, or after a
+               WebSocket reconnect — any event missed while disconnected needs a full resync. */
+            merge(timer(0, 30_000), this.refreshSubject, this.wsService.reconnected$).pipe(
               switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(runId))
             ),
             /* Apply diff directly when the WS message carries state — no HTTP needed. */
@@ -209,11 +210,13 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
             filter((q) => q != null)
           ),
           merge(
-            /* Safety fallback: full HTTP fetch every 30 s, on manual refresh, or whenever a
-               relevant WS message arrives without a usable payload. */
+            /* Safety fallback: full HTTP fetch every 30 s, on manual refresh, whenever a
+               relevant WS message arrives without a usable payload, or after a WebSocket
+               reconnect — any event missed while disconnected needs a full resync. */
             merge(
               timer(0, 30_000),
               this.refreshSubject,
+              this.wsService.reconnected$,
               overviewWs$.pipe(filter((msg) => msg.overview == null)),
               teamOverviewWs$.pipe(filter((msg) => msg.teamOverview == null))
             ).pipe(
@@ -249,7 +252,7 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
     );
 
     this.viewers = this.runId.pipe(
-      mergeMap((runId) => merge(timer(0, 30_000), viewerWs$, taskStateWs$).pipe(switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
+      mergeMap((runId) => merge(timer(0, 30_000), viewerWs$, taskStateWs$, this.wsService.reconnected$).pipe(switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
     );
 
     this.teams = this.run.pipe(

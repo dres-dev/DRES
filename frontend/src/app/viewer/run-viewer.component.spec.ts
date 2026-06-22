@@ -40,12 +40,15 @@ describe('RunViewerComponent WebSocket wiring', () => {
   let wsService: jasmine.SpyObj<WebSocketService>;
   let runService: jasmine.SpyObj<EvaluationService>;
   let messages$: Subject<IWsServerMessage>;
+  let reconnected$: Subject<void>;
 
   beforeEach(() => {
     messages$ = new Subject<IWsServerMessage>();
+    reconnected$ = new Subject<void>();
 
     wsService = jasmine.createSpyObj('WebSocketService', ['connect', 'disconnect'], {
       messages$: messages$.asObservable(),
+      reconnected$: reconnected$.asObservable(),
     });
 
     runService = jasmine.createSpyObj('EvaluationService', [
@@ -134,5 +137,18 @@ describe('RunViewerComponent WebSocket wiring', () => {
     tick(5000); // advance time — no interval should fire
 
     expect(runService.getApiV2EvaluationByEvaluationIdState).not.toHaveBeenCalled();
+  }));
+
+  // ── resync on reconnect ────────────────────────────────────────────────────
+
+  it('triggers a state fetch when the WebSocket reconnects', fakeAsync(() => {
+    component.ngOnInit();
+    component.state.subscribe();
+    runService.getApiV2EvaluationByEvaluationIdState.calls.reset();
+
+    reconnected$.next();
+    tick();
+
+    expect(runService.getApiV2EvaluationByEvaluationIdState).toHaveBeenCalledWith('eval-1');
   }));
 });

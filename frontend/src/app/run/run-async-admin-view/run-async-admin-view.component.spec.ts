@@ -47,12 +47,15 @@ describe('RunAsyncAdminViewComponent WebSocket wiring', () => {
   let evaluationService: jasmine.SpyObj<EvaluationService>;
   let runAdminService: jasmine.SpyObj<EvaluationAdministratorService>;
   let messages$: Subject<IWsServerMessage>;
+  let reconnected$: Subject<void>;
 
   beforeEach(() => {
     messages$ = new Subject<IWsServerMessage>();
+    reconnected$ = new Subject<void>();
 
     wsService = jasmine.createSpyObj('WebSocketService', ['connect', 'disconnect'], {
       messages$: messages$.asObservable(),
+      reconnected$: reconnected$.asObservable(),
     });
 
     evaluationService = jasmine.createSpyObj('EvaluationService', ['getApiV2EvaluationByEvaluationIdInfo']);
@@ -156,4 +159,22 @@ describe('RunAsyncAdminViewComponent WebSocket wiring', () => {
       discardPeriodicTasks();
     }));
   });
+
+  // ── resync on reconnect ─────────────────────────────────────────────────────
+
+  it('refreshes the run overview and task submission counts when the WebSocket reconnects', fakeAsync(() => {
+    component.ngAfterViewInit();
+    component.run.subscribe();
+    component.taskSubmissionCounts.subscribe();
+    tick();
+    runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview.calls.reset();
+    runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId.calls.reset();
+
+    reconnected$.next();
+    tick();
+
+    expect(runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview).toHaveBeenCalledWith('eval-1');
+    expect(runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId).toHaveBeenCalledWith('eval-1', 't1');
+    discardPeriodicTasks();
+  }));
 });

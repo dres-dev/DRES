@@ -94,11 +94,13 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
             filter((q) => q != null)
           ),
           merge(
-            /* Safety fallback: full HTTP fetch every 30 s, on manual update trigger, or whenever
-               a relevant WS message arrives without a usable payload. */
+            /* Safety fallback: full HTTP fetch every 30 s, on manual update trigger, whenever
+               a relevant WS message arrives without a usable payload, or after a WebSocket
+               reconnect — any event missed while disconnected needs a full resync. */
             merge(
               timer(0, 30_000),
               this.update,
+              this.wsService.reconnected$,
               overviewWs$.pipe(filter((msg) => msg.overview == null)),
               teamOverviewWs$.pipe(filter((msg) => msg.teamOverview == null))
             ).pipe(
@@ -140,7 +142,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
 
-    this.taskSubmissionCounts = merge(timer(0, 30_000), this.update, overviewWs$, teamOverviewWs$).pipe(
+    this.taskSubmissionCounts = merge(timer(0, 30_000), this.update, this.wsService.reconnected$, overviewWs$, teamOverviewWs$).pipe(
       switchMap(() => this.run.pipe(take(1))),
       switchMap((run) => {
         const runId = this.runId.getValue();

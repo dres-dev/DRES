@@ -16,6 +16,7 @@ export class WebSocketService implements OnDestroy {
 
   private socket: WebSocket | null = null;
   private messageSubject = new Subject<IWsServerMessage>();
+  private reconnectedSubject = new Subject<void>();
   private pingSubscription: Subscription | null = null;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private reconnectAttempts = 0;
@@ -23,6 +24,13 @@ export class WebSocketService implements OnDestroy {
 
   /** Observable stream of messages pushed by the server. */
   readonly messages$: Observable<IWsServerMessage> = this.messageSubject.asObservable();
+
+  /**
+   * Fires whenever the socket re-opens after an unexpected drop (NOT on the initial connect).
+   * Consumers should treat this as a signal that they may have missed messages while
+   * disconnected and should refetch their state from the REST API to resync.
+   */
+  readonly reconnected$: Observable<void> = this.reconnectedSubject.asObservable();
 
   constructor(private config: AppConfig) {}
 
@@ -50,12 +58,16 @@ export class WebSocketService implements OnDestroy {
     this.socket = new WebSocket(url);
 
     this.socket.onopen = () => {
+      const isReconnect = this.reconnectAttempts > 0;
       this.reconnectAttempts = 0;
       this.send({
         evaluationId: this.currentEvaluationId,
         type: ClientMessageType.ClientMessageTypeEnum.REGISTER,
       });
       this.startPing();
+      if (isReconnect) {
+        this.reconnectedSubject.next();
+      }
     };
 
     this.socket.onmessage = (event: MessageEvent) => {
@@ -135,5 +147,6 @@ export class WebSocketService implements OnDestroy {
   ngOnDestroy(): void {
     this.disconnect();
     this.messageSubject.complete();
+    this.reconnectedSubject.complete();
   }
 }

@@ -202,6 +202,49 @@ describe('WebSocketService', () => {
     }));
   });
 
+  // ── reconnected$ ───────────────────────────────────────────────────────────
+
+  describe('reconnected$', () => {
+    it('does not emit on the initial connection', () => {
+      const reconnects: void[] = [];
+      service.reconnected$.subscribe(() => reconnects.push(undefined));
+
+      service.connect('eval-1');
+      MockWebSocket.instance!.simulateOpen();
+
+      expect(reconnects.length).toBe(0);
+    });
+
+    it('emits when the socket re-opens after an unexpected drop', fakeAsync(() => {
+      const reconnects: void[] = [];
+      service.reconnected$.subscribe(() => reconnects.push(undefined));
+
+      service.connect('eval-1');
+      MockWebSocket.instance!.simulateOpen();
+
+      // Simulate unexpected server-side close, then let the auto-reconnect fire.
+      MockWebSocket.instance!.readyState = WebSocket.CLOSED;
+      MockWebSocket.instance!.onclose?.(new CloseEvent('close'));
+      tick(5000);
+      MockWebSocket.instance!.simulateOpen();
+
+      expect(reconnects.length).toBe(1);
+    }));
+
+    it('does not emit again after an explicit disconnect and fresh connect', () => {
+      const reconnects: void[] = [];
+      service.connect('eval-1');
+      MockWebSocket.instance!.simulateOpen();
+      service.disconnect();
+
+      service.reconnected$.subscribe(() => reconnects.push(undefined));
+      service.connect('eval-1');
+      MockWebSocket.instance!.simulateOpen();
+
+      expect(reconnects.length).toBe(0);
+    });
+  });
+
   // ── ping ───────────────────────────────────────────────────────────────────
 
   describe('ping', () => {

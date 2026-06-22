@@ -8,7 +8,7 @@ import {
   pairwise,
   shareReplay,
   switchMap,
-  tap
+  take
 } from "rxjs/operators";
 import { AppConfig } from '../app.config';
 import { WebSocketService } from '../services/websocket.service';
@@ -245,7 +245,9 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Registers this RunViewerComponent on view initialization and creates the WebSocket subscription.
    */
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.evaluationId.pipe(take(1)).subscribe((id) => this.wsService.connect(id));
+  }
 
   /**
    * Prepare the overlay that is being displayed when WebSocket connection times out.

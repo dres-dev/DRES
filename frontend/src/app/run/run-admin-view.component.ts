@@ -11,10 +11,12 @@ import { RunInfoOverviewTuple } from './admin-run-list.component';
 import { mergeTeamOverview } from '../utilities/api.utilities';
 import {
   ApiEvaluationInfo,
+  ApiEvaluationOverview,
   ApiEvaluationState,
   ApiSubmissionInfo,
   ApiTaskTemplateInfo,
   ApiTeam,
+  ApiTeamTaskOverview,
   ApiViewerInfo,
   EvaluationAdministratorService,
   EvaluationService,

@@ -21,6 +21,8 @@ import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
+import dev.dres.run.eventstream.EventStreamProcessor
+import dev.dres.run.eventstream.ViewerUpdateEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.score.scoreboard.Scoreboard
@@ -622,6 +624,7 @@ class InteractiveAsynchronousRunManager(
         val currentTaskId = this.currentTask(rac)?.taskId
         if (taskTemplateId == currentTaskId) {
             this.viewers[viewerInfo] = false
+            EventStreamProcessor.event(ViewerUpdateEvent(this.id))
         }
     }
 
@@ -629,6 +632,7 @@ class InteractiveAsynchronousRunManager(
         val currentTaskId = this.currentTask(rac)?.taskId
         if (taskTemplateId == currentTaskId) {
             this.viewers[viewerInfo] = true
+            EventStreamProcessor.event(ViewerUpdateEvent(this.id))
         }
     }
 

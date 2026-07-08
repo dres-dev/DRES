@@ -10,10 +10,12 @@ import {
   ApiTaskTemplate,
   EvaluationAdministratorService,
   EvaluationService,
-  TemplateService,
-} from '../../../../../../openapi';
-import { AppConfig } from '../../../../app.config';
-import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
+  TemplateService
+} from "../../../../../../openapi";
+import { AppConfig } from "../../../../app.config";
+import { catchError, filter, map, switchMap, take, withLatestFrom } from "rxjs/operators";
+import { WebSocketService } from "../../../../services/websocket.service";
+import { ServerMessageType } from "../../../../model/ws/server-message-type.enum";
 
 @Component({
   selector: 'app-submissions-list',
@@ -44,65 +46,76 @@ export class SubmissionsListComponent implements AfterViewInit, OnDestroy {
 
   private sub: Subscription;
 
-  constructor(
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private activeRoute: ActivatedRoute,
-    private evalService: EvaluationService,
-    private evaluationService: EvaluationAdministratorService,
-    private templateService: TemplateService,
-    public config: AppConfig
-  ) {
-    this.runId = this.activeRoute.paramMap.pipe(map((params) => params.get('runId')));
-    this.taskId = this.activeRoute.paramMap.pipe(map((params) => params.get('taskId')));
-  }
+   constructor(
+     private snackBar: MatSnackBar,
+     private dialog: MatDialog,
+     private activeRoute: ActivatedRoute,
+     private evalService: EvaluationService,
+     private evaluationService: EvaluationAdministratorService,
+     private templateService: TemplateService,
+     public config: AppConfig,
+     private wsService: WebSocketService,
+   ) {
+     this.runId = this.activeRoute.paramMap.pipe(map((params) => params.get('runId')));
+     this.taskId = this.activeRoute.paramMap.pipe(map((params) => params.get('taskId')));
+   }
   ngAfterViewInit(): void {
-    this.subscription = merge(
-      timer(0, this.pollingFrequencyInSeconds * 1000).pipe(filter((_) => this.polling)),
-      this.refreshSubject
-    )
-      .pipe(
-        withLatestFrom(this.runId, this.taskId),
-        switchMap(([_, r, t]) => this.evaluationService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(r, t)),
-        catchError((err, o) => {
-          console.error(`[SubmissionList] Error occurred while laoding submissions: ${err?.message}`);
-          this.snackBar.open(`Error: Couldn't load submissions for reason: ${err?.message}`, null, { duration: 5000 });
-          return of([]);
-        })
-      )
-      .subscribe((s: ApiSubmissionInfo[]) => {
-        /* The assumption here is, that task runs do not magically disappear */
-        if (this.taskRunIds.length < s.length) {
-          s.forEach((si) => {
-            if (!this.taskRunIds.includes(si.taskId)) {
-              this.taskRunIds.push(si.taskId);
-              this.submissionInfosByRunId.set(si.taskId, si);
-            }
-          });
-        }
-      });
-    this.sub = this.runId
-      .pipe(
-        switchMap((r) => this.evalService.getApiV2EvaluationByEvaluationIdInfo(r)),
-        catchError((error, o) => {
-          console.log(`[SubmissionList] Error occurred while loading template information: ${error?.message}`);
-          this.snackBar.open(`Error: Couldn't load template information: ${error?.message}`, null, { duration: 5000 });
-          return of(null);
-        }),
-        filter((r) => r != null),
-        switchMap((evalInfo) => this.templateService.getApiV2TemplateByTemplateIdTaskList(evalInfo.templateId)),
-        withLatestFrom(this.taskId)
-      )
-      .subscribe(([taskList, taskId]) => {
-        this.taskTemplate = taskList.find((t) => t.id === taskId);
-      });
+     this.runId.pipe(take(1)).subscribe((id) => this.wsService.connect(id));
+
+     /* Refresh on new/updated submissions pushed via WebSocket, in addition to manual refresh and periodic polling. */
+     const wsRefresh$ = this.wsService.messages$.pipe(
+       filter((msg) => [
+         ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+         ServerMessageType.ServerMessageTypeEnum.TASK_END,
+       ].includes(msg.type))
+     );
+
+     this.subscription = merge(
+       timer(0, this.pollingFrequencyInSeconds * 1000)
+         .pipe(filter((_) => this.polling)),
+       this.refreshSubject,
+       wsRefresh$)
+       .pipe(
+         withLatestFrom(this.runId, this.taskId),
+         switchMap(([_,r,t]) => this.evaluationService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(r,t)),
+         catchError((err, o) => {
+           console.error(`[SubmissionList] Error occurred while laoding submissions: ${err?.message}`);
+           this.snackBar.open(`Error: Couldn't load submissions for reason: ${err?.message}`, null, {duration: 5000});
+           return of([]);
+         })
+       )
+       .subscribe((s: ApiSubmissionInfo[]) => {
+         /* The assumption here is, that task runs do not magically disappear */
+         if(this.taskRunIds.length < s.length){
+           s.forEach((si) => {
+             if(!this.taskRunIds.includes(si.taskId)){
+               this.taskRunIds.push(si.taskId);
+               this.submissionInfosByRunId.set(si.taskId, si);
+             }
+           })
+         }
+       })
+    this.sub = this.runId.pipe(
+      switchMap((r) => this.evalService.getApiV2EvaluationByEvaluationIdInfo(r)),
+      catchError((error, o) => {
+        console.log(`[SubmissionList] Error occurred while loading template information: ${error?.message}`);
+        this.snackBar.open(`Error: Couldn't load template information: ${error?.message}`, null, {duration: 5000});
+        return of(null);
+      }),
+      filter((r) => r != null),
+      switchMap((evalInfo) => this.templateService.getApiV2TemplateByTemplateIdTaskList(evalInfo.templateId)),
+      withLatestFrom(this.taskId)
+    ).subscribe(([taskList, taskId]) => {
+      this.taskTemplate = taskList.find((t) => t.id === taskId)
+    });
   }
 
   ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
-    this.subscription = null;
-    this.sub?.unsubscribe();
-    this.sub = null;
+     this.wsService.disconnect();
+     this.subscription?.unsubscribe();
+     this.subscription = null;
+     this.sub?.unsubscribe();
+     this.sub = null;
   }
 
   trackById(_: number, item: ApiSubmissionInfo) {

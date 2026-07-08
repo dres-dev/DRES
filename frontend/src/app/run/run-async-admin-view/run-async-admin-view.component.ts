@@ -4,10 +4,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, filter, map, shareReplay, switchMap, take } from 'rxjs/operators';
+import { catchError, filter, map, scan, shareReplay, switchMap, take } from 'rxjs/operators';
+import { WebSocketService } from '../../services/websocket.service';
+import { ServerMessageType } from '../../model/ws/server-message-type.enum';
 import { RunInfoOverviewTuple } from '../admin-run-list.component';
+import { mergeTeamOverview } from '../../utilities/api.utilities';
 import { MatAccordion } from '@angular/material/expansion';
 import {
+  ApiEvaluationOverview,
   ApiTaskTemplateInfo,
   ApiTeam,
   ApiTeamInfo,
@@ -51,9 +55,28 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
     private scoreService: EvaluationScoresService,
     private downloadService: DownloadService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private wsService: WebSocketService
   ) {
     this.activeRoute.params.pipe(map((a) => a.runId)).subscribe(this.runId);
+
+    /* WS messages that may carry a full overview diff (task transitions, score changes),
+       plus the two lifecycle types that never carry one and always need an HTTP refetch. */
+    const overviewWs$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+      ].includes(msg.type))
+    );
+
+    /* WS messages that carry a single-team overview diff (a submission from that team). */
+    const teamOverviewWs$ = this.wsService.messages$.pipe(
+      filter((msg) => msg.type === ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED)
+    );
+
     this.run = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
@@ -70,8 +93,39 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 1000), this.update).pipe(
-            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+          merge(
+            /* Safety fallback: full HTTP fetch every 30 s, on manual update trigger, whenever
+               a relevant WS message arrives without a usable payload, or after a WebSocket
+               reconnect — any event missed while disconnected needs a full resync. */
+            merge(
+              timer(0, 30_000),
+              this.update,
+              this.wsService.reconnected$,
+              overviewWs$.pipe(filter((msg) => msg.overview == null)),
+              teamOverviewWs$.pipe(filter((msg) => msg.teamOverview == null))
+            ).pipe(
+              switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId)),
+              map((overview) => ({ full: overview } as { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview }))
+            ),
+            /* Apply diff directly when the WS message carries a full overview — no HTTP needed. */
+            overviewWs$.pipe(
+              filter((msg) => msg.overview != null),
+              map((msg) => ({ full: msg.overview as ApiEvaluationOverview }))
+            ),
+            /* Apply a scoped single-team diff directly — no HTTP needed, and no need to touch
+               any other team's overview. */
+            teamOverviewWs$.pipe(
+              filter((msg) => msg.teamOverview != null),
+              map((msg) => ({ team: msg.teamOverview as ApiTeamTaskOverview }))
+            )
+          ).pipe(
+            scan((acc: ApiEvaluationOverview, update: { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview }) => {
+              if (update.full) {
+                return update.full;
+              }
+              return acc ? mergeTeamOverview(acc, update.team) : acc;
+            }, null as ApiEvaluationOverview),
+            filter((overview) => overview != null)
           ),
         ])
       ),
@@ -88,7 +142,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
 
-    this.taskSubmissionCounts = merge(timer(0, 15000), this.update).pipe(
+    this.taskSubmissionCounts = merge(timer(0, 30_000), this.update, this.wsService.reconnected$, overviewWs$, teamOverviewWs$).pipe(
       switchMap(() => this.run.pipe(take(1))),
       switchMap((run) => {
         const runId = this.runId.getValue();
@@ -123,6 +177,8 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.runId.pipe(take(1)).subscribe((id) => this.wsService.connect(id));
+
     /* Cache past tasks initially */
     this.runId.subscribe((runId) => {
       this.runAdminService
@@ -157,6 +213,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.wsService.disconnect();
     this.update?.unsubscribe();
   }
 }

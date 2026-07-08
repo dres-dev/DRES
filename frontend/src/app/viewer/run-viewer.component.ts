@@ -1,8 +1,18 @@
-import { AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT } from '@angular/core';
-import { ActivatedRoute, ActivationEnd, Params, Router } from '@angular/router';
-import { interval, merge, mergeMap, Observable, of, zip } from 'rxjs';
-import { catchError, filter, map, pairwise, shareReplay, switchMap, tap } from 'rxjs/operators';
+import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT} from '@angular/core';
+import { ActivatedRoute, ActivationEnd, Params, Router } from "@angular/router";
+import {merge, Observable, of, zip} from 'rxjs';
+import {
+  catchError,
+  filter,
+  map,
+  pairwise,
+  shareReplay,
+  switchMap,
+  take
+} from "rxjs/operators";
 import { AppConfig } from '../app.config';
+import { WebSocketService } from '../services/websocket.service';
+import { ServerMessageType } from '../model/ws/server-message-type.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
@@ -84,6 +94,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     private snackBar: MatSnackBar,
     private titleService: Title,
     private overlay: Overlay,
+    private wsService: WebSocketService,
     @Inject(DOCUMENT) private document: Document,
     private _viewContainerRef: ViewContainerRef
   ) {
@@ -149,25 +160,58 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    this.state = interval(1000)
-      .pipe(mergeMap(() => this.evaluationId))
-      .pipe(
-        switchMap((id) => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
-        catchError((err, o) => {
-          console.log(
-            `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
-          );
-          this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
-            duration: 5000,
-          });
-          if (err.status === 404) {
-            this.router.navigate(['/evaluation/list']);
-          }
-          return of(null);
-        }),
-        filter((q) => q != null),
-        shareReplay({ bufferSize: 1, refCount: true })
-      );
+    /* WS messages that carry a state diff directly (TASK_START, TASK_END). */
+    const stateWs$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
+      ].includes(msg.type))
+    );
+
+    /* WS messages that signal a state change but carry no payload of their own. */
+    const stateRefreshWs$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_START,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+      ].includes(msg.type))
+    );
+
+    this.state = this.evaluationId.pipe(
+      switchMap((id) =>
+        merge(
+          /* Initial load for this evaluation. */
+          this.runService.getApiV2EvaluationByEvaluationIdState(id),
+          /* Apply diff directly when the WS message carries state — no HTTP needed. */
+          stateWs$.pipe(
+            filter((msg) => msg.state != null),
+            map((msg) => msg.state as ApiEvaluationState)
+          ),
+          /* Fallback HTTP fetch for state-carrying messages without a payload, for
+             messages that signal a state change without carrying one, and after a
+             WebSocket reconnect — any event missed while disconnected needs a full resync. */
+          merge(stateWs$.pipe(filter((msg) => msg.state == null)), stateRefreshWs$, this.wsService.reconnected$).pipe(
+            switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(id))
+          )
+        )
+      ),
+      catchError((err, o) => {
+        console.log(
+          `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
+        );
+        this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
+          duration: 5000,
+        });
+        if (err.status === 404) {
+          this.router.navigate(['/evaluation/list']);
+        }
+        return of(null);
+      }),
+      filter((q) => q != null),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
 
     /* Basic observable that fires when a task starts.  */
     this.taskStarted = merge(of(null as ApiEvaluationState), this.state).pipe(
@@ -201,7 +245,9 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Registers this RunViewerComponent on view initialization and creates the WebSocket subscription.
    */
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.evaluationId.pipe(take(1)).subscribe((id) => this.wsService.connect(id));
+  }
 
   /**
    * Prepare the overlay that is being displayed when WebSocket connection times out.
@@ -212,6 +258,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
    * Unregisters this RunViewerComponent on view destruction and cleans the WebSocket subscription.
    */
   ngOnDestroy(): void {
+    this.wsService.disconnect();
     this.titleService.setTitle('DRES');
   }
 

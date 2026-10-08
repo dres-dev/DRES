@@ -143,71 +143,139 @@ sourceSets {
 distributions {
     main {
         distributionBaseName = 'dres-dist'
+        contents {
+            // Jaffree needs ffmpeg/ffprobe to be executable; the file dependency on build/ext loses the mode bits.
+            filesMatching('**/ffmpeg/*') {
+                permissions { unix('rwxr-xr-x') }
+            }
+        }
     }
 }
 
 /** Custom tasks: FFmpeg Download and deployment. */
 
+/*
+ * FFmpeg / FFprobe binaries, shipped in lib/ffmpeg (via build/ext).
+ * Version 9.0.2, one self-contained build per platform, pinned by SHA-256:
+ *  - linux-amd64:  Martin Riedl (ffmpeg.martin-riedl.de); needs only glibc, libstdc++, libgcc_s.
+ *  - macos-*:      Martin Riedl, arm64 and amd64; only system frameworks/libraries.
+ *  - windows-amd64: gyan.dev essentials build; single bin/ directory, no DLLs.
+ * Binaries are verified by checksum after download and made executable in the copy.
+ */
+def ffmpegVersion = '9.0.2'
+
+def ffmpegBuilds = [
+    'linux-amd64'  : [
+        ffmpeg : [url: 'https://ffmpeg.martin-riedl.de/download/linux/amd64/1789931100_9.0.2/ffmpeg.zip',
+                  sha256: 'fa8ecf4abbd290d98f7d188b8649cc6b391ae209a98452be955a15aab1909d7f'],
+        ffprobe: [url: 'https://ffmpeg.martin-riedl.de/download/linux/amd64/1789931100_9.0.2/ffprobe.zip',
+                  sha256: '3f428c49070be3d24ec338602b76d412e401ffcb8a5641ef0e729181a232fc32'],
+    ],
+    'macos-arm64'  : [
+        ffmpeg : [url: 'https://ffmpeg.martin-riedl.de/download/macos/arm64/1789931890_9.0.2/ffmpeg.zip',
+                  sha256: 'c8ed4c4e6978a03c485edbfe4e0a5dc2380f8a30bba5150531b31b094492d924'],
+        ffprobe: [url: 'https://ffmpeg.martin-riedl.de/download/macos/arm64/1789931890_9.0.2/ffprobe.zip',
+                  sha256: 'fcbe839537485eaee7a7a8bc5cbc0f90d53617e80943e8a5b2e31cb851197ea6'],
+    ],
+    'macos-amd64'  : [
+        ffmpeg : [url: 'https://ffmpeg.martin-riedl.de/download/macos/amd64/1789931006_9.0.2/ffmpeg.zip',
+                  sha256: '7c6b4125b191cbf773832dc51f424cf2b6bb7da43007d1e066f95909e47cacd4'],
+        ffprobe: [url: 'https://ffmpeg.martin-riedl.de/download/macos/amd64/1789931006_9.0.2/ffprobe.zip',
+                  sha256: '2322438ed2f6319a691291b247d09c69dcaa3a982460d1f269a7e1af335cfdfd'],
+    ],
+    'windows-amd64': [
+        ffmpeg : [url: 'https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.0.2-essentials_build.zip',
+                  sha256: '60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba'],
+        ffprobe: [url: 'https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.0.2-essentials_build.zip',
+                  sha256: '60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba'],
+    ],
+]
+
+def ffmpegPlatform = {
+    // -PffmpegPlatform=<key> selects a build for another platform (e.g. windows-amd64, macos-arm64)
+    if (project.hasProperty('ffmpegPlatform')) return project.property('ffmpegPlatform')
+    def os = System.getProperty('os.name').toLowerCase()
+    def arch = System.getProperty('os.arch').toLowerCase()
+    def arm = arch in ['aarch64', 'arm64']
+    if (os.contains('windows')) return 'windows-amd64'
+    if (os.contains('mac')) return arm ? 'macos-arm64' : 'macos-amd64'
+    if (os.contains('linux') && !arm) return 'linux-amd64'
+    return "unsupported-${os}-${arch}"
+}
+
+def ffmpegPlatformBuild = ffmpegBuilds[ffmpegPlatform()]
+
+def verifySha256 = { File file, String expected ->
+    def digest = java.security.MessageDigest.getInstance('SHA-256')
+    file.withInputStream { input ->
+        def buffer = new byte[65536]
+        int read
+        while ((read = input.read(buffer)) != -1) {
+            digest.update(buffer, 0, read)
+        }
+    }
+    def actual = digest.digest().encodeHex().toString()
+    if (actual != expected) {
+        file.delete()
+        throw new GradleException("SHA-256 mismatch for ${file.name}: expected ${expected}, got ${actual}")
+    }
+}
+
+/* Unsupported platforms fail when the download runs, not at configuration time. */
+def ffmpegSpec = { String tool -> ffmpegPlatformBuild?.get(tool) ?: [url: '', sha256: ''] }
+
 task downloadFFmpeg(type: Download) {
-    def f = new File("$buildDir/cache/ffmpeg.zip")
-
-    def os = ""
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        os = "win"
-    } else if (Os.isFamily(Os.FAMILY_MAC)) {
-        os = "osx"
-    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-        os = "linux"
-    }
-
-    src "https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.4.1/ffmpeg-4.4.1-$os-64.zip"
+    def spec = ffmpegSpec('ffmpeg')
+    def f = new File("$buildDir/cache/ffmpeg-${ffmpegVersion}-${ffmpegPlatform()}.zip")
+    src spec.url
     dest f
     onlyIf {
         !f.exists()
     }
+    doFirst {
+        if (ffmpegPlatformBuild == null) throw new GradleException("No FFmpeg build configured for ${ffmpegPlatform()}")
+    }
+    doLast {
+        verifySha256(f, spec.sha256)
+    }
 }
-
 task downloadFFprobe(type: Download) {
-    def f = new File("$buildDir/cache/ffprobe.zip")
-
-    def os = ""
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        os = "win"
-    } else if (Os.isFamily(Os.FAMILY_MAC)) {
-        os = "osx"
-    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-        os = "linux"
-    }
-
-    src "https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.4.1/ffprobe-4.4.1-$os-64.zip"
+    def spec = ffmpegSpec('ffprobe')
+    def f = new File("$buildDir/cache/ffprobe-${ffmpegVersion}-${ffmpegPlatform()}.zip")
+    src spec.url
     dest f
     onlyIf {
         !f.exists()
     }
-
-}
-
-task copyFFmpeg(type: Copy) {
-    dependsOn downloadFFmpeg
-    outputs.upToDateWhen {
-        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name.startsWith('ffmpeg')}.isEmpty()
+    doFirst {
+        if (ffmpegPlatformBuild == null) throw new GradleException("No FFmpeg build configured for ${ffmpegPlatform()}")
     }
+    doLast {
+        verifySha256(f, spec.sha256)
+    }
+}
+// Remove binaries of a previously selected platform (e.g. ffmpeg from Linux next to ffmpeg.exe).
+task cleanFFmpegDir(type: Delete) {
+    delete "$buildDir/ext/ffmpeg"
+}
+task copyFFmpeg(type: Copy) {
+    dependsOn downloadFFmpeg, cleanFFmpegDir
     from zipTree(downloadFFmpeg.dest)
     into "$buildDir/ext/ffmpeg"
-    include '*ffmpeg*'
-
+    include '**/ffmpeg', '**/ffmpeg.exe'
+    includeEmptyDirs = false
+    // flatten nested archive folders (gyan.dev ships bin/ffmpeg.exe)
+    eachFile { it.path = it.name }
+    filePermissions { unix('rwxr-xr-x') }
 }
-
 task copyFFprobe(type: Copy) {
-    dependsOn downloadFFprobe
-    outputs.upToDateWhen {
-        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name.startsWith('ffprobe') }.isEmpty()
-    }
+    dependsOn downloadFFprobe, cleanFFmpegDir
     from zipTree(downloadFFprobe.dest)
     into "$buildDir/ext/ffmpeg"
-    include '*ffprobe*'
-
-
+    include '**/ffprobe', '**/ffprobe.exe'
+    includeEmptyDirs = false
+    eachFile { it.path = it.name }
+    filePermissions { unix('rwxr-xr-x') }
 }
 
 task setupFFMpeg(type: Copy) {

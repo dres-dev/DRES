@@ -8,7 +8,7 @@
     "pbuild": "ng build --configuration production --output-path=build/dist",
     "test": "ng test",
     "lint:ts": "eslint --ext \".ts\" --ignore-path .gitignore",
-    "lint:style": "stylelint \"**/*.{css,scss,sass,html}\" --ignore-path .gitignore",
+    "lint:style": "stylelint \"**/*.{css,scss,sass}\" --ignore-path .gitignore --ignore-pattern \"build/**\"",
     "lint:prettier": "prettier --check --config .prettierrc.json --ignore-unkown .",
     "lint": "yarn lint:ts && yarn lint:style && yarn lint:prettier",
     "lintfix": "prettier --write --list-different --ignore-unknown . && yarn lint:ts --fix",

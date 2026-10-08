@@ -7,10 +7,7 @@
 
 .leaderboard-wrapper {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
   padding: 10px;
   box-sizing: border-box;
   overflow-y: auto; /* Scrollbar */
@@ -28,7 +25,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 4px 6px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(255 255 255 / 5%);
   border-radius: 4px;
   border-left: 3px solid #444;
 
@@ -58,21 +55,26 @@
 
   &.gold {
     border-left-color: #ffd700;
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent);
+    background: linear-gradient(90deg, rgb(255 215 0 / 15%), transparent);
+
     .rank {
       color: #ffd700;
     }
   }
+
   &.silver {
     border-left-color: #c0c0c0;
-    background: linear-gradient(90deg, rgba(192, 192, 192, 0.15), transparent);
+    background: linear-gradient(90deg, rgb(192 192 192 / 15%), transparent);
+
     .rank {
       color: #c0c0c0;
     }
   }
+
   &.bronze {
     border-left-color: #cd7f32;
-    background: linear-gradient(90deg, rgba(205, 127, 50, 0.15), transparent);
+    background: linear-gradient(90deg, rgb(205 127 50 / 15%), transparent);
+
     .rank {
       color: #cd7f32;
     }

@@ -7,13 +7,10 @@
 
 .feed-wrapper {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgb(0 0 0 / 20%);
 }
 
 .feed-header {
@@ -49,23 +46,31 @@
   overflow: hidden;
   height: 44px;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
 
   /* Status specific styles */
+  // stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
   &.CORRECT {
     border-left: 3px solid #2ecc71;
+
     .badge {
       color: #2ecc71;
     }
   }
+
+  // stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
   &.WRONG {
     border-left: 3px solid #e74c3c;
+
     .badge {
       color: #e74c3c;
     }
   }
+
+  // stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
   &.INDETERMINATE {
     border-left: 3px solid #95a5a6;
+
     .badge {
       color: #95a5a6;
     }
@@ -83,6 +88,7 @@
       height: 100%;
       object-fit: cover;
     }
+
     .no-media {
       color: #666;
       font-size: 10px;

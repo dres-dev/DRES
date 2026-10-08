@@ -1,21 +1,25 @@
 @use '@angular/material' as mat;
+
 /* You can add global styles to this file, and also import other style files */
-@include mat.core();
+@include mat.core;
 
 html,
 body {
   height: 100%;
 }
+
 body {
   margin: 0;
   font-family: Roboto, 'Helvetica Neue', sans-serif;
   background-color: #303030;
   color: #1c1b1f;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-@include mat.elevation-classes();
-@include mat.app-background();
+@include mat.elevation-classes;
+@include mat.app-background;
 
 $light-theme: mat.define-theme(
   (
@@ -26,7 +30,6 @@ $light-theme: mat.define-theme(
     ),
   )
 );
-
 $dark-theme: mat.define-theme(
   (
     color: (
@@ -39,17 +42,19 @@ $dark-theme: mat.define-theme(
 
 :root {
   @include mat.all-component-themes($light-theme);
+
   color-scheme: light;
 }
 
 mat-toolbar {
   background-color: #9c27b0 !important;
-  color: #ffffff !important;
+  color: #fff !important;
 }
 
 // Manual dark mode toggle — class applied to <html> by AppComponent
 .dark-theme {
   @include mat.all-component-colors($dark-theme);
+
   color-scheme: dark;
 
   body {
@@ -59,7 +64,7 @@ mat-toolbar {
 
   mat-toolbar {
     background-color: #9c27b0 !important;
-    color: #ffffff !important;
+    color: #fff !important;
   }
 }
 
@@ -67,9 +72,11 @@ mat-toolbar {
 .primary-color {
   color: mat.get-theme-color($light-theme, primary) !important;
 }
+
 .accent-color {
   color: mat.get-theme-color($light-theme, tertiary) !important;
 }
+
 .warn-color {
   color: mat.get-theme-color($light-theme, error) !important;
 }
@@ -89,21 +96,27 @@ mat-toolbar {
 .spacer-xxlarge {
   padding: 0 80px;
 }
+
 .spacer-xlarge {
   padding: 0 40px;
 }
+
 .spacer-large {
   padding: 0 25px;
 }
+
 .spacer-medium {
   padding: 0 15px;
 }
+
 .spacer-small {
   padding: 0 10px;
 }
+
 .spacer-tiny {
   padding: 0 5px;
 }
+
 .spacer-flex {
   flex: 1 1 auto;
 }

@@ -68,7 +68,9 @@ Principles
 ### Phase 1: Backend majors (independent of frontend)
 
 Order within phase (each its own commit/branch):
-1. **Javalin 6.7 → 7.x** (with `javalin-openapi-plugin`, `javalin-swagger-plugin`, `openapi-annotation-processor`, `ssl-plugin` on matching 7.x).
+1. **Javalin 6.7 → 7.x** (with `javalin-openapi-plugin`, `javalin-swagger-plugin`, `openapi-annotation-processor`, `io.javalin.community.ssl:javalin-ssl` on matching 7.x; the old `ssl-plugin` artifact stops at 6.7.0).
+   - Status: migrated on branch `chore/javalin-7` (commits 72880a3b, 3514ad7a). 174/0/0 tests. Live check: openapi/clientapi served, 401 and login errors match the 6.7 baseline, HTTPS with HTTP/2 works. Not yet verified: WebSocket run-viewer connect. Known spec differences: see commit 3514ad7a message.
+   - OpenAPI document is pinned to 3.0.3, and Javalin 7's nullable output is normalised in `backend/src/main/kotlin/dev/dres/api/rest/OpenApiNullability.kt` so the generated TypeScript client does not change.
    - Move `RestApi.kt` routes, error and exception handlers into `Javalin.create { config -> config.routes... }`.
    - Replace `.start(port)` pattern with `config.jetty.port` as appropriate (check current code).
    - Check WebSocket handlers (`WsContext`, `WsConfig` used in 3 places) against Javalin 7 `config.routes.ws`.

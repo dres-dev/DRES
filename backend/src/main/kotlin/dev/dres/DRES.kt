@@ -1,6 +1,7 @@
 package dev.dres
 
 import dev.dres.api.cli.Cli
+import com.github.ajalt.clikt.core.parse
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
 import dev.dres.data.model.admin.DbRole

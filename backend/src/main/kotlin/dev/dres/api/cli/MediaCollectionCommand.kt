@@ -109,7 +109,12 @@ class MediaCollectionCommand(private val config: Config) :
         name: String,
         help: String
     ) :
-        CliktCommand(name = name, help = help, printHelpOnEmptyArgs = true) {
+        CliktCommand(name = name) {
+
+        private val helpText: String = help
+
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = helpText
+        override val printHelpOnEmptyArgs: Boolean = true
 
         /** The [CollectionAddress] of the [DbMediaCollection] affected by this [AbstractCollectionCommand]. */
         protected val collectionAddress: CollectionAddress by mutuallyExclusiveOptions<CollectionAddress>(
@@ -156,7 +161,9 @@ class MediaCollectionCommand(private val config: Config) :
      * [CliktCommand] to create a new [DbMediaCollection].
      */
     inner class Create :
-        CliktCommand(name = "create", help = "Creates a new media collection.", printHelpOnEmptyArgs = true) {
+        CliktCommand(name = "create") {
+            override fun help(context: com.github.ajalt.clikt.core.Context): String = "Creates a new media collection."
+            override val printHelpOnEmptyArgs: Boolean = true
 
         /** The name of the new [DbMediaCollection]. */
         private val name: String by option("-n", "--name", help = "Name of the Collection to be created").required()
@@ -251,7 +258,8 @@ class MediaCollectionCommand(private val config: Config) :
     /**
      * [CliktCommand] to list all [DbMediaCollection]s.
      */
-    inner class List : CliktCommand(name = "list", help = "Lists all media collections.") {
+    inner class List : CliktCommand(name = "list") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Lists all media collections."
         val plain by option(
             "-p",
             "--plain",

@@ -44,7 +44,9 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to create a new [DbUser].
      */
-    inner class Create: CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
+    inner class Create: CliktCommand(name = "create") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Creates a new User"
+        override val printHelpOnEmptyArgs: Boolean = true
         /** The name of the newly created user. */
         private val username: String by option("-u", "--username", help = "Username of at least $MIN_LENGTH_USERNAME characters length. Must be unique!")
                 .required()
@@ -74,7 +76,9 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to update an existing [DbUser].
      */
-    inner class Update: CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
+    inner class Update: CliktCommand(name = "update") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Updates Password or Role of an existing User"
+        override val printHelpOnEmptyArgs: Boolean = true
         private val id: UserId? by option("-i", "--id")
 
         /** The new username. */
@@ -105,7 +109,9 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to delete a [DbUser].
      */
-    inner class Delete: CliktCommand(name = "delete", help = "Deletes an existing user.", printHelpOnEmptyArgs = true) {
+    inner class Delete: CliktCommand(name = "delete") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Deletes an existing user."
+        override val printHelpOnEmptyArgs: Boolean = true
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be deleted.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be deleted.")
                 .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
@@ -126,7 +132,9 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to export a [DbUser].
      */
-    inner class Export: CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.", printHelpOnEmptyArgs = true) {
+    inner class Export: CliktCommand(name = "export") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Exports one or multiple user(s) as JSON."
+        override val printHelpOnEmptyArgs: Boolean = true
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be exported.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be exported.")
                 .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
@@ -159,7 +167,9 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * Imports a specific user(s) from JSON.
      */
-    inner class Import: CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users", printHelpOnEmptyArgs = true) {
+    inner class Import: CliktCommand(name = "import") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Imports a user description from JSON. Either a single user or an array of users"
+        override val printHelpOnEmptyArgs: Boolean = true
 
         private val new: Boolean by option("-n", "--new", help = "Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
 
@@ -194,7 +204,8 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to list all users.
      */
-    inner class List: CliktCommand(name = "list", help = "Lists all Users") {
+    inner class List: CliktCommand(name = "list") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Lists all Users"
         val plain by option("-p", "--plain", help = "Plain print: No fancy table. Might be easier if the output should be processed").flag(default = false)
         override fun run() {
             val users = UserManager.list()
@@ -228,7 +239,8 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to list all [DbRole]s.
      */
-    inner class Roles: CliktCommand(name = "roles", help = "Lists all Roles") {
+    inner class Roles: CliktCommand(name = "roles") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Lists all Roles"
         override fun run() {
             println("Available roles: ${ApiRole.values().filter { it != ApiRole.ANYONE }.joinToString(", ")}")
         }

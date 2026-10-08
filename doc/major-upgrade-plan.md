@@ -1,6 +1,6 @@
 # Major Dependency Upgrade Plan
 
-Status: planning only. No major upgrade has been applied.
+Status: backend Phase 1 applied on branch `chore/javalin-7` (Javalin 7, jline 4, clikt 5, junit 6). Frontend Angular 21 and yarn 4 applied earlier (see git log). Angular 22 deferred.
 Baseline: branch `chore/minor-dependency-updates` (commits `51d0a014`, `1f675d68`, `ad51962a`) on top of `dev`.
 Companion: `doc/dependency-audit.md` (version table).
 
@@ -69,16 +69,16 @@ Principles
 
 Order within phase (each its own commit/branch):
 1. **Javalin 6.7 → 7.x** (with `javalin-openapi-plugin`, `javalin-swagger-plugin`, `openapi-annotation-processor`, `io.javalin.community.ssl:javalin-ssl` on matching 7.x; the old `ssl-plugin` artifact stops at 6.7.0).
-   - Status: migrated on branch `chore/javalin-7` (commits 72880a3b, 3514ad7a). 174/0/0 tests. Live check: openapi/clientapi served, 401 and login errors match the 6.7 baseline, HTTPS with HTTP/2 works. Not yet verified: WebSocket run-viewer connect. Known spec differences: see commit 3514ad7a message.
+   - Status: migrated on branch `chore/javalin-7` (commits 72880a3b, 3514ad7a). 174/0/0 tests. Live check: openapi/clientapi served, 401 and login errors match the 6.7 baseline, HTTPS with HTTP/2 works. WebSocket run-viewer connect verified by `RunExecutorWebSocketLiveTest` (commit d3b87c91, 5 tests against a real Javalin server, verified to fail on a wrong route path). Known spec differences: see commit 3514ad7a message.
    - OpenAPI document is pinned to 3.0.3, and Javalin 7's nullable output is normalised in `backend/src/main/kotlin/dev/dres/api/rest/OpenApiNullability.kt` so the generated TypeScript client does not change.
    - Move `RestApi.kt` routes, error and exception handlers into `Javalin.create { config -> config.routes... }`.
    - Replace `.start(port)` pattern with `config.jetty.port` as appropriate (check current code).
    - Check WebSocket handlers (`WsContext`, `WsConfig` used in 3 places) against Javalin 7 `config.routes.ws`.
    - Check `JsonMapper` and Jackson coupling. Re-run `doc/oas.json` diff.
-   - Gate: 174 tests green, OAS diff empty or documented, smoke test (UI, OpenAPI, 401 on protected API, WebSocket connect for run viewer).
-2. **Jline 3 → 4** (1 file). Gate: CLI console starts; command round-trip.
-3. **Clikt 4 → 5** (8 files). Gate: CLI commands `--help` output and one real command per group.
-4. **JUnit 5 → 6** (16 test files). Gate: full test suite, same count (174).
+   - Gate: tests green (179 now incl. WebSocket live tests), OAS diff empty or documented, smoke test (UI, OpenAPI, 401 on protected API, WebSocket connect for run viewer). All met.
+2. **Jline 3 → 4** (commit 11be2910). `jline-terminal-jna` dropped (no 4.x release; `jline-terminal` 4.x pulls `jline-native`); `jline-terminal-ffm` needs Java 22, not used. Gate met: pty session starts, `user list` round-trips, `quit` exits 0, same as jline 3 baseline.
+3. **Clikt 4 → 5** (commit c849757d). `help`/`printHelpOnEmptyArgs` constructor args replaced by overrides. Gate met: pty transcripts of config, user/evaluation/template/collection/openapi/exec help and list commands identical to the clikt 4 build (only paths/ports differ).
+4. **JUnit 5 → 6** (commit 983cbd52). No test source changes. Gate met: 179 tests, 0 failures, 0 errors (174 before the WebSocket tests were added).
 
 Note: Jackson 2.22.3 (minor pass) already produces two new deprecation warnings (`JsonNode.fields()`, `ObjectMapper.readValue(URL, ...)`). Resolve before or during phase 1.
 

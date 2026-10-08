@@ -39,11 +39,8 @@ import io.javalin.http.Cookie
 import io.javalin.http.HttpStatus
 import io.javalin.http.SameSite
 import io.javalin.http.staticfiles.Location
-import io.javalin.openapi.CookieAuth
-import io.javalin.openapi.OpenApiContact
-import io.javalin.openapi.OpenApiLicense
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import jetbrains.exodus.database.TransientEntityStore
 import org.eclipse.jetty.server.Server
@@ -237,27 +234,20 @@ object RestApi {
                         .withDocumentationPath("/openapi.json")
                         .withDefinitionConfiguration { _, openApiDef ->
                             openApiDef
-                                .withInfo { info ->
-                                    info.title = "DRES API"
-                                    info.version = DRES.VERSION
-                                    info.description =
-                                        "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
-                                    val contact = OpenApiContact()
-                                    contact.url = "https://dres.dev"
-                                    contact.name = "The DRES Dev Team"
-                                    info.contact = contact
-                                    val license = OpenApiLicense()
-                                    license.name = "MIT"
-                                    info.license = license
-                                }
-
-                                .withSecurity(
-                                    SecurityComponentConfiguration()
-                                        .withSecurityScheme(
-                                            "CookieAuth",
-                                            CookieAuth(AccessManager.SESSION_COOKIE_NAME)
+                                .openApiVersion("3.0.3")
+                                .info { info ->
+                                    info.title("DRES API")
+                                        .version(DRES.VERSION)
+                                        .description(
+                                            "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
                                         )
-                                )
+                                        .contact("The DRES Dev Team", "https://dres.dev")
+                                        .license("MIT")
+                                }
+                                .withCookieAuth("CookieAuth", AccessManager.SESSION_COOKIE_NAME)
+                        }
+                        .withDefinitionProcessor { doc: ObjectNode ->
+                            doc.withOpenApi30Nullability().toPrettyString()
                         }
                 }
             )
@@ -297,7 +287,7 @@ object RestApi {
 
 
 
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("api") {
                     apiRestHandlers.groupBy { it.apiVersion }.forEach { apiGroup ->
                         path(apiGroup.key) {
@@ -333,14 +323,16 @@ object RestApi {
                 }
             }
 
-        }.beforeMatched { ctx ->
+        it.routes.beforeMatched { ctx ->
             /* BeforeMatched handlers are only matched if the request will be matched */
             /* See https://javalin.io/migration-guide-javalin-5-to-6 */
             if (!AccessManager.hasAccess(ctx)) {
                 ctx.status(HttpStatus.UNAUTHORIZED)
                 ctx.skipRemainingHandlers()
             }
-        }.before { ctx ->
+        }
+
+        it.routes.before { ctx ->
             /* Before are matched before every request, including static files */
 
             //check for session cookie
@@ -375,11 +367,14 @@ object RestApi {
             }
 
 
-        }.error(401) {
+        }
+        it.routes.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
-        }.exception(Exception::class.java) { e, ctx ->
+        }
+        it.routes.exception(Exception::class.java) { e, ctx ->
             ctx.status(500).json(ErrorStatus("Internal server error: ${e.localizedMessage}"))
             logger.error("Exception during handling of request to ${ctx.path()}", e)
+        }
         }.start(config.httpPort)
     }
 

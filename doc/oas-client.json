@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES Client API",
-    "version" : "2.0.5-SNAPSHOT",
-    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.5-SNAPSHOT"
+    "version" : "2.0.5",
+    "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.5"
   },
   "paths" : {
     "/api/v2/client/evaluation/currentTask/{evaluationId}" : {
@@ -795,56 +795,6 @@
       }
     },
     "/api/v2/user/{userId}" : {
-      "delete" : {
-        "tags" : [ "User" ],
-        "summary" : "Deletes the specified user. Requires ADMIN privileges",
-        "operationId" : "deleteApiV2UserByUserId",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User ID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
       "patch" : {
         "tags" : [ "User" ],
         "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
@@ -893,6 +843,56 @@
           },
           "404" : {
             "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "delete" : {
+        "tags" : [ "User" ],
+        "summary" : "Deletes the specified user. Requires ADMIN privileges",
+        "operationId" : "deleteApiV2UserByUserId",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User ID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "If the user could not be found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -987,16 +987,19 @@
         "additionalProperties" : false,
         "properties" : {
           "id" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "name" : {
             "type" : "string"
           },
           "description" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "basePath" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "itemCount" : {
             "type" : "integer",
@@ -1026,11 +1029,13 @@
           },
           "durationMs" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "fps" : {
             "type" : "number",
-            "format" : "float"
+            "format" : "float",
+            "nullable" : true
           },
           "metadata" : {
             "type" : "array",
@@ -1124,7 +1129,8 @@
             "type" : "string"
           },
           "templateDescription" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "teams" : {
             "type" : "array",
@@ -1156,7 +1162,8 @@
           },
           "duration" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           }
         },
         "required" : [ "name", "taskGroup", "taskType" ]
@@ -1183,11 +1190,13 @@
           },
           "started" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "ended" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "tasks" : {
             "type" : "array",
@@ -1221,7 +1230,8 @@
             "type" : "string"
           },
           "templateDescription" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "teams" : {
             "type" : "array",
@@ -1265,17 +1275,20 @@
             "$ref" : "#/components/schemas/ApiEvaluationStatus"
           },
           "taskId" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "taskStatus" : {
             "$ref" : "#/components/schemas/ApiTaskStatus"
           },
           "taskTemplateId" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "timeLeft" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "timeElapsed" : {
             "type" : "integer",
@@ -1333,11 +1346,13 @@
           },
           "started" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "ended" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "submissions" : {
             "type" : "array",
@@ -1366,7 +1381,8 @@
           },
           "duration" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "taskId" : {
             "type" : "string"
@@ -1376,11 +1392,13 @@
           },
           "started" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "ended" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           }
         },
         "required" : [ "id", "name", "type", "group", "taskId", "status" ]
@@ -1400,7 +1418,8 @@
             "type" : "string"
           },
           "comment" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "taskGroup" : {
             "type" : "string"
@@ -1410,7 +1429,8 @@
           },
           "duration" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           }
         },
         "required" : [ "templateId", "name", "taskGroup", "taskType" ]
@@ -1488,7 +1508,8 @@
             "type" : "string"
           },
           "taskGroup" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "scores" : {
             "type" : "array",
@@ -1555,21 +1576,26 @@
             "$ref" : "#/components/schemas/ApiAnswerType"
           },
           "item" : {
-            "$ref" : "#/components/schemas/ApiMediaItem"
+            "$ref" : "#/components/schemas/ApiMediaItem",
+            "nullable" : true
           },
           "text" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "start" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "end" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "temporalRange" : {
-            "$ref" : "#/components/schemas/TemporalRange"
+            "$ref" : "#/components/schemas/TemporalRange",
+            "nullable" : true
           }
         },
         "required" : [ "type" ]
@@ -1719,7 +1745,8 @@
         "additionalProperties" : false,
         "properties" : {
           "token" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "validator" : {
             "type" : "string"
@@ -1830,33 +1857,41 @@
             "format" : "int64"
           },
           "os" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "jvm" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "args" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "cores" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int32",
+            "nullable" : true
           },
           "freeMemory" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "totalMemory" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "load" : {
             "type" : "number",
-            "format" : "double"
+            "format" : "double",
+            "nullable" : true
           },
           "availableSeverThreads" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int32",
+            "nullable" : true
           }
         },
         "required" : [ "version", "startTime", "uptime" ]
@@ -1869,7 +1904,8 @@
             "$ref" : "#/components/schemas/ApiContentType"
           },
           "content" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "offset" : {
             "type" : "integer",
@@ -1925,15 +1961,18 @@
             "type" : "string"
           },
           "description" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "created" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "modified" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "taskTypes" : {
             "type" : "array",
@@ -1991,7 +2030,8 @@
             "type" : "string"
           },
           "description" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "taskCount" : {
             "type" : "integer",
@@ -2013,26 +2053,33 @@
           },
           "start" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "end" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "description" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "path" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "dataType" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "item" : {
-            "$ref" : "#/components/schemas/ApiMediaItem"
+            "$ref" : "#/components/schemas/ApiMediaItem",
+            "nullable" : true
           },
           "range" : {
-            "$ref" : "#/components/schemas/ApiTemporalRange"
+            "$ref" : "#/components/schemas/ApiTemporalRange",
+            "nullable" : true
           }
         },
         "required" : [ "type" ]
@@ -2068,13 +2115,16 @@
             "$ref" : "#/components/schemas/ApiTargetType"
           },
           "target" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "range" : {
-            "$ref" : "#/components/schemas/ApiTemporalRange"
+            "$ref" : "#/components/schemas/ApiTemporalRange",
+            "nullable" : true
           },
           "item" : {
-            "$ref" : "#/components/schemas/ApiMediaItem"
+            "$ref" : "#/components/schemas/ApiMediaItem",
+            "nullable" : true
           }
         },
         "required" : [ "type" ]
@@ -2104,7 +2154,8 @@
         "additionalProperties" : false,
         "properties" : {
           "id" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "name" : {
             "type" : "string"
@@ -2120,7 +2171,8 @@
         "additionalProperties" : false,
         "properties" : {
           "id" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "name" : {
             "type" : "string"
@@ -2133,7 +2185,8 @@
           },
           "duration" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "collectionId" : {
             "type" : "string"
@@ -2151,7 +2204,8 @@
             }
           },
           "comment" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           }
         },
         "required" : [ "name", "taskGroup", "taskType", "collectionId", "targets", "hints" ]
@@ -2165,7 +2219,8 @@
           },
           "duration" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "nullable" : true
           },
           "targetOption" : {
             "$ref" : "#/components/schemas/ApiTargetOption"
@@ -2225,13 +2280,16 @@
         "additionalProperties" : false,
         "properties" : {
           "id" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "name" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "color" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "users" : {
             "type" : "array",
@@ -2240,7 +2298,8 @@
             }
           },
           "logoData" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "teamId" : {
             "type" : "string"
@@ -2257,10 +2316,12 @@
         "additionalProperties" : false,
         "properties" : {
           "id" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "name" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "teams" : {
             "type" : "array",
@@ -2283,16 +2344,20 @@
         "additionalProperties" : false,
         "properties" : {
           "id" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "username" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "role" : {
-            "$ref" : "#/components/schemas/ApiRole"
+            "$ref" : "#/components/schemas/ApiRole",
+            "nullable" : true
           },
           "sessionId" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           }
         }
       },
@@ -2304,10 +2369,12 @@
             "type" : "string"
           },
           "password" : {
-            "type" : "string"
+            "type" : "string",
+            "nullable" : true
           },
           "role" : {
-            "$ref" : "#/components/schemas/ApiRole"
+            "$ref" : "#/components/schemas/ApiRole",
+            "nullable" : true
           }
         },
         "required" : [ "username" ]
@@ -2391,7 +2458,8 @@
           },
           "rank" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int32",
+            "nullable" : true
           }
         },
         "required" : [ "answer" ]

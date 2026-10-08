@@ -30,7 +30,7 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { AdvancedBuilderDialogComponent } from './competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component';
 import { SharedModule } from '../../shared/shared.module';
 import { VideoPlayerSegmentBuilderDialogComponent } from './competition-builder-task-dialog/video-player-segment-builder-dialog/video-player-segment-builder-dialog.component';
-import { ColorPickerModule } from 'ngx-color-picker';
+import { ColorPickerDirective } from 'ngx-color-picker';
 
 @NgModule({
   imports: [
@@ -59,7 +59,7 @@ import { ColorPickerModule } from 'ngx-color-picker';
     ReactiveFormsModule,
     CommonModule,
     SharedModule,
-    ColorPickerModule,
+    ColorPickerDirective,
   ],
   exports: [CompetitionBuilderComponent, VideoPlayerSegmentBuilderComponent],
   declarations: [

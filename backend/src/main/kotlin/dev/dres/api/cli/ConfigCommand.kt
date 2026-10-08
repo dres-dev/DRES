@@ -3,7 +3,8 @@ package dev.dres.api.cli
 import com.github.ajalt.clikt.core.CliktCommand
 import dev.dres.DRES
 
-class ConfigCommand:CliktCommand(name="config", help="Command that prints the current config in use") {
+class ConfigCommand:CliktCommand(name="config") {
+    override fun help(context: com.github.ajalt.clikt.core.Context): String = "Command that prints the current config in use"
 
     override fun run() {
         println("Currently active configuration: ")

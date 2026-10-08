@@ -15,7 +15,9 @@ import com.jakewharton.picnic.table
  * For convention purposes, the file suffix `ds` could be used, since it's a `dres script`.
  */
 class ExecutionCommand :
-    CliktCommand(name = "exec", help = "Executes a set of DRES CLI commands in a file", printHelpOnEmptyArgs = true) {
+    CliktCommand(name = "exec") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Executes a set of DRES CLI commands in a file"
+        override val printHelpOnEmptyArgs: Boolean = true
 
 
     val inFile by argument(

@@ -16,9 +16,7 @@
 
 .tb-container-2col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto;
-  grid-template-areas: 'left right';
+  grid-template: 'left right' auto / 1fr 1fr;
   column-gap: 1em;
 
   > * {
@@ -28,9 +26,7 @@
 
 .tb-container-3col-left {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: auto;
-  grid-template-areas: 'left left right';
+  grid-template: 'left left right' auto / 1fr 1fr 1fr;
   column-gap: 1em;
 
   > * {
@@ -40,9 +36,7 @@
 
 .tb-container-4col-left {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: auto;
-  grid-template-areas: 'left left left right';
+  grid-template: 'left left left right' auto / 1fr 1fr 1fr 1fr;
   column-gap: 1em;
 
   > * {
@@ -52,9 +46,7 @@
 
 .tb-container-3col-right {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: auto;
-  grid-template-areas: 'left right right';
+  grid-template: 'left right right' auto / 1fr 1fr 1fr;
   column-gap: 1em;
 
   > * {

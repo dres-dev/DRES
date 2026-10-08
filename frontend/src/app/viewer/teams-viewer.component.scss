@@ -6,17 +6,21 @@
 .tile {
   padding: 5px;
   margin: 5px;
-
   min-width: 100px;
   max-width: 300px;
-
   min-height: 200px;
-
   flex-grow: 1;
-
   border-radius: 15px;
-
   overflow: hidden;
+}
+
+.submission img {
+  background-image: url('../../immutable/assets/images/load-icon.png');
+  background-size: 46px 46px;
+  width: 46px;
+  height: 46px;
+  margin: 2px;
+  object-fit: cover;
 }
 
 .tile .logo {
@@ -50,16 +54,6 @@
   margin: 2px;
 }
 
-.submission img {
-  background-image: url('../../immutable/assets/images/load-icon.png');
-  background-size: 46px 46px;
-
-  width: 46px;
-  height: 46px;
-  margin: 2px;
-  object-fit: cover;
-}
-
 .submission p {
   padding-top: 15px;
   margin: 2px;
@@ -78,18 +72,22 @@
   text-align: center;
 }
 
+// stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
 .CORRECT {
   background-color: darkgreen;
 }
 
+// stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
 .WRONG {
   background-color: darkred;
 }
 
+// stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
 .INDETERMINATE {
   background-color: goldenrod;
 }
 
+// stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
 .UNDECIDABLE {
   background-color: grey;
 }

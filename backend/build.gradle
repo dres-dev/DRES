@@ -70,16 +70,15 @@ dependencies {
 
     implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalinopenapi
     implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: version_javalinopenapi
-    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalinssl
+    implementation group: 'io.javalin.community.ssl', name: 'javalin-ssl', version: version_javalinssl
 
     ////// Bcrypt
     implementation group: 'org.mindrot', name: 'jbcrypt', version: version_bcrypt
 
     ////// JLine 3, Clikt & Picnic for optimal terminal experience :-)
-    implementation group: 'org.jline', name: 'jline-terminal', version: version_jline3
-    implementation group: 'org.jline', name: 'jline-terminal-jna', version: version_jline3
-    implementation group: 'org.jline', name: 'jline-reader', version: version_jline3
-    implementation group: 'org.jline', name: 'jline-builtins', version: version_jline3
+    implementation group: 'org.jline', name: 'jline-terminal', version: version_jline
+    implementation group: 'org.jline', name: 'jline-reader', version: version_jline
+    implementation group: 'org.jline', name: 'jline-builtins', version: version_jline
     implementation group: 'com.github.ajalt.clikt', name: 'clikt', version: version_clikt
     implementation group: 'com.jakewharton.picnic', name: 'picnic', version: version_picnic
 

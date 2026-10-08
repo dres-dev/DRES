@@ -12,8 +12,8 @@ Versions "latest" were taken from npm and Maven Central at audit time. Majors ar
 
 ## Known issues (found during audit)
 
-- `frontend/yarn.lock` is stale: 16 `package.json` ranges have no matching lock entry (e.g. `@angular/core 20.3.25` declared, `20.3.19` locked; `@angular-eslint/* 20.x` locked at `15.x`; `prettier 3.x` locked at `2.6.2`).
-- Yarn version mismatch: `packageManager: yarn@3.2.0` vs `.yarnrc.yml` `yarnPath: yarn-3.8.3`.
+- `frontend/yarn.lock` is intentionally untracked (`.gitignore`: "Do not include the generated yarn.lock when using the build process"; it was tracked in earlier history). The stale lock seen during the audit was only the local, ignored file (16 ranges unresolved, e.g. `@angular-eslint/*` locked at 15.x). `yarn install` regenerated it; no repo change needed.
+- Yarn version mismatch: `packageManager: yarn@3.2.0` vs `.yarnrc.yml` `yarnPath: yarn-3.8.3`. Fixed on the minor-update branch (`packageManager` set to `yarn@3.8.3`).
 - `Dockerfile` uses `zenika/kotlin:1.4.20-jdk11`, but the backend targets Java 17 and the Gradle wrapper is 9.0. The Docker build very likely fails.
 
 ## Frontend (npm)

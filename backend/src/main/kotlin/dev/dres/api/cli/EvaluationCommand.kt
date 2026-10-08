@@ -66,7 +66,8 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
      * Lists all ongoing evaluations runs for the current DRES instance.
      */
     inner class Ongoing :
-        CliktCommand(name = "ongoing", help = "Lists all ongoing evaluations.") {
+        CliktCommand(name = "ongoing") {
+            override fun help(context: com.github.ajalt.clikt.core.Context): String = "Lists all ongoing evaluations."
         private val plain by option("-p", "--plain", help = "Plain print. No fancy tables").flag(default = false)
         override fun run() = this@EvaluationCommand.store.transactional(true) {
             if (RunExecutor.managers().isEmpty()) {
@@ -120,7 +121,8 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
     /**
      * [CliktCommand] to list all evaluation runs (ongoing and past) for the current DRES instance.
      */
-    inner class List : CliktCommand(name = "list", help = "Lists all (ongoing and past) evaluations.") {
+    inner class List : CliktCommand(name = "list") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Lists all (ongoing and past) evaluations."
         private val plain by option("-p", "--plain", help = "Plain print. No fancy tables").flag(default = false)
         override fun run() = this@EvaluationCommand.store.transactional(true) {
             val query =  DbEvaluation.all().sortedBy(DbEvaluation::started)
@@ -179,7 +181,8 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
     /**
      * [CliktCommand] to list past evaluation runs for the current DRES instance.
      */
-    inner class History : CliktCommand(name = "history", help = "Lists past evaluations.") {
+    inner class History : CliktCommand(name = "history") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Lists past evaluations."
         // TODO fancification with table
 
         override fun run() = this@EvaluationCommand.store.transactional(true) {
@@ -215,7 +218,9 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
     /**
      * Deletes a selected [DbEvaluation] for the current DRES instance.
      */
-    inner class Delete : CliktCommand(name = "delete", help = "Deletes an existing evaluation.", printHelpOnEmptyArgs = true) {
+    inner class Delete : CliktCommand(name = "delete") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Deletes an existing evaluation."
+        override val printHelpOnEmptyArgs: Boolean = true
         private val id: EvaluationId by option("-r", "--run").required()
 
         override fun run() {
@@ -238,7 +243,9 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
     /**
      *  [CliktCommand] to export a specific evaluation template run as JSON.
      */
-    inner class Export : CliktCommand(name = "export", help = "Exports the selected evaluation to a JSON file.", printHelpOnEmptyArgs = true) {
+    inner class Export : CliktCommand(name = "export") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Exports the selected evaluation to a JSON file."
+        override val printHelpOnEmptyArgs: Boolean = true
 
         /** [EvaluationId] of the [DbEvaluation] that should be exported. .*/
         private val id: EvaluationId by option("-i", "--id").required()
@@ -273,7 +280,9 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
     /**
      * [CliktCommand] to reactivate an [DbEvaluation] that has previously ended.
      */
-    inner class Reactivate : CliktCommand(name = "reactivate", help = "Reactivates a previously ended evaluation", printHelpOnEmptyArgs = true) {
+    inner class Reactivate : CliktCommand(name = "reactivate") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Reactivates a previously ended evaluation"
+        override val printHelpOnEmptyArgs: Boolean = true
 
         /** [EvaluationId] of the [DbEvaluation] that should be reactivated. .*/
         private val id: EvaluationId by option("-i", "--id").required()
@@ -316,7 +325,9 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
     /**
      * [CliktCommand] to reset the status of [DbSubmission]s.
      */
-    inner class ResetSubmission : CliktCommand(name = "resetSubmission", help = "Resets submission status to INDETERMINATE for selected submissions.", printHelpOnEmptyArgs = true) {
+    inner class ResetSubmission : CliktCommand(name = "resetSubmission") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Resets submission status to INDETERMINATE for selected submissions."
+        override val printHelpOnEmptyArgs: Boolean = true
 
         /** [EvaluationId] of the [DbEvaluation] that should be reactivated. .*/
         private val id: EvaluationId by option("-i", "--id").required()
@@ -368,7 +379,9 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
     /**
      * [CliktCommand] to export judgements made for relevant tasks as CSVs.
      */
-    inner class ExportJudgements : CliktCommand(name = "exportJudgements", help = "Exports all judgements made for all relevant tasks of an evaluation as CSV", printHelpOnEmptyArgs = true) {
+    inner class ExportJudgements : CliktCommand(name = "exportJudgements") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Exports all judgements made for all relevant tasks of an evaluation as CSV"
+        override val printHelpOnEmptyArgs: Boolean = true
         /** [EvaluationId] of the [DbEvaluation] for which judgements should be exported.*/
         private val id: EvaluationId by option("-r", "--run", help = "Id of the run").required()
 

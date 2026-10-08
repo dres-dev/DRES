@@ -58,11 +58,9 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
     /**
      * [CliktCommand] to create a new [DbEvaluationTemplate].
      */
-    inner class Create : CliktCommand(
-        name = "create",
-        help = "Creates a new Template",
-        printHelpOnEmptyArgs = true
-    ) {
+    inner class Create : CliktCommand(name = "create") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Creates a new Template"
+        override val printHelpOnEmptyArgs: Boolean = true
 
         private val name: String by option("-t", "--template", help = "Name of the new Template")
             .required()
@@ -81,11 +79,9 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
     /**
      * [CliktCommand] to delete a [DbEvaluationTemplate].
      */
-    inner class Delete : CliktCommand(
-        name = "delete",
-        help = "Deletes a template",
-        printHelpOnEmptyArgs = true
-    ) {
+    inner class Delete : CliktCommand(name = "delete") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Deletes a template"
+        override val printHelpOnEmptyArgs: Boolean = true
 
         private val id: String by option("-i", "--id").required()
             .validate { require(it.isNotEmpty()) { "Id must be non empty." } }
@@ -104,11 +100,9 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
     /**
      * [CliktCommand] to copy a [DbEvaluationTemplate].
      */
-    inner class Copy : CliktCommand(
-        name = "copy",
-        help = "Copies a Template",
-        printHelpOnEmptyArgs = true
-    ) {
+    inner class Copy : CliktCommand(name = "copy") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Copies a Template"
+        override val printHelpOnEmptyArgs: Boolean = true
 
         private val id: String by option("-i", "--id").required()
             .validate { require(it.isNotEmpty()) { "Id must be non empty." } }
@@ -128,11 +122,9 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
     /**
      * [CliktCommand] to rename a [DbEvaluationTemplate].
      */
-    inner class Rename : CliktCommand(
-        name = "rename",
-        help = "Renames a Template",
-        printHelpOnEmptyArgs = true
-    ) {
+    inner class Rename : CliktCommand(name = "rename") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Renames a Template"
+        override val printHelpOnEmptyArgs: Boolean = true
 
         private val id: String by option("-i", "--id").required()
             .validate { require(it.isNotEmpty()) { "Id must be non empty." } }
@@ -161,7 +153,8 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
     /**
      * [CliktCommand] to list all [DbEvaluationTemplate]s.
      */
-    inner class List : CliktCommand(name = "list", help = "Lists an overview of all Templates") {
+    inner class List : CliktCommand(name = "list") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Lists an overview of all Templates"
         override fun run() {
             var no = 0
             println()
@@ -187,7 +180,8 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
     /**
      * [CliktCommand] to show a specific [DbEvaluationTemplate].
      */
-    inner class Show : CliktCommand(name = "show", help = "Shows details of a Template") {
+    inner class Show : CliktCommand(name = "show") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Shows details of a Template"
 
         private val id: String by option("-i", "--id").required()
             .validate { require(it.isNotEmpty()) { "Id must be non empty." } }
@@ -217,11 +211,9 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
     /**
      * [CliktCommand] to prepare a specific [DbEvaluationTemplate].
      */
-    inner class Prepare : CliktCommand(
-        name = "prepare",
-        help = "Checks the used media items and generates precomputed previews.",
-        printHelpOnEmptyArgs = true
-    ) {
+    inner class Prepare : CliktCommand(name = "prepare") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Checks the used media items and generates precomputed previews."
+        override val printHelpOnEmptyArgs: Boolean = true
 
         private val id: String by option("-i", "--id").required()
             .validate { require(it.isNotEmpty()) { "Id must be non empty." } }
@@ -242,11 +234,9 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
     /**
      * Exports a specific evaluation to a JSON file.
      */
-    inner class Export : CliktCommand(
-        name = "export",
-        help = "Exports a template as JSON.",
-        printHelpOnEmptyArgs = true
-    ) {
+    inner class Export : CliktCommand(name = "export") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Exports a template as JSON."
+        override val printHelpOnEmptyArgs: Boolean = true
 
         /** Path to the file that should be created .*/
         private val path: Path by option("-o", "--out", help = "The destination file for the template.").path()
@@ -288,11 +278,9 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
     /**
      * Imports a template from a JSON file.
      */
-    inner class Import : CliktCommand(
-        name = "import",
-        help = "Imports a template from JSON.",
-        printHelpOnEmptyArgs = true
-    ) {
+    inner class Import : CliktCommand(name = "import") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Imports a template from JSON."
+        override val printHelpOnEmptyArgs: Boolean = true
 
         /** Path to the file that should be imported.*/
         private val path: Path by option("-i", "--in", help = "The file to import the template from.").path().required()

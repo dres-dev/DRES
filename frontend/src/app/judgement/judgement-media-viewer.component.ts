@@ -233,14 +233,14 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
   }
 
   private addTemporalContextClass() {
-    if (!this.video?.nativeElement?.classList.contains('temporalContext')) {
-      this.video.nativeElement.classList.add('temporalContext');
+    if (!this.video?.nativeElement?.classList.contains('temporal-context')) {
+      this.video.nativeElement.classList.add('temporal-context');
     }
   }
 
   private removeTemporalContextClass() {
-    if (this.video?.nativeElement?.classList.contains('temporalContext')) {
-      this.video.nativeElement.classList.remove('temporalContext');
+    if (this.video?.nativeElement?.classList.contains('temporal-context')) {
+      this.video.nativeElement.classList.remove('temporal-context');
     }
   }
 

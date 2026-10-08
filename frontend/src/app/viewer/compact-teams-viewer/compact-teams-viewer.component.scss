@@ -34,7 +34,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgb(0 0 0 / 20%);
     padding: 2px 4px;
     border-radius: 4px;
 
@@ -65,6 +65,7 @@
     color: #fff;
     margin: 4px 0;
     text-align: center;
+
     &.dres-fix-correct {
       color: #00ff9d;
     }
@@ -78,41 +79,53 @@
     justify-content: center;
     gap: 8px;
 
+    // stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
     span.CORRECT {
       color: #2ecc71;
     }
+
+    // stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
     span.WRONG {
       color: #e74c3c;
     }
+
+    // stylelint-disable-next-line selector-class-pattern -- class names are backend submission status values
     span.INDETERMINATE {
       color: #95a5a6;
     }
   }
 
   &.status-correct {
-    background: radial-gradient(circle at top left, rgba(46, 204, 113, 0.45) 0%, rgba(46, 204, 113, 0) 100%), #2c2c2e;
-    border-color: rgba(46, 204, 113, 0.8);
+    background: radial-gradient(circle at top left, rgb(46 204 113 / 45%) 0%, rgb(46 204 113 / 0%) 100%), #2c2c2e;
+    border-color: rgb(46 204 113 / 80%);
   }
+
   &.status-wrong {
-    background: radial-gradient(circle at top left, rgba(231, 76, 60, 0.45) 0%, rgba(231, 76, 60, 0) 100%), #2c2c2e;
-    border-color: rgba(231, 76, 60, 0.8);
+    background: radial-gradient(circle at top left, rgb(231 76 60 / 45%) 0%, rgb(231 76 60 / 0%) 100%), #2c2c2e;
+    border-color: rgb(231 76 60 / 80%);
   }
+
   &.gold {
     border-color: #ffd700;
+
     .tile-header .rank-badge {
       background: #ffd700;
       color: #000;
     }
   }
+
   &.silver {
     border-color: #c0c0c0;
+
     .tile-header .rank-badge {
       background: #c0c0c0;
       color: #000;
     }
   }
+
   &.bronze {
     border-color: #cd7f32;
+
     .tile-header .rank-badge {
       background: #cd7f32;
       color: #000;

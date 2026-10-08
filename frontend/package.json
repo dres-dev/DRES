@@ -58,8 +58,8 @@
     "husky": "^9.0.0",
     "jasmine-core": "3.8.x",
     "jasmine-spec-reporter": "5.0.x",
-    "karma": "6.3.x",
-    "karma-chrome-launcher": "3.1.x",
+    "karma": "6.4.x",
+    "karma-chrome-launcher": "3.2.x",
     "karma-coverage-istanbul-reporter": "3.0.x",
     "karma-jasmine": "4.0.x",
     "karma-jasmine-html-reporter": "1.5.x",
@@ -76,5 +76,5 @@
     "ts-node": "10.x",
     "typescript": "5.8.3"
   },
-  "packageManager": "yarn@3.2.0"
+  "packageManager": "yarn@3.8.3"
 }

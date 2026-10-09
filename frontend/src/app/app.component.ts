@@ -1,11 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ActivationEnd, Router } from '@angular/router';
 import { AuthenticationService } from './services/session/authentication.sevice';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { filter, map, shareReplay } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import { EMPTY, Observable, Subscription, timer } from 'rxjs';
 import { AppConfig } from './app.config';
-import { ApiRole, ApiUser } from '../../openapi';
+import { ApiRole, ApiUser, StatusService, SystemStatus } from '../../openapi';
 import { MatDialog } from '@angular/material/dialog';
 import { ServerInfoComponent } from './shared/server-info/server-info.component';
 import { LogService } from './services/logging/log.service';
@@ -16,7 +16,7 @@ import { LogService } from './services/logging/log.service';
   styleUrls: ['./app.component.scss'],
   standalone: false,
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   private readonly LOGGER = inject<LogService>(LogService);
 
   title = 'dres-frontend';
@@ -27,6 +27,13 @@ export class AppComponent {
   canJudge: Observable<boolean>;
   noUi: Observable<boolean>;
   darkMode = false;
+  systemStatuses: SystemStatus[] = [];
+  private readonly systemStatusSub: Subscription;
+  private adminPollingSub: Subscription;
+
+  get hasSystemWarnings(): boolean {
+    return this.systemStatuses.some((status) => status.level === 'WARNING' || status.level === 'ERROR');
+  }
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -34,7 +41,8 @@ export class AppComponent {
     private snackBar: MatSnackBar,
     public config: AppConfig,
     private dialog: MatDialog,
-    private activeRoute: ActivatedRoute
+    private activeRoute: ActivatedRoute,
+    private statusService: StatusService
   ) {
     this.noUi = this.router.events.pipe(
       filter((e) => e instanceof ActivationEnd),
@@ -65,8 +73,28 @@ export class AppComponent {
     this.isAdmin = this.authenticationService.user.pipe(map((u) => u?.role === ApiRole.ADMIN));
     this.canJudge = this.authenticationService.user.pipe(map((u) => u?.role === ApiRole.ADMIN || u?.role === ApiRole.JUDGE));
 
+    this.systemStatusSub = this.authenticationService.user.subscribe((user) => {
+      this.systemStatuses = [];
+      this.adminPollingSub?.unsubscribe();
+      if (user?.role === ApiRole.ADMIN) {
+        this.adminPollingSub = timer(0, 60_000)
+          .pipe(
+            switchMap(() => this.statusService.getApiV2StatusInfo().pipe(catchError(() => EMPTY))),
+            map((info) => info.systemStatuses ?? [])
+          )
+          .subscribe((statuses) => {
+            this.systemStatuses = statuses;
+          });
+      }
+    });
+
     this.darkMode = localStorage.getItem('darkMode') !== 'false';
     this.applyDarkMode();
+  }
+
+  ngOnDestroy(): void {
+    this.systemStatusSub?.unsubscribe();
+    this.adminPollingSub?.unsubscribe();
   }
 
   public toggleDarkMode() {

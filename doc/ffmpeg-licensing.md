@@ -1,9 +1,9 @@
 # FFmpeg binary licensing
 
-Findings from checking the three FFmpeg sources pinned in
-`backend/build.gradle` (`ffmpegBuilds`) for explicit license
-information. Recorded while resolving the open licensing question from
-the FFmpeg 9.0.2 upgrade.
+Findings from checking the FFmpeg sources that were previously pinned
+in `backend/build.gradle` for explicit license information. Recorded
+while resolving the open licensing question from the FFmpeg 9.0.2
+upgrade.
 
 ## Sources
 
@@ -61,9 +61,8 @@ the FFmpeg 9.0.2 upgrade.
   use a different Linux source (e.g. johnvansickle or BtbN, both plain
   GPL builds), or accept and document the restriction.
 
-## Practical suggestion
+## Runtime download and discovery
 
-Add a `THIRD-PARTY-NOTICES` (or `doc/ffmpeg-notices.md`) file to the
-distribution listing ffmpeg/ffprobe provenance (source URL, version,
-sha256, license per platform) and link it from the README. This is also
-the natural place for the macos/linux vs windows license differences.
+DRES does not bundle FFmpeg binaries in its distribution. It can use an installation found in the configured location or on `PATH`, and it offers a pinned `setup ffmpeg` download into the user's DRES data directory for macOS and Windows. Automatic Linux downloads are disabled because the audited Linux build uses `--enable-nonfree`; use a system package or independently reviewed build. See [ffmpeg-discovery.md](ffmpeg-discovery.md) for the runtime behavior and supported platforms.
+
+Runtime downloads remain third-party FFmpeg binaries, and this feature does not change their license terms. Review the findings above before recommending downloaded builds for redistribution or production use.

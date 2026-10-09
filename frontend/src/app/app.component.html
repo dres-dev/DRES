@@ -1,6 +1,16 @@
 <mat-toolbar *ngIf="!(noUi | async)" color="primary">
-  <button mat-button (click)="openInfoDialog()" matTooltip="Click for server information">
-    <h2 style="margin: 0">DRES</h2>
+  <button
+    mat-button
+    (click)="openInfoDialog()"
+    [matTooltip]="
+      hasSystemWarnings ? 'Click for server information; system warnings are present' : 'Click for server information'
+    "
+    [attr.aria-label]="hasSystemWarnings ? 'DRES, system warnings present' : 'DRES server information'"
+  >
+    <h2 style="margin: 0; display: inline-flex; align-items: center; gap: 0.25em">
+      DRES
+      <mat-icon *ngIf="hasSystemWarnings" color="warn" aria-hidden="true">warning</mat-icon>
+    </h2>
   </button>
   <div class="spacer-small"></div>
   <app-api-status></app-api-status>

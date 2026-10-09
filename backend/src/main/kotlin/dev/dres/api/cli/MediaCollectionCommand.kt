@@ -418,7 +418,8 @@ class MediaCollectionCommand(private val config: Config) :
         ).convert { it.lowercase() }.multiple()
 
         private fun analyze(videoPath: Path, countFrames: Boolean = false): FFprobeResult =
-            FFprobe.atPath(this@MediaCollectionCommand.config.cache.ffmpegPath())
+            FFprobe.atPath(this@MediaCollectionCommand.config.cache.ffmpegPath()
+                ?: throw IllegalStateException("FFmpeg is required to scan video files. Run 'setup ffmpeg' or install FFmpeg system-wide."))
                 .setInput(videoPath)
                 .setShowStreams(true)
                 .setCountFrames(countFrames)

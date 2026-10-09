@@ -5,6 +5,9 @@ import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import dev.dres.DRES
 import dev.dres.data.model.config.Config
+import dev.dres.api.rest.handler.system.SystemStatusRegistry
+import dev.dres.api.rest.types.system.SystemStatus
+import dev.dres.api.rest.types.system.SystemStatusLevel
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.media.MediaItemType
@@ -28,7 +31,6 @@ import java.nio.file.StandardOpenOption
 import java.util.concurrent.*
 import javax.imageio.ImageIO
 import kotlin.io.path.*
-import kotlin.system.exitProcess
 
 /**
  * A [CacheManager] used to manager and generate, access and manage cached image and video previews.
@@ -42,8 +44,12 @@ class CacheManager(private val config: Config, private val store: TransientEntit
         private val MARKER = MarkerFactory.getMarker("FFMPEG")
     }
 
-    /** The path to the FFmpeg binary used by this [CacheManager] instance. */
-    private val ffmpegBin = this.config.cache.ffmpegPath()
+    /** Directory containing FFmpeg binaries, resolved lazily to support installation at runtime. */
+    private val ffmpegBin: Path?
+        get() = this.config.cache.ffmpegPath()
+
+    private fun requireFFmpeg(): Path = ffmpegBin
+        ?: throw IllegalStateException("FFmpeg is unavailable. Run 'setup ffmpeg' in the DRES console or install FFmpeg system-wide.")
 
     /** The [Path] to the cache location. */
     private val cacheLocation = DRES.CONFIG.cache.cachePath
@@ -55,24 +61,12 @@ class CacheManager(private val config: Config, private val store: TransientEntit
     private val executor: ExecutorService = Executors.newFixedThreadPool(this.config.cache.maxRenderingThreads)
 
     init {
-        println("Found FFmpeg at ${this.ffmpegBin}...")
-        /* Validating that FFmpeg path exists and is a directory */
-        if(!this.ffmpegBin.exists() || !this.ffmpegBin.isDirectory()){
-            System.err.println("ERROR: FFmpeg path ${this.ffmpegBin} does not exist! Shutting down!")
-            exitProcess(-100)
-        }
-
-        /* Validating that FFmpeg and FFprobe exist and are executable */
-        this.ffmpegBin.listDirectoryEntries("ff*").forEach {
-            /* Slightly convoluted in order to not hassle with OS dependent things like .exe extension on Windows */
-            val isFFmpeg = it.nameWithoutExtension.startsWith("ffmpeg") && it.nameWithoutExtension.endsWith("ffmpeg")
-            val isFFprobe = it.nameWithoutExtension.startsWith("ffprobe") && it.nameWithoutExtension.endsWith("ffprobe")
-            if(isFFprobe || isFFmpeg){
-                if(!it.exists() || !it.isExecutable()){
-                    System.err.println("ERROR: $it in ${this.ffmpegBin} does not exist or is not executable! Shutting down!")
-                    exitProcess(-101)
-                }
-            }
+        val ffmpegDirectory = this.ffmpegBin
+        if (ffmpegDirectory == null) {
+            System.err.println("WARNING: FFmpeg was not found. Video preview generation is unavailable.")
+            System.err.println("         Run 'setup ffmpeg' in the DRES console or install FFmpeg system-wide.")
+        } else {
+            println("Found FFmpeg at $ffmpegDirectory...")
         }
         if (!Files.exists(cacheLocation)) {
             println("Created cache location at ${this.cacheLocation}...")
@@ -357,7 +351,7 @@ class CacheManager(private val config: Config, private val store: TransientEntit
      */
     inner class PreviewImageFromVideoRequest constructor(input: Path, output: Path, private val start: Long, private val size: Int = this@CacheManager.config.cache.previewImageMaxSize): AbstractPreviewRequest(input, output) {
         override fun call(): Path = try {
-            FFmpeg.atPath(this@CacheManager.ffmpegBin)
+            FFmpeg.atPath(this@CacheManager.requireFFmpeg())
                 .addArguments("-ss", millisecondToTimestamp(this.start))
                 .addInput(UrlInput.fromPath(this.input))
                 .addOutput(UrlOutput.toPath(this.output))
@@ -383,7 +377,7 @@ class CacheManager(private val config: Config, private val store: TransientEntit
             val startTimecode = millisecondToTimestamp(this.start)
             val endTimecode = millisecondToTimestamp(this.end)
             LOGGER.info(MARKER, "Start rendering segment for video $input from $startTimecode to $endTimecode")
-            FFmpeg.atPath(this@CacheManager.ffmpegBin)
+            FFmpeg.atPath(this@CacheManager.requireFFmpeg())
                 .addArguments("-ss", startTimecode)
                 .addInput(UrlInput.fromPath(this.input))
                 .addOutput(UrlOutput.toPath(this.output))
@@ -403,9 +397,19 @@ class CacheManager(private val config: Config, private val store: TransientEntit
                 throw IOException("FFmpeg failed to produce a valid preview video: ${this.output}")
             }
 
+            SystemStatusRegistry.clear(SystemStatusRegistry.FFMPEG_VIDEO_RENDER_FAILED)
             this.output
         } catch (e: Exception) {
             LOGGER.error("Error in FFMpeg: ${e.message}", e)
+            if (this@CacheManager.ffmpegBin != null) {
+                SystemStatusRegistry.publish(
+                    SystemStatus(
+                        code = SystemStatusRegistry.FFMPEG_VIDEO_RENDER_FAILED,
+                        level = SystemStatusLevel.WARNING,
+                        message = "FFmpeg failed to render a query video preview. Check the server logs for details."
+                    )
+                )
+            }
             Files.deleteIfExists(this.output)
             throw e
         } finally {

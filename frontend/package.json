@@ -9,7 +9,7 @@
     "test": "ng test",
     "lint:ts": "eslint \"**/*.ts\"",
     "lint:style": "stylelint \"**/*.{css,scss,sass}\" --ignore-path .gitignore --ignore-pattern \"build/**\"",
-    "lint:prettier": "prettier --check --config .prettierrc.json --ignore-unkown .",
+    "lint:prettier": "prettier --check --config .prettierrc.json --ignore-unknown .",
     "lint": "yarn lint:ts && yarn lint:style && yarn lint:prettier",
     "lintfix": "prettier --write --list-different --ignore-unknown . && yarn lint:ts --fix",
     "prepare": "husky",

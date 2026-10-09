@@ -853,6 +853,19 @@
         },
         "required" : [ "timeStamp" ]
       },
+      "SystemStatusLevel" : {
+        "type" : "string",
+        "enum" : [ "INFO", "WARNING", "ERROR" ]
+      },
+      "SystemStatus" : {
+        "type" : "object",
+        "properties" : {
+          "code" : { "type" : "string" },
+          "level" : { "$ref" : "#/components/schemas/SystemStatusLevel" },
+          "message" : { "type" : "string" }
+        },
+        "required" : [ "code", "level", "message" ]
+      },
       "DresInfo" : {
         "type" : "object",
         "properties" : {
@@ -903,6 +916,12 @@
             "format" : "int32",
             "type" : "integer",
             "nullable" : true
+          },
+          "systemStatuses" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SystemStatus"
+            }
           }
         },
         "required" : [ "version", "startTime", "uptime" ]

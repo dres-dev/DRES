@@ -57,6 +57,6 @@ task packageFrontend(type: Zip) {
 artifacts {
     frontendFiles(packageFrontend.archiveFile) {
         builtBy packageFrontend
-        type "jar"
+        type = "jar"
     }
 }

@@ -38,7 +38,7 @@ configurations {
 repositories {
     mavenCentral()
     maven {
-        url 'https://maven.reposilite.com/snapshots'
+        url = 'https://maven.reposilite.com/snapshots'
         allowInsecureProtocol = true
     } //javalin openapi snapshot
 }
@@ -59,67 +59,56 @@ dependencies {
     implementation files("$buildDir/ext") {builtBy 'setupFFMpeg'}
 
     ///// Xodus & Xodus DNQ
-    implementation group: 'org.jetbrains.xodus', name: 'xodus-openAPI', version: version_xodus
-    implementation group: 'org.jetbrains.xodus', name: 'xodus-environment', version: version_xodus
-    implementation group: 'org.jetbrains.xodus', name: 'xodus-entity-store', version: version_xodus
-    implementation group: 'org.jetbrains.xodus', name: 'xodus-vfs', version:  version_xodus
-    implementation group: 'org.jetbrains.xodus', name: 'dnq', version: version_xodus_dnq
-
+    implementation "org.jetbrains.xodus:xodus-openAPI:${version_xodus}"
+    implementation "org.jetbrains.xodus:xodus-environment:${version_xodus}"
+    implementation "org.jetbrains.xodus:xodus-entity-store:${version_xodus}"
+    implementation "org.jetbrains.xodus:xodus-vfs:${version_xodus}"
+    implementation "org.jetbrains.xodus:dnq:${version_xodus_dnq}"
     ////// Javalin
-    implementation group: 'io.javalin', name:  'javalin', version: version_javalin
+    implementation "io.javalin:javalin:${version_javalin}"
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$version_javalinopenapi")
 
-    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalinopenapi
-    implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: version_javalinopenapi
-    implementation group: 'io.javalin.community.ssl', name: 'javalin-ssl', version: version_javalinssl
-
+    implementation "io.javalin.community.openapi:javalin-openapi-plugin:${version_javalinopenapi}"
+    implementation "io.javalin.community.openapi:javalin-swagger-plugin:${version_javalinopenapi}"
+    implementation "io.javalin.community.ssl:javalin-ssl:${version_javalinssl}"
     ////// Bcrypt
-    implementation group: 'org.mindrot', name: 'jbcrypt', version: version_bcrypt
-
+    implementation "org.mindrot:jbcrypt:${version_bcrypt}"
     ////// JLine 3, Clikt & Picnic for optimal terminal experience :-)
-    implementation group: 'org.jline', name: 'jline-terminal', version: version_jline
-    implementation group: 'org.jline', name: 'jline-reader', version: version_jline
-    implementation group: 'org.jline', name: 'jline-builtins', version: version_jline
-    implementation group: 'com.github.ajalt.clikt', name: 'clikt', version: version_clikt
-    implementation group: 'com.jakewharton.picnic', name: 'picnic', version: version_picnic
-
+    implementation "org.jline:jline-terminal:${version_jline}"
+    implementation "org.jline:jline-reader:${version_jline}"
+    implementation "org.jline:jline-builtins:${version_jline}"
+    implementation "com.github.ajalt.clikt:clikt:${version_clikt}"
+    implementation "com.jakewharton.picnic:picnic:${version_picnic}"
     ///// Fuel
-    implementation group: 'com.github.kittinunf.fuel', name: 'fuel', version: version_fuel
-
+    implementation "com.github.kittinunf.fuel:fuel:${version_fuel}"
     ////// CSV
-    implementation group: 'com.github.doyaaaaaken', name: 'kotlin-csv-jvm', version: version_kotlin_csv
-
+    implementation "com.github.doyaaaaaken:kotlin-csv-jvm:${version_kotlin_csv}"
     ////// Jaffree ffmpeg wrapper
-    implementation group: 'com.github.kokorin.jaffree', name: 'jaffree', version: version_jaffree
-
+    implementation "com.github.kokorin.jaffree:jaffree:${version_jaffree}"
     ////// Log4J
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: version_log4j
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: version_log4j
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: version_log4j
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-jul', version: version_log4j
-
+    implementation "org.apache.logging.log4j:log4j-api:${version_log4j}"
+    implementation "org.apache.logging.log4j:log4j-core:${version_log4j}"
+    implementation "org.apache.logging.log4j:log4j-slf4j2-impl:${version_log4j}"
+    implementation "org.apache.logging.log4j:log4j-jul:${version_log4j}"
     ////// FastUtil
-    implementation group: 'it.unimi.dsi', name: 'fastutil', version: version_fastutil
-
+    implementation "it.unimi.dsi:fastutil:${version_fastutil}"
     ///// JUnit 5
     testImplementation "org.jetbrains.kotlin:kotlin-test"
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit5"
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: version_junit
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: version_junit
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: version_junit
-
+    testImplementation "org.junit.jupiter:junit-jupiter:${version_junit}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${version_junit}"
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:${version_junit}"
     ///// Jackson / Kotlin
-    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: version_jackson_kotlin
-
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${version_jackson_kotlin}"
     ///// Kotlin
-    implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin
-    implementation group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: version_kotlin
-    implementation group: 'org.jetbrains.kotlinx', name:'kotlinx-serialization-json', version: version_kotlinx_serialization
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${version_kotlin}"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:${version_kotlin}"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${version_kotlinx_serialization}"
 }
 
 kapt {
-    correctErrorTypes true
-    useBuildCache true
+    correctErrorTypes = true
+    useBuildCache = true
 }
 
 

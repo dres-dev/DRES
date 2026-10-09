@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+*.iml
+**/.gradle
+**/build
+**/node_modules
+frontend/openapi
+data
+external
+audit
+events
+type-presets
+*.log

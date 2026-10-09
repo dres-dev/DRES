@@ -17,7 +17,8 @@ class ConfigCommand:CliktCommand(name="config") {
         println(" Cache information")
         println("  Cleanup interval (ms): ${DRES.CONFIG.cache.cleanupIntervalMs}")
         println("  Eviction threshold (ms): ${DRES.CONFIG.cache.evictionThresholdMs}")
-        println("  FFMPEG: ${DRES.CONFIG.cache.ffmpegPath()}")
+        val ffmpegPath = DRES.CONFIG.cache.ffmpegPath()?.toString() ?: "not found (run setup ffmpeg)"
+        println("  FFMPEG: $ffmpegPath")
         println("  Logo max size: ${DRES.CONFIG.cache.logoMaxSize}")
         println("  Max rendering threads: ${DRES.CONFIG.cache.maxRenderingThreads}")
         println("  Preview image max size: ${DRES.CONFIG.cache.previewImageMaxSize}")

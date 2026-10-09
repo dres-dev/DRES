@@ -1,1 +1,14 @@
-/* no component styles */
+.system-statuses {
+  margin-top: 1rem;
+}
+
+.system-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.system-status p {
+  margin: 0.25rem 0 0;
+}

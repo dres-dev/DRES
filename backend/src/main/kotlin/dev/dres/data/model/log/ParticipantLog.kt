@@ -22,6 +22,7 @@ data class QueryEvent(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ConsistentCopyVisibility
 @Serializable
 data class QueryEventLog internal constructor(
     val timestamp: Long = -1,
@@ -42,6 +43,7 @@ data class RankedAnswer(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ConsistentCopyVisibility
 @Serializable
 data class QueryResultLog internal constructor(
     val timestamp: Long = -1,

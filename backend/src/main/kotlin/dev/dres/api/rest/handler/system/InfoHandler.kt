@@ -47,7 +47,7 @@ class InfoHandler : GetRestHandler<DresInfo> {
                 Runtime.getRuntime().availableProcessors(),
                 Runtime.getRuntime().freeMemory(),
                 Runtime.getRuntime().totalMemory(),
-                ManagementFactory.getPlatformMXBean(OperatingSystemMXBean::class.java)?.systemCpuLoad ?: -1.0,
+                ManagementFactory.getPlatformMXBean(OperatingSystemMXBean::class.java)?.cpuLoad ?: -1.0,
                 RestApi.readyThreadCount)
         } else {
             DresInfo (DRES.VERSION, ManagementFactory.getRuntimeMXBean().startTime, ManagementFactory.getRuntimeMXBean().uptime)

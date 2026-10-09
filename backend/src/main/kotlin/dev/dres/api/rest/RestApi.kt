@@ -395,7 +395,7 @@ object RestApi {
     )
 
     val readyThreadCount: Int
-        get() = pool.readyThreads
+        get() = pool.idleThreads
 
     private fun setupHttpServer(): Server {
         return Server(pool)

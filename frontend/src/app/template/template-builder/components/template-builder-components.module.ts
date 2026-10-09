@@ -33,7 +33,7 @@ import { QueryDescriptionExternalImageFormFieldComponent } from './query-descrip
 import { TeamBuilderDialogComponent } from './team-builder-dialog/team-builder-dialog.component';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule } from '@angular/material/dialog';
-import { ColorPickerModule } from 'ngx-color-picker';
+import { ColorPickerDirective } from 'ngx-color-picker';
 import { CdkDrag, CdkDropList } from '@angular/cdk/drag-drop';
 import { MatCardModule } from '@angular/material/card';
 import { ViewersListComponent } from './viewers-list/viewers-list.component';
@@ -88,7 +88,7 @@ import { MatCheckbox } from '@angular/material/checkbox';
     NgOptimizedImage,
     MatChipsModule,
     MatDialogModule,
-    ColorPickerModule,
+    ColorPickerDirective,
     CdkDropList,
     CdkDrag,
     MatCardModule,

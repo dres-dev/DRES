@@ -7,7 +7,7 @@ buildscript {
 plugins {
     /// Plugin to handle NodeJS
     id 'base'
-    id 'com.github.node-gradle.node' version '3.6.0'
+    id 'com.github.node-gradle.node' version '7.1.0'
 }
 
 configurations {

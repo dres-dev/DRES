@@ -110,9 +110,9 @@ Gates for each step: `ng build` (production) passes, Karma passes (after Phase 0
 
 ### Phase 5: Build tooling majors
 
-- `com.github.node-gradle.node` 3.6 → 7.x (frontend build). Verify with `./gradlew distZip` and the frontend `pbuild` task.
-- Gradle wrapper 9.8.1 → 10.x only once Gradle 10 compatibility is confirmed. The current build already warns that deprecated Gradle features will break on Gradle 10; resolve those first.
-- Jaffree: `2023.09.10` → `2024.08.29` is a new release line (calendar versioned). Review the changelog and FFmpeg integration (`CacheManager`, media handling) before bumping.
+- `com.github.node-gradle.node` 3.6 → 7.1.0 (frontend build). **Completed on `chore/jaffree-gradle-compat`**; the frontend production build has passed with the upgraded plugin.
+- Gradle wrapper 9.8.1 → 10.x only after a Gradle 10 release is available and the full build is verified against it. Current 9.8.1 warning is emitted by OpenAPI Generator 7.26.0, which calls `Configuration.setVisible(false)` while creating `openApiGeneratorExtra`. Gradle reports removal in Gradle 11, not 10; current upstream plugin source still makes this call, so this is tracked as an external warning rather than worked around locally.
+- Jaffree `2023.09.10` → `2024.08.29` is **completed on `chore/jaffree-gradle-compat`**. Regression gates: backend tests and distribution tasks, including FFmpeg discovery/runtime smoke checks.
 
 ## Sequencing and ownership
 

@@ -28,6 +28,7 @@ import kotlinx.dnq.XdModel
 import kotlinx.dnq.store.container.StaticStoreContainer
 import kotlinx.dnq.util.initMetaData
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.system.exitProcess
@@ -91,6 +92,16 @@ object DRES {
             }
         } else {
             Config()
+        }
+
+        /* Fail fast with an actionable message when SSL is enabled but no usable keystore is configured,
+           instead of crashing later during server start-up with a cryptic keystore error. */
+        if (CONFIG.enableSsl) {
+            val keystore = Paths.get(CONFIG.keystorePath)
+            if (!Files.isReadable(keystore)) {
+                println("ERROR: SSL is enabled ('enableSsl': true), but the keystore file '${CONFIG.keystorePath}' (resolved to ${keystore.toAbsolutePath()}) does not exist or is not readable. Provide a valid 'keystorePath' and 'keystorePassword', or set 'enableSsl' to false to serve plain HTTP.")
+                exitProcess(12)
+            }
         }
 
         EXTERNAL_ROOT = CONFIG.externalMediaLocation

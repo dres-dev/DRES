@@ -14,9 +14,9 @@ data class Config(
     val httpPort: Int = 8080,
     /** HTTPS Port, only used when [enableSsl] is set to `true` */
     val httpsPort: Int = 8443,
-    /** Whether to use secure connection or not. Requires keystore and keystore password */
-    val enableSsl: Boolean = true,
-    /** The path to the keystore file */
+    /** Whether to serve HTTPS in addition to HTTP. Requires a readable keystore at [keystorePath]; the backend refuses to start if SSL is enabled without one. Disabled by default. */
+    val enableSsl: Boolean = false,
+    /** The path to the keystore file, resolved relative to the working directory. Only used when [enableSsl] is set to `true` */
     val keystorePath: String = "keystore.jks",
     /** Keystore password */
     val keystorePassword: String = "password",

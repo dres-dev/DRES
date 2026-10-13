@@ -96,15 +96,17 @@ The backend looks for a file named `config.json` at the location from where it i
 {
   "httpPort":         8080,           //the port to be used for HTTP
   "httpsPort":        8443,           //the port to be used for HTTPS, if enabled
-  "enableSsl":        true,           //specifies if HTTPS is supposed to be enabled. If set to true, HTTP connections will be upgraded
-  "keystorePath":     "keystore.jks", //path to the Java Key Store file to be used for the SSL certificate
-  "keystorePassword": "password",     //password for the Key Store file
+  "enableSsl":        false,          //specifies if HTTPS is supposed to be enabled. Disabled by default. If set to true, a keystore must be provided (see below), otherwise the backend refuses to start
+  "keystorePath":     "keystore.jks", //path to the Java Key Store file to be used for the SSL certificate, resolved relative to the working directory. Only used if enableSsl is true
+  "keystorePassword": "password",     //password for the Key Store file. Only used if enableSsl is true
   "externalPath":     "./external",   //path for external media items
   "dataPath":         "./data",       //path where the local database is to be stored
   "cachePath":        "./cache"       //path where pre-rendered media items are to be stored
 }
 
 ```
+
+HTTPS is disabled by default: no keystore ships with the distribution. To enable it, provide a Java Key Store and its password and set `enableSsl` to `true`; the backend then serves HTTPS on `httpsPort` in addition to HTTP on `httpPort`.
 
 ## First Steps
 

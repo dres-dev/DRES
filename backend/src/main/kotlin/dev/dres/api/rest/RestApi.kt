@@ -338,12 +338,14 @@ object RestApi {
             //check for session cookie
             val cookieId = ctx.cookie(AccessManager.SESSION_COOKIE_NAME)
             if (cookieId != null) {
+                /* Secure cookies are dropped by browsers over plain HTTP, so they are only set when the
+                   deployment actually serves HTTPS; over plain HTTP, SameSite.LAX keeps the cookie usable. */
                 val cookie = Cookie(
                     AccessManager.SESSION_COOKIE_NAME,
                     cookieId,
                     maxAge = AccessManager.SESSION_COOKIE_LIFETIME,
-                    secure = true,
-                    sameSite = SameSite.NONE
+                    secure = config.enableSsl,
+                    sameSite = if (config.enableSsl) SameSite.NONE else SameSite.LAX
                 )
                 ctx.cookie(cookie) //update cookie lifetime
                 ctx.attribute("session", cookieId) //store id in attribute for later use

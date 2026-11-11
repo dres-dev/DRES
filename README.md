@@ -122,8 +122,16 @@ DRES> user create -u admin -p password -r ADMIN
 ```
 
 Additional users are required in order to perform an evaluation. At least one user per participating system instance
-(i.e. with `-r PARTICIPANT`). To simply have a user to view evaluation runs, but otherwise not interact with the system, 
+(i.e. with `-r PARTICIPANT`). To simply have a user to view evaluation runs, but otherwise not interact with the system,
 we recommend to create a viewer user: `-r VIEWER`.
+
+Users can also be imported from a CSV file with `user importCsv --input users.csv`. The CSV must have a header row with `username,password,role` columns. Roles are `ADMIN`, `JUDGE`, `PARTICIPANT`, and `VIEWER`; passwords must be at least 6 characters. Duplicate usernames are skipped by default. Add `--update` to update existing users' password and role instead. The `password` column contains plaintext passwords and must be handled as sensitive data. For example:
+
+```csv
+username,password,role
+alice,change-me-now,PARTICIPANT
+bob,another-secret,VIEWER
+```
 
 ### Create Media Collection
 

@@ -30,7 +30,7 @@ import java.util.*
  */
 class UserCommand : NoOpCliktCommand(name = "user") {
     init {
-        this.subcommands(Create(), Update(), Delete(), List(), Roles(), Export(), Import())
+        this.subcommands(Create(), Update(), Delete(), List(), Roles(), Export(), Import(), ImportCsv())
     }
 
     override fun aliases() = mapOf(
@@ -197,6 +197,42 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                 }
             }
             println("done")
+        }
+    }
+
+    /** Imports users from a CSV file with `username,password,role` columns. */
+    inner class ImportCsv : CliktCommand(name = "importCsv") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String =
+            "Imports users from CSV (header columns: username,password,role)."
+        override val printHelpOnEmptyArgs: Boolean = true
+
+        private val inputPath: String by option("--input", "-i", help = "CSV file to import.").required()
+        private val updateExisting: Boolean by option("--update", help = "Update existing users; by default duplicate usernames are skipped.").flag(default = false)
+
+        override fun run() {
+            val input = Paths.get(inputPath)
+            require(Files.isRegularFile(input) && Files.isReadable(input)) { "Input file '$input' does not exist or is not readable." }
+
+            val users = Files.newInputStream(input).use(UserCsvImport::read)
+
+            var created = 0
+            var updated = 0
+            var skipped = 0
+            users.forEach { record ->
+                val request = record.user
+                val existing = UserManager.exists(username = request.username)
+                when {
+                    existing && updateExisting -> {
+                        if (UserManager.update(null, request.username, Password.Plain(request.password!!).hash(), request.role) != null) updated++
+                    }
+                    existing -> skipped++
+                    else -> {
+                        UserManager.create(request.username, Password.Plain(request.password!!).hash(), request.role!!)
+                        created++
+                    }
+                }
+            }
+            println("User CSV import complete: $created created, $updated updated, $skipped existing users skipped.")
         }
     }
 

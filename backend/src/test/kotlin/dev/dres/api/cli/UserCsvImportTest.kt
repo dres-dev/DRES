@@ -49,16 +49,41 @@ alice1,secret1,ANYONE
     }
 
     @Test
-    fun `rejects username outside database length limits`() {
+    fun `accepts an email username longer than the old limit`() {
+        val username = "razvan.dobasu2@mail.dcu.ie"
         val csv = """username,password,role
-abcdefghijklmnopq,secret1,ADMIN
+$username,secret1,ADMIN
+"""
+
+        val users = UserCsvImport.read(ByteArrayInputStream(csv.toByteArray()))
+
+        assertEquals(username, users.single().user.username)
+    }
+
+    @Test
+    fun `accepts usernames up to the database limit`() {
+        val username = "a".repeat(254)
+        val csv = """username,password,role
+$username,secret1,ADMIN
+"""
+
+        val users = UserCsvImport.read(ByteArrayInputStream(csv.toByteArray()))
+
+        assertEquals(username, users.single().user.username)
+    }
+
+    @Test
+    fun `rejects username above database length limit`() {
+        val username = "a".repeat(255)
+        val csv = """username,password,role
+$username,secret1,ADMIN
 """
 
         val error = assertThrows(IllegalArgumentException::class.java) {
             UserCsvImport.read(ByteArrayInputStream(csv.toByteArray()))
         }
 
-        assertEquals("CSV row 2: username must contain between 4 and 16 characters", error.message)
+        assertEquals("CSV row 2: username must contain between 4 and 254 characters", error.message)
     }
 
     @Test

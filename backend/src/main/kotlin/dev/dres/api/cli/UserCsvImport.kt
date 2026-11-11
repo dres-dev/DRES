@@ -31,8 +31,8 @@ internal object UserCsvImport {
             val password = values["password"].orEmpty()
             val roleValue = values["role"]?.trim().orEmpty()
 
-            require(username.length in DbUser.MIN_LENGTH_USERNAME..16) {
-                "CSV row $rowNumber: username must contain between ${DbUser.MIN_LENGTH_USERNAME} and 16 characters"
+            require(username.length in DbUser.MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME) {
+                "CSV row $rowNumber: username must contain between ${DbUser.MIN_LENGTH_USERNAME} and ${DbUser.MAX_LENGTH_USERNAME} characters"
             }
             require(password.length >= DbUser.MIN_LENGTH_PASSWORD) {
                 "CSV row $rowNumber: password must contain at least ${DbUser.MIN_LENGTH_PASSWORD} characters"

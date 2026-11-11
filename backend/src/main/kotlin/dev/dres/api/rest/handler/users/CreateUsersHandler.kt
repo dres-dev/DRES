@@ -47,8 +47,8 @@ class CreateUsersHandler() : AbstractUserHandler(), PostRestHandler<ApiUser>, Ac
 
         if (req.password == null )
             throw ErrorStatusException(400, "Invalid parameters. Password must consist of at least ${DbUser.MIN_LENGTH_PASSWORD} characters.", ctx)
-        if (req.username.length < DbUser.MIN_LENGTH_USERNAME)
-            throw ErrorStatusException(400, "Invalid parameters. Username must consist of at least ${DbUser.MIN_LENGTH_USERNAME} characters.", ctx)
+        if (req.username.length !in DbUser.MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME)
+            throw ErrorStatusException(400, "Invalid parameters. Username must consist of between ${DbUser.MIN_LENGTH_USERNAME} and ${DbUser.MAX_LENGTH_USERNAME} characters.", ctx)
         if (req.role == null)
             throw ErrorStatusException(400, "Invalid parameters. Role must be defined.", ctx)
 

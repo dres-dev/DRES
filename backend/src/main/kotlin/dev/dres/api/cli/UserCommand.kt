@@ -48,9 +48,9 @@ class UserCommand : NoOpCliktCommand(name = "user") {
         override fun help(context: com.github.ajalt.clikt.core.Context): String = "Creates a new User"
         override val printHelpOnEmptyArgs: Boolean = true
         /** The name of the newly created user. */
-        private val username: String by option("-u", "--username", help = "Username of at least $MIN_LENGTH_USERNAME characters length. Must be unique!")
+        private val username: String by option("-u", "--username", help = "Username of $MIN_LENGTH_USERNAME to ${DbUser.MAX_LENGTH_USERNAME} characters. Must be unique!")
                 .required()
-                .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+                .validate { require(it.length in MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME) { "Username for DRES user must consist of between $MIN_LENGTH_USERNAME and ${DbUser.MAX_LENGTH_USERNAME} characters." } }
 
         /** The [Password.Plain] of the newly created user. */
         private val password: Password.Plain by option("-p", "--password", help = "Password of at least $MIN_LENGTH_PASSWORD characters length.")
@@ -83,7 +83,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
 
         /** The new username. */
         private val username: String? by option("-u", "--username", help = "Username of the user to be updated")
-                .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+                .validate { require(it.length in MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME) { "Username for DRES user must consist of between $MIN_LENGTH_USERNAME and ${DbUser.MAX_LENGTH_USERNAME} characters." } }
 
         /** The new [Password.Plain] of the updated user. Left unchanged if null! */
         private val password: Password.Plain? by option("-p", "--password", help = "New Password of at least $MIN_LENGTH_PASSWORD characters length")
@@ -114,7 +114,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
         override val printHelpOnEmptyArgs: Boolean = true
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be deleted.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be deleted.")
-                .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+                .validate { require(it.length in MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME) { "Username for DRES user must consist of between $MIN_LENGTH_USERNAME and ${DbUser.MAX_LENGTH_USERNAME} characters." } }
 
         override fun run()  {
             if (this.id == null && this.username == null) {
@@ -137,7 +137,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
         override val printHelpOnEmptyArgs: Boolean = true
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be exported.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be exported.")
-                .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+                .validate { require(it.length in MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME) { "Username for DRES user must consist of between $MIN_LENGTH_USERNAME and ${DbUser.MAX_LENGTH_USERNAME} characters." } }
         private val path: String by option("-o", "--output").required()
         override fun run()  {
 

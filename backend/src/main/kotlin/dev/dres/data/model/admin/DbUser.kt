@@ -23,6 +23,9 @@ class DbUser(entity: Entity): PersistentEntity(entity), User {
 
         /** The minimum length of a username. */
         const val MIN_LENGTH_USERNAME = 4
+
+        /** The maximum length of a username; also supports standard maximum-length email addresses. */
+        const val MAX_LENGTH_USERNAME = 254
     }
 
     /** The [UserId] of this [DbUser]. */
@@ -31,7 +34,9 @@ class DbUser(entity: Entity): PersistentEntity(entity), User {
         set(value) { this.id = value }
 
     /** The name held by this [DbUser]. Must be unique!*/
-    override var username by xdRequiredStringProp(unique = true, trimmed = true) { length(MIN_LENGTH_USERNAME, 16, "Username must consist of between 4 and 16 characters")}
+    override var username by xdRequiredStringProp(unique = true, trimmed = true) {
+        length(MIN_LENGTH_USERNAME, MAX_LENGTH_USERNAME, "Username must consist of between $MIN_LENGTH_USERNAME and $MAX_LENGTH_USERNAME characters")
+    }
 
     /** The password held by this [DbUser]. */
     var password by xdRequiredStringProp(unique = false, trimmed = true)

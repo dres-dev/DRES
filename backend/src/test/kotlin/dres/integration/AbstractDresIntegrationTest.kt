@@ -253,7 +253,7 @@ abstract class AbstractDresIntegrationTest {
         return s.transactional {
             val role = DbRole.filter { it.description eq "PARTICIPANT" }.first()
             DbUser.new {
-                username = "user-$nameSuffix".take(16)
+                username = "user-$nameSuffix".take(DbUser.MAX_LENGTH_USERNAME)
                 password = "password"
                 this.role = role
             }

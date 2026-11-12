@@ -1,13 +1,12 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, combineLatest, EMPTY, of } from 'rxjs';
-import { catchError, map, switchMap, shareReplay } from 'rxjs/operators';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import { ApiEvaluationInfo, ApiEvaluationState, ApiMediaItem, EvaluationService } from '../../../../openapi';
 import { AppConfig } from '../../app.config';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { IWsServerMessage } from '../../model/ws/ws-server-message.interface';
-import { VIEWER_SUBMISSION_UPDATE_TYPES, viewerRefreshes } from '../viewer-refresh';
+import { VIEWER_SUBMISSION_UPDATE_TYPES, viewerData, ViewerRefreshEvent } from '../viewer-refresh';
 
 @Component({
   selector: 'app-recent-submissions',
@@ -19,7 +18,7 @@ import { VIEWER_SUBMISSION_UPDATE_TYPES, viewerRefreshes } from '../viewer-refre
 export class RecentSubmissionsComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;
   @Input() state: Observable<ApiEvaluationState>;
-  @Input() messages: Observable<IWsServerMessage> = EMPTY;
+  @Input() refreshEvents: Observable<ViewerRefreshEvent> = EMPTY;
   @Input() reconnected: Observable<void> = EMPTY;
 
   recentSubmissions$: Observable<any[]>;
@@ -42,16 +41,13 @@ export class RecentSubmissionsComponent implements OnInit {
         }
       });
 
-    const submissions$ = viewerRefreshes(
+    const submissions$ = viewerData(
       this.state,
-      this.messages,
+      this.refreshEvents,
       this.reconnected,
-      VIEWER_SUBMISSION_UPDATE_TYPES
-    ).pipe(
-      switchMap((evaluationId) =>
-        this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(evaluationId).pipe(catchError(() => of([])))
-      ),
-      shareReplay({ bufferSize: 1, refCount: true })
+      VIEWER_SUBMISSION_UPDATE_TYPES,
+      'submissions',
+      (evaluationId) => this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(evaluationId).pipe(catchError(() => of([])))
     );
 
     this.recentSubmissions$ = combineLatest([this.info, submissions$, this.state]).pipe(

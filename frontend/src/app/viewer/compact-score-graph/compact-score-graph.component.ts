@@ -4,8 +4,7 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { ApiEvaluationInfo, ApiEvaluationState, EvaluationScoresService } from '../../../../openapi';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { IWsServerMessage } from '../../model/ws/ws-server-message.interface';
-import { VIEWER_DATA_UPDATE_TYPES, viewerRefreshes } from '../viewer-refresh';
+import { VIEWER_ALL_UPDATE_TYPES, viewerData, ViewerRefreshEvent } from '../viewer-refresh';
 
 @Component({
   selector: 'app-compact-score-graph',
@@ -16,7 +15,7 @@ import { VIEWER_DATA_UPDATE_TYPES, viewerRefreshes } from '../viewer-refresh';
 export class CompactScoreGraphComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;
   @Input() state: Observable<ApiEvaluationState>;
-  @Input() messages: Observable<IWsServerMessage> = EMPTY;
+  @Input() refreshEvents: Observable<ViewerRefreshEvent> = EMPTY;
   @Input() reconnected: Observable<void> = EMPTY;
 
   graphData$: Observable<any>;
@@ -47,8 +46,13 @@ export class CompactScoreGraphComponent implements OnInit {
   constructor(private scoreService: EvaluationScoresService) {}
 
   ngOnInit(): void {
-    const rawScores$ = viewerRefreshes(this.state, this.messages, this.reconnected, VIEWER_DATA_UPDATE_TYPES).pipe(
-      switchMap((evaluationId) => this.scoreService.getApiV2ScoreEvaluationByEvaluationId(evaluationId).pipe(catchError(() => of([]))))
+    const rawScores$ = viewerData(
+      this.state,
+      this.refreshEvents,
+      this.reconnected,
+      VIEWER_ALL_UPDATE_TYPES,
+      'all-scores',
+      (evaluationId) => this.scoreService.getApiV2ScoreEvaluationByEvaluationId(evaluationId).pipe(catchError(() => of([])))
     );
 
     this.graphData$ = combineLatest([this.info, rawScores$]).pipe(

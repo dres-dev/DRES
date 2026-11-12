@@ -4,8 +4,7 @@ import { catchError, map, switchMap, shareReplay, retry, startWith } from 'rxjs/
 import { ApiEvaluationInfo, ApiEvaluationState, EvaluationScoresService, EvaluationService } from '../../../../openapi';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { IWsServerMessage } from '../../model/ws/ws-server-message.interface';
-import { VIEWER_SCORE_UPDATE_TYPES, VIEWER_SUBMISSION_UPDATE_TYPES, viewerRefreshes } from '../viewer-refresh';
+import { VIEWER_SCORE_UPDATE_TYPES, VIEWER_SUBMISSION_UPDATE_TYPES, viewerData, ViewerRefreshEvent } from '../viewer-refresh';
 
 @Component({
   selector: 'app-compact-teams-viewer',
@@ -18,7 +17,7 @@ export class CompactTeamsViewerComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;
   @Input() state: Observable<ApiEvaluationState>;
   @Input() taskEnded: Observable<ApiEvaluationState>;
-  @Input() messages: Observable<IWsServerMessage> = EMPTY;
+  @Input() refreshEvents: Observable<ViewerRefreshEvent> = EMPTY;
   @Input() reconnected: Observable<void> = EMPTY;
 
   teamsData$: Observable<any[]>;
@@ -29,25 +28,26 @@ export class CompactTeamsViewerComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const submissions$ = viewerRefreshes(
+    const submissions$ = viewerData(
       this.state,
-      this.messages,
+      this.refreshEvents,
       this.reconnected,
-      VIEWER_SUBMISSION_UPDATE_TYPES
-    ).pipe(
-      switchMap((evaluationId) =>
-        this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(evaluationId).pipe(catchError(() => of([])))
-      ),
-      shareReplay({ bufferSize: 1, refCount: true })
+      VIEWER_SUBMISSION_UPDATE_TYPES,
+      'submissions',
+      (evaluationId) => this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(evaluationId).pipe(catchError(() => of([])))
     );
 
-    const scores$ = viewerRefreshes(this.state, this.messages, this.reconnected, VIEWER_SCORE_UPDATE_TYPES).pipe(
-      switchMap((evaluationId) =>
-        this.scoresService.getApiV2ScoreEvaluationByEvaluationIdCurrent(evaluationId).pipe(
+    const scores$ = viewerData(
+      this.state,
+      this.refreshEvents,
+      this.reconnected,
+      VIEWER_SCORE_UPDATE_TYPES,
+      'current-scores',
+      (evaluationId) => this.scoresService.getApiV2ScoreEvaluationByEvaluationIdCurrent(evaluationId).pipe(
           retry(3),
           catchError(() => of(null))
         )
-      ),
+    ).pipe(
       map((sc) => {
         const scoreMap = new Map<string, number>();
         if (sc && sc.scores) {

@@ -21,8 +21,7 @@ import {
   EvaluationScoresService,
 } from '../../../../openapi';
 import { HttpErrorResponse } from '@angular/common/http';
-import { IWsServerMessage } from '../../model/ws/ws-server-message.interface';
-import { VIEWER_DATA_UPDATE_TYPES, viewerRefreshes } from '../viewer-refresh';
+import { VIEWER_ALL_UPDATE_TYPES, viewerData, ViewerRefreshEvent } from '../viewer-refresh';
 
 /**
  * Component displaying a lovely scoreboard.
@@ -46,7 +45,7 @@ export class ScoreboardViewerComponent implements OnInit {
    * The observable for the state, which is updated through a websocket
    */
   @Input() state: Observable<ApiEvaluationState>;
-  @Input() messages: Observable<IWsServerMessage> = EMPTY;
+  @Input() refreshEvents: Observable<ViewerRefreshEvent> = EMPTY;
   @Input() reconnected: Observable<void> = EMPTY;
 
   /**
@@ -144,18 +143,21 @@ export class ScoreboardViewerComponent implements OnInit {
    */
   private taskGroupOverview(): Observable<ApexAxisChartSeries> {
     /* Download scores. */
-    const score = viewerRefreshes(this.state, this.messages, this.reconnected, VIEWER_DATA_UPDATE_TYPES).pipe(
-      switchMap((evaluationId) => {
-        return this.scoreService.getApiV2ScoreEvaluationByEvaluationIdCurrent(evaluationId).pipe(
-          catchError((err: HttpErrorResponse) => {
-            if (err.status != 404) {
-              //log anything but 404
-              console.log('Error when retrieving scores.', err);
-            }
-            return of(null);
-          })
-        );
-      })
+    const score = viewerData(
+      this.state,
+      this.refreshEvents,
+      this.reconnected,
+      VIEWER_ALL_UPDATE_TYPES,
+      'current-scores',
+      (evaluationId) => this.scoreService.getApiV2ScoreEvaluationByEvaluationIdCurrent(evaluationId).pipe(
+        catchError((err: HttpErrorResponse) => {
+          if (err.status != 404) {
+            //log anything but 404
+            console.log('Error when retrieving scores.', err);
+          }
+          return of(null);
+        })
+      )
     );
 
     /* Generate series. */
@@ -214,21 +216,19 @@ export class ScoreboardViewerComponent implements OnInit {
    */
   private competitionOverviewSeries(): Observable<ApexAxisChartSeries> {
     /* Fetch scores. */
-    const score: Observable<Array<ApiScoreOverview>> = viewerRefreshes(
+    const score: Observable<Array<ApiScoreOverview>> = viewerData(
       this.state,
-      this.messages,
+      this.refreshEvents,
       this.reconnected,
-      VIEWER_DATA_UPDATE_TYPES
-    ).pipe(
-      switchMap((evaluationId) => {
-        return this.scoreService.getApiV2ScoreEvaluationByEvaluationId(evaluationId).pipe(
-          catchError((err) => {
-            console.log('Error when retrieving scores.', err);
-            return of(null);
-          }),
-          map((scores) => scores.filter((so) => this.ignoreScores.indexOf(so.name) < 0))
-        );
-      })
+      VIEWER_ALL_UPDATE_TYPES,
+      'all-scores',
+      (evaluationId) => this.scoreService.getApiV2ScoreEvaluationByEvaluationId(evaluationId).pipe(
+        catchError((err) => {
+          console.log('Error when retrieving scores.', err);
+          return of(null);
+        }),
+        map((scores) => scores.filter((so) => this.ignoreScores.indexOf(so.name) < 0))
+      )
     );
 
     /* Generate series. */

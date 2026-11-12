@@ -22,6 +22,7 @@ import { Title } from '@angular/platform-browser';
 import { ApiEvaluationInfo, ApiEvaluationState, EvaluationService } from '../../../openapi';
 import { Overlay } from '@angular/cdk/overlay';
 import { ViewerPreset } from './model/run-viewer-preset';
+import { ViewerRefreshEvent, viewerRefreshEvents } from './viewer-refresh';
 
 @Component({
   selector: 'app-run-viewer',
@@ -41,6 +42,9 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Evaluation-scoped WebSocket updates shared with viewer widgets. */
   messages: Observable<import('../model/ws/ws-server-message.interface').IWsServerMessage>;
+
+  /** Coalesced, evaluation-scoped event batches shared by REST-backed widgets. */
+  refreshEvents: Observable<ViewerRefreshEvent>;
 
   /** Signals that widget data must be refreshed after a missed WebSocket interval. */
   reconnected: Observable<void>;
@@ -172,6 +176,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       switchMap((id) => this.wsService.messages$.pipe(filter((msg) => msg.evaluationId === id))),
       share()
     );
+    this.refreshEvents = viewerRefreshEvents(this.messages);
 
     /* WS messages that carry a state diff directly (TASK_START, TASK_END). */
     const stateWs$ = this.messages.pipe(

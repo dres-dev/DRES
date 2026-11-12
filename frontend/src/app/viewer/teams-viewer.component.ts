@@ -24,8 +24,7 @@ import {
   EvaluationService,
 } from '../../../openapi';
 import { HttpErrorResponse } from '@angular/common/http';
-import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
-import { VIEWER_SCORE_UPDATE_TYPES, VIEWER_SUBMISSION_UPDATE_TYPES, viewerRefreshes } from './viewer-refresh';
+import { VIEWER_SCORE_UPDATE_TYPES, VIEWER_SUBMISSION_UPDATE_TYPES, viewerData, ViewerRefreshEvent } from './viewer-refresh';
 
 /**
  * Internal helper interface.
@@ -94,7 +93,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
   /** Observable that fires whenever a task ends. Emits the {@link ApiEvaluationState} that triggered the fire. */
   @Input() taskEnded: Observable<ApiEvaluationState>;
-  @Input() messages: Observable<IWsServerMessage> = EMPTY;
+  @Input() refreshEvents: Observable<ViewerRefreshEvent> = EMPTY;
   @Input() reconnected: Observable<void> = EMPTY;
 
   /** Observable that tracks all the submissions. */
@@ -141,20 +140,22 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     /* Create source observable; list of all submissions.  */
-    this.submissions = viewerRefreshes(this.state, this.messages, this.reconnected, VIEWER_SUBMISSION_UPDATE_TYPES).pipe(
-      switchMap((evaluationId) =>
-        this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(evaluationId).pipe(
-          catchError((err: HttpErrorResponse) => {
-            if (err.status != 404) {
-              //log anything but 404
-              console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
-            }
-            return of(null);
-          }),
-          filter((sb) => sb != null) /* Filter null responses. */
-        )
-      ),
-      shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading of submission. */
+    this.submissions = viewerData(
+      this.state,
+      this.refreshEvents,
+      this.reconnected,
+      VIEWER_SUBMISSION_UPDATE_TYPES,
+      'submissions',
+      (evaluationId) => this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(evaluationId).pipe(
+        catchError((err: HttpErrorResponse) => {
+          if (err.status != 404) {
+            //log anything but 404
+            console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
+          }
+          return of(null);
+        }),
+        filter((sb) => sb != null) /* Filter null responses. */
+      )
     );
 
     /* Observable that tracks all the submissions per team. */
@@ -173,20 +174,24 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /* Observable that tracks the current score per team. */
-    this.scores = viewerRefreshes(this.state, this.messages, this.reconnected, VIEWER_SCORE_UPDATE_TYPES).pipe(
-      switchMap((evaluationId) =>
-        this.scoresService.getApiV2ScoreEvaluationByEvaluationIdCurrent(evaluationId).pipe(
-          retry(3),
-          catchError((err: HttpErrorResponse) => {
-            if (err.status != 404) {
-              //log anything but 404
-              console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);
-            }
-            return of(null);
-          }),
-          filter((sc) => sc != null) /* Filter null responses. */
-        )
-      ),
+    this.scores = viewerData(
+      this.state,
+      this.refreshEvents,
+      this.reconnected,
+      VIEWER_SCORE_UPDATE_TYPES,
+      'current-scores',
+      (evaluationId) => this.scoresService.getApiV2ScoreEvaluationByEvaluationIdCurrent(evaluationId).pipe(
+        retry(3),
+        catchError((err: HttpErrorResponse) => {
+          if (err.status != 404) {
+            //log anything but 404
+            console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);
+          }
+          return of(null);
+        }),
+        filter((sc) => sc != null) /* Filter null responses. */
+      )
+    ).pipe(
       map((sc: ApiScoreOverview) => {
         const scores = new Map<string, number>();
         sc.scores.forEach((v) => scores.set(v.teamId, v.score));

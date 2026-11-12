@@ -1,5 +1,5 @@
 import { merge, Observable } from 'rxjs';
-import { auditTime, distinctUntilChanged, filter, map, shareReplay, take, withLatestFrom } from 'rxjs/operators';
+import { auditTime, distinctUntilChanged, filter, map, shareReplay, withLatestFrom } from 'rxjs/operators';
 import { ApiEvaluationState } from '../../../openapi';
 import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
@@ -31,8 +31,9 @@ export function viewerRefreshes(
   );
 
   const reconnectRefreshes = reconnected.pipe(withLatestFrom(evaluationId), map(([, currentId]) => currentId));
+  const stateRefreshes = evaluationId.pipe(map((currentId) => currentId));
 
-  return merge(evaluationId.pipe(take(1)), eventRefreshes, reconnectRefreshes);
+  return merge(stateRefreshes, eventRefreshes, reconnectRefreshes);
 }
 
 export const VIEWER_DATA_UPDATE_TYPES: ServerMessageType.ServerMessageTypeEnum[] = [

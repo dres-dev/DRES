@@ -145,6 +145,17 @@ object RunExecutor : StreamEventHandler {
             val connectedBefore = now - VIEWER_CONNECTION_TIMEOUT_MS
             val managerSnapshot = this@RunExecutor.runManagerLock.read { HashMap(this@RunExecutor.runManagers) }
             synchronized(this@RunExecutor.viewerSocketLock) {
+                (this@RunExecutor.viewerSockets.keys - managerSnapshot.keys).forEach { evaluationId ->
+                    this@RunExecutor.viewerSockets.remove(evaluationId)?.values?.forEach { sessionIds ->
+                        sessionIds.forEach { sessionId ->
+                            this@RunExecutor.socketViewers[sessionId]?.remove(evaluationId)
+                            this@RunExecutor.lastViewerPing[sessionId]?.remove(evaluationId)
+                            this@RunExecutor.observingClients[evaluationId]?.remove(sessionId)
+                            if (this@RunExecutor.socketViewers[sessionId]?.isEmpty() == true) this@RunExecutor.socketViewers.remove(sessionId)
+                            if (this@RunExecutor.lastViewerPing[sessionId]?.isEmpty() == true) this@RunExecutor.lastViewerPing.remove(sessionId)
+                        }
+                    }
+                }
                 this@RunExecutor.viewerSockets.forEach { (evaluationId, viewers) ->
                     val manager = managerSnapshot[evaluationId] ?: return@forEach
                     viewers.forEach { (viewer, sessionIds) ->
@@ -237,13 +248,21 @@ object RunExecutor : StreamEventHandler {
                         }
                         ClientMessageType.PING -> {
                             synchronized(this.viewerSocketLock) {
-                                this.socketViewers[ctx.sessionId()]?.get(message.evaluationId)?.let { viewer ->
+                                var viewer = this.socketViewers[ctx.sessionId()]?.get(message.evaluationId)
+                                if (viewer == null && AccessManager.canViewEvaluation(ctx.sessionToken(), manager)) {
+                                    viewer = runCatching { ViewerInfo(ctx) }.getOrNull()
+                                    if (viewer != null) {
+                                        this.observingClients[message.evaluationId]?.add(ctx.sessionId())
+                                        this.registerSocketViewer(ctx.sessionId(), message.evaluationId, viewer, manager)
+                                    }
+                                }
+                                viewer?.let {
                                     val now = System.currentTimeMillis()
                                     this.lastViewerPing.computeIfAbsent(ctx.sessionId()) { ConcurrentHashMap() }[message.evaluationId] = now
-                                    if (manager.viewerPresence(viewer)?.connected == false) {
-                                        manager.viewerConnectionChanged(viewer, true, now)
+                                    if (manager.viewerPresence(it)?.connected == false) {
+                                        manager.viewerConnectionChanged(it, true, now)
                                     } else {
-                                        manager.viewerConnectionHeartbeat(viewer)
+                                        manager.viewerConnectionHeartbeat(it)
                                     }
                                 }
                             }

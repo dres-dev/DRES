@@ -14,7 +14,7 @@ import { VIEWER_SCORE_UPDATE_TYPES, VIEWER_SUBMISSION_UPDATE_TYPES, viewerRefres
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, MatTooltipModule],
 })
-export class CompactTeamsViewerComponent implements OnInit, OnDestroy {
+export class CompactTeamsViewerComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;
   @Input() state: Observable<ApiEvaluationState>;
   @Input() taskEnded: Observable<ApiEvaluationState>;

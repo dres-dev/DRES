@@ -142,6 +142,17 @@ object UserManager {
         }
     }
 
+    /** Resolves many user IDs in one readonly database transaction. */
+    fun getAll(ids: Collection<UserId>): Map<UserId, ApiUser> {
+        if (ids.isEmpty()) return emptyMap()
+        val requested = ids.toSet()
+        return this.store.transactional(true) {
+            requested.mapNotNull { id ->
+                DbUser.query(DbUser::id eq id).firstOrNull()?.let { user -> id to user.toApi() }
+            }.toMap()
+        }
+    }
+
     /**
      * Either returns a user for this username/password tuple or null
      */

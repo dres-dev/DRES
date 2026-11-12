@@ -108,6 +108,11 @@ object AccessManager {
         this.sessionUserMap[sessionId]
     }
 
+    /** Resolves multiple session tokens with one access-map read lock. */
+    fun userIdsForSessions(sessionIds: Collection<String>): Map<String, UserId> = this.locks.read {
+        sessionIds.mapNotNull { sessionId -> this.sessionUserMap[sessionId]?.let { sessionId to it } }.toMap()
+    }
+
 
 
     /**

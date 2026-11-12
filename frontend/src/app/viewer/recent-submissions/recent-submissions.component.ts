@@ -1,11 +1,13 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Observable, combineLatest, of } from 'rxjs';
-import { catchError, map, switchMap, filter, sampleTime, shareReplay } from 'rxjs/operators';
+import { Observable, combineLatest, EMPTY, of } from 'rxjs';
+import { catchError, map, switchMap, shareReplay } from 'rxjs/operators';
 import { ApiEvaluationInfo, ApiEvaluationState, ApiMediaItem, EvaluationService } from '../../../../openapi';
 import { AppConfig } from '../../app.config';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { IWsServerMessage } from '../../model/ws/ws-server-message.interface';
+import { VIEWER_SUBMISSION_UPDATE_TYPES, viewerRefreshes } from '../viewer-refresh';
 
 @Component({
   selector: 'app-recent-submissions',
@@ -17,6 +19,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class RecentSubmissionsComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;
   @Input() state: Observable<ApiEvaluationState>;
+  @Input() messages: Observable<IWsServerMessage> = EMPTY;
+  @Input() reconnected: Observable<void> = EMPTY;
 
   recentSubmissions$: Observable<any[]>;
 
@@ -38,10 +42,14 @@ export class RecentSubmissionsComponent implements OnInit {
         }
       });
 
-    const submissions$ = this.state.pipe(
-      sampleTime(2000),
-      switchMap((st) =>
-        this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(st.evaluationId).pipe(catchError(() => of([])))
+    const submissions$ = viewerRefreshes(
+      this.state,
+      this.messages,
+      this.reconnected,
+      VIEWER_SUBMISSION_UPDATE_TYPES
+    ).pipe(
+      switchMap((evaluationId) =>
+        this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(evaluationId).pipe(catchError(() => of([])))
       ),
       shareReplay({ bufferSize: 1, refCount: true })
     );

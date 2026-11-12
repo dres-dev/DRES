@@ -1,15 +1,14 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
   OnDestroy,
   ViewChild,
 } from '@angular/core';
-import { BehaviorSubject, combineLatest, merge, mergeMap, Observable, of, Subscription } from 'rxjs';
-import { catchError, filter, map, pairwise, retry, sampleTime, shareReplay, switchMap, withLatestFrom } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, EMPTY, merge, mergeMap, Observable, of, Subscription } from 'rxjs';
+import { catchError, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { animate, keyframes, style, transition, trigger } from '@angular/animations';
 import {
@@ -25,6 +24,8 @@ import {
   EvaluationService,
 } from '../../../openapi';
 import { HttpErrorResponse } from '@angular/common/http';
+import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
+import { VIEWER_SCORE_UPDATE_TYPES, VIEWER_SUBMISSION_UPDATE_TYPES, viewerRefreshes } from './viewer-refresh';
 
 /**
  * Internal helper interface.
@@ -93,6 +94,8 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
   /** Observable that fires whenever a task ends. Emits the {@link ApiEvaluationState} that triggered the fire. */
   @Input() taskEnded: Observable<ApiEvaluationState>;
+  @Input() messages: Observable<IWsServerMessage> = EMPTY;
+  @Input() reconnected: Observable<void> = EMPTY;
 
   /** Observable that tracks all the submissions. */
   submissions: Observable<ApiSubmission[]>;
@@ -119,19 +122,12 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   taskEndedSoundEffect: Subscription;
 
   lastTrackMap: Map<string, number> = new Map<string, number>();
-  submissionTrackInterval: number = 60_000;
 
   constructor(
     private evaluationService: EvaluationService,
     private scoresService: EvaluationScoresService,
-    private ref: ChangeDetectorRef,
     public config: AppConfig
-  ) {
-    this.ref.detach();
-    setInterval(() => {
-      this.ref.detectChanges();
-    }, 500);
-  }
+  ) {}
 
   private playOnce(audio: HTMLAudioElement) {
     if (this.config.config.effects.mute) {
@@ -145,10 +141,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     /* Create source observable; list of all submissions.  */
-    this.submissions = this.state.pipe(
-      sampleTime(2000), //only check once every two seconds
-      switchMap((st) =>
-        this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(st.evaluationId).pipe(
+    this.submissions = viewerRefreshes(this.state, this.messages, this.reconnected, VIEWER_SUBMISSION_UPDATE_TYPES).pipe(
+      switchMap((evaluationId) =>
+        this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(evaluationId).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status != 404) {
               //log anything but 404
@@ -178,9 +173,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /* Observable that tracks the current score per team. */
-    this.scores = this.state.pipe(
-      switchMap((st) =>
-        this.scoresService.getApiV2ScoreEvaluationByEvaluationIdCurrent(st.evaluationId).pipe(
+    this.scores = viewerRefreshes(this.state, this.messages, this.reconnected, VIEWER_SCORE_UPDATE_TYPES).pipe(
+      switchMap((evaluationId) =>
+        this.scoresService.getApiV2ScoreEvaluationByEvaluationIdCurrent(evaluationId).pipe(
           retry(3),
           catchError((err: HttpErrorResponse) => {
             if (err.status != 404) {

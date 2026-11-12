@@ -6,6 +6,7 @@ import {
   filter,
   map,
   pairwise,
+  share,
   shareReplay,
   switchMap,
   take
@@ -37,6 +38,12 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Observable for information about the current run's {@link ApiEvaluationState}. */
   state: Observable<ApiEvaluationState>;
+
+  /** Evaluation-scoped WebSocket updates shared with viewer widgets. */
+  messages: Observable<import('../model/ws/ws-server-message.interface').IWsServerMessage>;
+
+  /** Signals that widget data must be refreshed after a missed WebSocket interval. */
+  reconnected: Observable<void>;
 
   /** Observable that fires whenever a task starts. Emits the {@link ApiEvaluationState} that triggered the fire. */
   taskStarted: Observable<ApiEvaluationState>;
@@ -160,8 +167,14 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
+    this.reconnected = this.wsService.reconnected$;
+    this.messages = this.evaluationId.pipe(
+      switchMap((id) => this.wsService.messages$.pipe(filter((msg) => msg.evaluationId === id))),
+      share()
+    );
+
     /* WS messages that carry a state diff directly (TASK_START, TASK_END). */
-    const stateWs$ = this.wsService.messages$.pipe(
+    const stateWs$ = this.messages.pipe(
       filter((msg) => [
         ServerMessageType.ServerMessageTypeEnum.TASK_START,
         ServerMessageType.ServerMessageTypeEnum.TASK_END,
@@ -169,12 +182,10 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     /* WS messages that signal a state change but carry no payload of their own. */
-    const stateRefreshWs$ = this.wsService.messages$.pipe(
+    const stateRefreshWs$ = this.messages.pipe(
       filter((msg) => [
         ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
-        ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
         ServerMessageType.ServerMessageTypeEnum.COMPETITION_START,
-        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
         ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
       ].includes(msg.type))
     );
@@ -186,15 +197,17 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
           this.runService.getApiV2EvaluationByEvaluationIdState(id),
           /* Apply diff directly when the WS message carries state — no HTTP needed. */
           stateWs$.pipe(
-            filter((msg) => msg.state != null),
+            filter((msg) => msg.evaluationId === id && msg.state != null),
             map((msg) => msg.state as ApiEvaluationState)
           ),
           /* Fallback HTTP fetch for state-carrying messages without a payload, for
              messages that signal a state change without carrying one, and after a
              WebSocket reconnect — any event missed while disconnected needs a full resync. */
-          merge(stateWs$.pipe(filter((msg) => msg.state == null)), stateRefreshWs$, this.wsService.reconnected$).pipe(
-            switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(id))
-          )
+          merge(
+            stateWs$.pipe(filter((msg) => msg.evaluationId === id && msg.state == null)),
+            stateRefreshWs$.pipe(filter((msg) => msg.evaluationId === id)),
+            this.wsService.reconnected$
+          ).pipe(switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(id)))
         )
       ),
       catchError((err, o) => {

@@ -112,16 +112,20 @@
         [competitionOverview]="true"
         [info]="info"
         [state]="state"
+        [messages]="messages"
+        [reconnected]="reconnected"
       ></app-scoreboard-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'task_type_score'"
         [competitionOverview]="false"
         [info]="info"
         [state]="state"
+        [messages]="messages"
+        [reconnected]="reconnected"
       ></app-scoreboard-viewer>
-      <app-leaderboard-viewer *ngSwitchCase="'scoreboard'" [info]="info" [state]="state"></app-leaderboard-viewer>
-      <app-recent-submissions *ngSwitchCase="'recent_submissions'" [info]="info" [state]="state"></app-recent-submissions>
-      <app-compact-score-graph *ngSwitchCase="'compact_score_graph'" [info]="info" [state]="state"></app-compact-score-graph>
+      <app-leaderboard-viewer *ngSwitchCase="'scoreboard'" [info]="info" [state]="state" [messages]="messages" [reconnected]="reconnected"></app-leaderboard-viewer>
+      <app-recent-submissions *ngSwitchCase="'recent_submissions'" [info]="info" [state]="state" [messages]="messages" [reconnected]="reconnected"></app-recent-submissions>
+      <app-compact-score-graph *ngSwitchCase="'compact_score_graph'" [info]="info" [state]="state" [messages]="messages" [reconnected]="reconnected"></app-compact-score-graph>
     </div>
 
     <div
@@ -144,16 +148,20 @@
         [competitionOverview]="true"
         [info]="info"
         [state]="state"
+        [messages]="messages"
+        [reconnected]="reconnected"
       ></app-scoreboard-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'task_type_score'"
         [competitionOverview]="false"
         [info]="info"
         [state]="state"
+        [messages]="messages"
+        [reconnected]="reconnected"
       ></app-scoreboard-viewer>
-      <app-leaderboard-viewer *ngSwitchCase="'scoreboard'" [info]="info" [state]="state"></app-leaderboard-viewer>
-      <app-recent-submissions *ngSwitchCase="'recent_submissions'" [info]="info" [state]="state"></app-recent-submissions>
-      <app-compact-score-graph *ngSwitchCase="'compact_score_graph'" [info]="info" [state]="state"></app-compact-score-graph>
+      <app-leaderboard-viewer *ngSwitchCase="'scoreboard'" [info]="info" [state]="state" [messages]="messages" [reconnected]="reconnected"></app-leaderboard-viewer>
+      <app-recent-submissions *ngSwitchCase="'recent_submissions'" [info]="info" [state]="state" [messages]="messages" [reconnected]="reconnected"></app-recent-submissions>
+      <app-compact-score-graph *ngSwitchCase="'compact_score_graph'" [info]="info" [state]="state" [messages]="messages" [reconnected]="reconnected"></app-compact-score-graph>
     </div>
 
     <div
@@ -176,16 +184,20 @@
         [competitionOverview]="true"
         [info]="info"
         [state]="state"
+        [messages]="messages"
+        [reconnected]="reconnected"
       ></app-scoreboard-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'task_type_score'"
         [competitionOverview]="false"
         [info]="info"
         [state]="state"
+        [messages]="messages"
+        [reconnected]="reconnected"
       ></app-scoreboard-viewer>
-      <app-leaderboard-viewer *ngSwitchCase="'scoreboard'" [info]="info" [state]="state"></app-leaderboard-viewer>
-      <app-recent-submissions *ngSwitchCase="'recent_submissions'" [info]="info" [state]="state"></app-recent-submissions>
-      <app-compact-score-graph *ngSwitchCase="'compact_score_graph'" [info]="info" [state]="state"></app-compact-score-graph>
+      <app-leaderboard-viewer *ngSwitchCase="'scoreboard'" [info]="info" [state]="state" [messages]="messages" [reconnected]="reconnected"></app-leaderboard-viewer>
+      <app-recent-submissions *ngSwitchCase="'recent_submissions'" [info]="info" [state]="state" [messages]="messages" [reconnected]="reconnected"></app-recent-submissions>
+      <app-compact-score-graph *ngSwitchCase="'compact_score_graph'" [info]="info" [state]="state" [messages]="messages" [reconnected]="reconnected"></app-compact-score-graph>
     </div>
   </div>
 
@@ -196,12 +208,16 @@
       [taskEnded]="taskEnded"
       [info]="info"
       [state]="state"
+      [messages]="messages"
+      [reconnected]="reconnected"
     ></app-teams-viewer>
     <app-compact-teams-viewer
       *ngSwitchCase="'compact_team_score'"
       [info]="info"
       [state]="state"
       [taskEnded]="taskEnded"
+      [messages]="messages"
+      [reconnected]="reconnected"
     ></app-compact-teams-viewer>
   </div>
 </div>

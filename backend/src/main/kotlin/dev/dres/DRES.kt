@@ -16,6 +16,7 @@ import dev.dres.data.model.template.task.options.*
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamAggregator
 import dev.dres.data.model.template.team.DbTeamGroup
+import dev.dres.mgmt.MediaCollectionMaintenance
 import dev.dres.mgmt.EvaluationManager
 import dev.dres.mgmt.MediaCollectionManager
 import dev.dres.mgmt.TemplateManager
@@ -124,6 +125,7 @@ object DRES {
         /* Initialize data managers */
         UserManager.init(store)
         MediaCollectionManager.init(store)
+        MediaCollectionMaintenance.init(store) { CONFIG.cache.ffmpegPath() }
         TemplateManager.init(store)
         EvaluationManager.init(store)
 
@@ -148,11 +150,15 @@ object DRES {
         }
 
         /* Stop. */
-        global.stop()
-        RestApi.stop()
-        RunExecutor.stop()
-        EventStreamProcessor.stop()
-        AuditLogger.stop()
+        try {
+            global.stop()
+        } finally {
+            RestApi.stop()
+            RunExecutor.stop()
+            EventStreamProcessor.stop()
+            MediaCollectionMaintenance.stop()
+            AuditLogger.stop()
+        }
     }
 
     /**

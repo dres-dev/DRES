@@ -1,1 +1,8 @@
-/* no component styles */
+.toolbar-separator {
+  display: inline-block;
+  width: 1px;
+  height: 24px;
+  margin: 0 0.5rem;
+  vertical-align: middle;
+  background: rgba(127, 127, 127, 0.4);
+}

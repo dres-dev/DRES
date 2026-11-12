@@ -16,6 +16,25 @@
     <button mat-icon-button aria-label="Create new media item." matTooltip="Create new media item." (click)="create()">
       <mat-icon>note_add</mat-icon>
     </button>
+    <span class="toolbar-separator"></span>
+    <button mat-icon-button aria-label="Scan collection folder." matTooltip="Scan folder and add new files" (click)="scan()">
+      <mat-icon>travel_explore</mat-icon>
+    </button>
+    <button mat-icon-button aria-label="Check files." matTooltip="Check that all files exist and are readable" [disabled]="busy" (click)="check()">
+      <mat-icon>fact_check</mat-icon>
+    </button>
+    <app-download-button
+      [inline]="true"
+      [icon]="'file_download'"
+      [contentType]="'text/csv'"
+      [fileName]="csvFileName"
+      [downloadProvider]="csvProvider"
+      matTooltip="Export item list as CSV"
+      aria-label="Export item list as CSV."
+    ></app-download-button>
+    <button mat-icon-button color="warn" aria-label="Delete all media items." matTooltip="Delete all media items" [disabled]="busy" (click)="deleteAll()">
+      <mat-icon>delete_sweep</mat-icon>
+    </button>
   </div>
 </div>
 <div class="flex">

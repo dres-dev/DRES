@@ -119,6 +119,11 @@ object RestApi {
             ShowMediaItemHandler(),
             ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
             ListMediaItemHandler(),
+            StartCollectionScanHandler(),
+            CollectionScanStatusHandler(),
+            CheckCollectionHandler(),
+            DeleteCollectionItemsHandler(),
+            CollectionExportHandler(),
             if (DRES.CONFIG.externalMediaEndpointsEnabled) {
                 UploadExternalItemHandler()
             } else {

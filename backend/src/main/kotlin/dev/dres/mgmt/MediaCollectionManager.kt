@@ -96,26 +96,31 @@ object MediaCollectionManager {
 
     }
 
-    fun addMediaItems(collectionId: CollectionId, mediaItems: Collection<ApiMediaItem>) {
+    /** Adds media items that do not conflict by either location or collection-unique name. Returns the count added. */
+    fun addMediaItems(collectionId: CollectionId, mediaItems: Collection<ApiMediaItem>): Int = this.store.transactional {
+        val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
+            ?: throw IllegalArgumentException("Invalid parameters, collection with ID $collectionId does not exist.")
 
-        this.store.transactional {
-            val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
-                ?: throw IllegalArgumentException("Invalid parameters, collection with ID $collectionId does not exist.")
+        val knownItems = collection.items.asSequence().toList()
+        val knownLocations = knownItems.mapTo(mutableSetOf()) { it.location }
+        val knownNames = knownItems.mapTo(mutableSetOf()) { it.name }
+        var added = 0
 
-            mediaItems.filter { item -> collection.items.filter { it.location eq item.location }.isEmpty }
-                .forEach { mediaItem ->
-                    val item = DbMediaItem.new {
-                        this.type = mediaItem.type.toDb()
-                        this.name = mediaItem.name
-                        this.location = mediaItem.location
-                        this.fps = mediaItem.fps
-                        this.durationMs = mediaItem.durationMs
-                    }
-                    collection.items.add(item)
-                }
-
+        mediaItems.forEach { mediaItem ->
+            if (mediaItem.location in knownLocations || mediaItem.name in knownNames) return@forEach
+            knownLocations.add(mediaItem.location)
+            knownNames.add(mediaItem.name)
+            val item = DbMediaItem.new {
+                this.type = mediaItem.type.toDb()
+                this.name = mediaItem.name
+                this.location = mediaItem.location
+                this.fps = mediaItem.fps
+                this.durationMs = mediaItem.durationMs
+            }
+            collection.items.add(item)
+            added++
         }
-
+        added
     }
 
     fun getMediaItem(mediaItemId: MediaItemId): ApiMediaItem? = this.store.transactional(true) {

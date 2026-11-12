@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { BehaviorSubject, mergeMap, Observable, of, Subject, Subscription } from 'rxjs';
-import { catchError, filter, map, retry, shareReplay, switchMap } from 'rxjs/operators';
+import { catchError, filter, map, retry, shareReplay, switchMap, take } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import {
   MediaItemBuilderData,
@@ -12,7 +12,19 @@ import {
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
-import { ApiMediaItem, ApiPopulatedMediaCollection, CollectionService } from '../../../../openapi';
+import { ApiMediaItem, ApiPopulatedMediaCollection, CollectionService, DownloadService } from '../../../../openapi';
+import {
+  ConfirmationDialogComponent,
+  ConfirmationDialogComponentData,
+} from '../../shared/confirmation-dialog/confirmation-dialog.component';
+import {
+  CollectionScanDialogComponent,
+  CollectionScanDialogData,
+} from '../collection-maintenance/collection-scan-dialog.component';
+import {
+  CollectionReportDialogComponent,
+  CollectionReportDialogData,
+} from '../collection-maintenance/collection-report-dialog.component';
 
 @Component({
   selector: 'app-collection-viewer',
@@ -52,7 +64,8 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     private snackBar: MatSnackBar,
     private router: Router,
     private dialog: MatDialog,
-    private config: AppConfig
+    private config: AppConfig,
+    private downloadService: DownloadService
   ) {
     this.collectionId = this.activeRoute.params.pipe(map((p) => p.collectionId));
   }
@@ -93,6 +106,12 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
     this.subscription = this.collection.subscribe((s: ApiPopulatedMediaCollection) => {
+      if (this.currentCollection?.collection?.id !== s.collection.id) {
+        this.csvProvider = this.downloadService
+          .getApiV2DownloadCollectionByCollectionId(s.collection.id, 'body', false, { httpHeaderAccept: 'text/plain' })
+          .pipe(take(1));
+      }
+      this.currentCollection = s;
       this.dataSource.data = s.items;
       this.isLoading = false;
     });
@@ -113,6 +132,106 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
     this.subscription = null;
+  }
+
+  /** True while a check or bulk deletion is running. */
+  busy = false;
+
+  /** CSV export of all items; the observable is created lazily per collection and re-used by the download button. */
+  csvProvider: Observable<string>;
+
+  csvFileName = () => {
+    const name = this.currentCollection?.collection?.name ?? 'collection';
+    return `${name.replace(/[^\w.-]+/g, '_')}-items.csv`;
+  };
+
+  /** The most recently loaded collection. */
+  private currentCollection: ApiPopulatedMediaCollection;
+
+  scan() {
+    const c = this.currentCollection?.collection;
+    if (!c) return;
+    this.dialog
+      .open(CollectionScanDialogComponent, {
+        data: { collectionId: c.id, collectionName: c.name, basePath: c.basePath } as CollectionScanDialogData,
+        disableClose: false,
+      })
+      .afterClosed()
+      .subscribe(() => this.refreshSubject.next());
+  }
+
+  check() {
+    const c = this.currentCollection?.collection;
+    if (!c) return;
+    this.busy = true;
+    this.collectionService.postApiV2CollectionByCollectionIdCheck(c.id).subscribe({
+      next: (r) => {
+        this.busy = false;
+        this.dialog.open(CollectionReportDialogComponent, {
+          data: {
+            title: `File check of "${c.name}"`,
+            summary: [
+              r.issueCount === 0
+                ? `All ${r.total} files exist and are readable.`
+                : `${r.ok} of ${r.total} files are fine, ${r.issueCount} ${r.issueCount === 1 ? 'is' : 'are'} missing or not readable:`,
+            ],
+            issues: r.issues,
+            total: r.issueCount,
+          } as CollectionReportDialogData,
+        });
+      },
+      error: (e) => {
+        this.busy = false;
+        this.snackBar.open(`Error: ${e?.error?.description ?? e.message}`, null, { duration: 5000 });
+      },
+    });
+  }
+
+  deleteAll() {
+    const c = this.currentCollection?.collection;
+    if (!c) return;
+    const count = this.currentCollection.items.length;
+    this.dialog
+      .open(ConfirmationDialogComponent, {
+        data: {
+          text:
+            `Delete all ${count} media items of "${c.name}"? The files on disk are not touched. ` +
+            `Items that are still used by a template or by submissions of an evaluation are kept and listed.`,
+          color: 'warn',
+        } as ConfirmationDialogComponentData,
+      })
+      .afterClosed()
+      .pipe(filter((confirmed) => !!confirmed))
+      .subscribe(() => {
+        this.busy = true;
+        this.collectionService.deleteApiV2CollectionByCollectionIdItems(c.id).subscribe({
+          next: (r) => {
+            this.busy = false;
+            this.refreshSubject.next();
+            this.dialog.open(CollectionReportDialogComponent, {
+              data: {
+                title: `Deleted items of "${c.name}"`,
+                summary: [
+                  `${r.deleted} items deleted.`,
+                  ...(r.blockedCount > 0
+                    ? [
+                        `${r.blockedCount} items were kept because they are still in use. Delete or change the templates ` +
+                          `and stopped evaluations listed below, then delete the remaining items again.`,
+                      ]
+                    : []),
+                ],
+                issues: r.blocked,
+                total: r.blockedCount,
+              } as CollectionReportDialogData,
+            });
+          },
+          error: (e) => {
+            this.busy = false;
+            this.refreshSubject.next();
+            this.snackBar.open(`Error: ${e?.error?.description ?? e.message}`, null, { duration: 5000 });
+          },
+        });
+      });
   }
 
   delete(id: string) {

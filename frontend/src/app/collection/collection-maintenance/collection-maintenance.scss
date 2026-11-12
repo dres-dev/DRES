@@ -1,0 +1,63 @@
+.maintenance-dialog {
+  min-width: min(560px, 80vw);
+}
+
+.full {
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+.hint,
+.muted {
+  opacity: 0.75;
+}
+
+.status {
+  margin-top: 0.5rem;
+}
+
+.status-line {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.5rem 0;
+}
+
+.warn {
+  color: var(--mat-sys-error, #f44336);
+}
+
+.issue-list {
+  max-height: 40vh;
+  overflow: auto;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 4px;
+}
+
+.issue {
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.2);
+}
+
+.issue:last-child {
+  border-bottom: none;
+}
+
+.location {
+  font-size: 0.85em;
+  word-break: break-all;
+}
+
+.problem {
+  font-size: 0.9em;
+  opacity: 0.85;
+}

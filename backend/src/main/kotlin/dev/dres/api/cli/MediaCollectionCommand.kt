@@ -13,13 +13,10 @@ import com.github.ajalt.clikt.parameters.types.float
 import com.github.ajalt.clikt.parameters.types.long
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
-import com.github.kokorin.jaffree.StreamType
-import com.github.kokorin.jaffree.ffprobe.FFprobe
-import com.github.kokorin.jaffree.ffprobe.FFprobeResult
 import com.jakewharton.picnic.table
 import dev.dres.api.rest.types.collection.*
-import dev.dres.data.model.config.Config
 import dev.dres.data.model.media.*
+import dev.dres.mgmt.MediaCollectionMaintenance
 import dev.dres.mgmt.MediaCollectionManager
 import dev.dres.utilities.extensions.cleanPathString
 import kotlinx.dnq.query.*
@@ -43,7 +40,7 @@ import kotlin.streams.asSequence
  * @author Loris Sauter
  * @version 2.0.0
  */
-class MediaCollectionCommand(private val config: Config) :
+class MediaCollectionCommand :
     NoOpCliktCommand(name = "collection") {
     private val logMarker = MarkerFactory.getMarker("CLI")
     private val logger = LoggerFactory.getLogger(this.javaClass)
@@ -367,29 +364,16 @@ class MediaCollectionCommand(private val config: Config) :
         help = "Checks if all the files in a media collection are present and accessible."
     ) {
         override fun run() {
-            /* Find media collection. */
-            val collection = try{
-                resolvePopulated(collectionAddress)
-            }catch(ex: IllegalArgumentException){
+            val collection = try {
+                resolve(collectionAddress)
+            } catch (ex: IllegalArgumentException) {
                 println(ex.message)
                 return
             }
-
-            /* Check items. */
-            var counter = 0
-            for (item in collection.items) {
-                val path = Paths.get(collection.collection.basePath!!, item.location)
-                if (Files.exists(path)) {
-                    if (Files.isReadable(path)) {
-                        counter++
-                    } else {
-                        println("Item ${item.name} at $path not readable.")
-                    }
-                } else {
-                    println("Item ${item.name} at $path not found.")
-                }
-            }
-            println("Successfully checked $counter of ${collection.items.size} media items")
+            val result = MediaCollectionMaintenance.check(collection.id!!) ?: return
+            result.issues.forEach { println("Item ${it.name}: ${it.problem}") }
+            if (result.issueCount > result.issues.size) println("... and ${result.issueCount - result.issues.size} more.")
+            println("Successfully checked ${result.ok} of ${result.total} media items")
         }
     }
 
@@ -417,134 +401,27 @@ class MediaCollectionCommand(private val config: Config) :
             help = "Video file types (endings) to be considered in the scan"
         ).convert { it.lowercase() }.multiple()
 
-        private fun analyze(videoPath: Path, countFrames: Boolean = false): FFprobeResult =
-            FFprobe.atPath(this@MediaCollectionCommand.config.cache.ffmpegPath()
-                ?: throw IllegalStateException("FFmpeg is required to scan video files. Run 'setup ffmpeg' or install FFmpeg system-wide."))
-                .setInput(videoPath)
-                .setShowStreams(true)
-                .setCountFrames(countFrames)
-                .setSelectStreams(StreamType.VIDEO)
-                .execute()
 
 
         override fun run() {
-
-
-            /* Sanity check. */
-            if (imageTypes.isEmpty() && videoTypes.isEmpty()) {
-                println("No file types specified.")
-                return
-            }
-
-            /* Find media collection and note base path */
-
-            val collection = try{
+            val collection = try {
                 resolve(collectionAddress)
-            }catch(ex: IllegalArgumentException){
+            } catch (ex: IllegalArgumentException) {
                 println(ex.message)
                 return
             }
-
-            val base = Paths.get(collection.basePath!!)
-            if (!Files.exists(base)) {
-                println("Failed to scan collection; '$base' does not exist.")
+            val result = try {
+                MediaCollectionMaintenance.scan(collection.id!!, this.videoTypes, this.imageTypes) { println(it) }
+            } catch (e: IllegalArgumentException) {
+                println("Failed to scan collection: ${e.message}")
                 return
             }
-
-            if (!Files.isReadable(base)) {
-                println("Failed to scan collection;  '$base' is not readable.")
-                return
+            if (result.issueCount > 0) {
+                val file = File("issues-scan-${collection.name}-${System.currentTimeMillis()}.json")
+                jacksonObjectMapper().writeValue(file, result.issues)
+                println("There have been ${result.issueCount} issues while scanning. You might want to check them at ${file.path}")
             }
-
-            if (!Files.isDirectory(base)) {
-                println("Failed to scan collection; '$base' is no directory.")
-                return
-            }
-
-            /* Now scan directory. */
-            val issues = mutableMapOf<Path, String>()
-            var fileCounter = 0
-            Files.walk(base).filter {
-                Files.isRegularFile(it) && (it.extension in imageTypes || it.extension in videoTypes)
-            }.asSequence().chunked(transactionChunkSize).forEach { list ->
-
-                val items = list.mapNotNull {
-                    val relativePath = it.relativeTo(base)
-
-                    val item = try {
-                        when (it.extension.lowercase()) {
-                            in this.imageTypes -> {
-                                println("Found image $it; analyzing...")
-                                ApiMediaItem(
-                                    type = ApiMediaType.IMAGE,
-                                    name = it.fileName.nameWithoutExtension,
-                                    location = relativePath.toString(),
-                                    collectionId = collection.id!!,
-                                    mediaItemId = "" //is generated anew anyway
-                                )
-                            }
-
-                            in videoTypes -> {
-                                println("Found video $it; analyzing...")
-                                val result = this.analyze(it).streams.first()
-                                val fps = (result.rFrameRate
-                                    ?: result.avgFrameRate!!).toFloat()
-                                val duration = result.duration
-                                    .let { duration ->
-                                        if (duration != null) {
-                                            (duration.toDouble() * 1000.0).toLong()
-                                        } else {
-                                            println("Cannot read duration from file, counting frames")
-                                            val analysis =
-                                                this.analyze(it, countFrames = true)
-                                            val frames =
-                                                analysis.streams.first().nbReadFrames
-                                            println("Counted $frames frames")
-                                            ((frames * 1000) / fps).toLong()
-                                        }
-                                    }
-
-                                println("Found frame rate to be $fps frames per seconds and duration $duration ms")
-                                ApiMediaItem(
-                                    type = ApiMediaType.VIDEO,
-                                    name = it.fileName.nameWithoutExtension,
-                                    location = relativePath.toString(),
-                                    durationMs = duration,
-                                    fps = fps,
-                                    collectionId = collection.id!!,
-                                    mediaItemId = "" //is generated anew anyway
-                                )
-                            }
-
-                            else -> null
-                        }
-                    } catch (e: Throwable) {
-                        this@MediaCollectionCommand.logger.error(
-                            this@MediaCollectionCommand.logMarker,
-                            "An error occurred with $it. Noting and skipping..."
-                        )
-                        println("An error occurred with $it. Noting and skipping...")
-                        issues[it] = e.stackTraceToString()
-                        null
-                    }
-                    ++fileCounter
-                    item
-
-                }
-
-                MediaCollectionManager.addMediaItems(collection.id!!, items)
-
-
-            }
-            if (issues.isNotEmpty()) {
-                val file =
-                    File("issues-scan-${collection.name}-${System.currentTimeMillis()}.json")
-                println("There have been ${issues.size} issues while scanning. You might want to check them at ${file.path}")
-                val om = jacksonObjectMapper()
-                om.writeValue(file, issues)
-                println("done")
-            }
-            println("\nAdded $fileCounter elements to collection")
+            println("\n${result.message}")
         }
 
     }
@@ -576,30 +453,24 @@ class MediaCollectionCommand(private val config: Config) :
             }
 
             /* Find media collection. */
-            val collection = try{
-                resolvePopulated(collectionAddress)
-            }catch(ex: IllegalArgumentException){
+            val collection = try {
+                resolve(collectionAddress)
+            } catch (ex: IllegalArgumentException) {
                 println(ex.message)
                 return
             }
 
-            var counter = 0
-            if (this.itemId != null || this.itemName != null) {
-
-                collection.items.filter { (it.mediaItemId == itemId) || (it.name == itemName) }.forEach {
-                    MediaCollectionManager.deleteMediaItem(it.mediaItemId)
-                    ++counter
+            val result = MediaCollectionMaintenance.deleteItems(collection.id!!) { id, name ->
+                if (this.itemId != null || this.itemName != null) {
+                    id == this.itemId || name == this.itemName
+                } else {
+                    this.itemNameRegex!!.matches(name)
                 }
-
-            } else if (this.itemNameRegex != null) {
-                collection.items.forEach {
-                    if (this.itemNameRegex!!.matches(it.name)) {
-                        MediaCollectionManager.deleteMediaItem(it.mediaItemId)
-                        ++counter
-                    }
-                }
-            }
-            println("$counter media items deleted successfully.")
+            } ?: return
+            result.blocked.forEach { println("Kept ${it.location}: ${it.problem}") }
+            if (result.blockedCount > result.blocked.size) println("... and ${result.blockedCount - result.blocked.size} more.")
+            println("${result.deleted} media items deleted successfully" +
+                    if (result.blockedCount > 0) ", ${result.blockedCount} kept because they are still in use." else ".")
         }
     }
 
@@ -674,34 +545,17 @@ class MediaCollectionCommand(private val config: Config) :
             help = "Path of the file the media collection should to be exported to."
         ).convert { Paths.get(it) }.required()
 
-        /** The header of an exported CSV file. */
-        private val header = listOf("itemType", "name", "location", "duration", "fps")
 
         override fun run() {
-            /* Find media collection. */
-            val collection = try{
-                resolvePopulated(collectionAddress)
-            }catch(ex: IllegalArgumentException){
+            val collection = try {
+                resolve(collectionAddress)
+            } catch (ex: IllegalArgumentException) {
                 println(ex.message)
                 return
             }
-
-            Files.newOutputStream(this.output, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW).use { os ->
-                csvWriter().open(os) {
-                    writeRow(this@Export.header)
-                    collection.items.forEach {
-                        writeRow(
-                            listOf(
-                                it.type,
-                                it.name,
-                                it.location,
-                                it.durationMs?.toString(),
-                                it.fps?.toString()
-                            )
-                        )
-                    }
-                }
-            }
+            val csv = MediaCollectionMaintenance.exportCsv(collection.id!!) ?: return
+            Files.writeString(this.output, csv, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)
+            println("Exported collection ${collection.name} to ${this.output}.")
         }
     }
 
@@ -719,6 +573,7 @@ class MediaCollectionCommand(private val config: Config) :
             .convert { Paths.get(it) }.required()
 
         override fun run() {
+            var attempted = 0
             var inserted = 0
 
             /* Check for input file's existence. */
@@ -742,7 +597,7 @@ class MediaCollectionCommand(private val config: Config) :
                 chunks.forEach { rows ->
 
                     val items = rows.map { row ->
-                        ++inserted
+                        attempted++
                         ApiMediaItem(
                             type = ApiMediaType.valueOf(row.getValue("itemType").uppercase()),
                             name = row.getValue("name"),
@@ -754,11 +609,11 @@ class MediaCollectionCommand(private val config: Config) :
                         )
                     }
 
-                    MediaCollectionManager.addMediaItems(collection.id!!, items)
+                    inserted += MediaCollectionManager.addMediaItems(collection.id!!, items)
 
                 }
             }
-            println("Successfully imported $inserted media items.")
+            println("Successfully imported $inserted of $attempted media items.")
         }
     }
 

@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
-import { combineLatest, merge, mergeMap, Observable, of, Subject, timer} from 'rxjs';
-import { catchError, filter, map, scan, shareReplay, switchMap, take } from "rxjs/operators";
+import { combineLatest, merge, Observable, of, Subject, timer } from 'rxjs';
+import { catchError, filter, map, scan, shareReplay, switchMap, take } from 'rxjs/operators';
 import { WebSocketService } from '../services/websocket.service';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -254,7 +254,17 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
     );
 
     this.viewers = this.runId.pipe(
-      mergeMap((runId) => merge(timer(0, 30_000), viewerWs$, taskStateWs$, this.wsService.reconnected$).pipe(switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
+      switchMap((runId) =>
+        merge(
+          /* Viewer status is independent of task state. Keep a slow poll as recovery for missed socket events. */
+          timer(0, 30_000),
+          viewerWs$.pipe(filter((msg) => msg.evaluationId === runId)),
+          this.wsService.reconnected$
+        ).pipe(
+          switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))
+        )
+      ),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
 
     this.teams = this.run.pipe(

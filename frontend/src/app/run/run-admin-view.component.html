@@ -14,13 +14,21 @@
               *ngFor="let viewer of viewers | async; let i = index; trackBy: resolveViewerById"
               (click)="forceViewer(viewer.viewersId)"
             >
-              <mat-icon matListItemIcon>
-                {{ viewer.ready ? 'link' : 'link_off' }}
+              <mat-icon
+                matListItemIcon
+                [matTooltip]="viewer.connected ? (viewer.ready ? 'Connected and ready' : 'Connected, not ready') : 'Disconnected'"
+              >
+                {{ viewer.connected ? (viewer.ready ? 'link' : 'hourglass_empty') : 'link_off' }}
               </mat-icon>
               <div class="p4" matListItemTitle>
-                <span class="outline-white" [style.color]="viewer.ready ? 'darkgreen' : 'darkred'">{{ viewer.username }}</span>
+                <span class="outline-white" [style.color]="viewer.connected ? (viewer.ready ? 'darkgreen' : '#8a5a00') : 'darkred'">
+                  {{ viewer.username }}
+                </span>
               </div>
               <div class="p4" matListItemLine><span>Address:</span> {{ viewer.host }}</div>
+              <div class="p4" matListItemLine *ngIf="viewer.lastSeen">
+                <span>{{ viewer.connected ? 'Last active:' : 'Last seen:' }}</span> {{ viewer.lastSeen | epoch2date | date:'medium' }}
+              </div>
             </mat-list-item>
           </mat-action-list>
         </mat-card-content>

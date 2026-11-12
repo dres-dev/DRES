@@ -22,7 +22,7 @@ object EventStreamProcessor {
     private val mapper = jacksonObjectMapper()
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
-    private val eventQueue = LinkedBlockingQueue<StreamEvent>()
+    private val eventQueue = LinkedBlockingQueue<QueuedEvent>()
     private val eventHandlers = mutableListOf<StreamEventHandler>()
     private val handlerLock = ReentrantReadWriteLock()
     private val eventSink = PrintWriter(
@@ -30,7 +30,9 @@ object EventStreamProcessor {
             .also { it.parentFile.mkdirs() })
 
 
-    fun event(event: StreamEvent) = eventQueue.add(event)
+    private data class QueuedEvent(val event: StreamEvent, val enqueuedAt: Long)
+
+    fun event(event: StreamEvent) = eventQueue.add(QueuedEvent(event, System.nanoTime()))
     fun register(vararg handler: StreamEventHandler) = handlerLock.write { eventHandlers.addAll(handler) }
 
     fun init() {
@@ -45,10 +47,16 @@ object EventStreamProcessor {
             while (active) {
                 try {
 
-                    val event = eventQueue.poll(1, TimeUnit.SECONDS) ?: continue
+                    val queued = eventQueue.poll(1, TimeUnit.SECONDS) ?: continue
+                    val event = queued.event
+                    val queueDelayMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - queued.enqueuedAt)
+                    if (queueDelayMs >= 100) {
+                        LOGGER.warn("Event queue delay was {}ms for {} (queue size: {})", queueDelayMs, event::class.simpleName, eventQueue.size)
+                    }
 
                     handlerLock.read {
                         for (handler in eventHandlers) {
+                            val startedAt = System.nanoTime()
                             try {
                                 handler.handleStreamEvent(event)
                             } catch (t: Throwable) {
@@ -56,6 +64,11 @@ object EventStreamProcessor {
                                     "Uncaught exception while handling event $event in ${handler.javaClass.simpleName}",
                                     t
                                 )
+                            } finally {
+                                val durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt)
+                                if (durationMs >= 100) {
+                                    LOGGER.warn("Event handler {} took {}ms for {}", handler.javaClass.simpleName, durationMs, event::class.simpleName)
+                                }
                             }
                         }
                     }

@@ -426,6 +426,13 @@ class InteractiveSynchronousRunManager(
      */
     override fun viewers(): HashMap<ViewerInfo, Boolean> = synchronized(this.viewerStateLock) { this.readyLatch.state() }
 
+    override fun viewerSnapshot(): Map<ViewerInfo, ViewerStatus> = synchronized(this.viewerStateLock) {
+        val ready = this.readyLatch.state()
+        (ready.keys + this.viewerPresences.keys).associateWith { viewer ->
+            ViewerStatus(ready[viewer] ?: this.viewerPresences[viewer]?.ready ?: false, this.viewerPresences[viewer])
+        }
+    }
+
     override fun viewerPresence(): Map<ViewerInfo, ViewerPresence> = synchronized(this.viewerStateLock) { HashMap(this.viewerPresences) }
 
     override fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence? = synchronized(this.viewerStateLock) { this.viewerPresences[viewerInfo] }

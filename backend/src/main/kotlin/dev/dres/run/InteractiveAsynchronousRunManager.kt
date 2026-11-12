@@ -622,6 +622,12 @@ class InteractiveAsynchronousRunManager(
      */
     override fun viewers(): Map<ViewerInfo, Boolean> = synchronized(this.viewerStateLock) { HashMap(this.viewers) }
 
+    override fun viewerSnapshot(): Map<ViewerInfo, ViewerStatus> = synchronized(this.viewerStateLock) {
+        (this.viewers.keys + this.viewerPresences.keys).associateWith { viewer ->
+            ViewerStatus(this.viewers[viewer] ?: this.viewerPresences[viewer]?.ready ?: false, this.viewerPresences[viewer])
+        }
+    }
+
     override fun viewerPresence(): Map<ViewerInfo, ViewerPresence> = synchronized(this.viewerStateLock) { HashMap(this.viewerPresences) }
 
     override fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence? = synchronized(this.viewerStateLock) { this.viewerPresences[viewerInfo] }

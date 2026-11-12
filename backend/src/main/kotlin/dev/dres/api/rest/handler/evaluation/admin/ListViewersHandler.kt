@@ -9,7 +9,6 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 
 /**
  *
@@ -43,15 +42,14 @@ class ListViewersHandler : AbstractEvaluationAdminHandler(), GetRestHandler<List
         val evaluationId = ctx.evaluationId()
         val evaluation = getManager(evaluationId) ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)
 
-        val viewerStates = evaluation.viewers()
-        val presence = evaluation.viewerPresence()
-        return (viewerStates.keys + presence.keys).distinct().map { viewer ->
-            val live = presence[viewer]
+        val viewers = evaluation.viewerSnapshot()
+        return viewers.map { (viewer, status) ->
+            val live = status.presence
             ApiViewerInfo(
                 viewer.sessionToken,
                 UserManager.get(AccessManager.userIdForSession(viewer.sessionToken))?.username ?: "UNKNOWN",
                 viewer.host,
-                viewerStates[viewer] ?: live?.ready ?: false,
+                status.ready,
                 live?.connected ?: false,
                 live?.lastSeen
             )

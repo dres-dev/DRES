@@ -128,6 +128,9 @@ interface RunManager : Runnable {
      */
     fun viewers(): Map<ViewerInfo,Boolean>
 
+    /** Atomically captured READY state and WebSocket liveness for the admin viewer list. */
+    fun viewerSnapshot(): Map<ViewerInfo, ViewerStatus>
+
     /** Current WebSocket liveness, separate from the task READY state. */
     fun viewerPresence(): Map<ViewerInfo, ViewerPresence>
 

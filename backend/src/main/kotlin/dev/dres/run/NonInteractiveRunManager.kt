@@ -104,6 +104,8 @@ class NonInteractiveRunManager(
 
     override fun viewers(): Map<ViewerInfo, Boolean> = viewerMap
 
+    override fun viewerSnapshot(): Map<ViewerInfo, ViewerStatus> = viewerMap.mapValues { ViewerStatus(it.value, null) }
+
     override fun viewerPresence(): Map<ViewerInfo, ViewerPresence> = emptyMap()
 
     override fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence? = null

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
-import { BehaviorSubject, combineLatest, from, interval, mergeMap, Observable, of, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, from, interval, mergeMap, Observable, of, Subscription, timer } from 'rxjs';
 import { catchError, delayWhen, filter, map, repeat, shareReplay, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import {
@@ -22,6 +22,26 @@ enum ViewerState {
   VIEWER_COUNTDOWN,
   VIEWER_PLAYBACK,
   VIEWER_TASK_ENDED,
+}
+
+/** Advances task clock values locally between authoritative server snapshots. */
+export function taskClock(state: Observable<ApiEvaluationState>): Observable<ApiEvaluationState> {
+  return state.pipe(
+    switchMap((snapshot) => {
+      if (snapshot.taskStatus !== 'RUNNING') {
+        return of(snapshot);
+      }
+      return timer(0, 1000).pipe(
+        map((seconds) => ({
+          ...snapshot,
+          timeElapsed: snapshot.timeElapsed + seconds,
+          timeLeft:
+            snapshot.timeLeft == null || snapshot.timeLeft < 0 ? snapshot.timeLeft : Math.max(0, snapshot.timeLeft - seconds),
+        }))
+      );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 }
 
 @Component({
@@ -90,7 +110,10 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @ViewChild('audio_ding') ding: ElementRef<HTMLAudioElement>;
   @ViewChild('audio_glass') glass: ElementRef<HTMLAudioElement>;
 
-  constructor(protected runService: EvaluationService, public config: AppConfig) {}
+  constructor(
+    protected runService: EvaluationService,
+    public config: AppConfig
+  ) {}
 
   private playOnce(audio: HTMLAudioElement) {
     if (this.config.config.effects.mute) {
@@ -148,12 +171,14 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
+    const clock = taskClock(this.state);
+
     /*
      * This is the main switch that updates the viewer's state and the only actual subscription.
      *
      * IMPORTANT: Unsubscribe onDestroy.
      */
-    this.viewerStateSubscription = this.state.subscribe((s) => {
+    this.viewerStateSubscription = clock.subscribe((s) => {
       // this.timeElapsed = of(s.timeElapsed)
       switch (s.taskStatus) {
         case 'NO_TASK':
@@ -242,8 +267,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /* Observable for the time that is still left. */
-    this.timeLeft = this.state.pipe(
-      map((s) => s.timeLeft) /* Compensating for added countdown. */,
+    this.timeLeft = clock.pipe(
+      map((s) => s.timeLeft),
       tap((t) => {
         if (t === this.lateWarningThreshold || t === this.earlyWarningThreshold) {
           this.playOnce(this.glass.nativeElement); /* Reminder that time is running out. */
@@ -252,7 +277,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /* Observable for the time that has elapsed. */
-    this.timeElapsed = this.state.pipe(map((s) => s.timeElapsed));
+    this.timeElapsed = clock.pipe(map((s) => s.timeElapsed));
   }
 
   /**

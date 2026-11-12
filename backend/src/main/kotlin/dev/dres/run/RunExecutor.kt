@@ -70,7 +70,7 @@ object RunExecutor : StreamEventHandler {
     /** Last client PING time, by WebSocket session and evaluation. */
     private val lastViewerPing = ConcurrentHashMap<String, ConcurrentHashMap<EvaluationId, Long>>()
 
-    private data class DisconnectedViewer(val evaluationId: EvaluationId, val viewer: ViewerInfo)
+    private data class DisconnectedViewer(val evaluationId: EvaluationId, val viewer: ViewerInfo, val lastSeen: Long? = null)
 
     /** Three missed 30-second pings are tolerated before a viewer is marked offline. */
     private const val VIEWER_CONNECTION_TIMEOUT_MS = 90_000L
@@ -146,6 +146,7 @@ object RunExecutor : StreamEventHandler {
             val now = System.currentTimeMillis()
             val connectedBefore = now - VIEWER_CONNECTION_TIMEOUT_MS
             val managerSnapshot = this@RunExecutor.runManagerLock.read { HashMap(this@RunExecutor.runManagers) }
+            val disconnected = ArrayList<DisconnectedViewer>()
             synchronized(this@RunExecutor.viewerSocketLock) {
                 (this@RunExecutor.viewerSockets.keys - managerSnapshot.keys).forEach { evaluationId ->
                     this@RunExecutor.viewerSockets.remove(evaluationId)?.values?.forEach { sessionIds ->
@@ -167,7 +168,7 @@ object RunExecutor : StreamEventHandler {
                         if (lastSeen < connectedBefore && manager.viewerPresence(viewer)?.connected == true) {
                             /* Mark an idle socket offline, but retain its registration until the
                              * longer retention timeout so a late heartbeat can restore it. */
-                            manager.viewerConnectionChanged(viewer, false, lastSeen)
+                            disconnected.add(DisconnectedViewer(evaluationId, viewer, lastSeen))
                         }
                         if (lastSeen < now - VIEWER_OFFLINE_RETENTION_MS) {
                             sessionIds.toList().forEach { sessionId ->
@@ -182,9 +183,12 @@ object RunExecutor : StreamEventHandler {
                     }
                 }
             }
+            disconnected.forEach { pending ->
+                managerSnapshot[pending.evaluationId]?.viewerConnectionChanged(pending.viewer, false, pending.lastSeen ?: now)
+            }
             val cutoff = now - VIEWER_OFFLINE_RETENTION_MS
             managerSnapshot.values.forEach { manager -> manager.cleanupViewerPresence(cutoff) }
-            Thread.sleep(500)
+            Thread.sleep(5_000)
         }
     }
 

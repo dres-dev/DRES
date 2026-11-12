@@ -440,6 +440,7 @@ class InteractiveSynchronousRunManager(
     override fun viewerConnectionChanged(viewerInfo: ViewerInfo, connected: Boolean, lastSeen: Long) {
         val changed = synchronized(this.viewerStateLock) {
             val previous = this.viewerPresences[viewerInfo]
+            if (previous != null && lastSeen < previous.lastSeen) return@synchronized false
             val ready = this.readyLatch.state()[viewerInfo] ?: previous?.ready ?: false
             this.viewerPresences[viewerInfo] = ViewerPresence(viewerInfo.host, ready, connected, lastSeen)
             previous?.connected != connected

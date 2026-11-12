@@ -104,6 +104,18 @@ class NonInteractiveRunManager(
 
     override fun viewers(): Map<ViewerInfo, Boolean> = viewerMap
 
+    override fun viewerPresence(): Map<ViewerInfo, ViewerPresence> = emptyMap()
+
+    override fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence? = null
+
+    override fun viewerConnectionChanged(viewerInfo: ViewerInfo, connected: Boolean, lastSeen: Long) {}
+
+    override fun viewerConnectionHeartbeat(viewerInfo: ViewerInfo) {}
+
+    override fun cleanupViewerPresence(offlineBefore: Long) {}
+
+    override fun recordViewerActivity(viewerInfo: ViewerInfo, ready: Boolean, connected: Boolean) {}
+
     override fun viewerPreparing(
         taskTemplateId: dev.dres.data.model.run.TaskId,
         rac: RunActionContext,

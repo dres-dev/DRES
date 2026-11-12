@@ -56,6 +56,25 @@ object RunExecutor : StreamEventHandler {
     /** Session IDs currently observing each evaluation. */
     private val observingClients = ConcurrentHashMap<EvaluationId, MutableSet<String>>()
 
+    /** Viewer identities registered by each WebSocket session, grouped by evaluation. */
+    private val socketViewers = ConcurrentHashMap<String, ConcurrentHashMap<EvaluationId, ViewerInfo>>()
+
+    /** Active WebSocket sessions for each viewer identity, grouped by evaluation. */
+    private val viewerSockets = ConcurrentHashMap<EvaluationId, ConcurrentHashMap<ViewerInfo, MutableSet<String>>>()
+
+    /** Serializes registration, heartbeat, and cleanup for viewer WebSocket state. */
+    private val viewerSocketLock = Any()
+
+    /** Last client PING time, by WebSocket session and evaluation. */
+    private val lastViewerPing = ConcurrentHashMap<String, ConcurrentHashMap<EvaluationId, Long>>()
+
+    private data class DisconnectedViewer(val evaluationId: EvaluationId, val viewer: ViewerInfo)
+
+    /** Three missed 30-second pings are tolerated before a viewer is marked offline. */
+    private const val VIEWER_CONNECTION_TIMEOUT_MS = 90_000L
+    /** Offline viewer rows are retained briefly so administrators can see recent disconnects. */
+    private const val VIEWER_OFFLINE_RETENTION_MS = 300_000L
+
     /** Lock for accessing and changing all data structures related to [RunManager]s. */
     private val runManagerLock = ReentrantReadWriteLock()
 
@@ -122,6 +141,36 @@ object RunExecutor : StreamEventHandler {
                     }
                 }
             }
+            val now = System.currentTimeMillis()
+            val connectedBefore = now - VIEWER_CONNECTION_TIMEOUT_MS
+            val managerSnapshot = this@RunExecutor.runManagerLock.read { HashMap(this@RunExecutor.runManagers) }
+            synchronized(this@RunExecutor.viewerSocketLock) {
+                this@RunExecutor.viewerSockets.forEach { (evaluationId, viewers) ->
+                    val manager = managerSnapshot[evaluationId] ?: return@forEach
+                    viewers.forEach { (viewer, sessionIds) ->
+                        val lastSeen = sessionIds.mapNotNull { sessionId ->
+                            this@RunExecutor.lastViewerPing[sessionId]?.get(evaluationId)
+                        }.maxOrNull() ?: 0L
+                        if (lastSeen < connectedBefore && manager.viewerPresence(viewer)?.connected == true) {
+                            /* Mark an idle socket offline, but retain its registration until the
+                             * longer retention timeout so a late heartbeat can restore it. */
+                            manager.viewerConnectionChanged(viewer, false, lastSeen)
+                        }
+                        if (lastSeen < now - VIEWER_OFFLINE_RETENTION_MS) {
+                            sessionIds.toList().forEach { sessionId ->
+                                this@RunExecutor.socketViewers[sessionId]?.remove(evaluationId, viewer)
+                                this@RunExecutor.lastViewerPing[sessionId]?.remove(evaluationId)
+                                if (this@RunExecutor.socketViewers[sessionId]?.isEmpty() == true) this@RunExecutor.socketViewers.remove(sessionId)
+                                if (this@RunExecutor.lastViewerPing[sessionId]?.isEmpty() == true) this@RunExecutor.lastViewerPing.remove(sessionId)
+                                this@RunExecutor.observingClients[evaluationId]?.remove(sessionId)
+                            }
+                            this@RunExecutor.viewerSockets[evaluationId]?.remove(viewer, sessionIds)
+                        }
+                    }
+                }
+            }
+            val cutoff = now - VIEWER_OFFLINE_RETENTION_MS
+            managerSnapshot.values.forEach { manager -> manager.cleanupViewerPresence(cutoff) }
             Thread.sleep(500)
         }
     }
@@ -141,12 +190,14 @@ object RunExecutor : StreamEventHandler {
     fun accept(ws: WsConfig) {
         ws.onConnect { ctx ->
             this.connectedClients[ctx.sessionId()] = ctx
+            this.socketViewers[ctx.sessionId()] = ConcurrentHashMap()
             logger.debug("WebSocket client connected: ${ctx.sessionId()}")
         }
 
         ws.onClose { ctx ->
             this.connectedClients.remove(ctx.sessionId())
             this.observingClients.values.forEach { it.remove(ctx.sessionId()) }
+            this.disconnectSocketViewer(ctx.sessionId())
             logger.debug("WebSocket client disconnected: ${ctx.sessionId()}")
         }
 
@@ -165,15 +216,39 @@ object RunExecutor : StreamEventHandler {
                         ClientMessageType.ACK -> {}
                         ClientMessageType.REGISTER -> {
                             if (AccessManager.canViewEvaluation(ctx.sessionToken(), manager)) {
-                                this.observingClients[message.evaluationId]?.add(ctx.sessionId())
+                                val viewer = runCatching { ViewerInfo(ctx) }.getOrNull()
+                                if (viewer != null) {
+                                    val disconnected = synchronized(this.viewerSocketLock) {
+                                        this.observingClients[message.evaluationId]?.add(ctx.sessionId())
+                                        this.registerSocketViewer(ctx.sessionId(), message.evaluationId, viewer, manager)
+                                    }
+                                    disconnected?.let { this.managerForId(it.evaluationId)?.viewerConnectionChanged(it.viewer, false) }
+                                }
                             } else {
                                 logger.warn("WebSocket session ${ctx.sessionId()} is not permitted to observe evaluation ${message.evaluationId}")
                             }
                         }
-                        ClientMessageType.UNREGISTER -> this.observingClients[message.evaluationId]?.remove(ctx.sessionId())
-                        ClientMessageType.PING -> ctx.send(
-                            mapper.writeValueAsString(ServerMessage(message.evaluationId, ServerMessageType.PING))
-                        )
+                        ClientMessageType.UNREGISTER -> {
+                            val disconnected = synchronized(this.viewerSocketLock) {
+                                this.observingClients[message.evaluationId]?.remove(ctx.sessionId())
+                                this.unregisterSocketViewer(ctx.sessionId(), message.evaluationId)
+                            }
+                            disconnected?.let { this.managerForId(it.evaluationId)?.viewerConnectionChanged(it.viewer, false) }
+                        }
+                        ClientMessageType.PING -> {
+                            synchronized(this.viewerSocketLock) {
+                                this.socketViewers[ctx.sessionId()]?.get(message.evaluationId)?.let { viewer ->
+                                    val now = System.currentTimeMillis()
+                                    this.lastViewerPing.computeIfAbsent(ctx.sessionId()) { ConcurrentHashMap() }[message.evaluationId] = now
+                                    if (manager.viewerPresence(viewer)?.connected == false) {
+                                        manager.viewerConnectionChanged(viewer, true, now)
+                                    } else {
+                                        manager.viewerConnectionHeartbeat(viewer)
+                                    }
+                                }
+                            }
+                            ctx.send(mapper.writeValueAsString(ServerMessage(message.evaluationId, ServerMessageType.PING)))
+                        }
                     }
                 }
             }
@@ -182,7 +257,49 @@ object RunExecutor : StreamEventHandler {
         ws.onError { ctx ->
             logger.error("WebSocket error for session ${ctx.sessionId()}: ${ctx.error()?.message}")
             this.connectedClients.remove(ctx.sessionId())
+            this.observingClients.values.forEach { it.remove(ctx.sessionId()) }
+            this.disconnectSocketViewer(ctx.sessionId())
         }
+    }
+
+    private fun registerSocketViewer(sessionId: String, evaluationId: EvaluationId, viewer: ViewerInfo, manager: RunManager): DisconnectedViewer? {
+        val existing = this.socketViewers[sessionId]?.get(evaluationId)
+        if (existing == viewer) {
+            val now = System.currentTimeMillis()
+            this.lastViewerPing.computeIfAbsent(sessionId) { ConcurrentHashMap() }[evaluationId] = now
+            manager.viewerConnectionHeartbeat(viewer)
+            return null
+        }
+        val disconnected = this.unregisterSocketViewer(sessionId, evaluationId)
+        this.socketViewers.computeIfAbsent(sessionId) { ConcurrentHashMap() }[evaluationId] = viewer
+        this.lastViewerPing.computeIfAbsent(sessionId) { ConcurrentHashMap() }[evaluationId] = System.currentTimeMillis()
+        val sockets = this.viewerSockets.computeIfAbsent(evaluationId) { ConcurrentHashMap() }
+            .computeIfAbsent(viewer) { ConcurrentHashMap.newKeySet() }
+        sockets.add(sessionId)
+        manager.viewerConnectionChanged(viewer, true)
+        return disconnected
+    }
+
+    private fun unregisterSocketViewer(sessionId: String, evaluationId: EvaluationId): DisconnectedViewer? {
+        this.lastViewerPing[sessionId]?.remove(evaluationId)
+        val viewer = this.socketViewers[sessionId]?.remove(evaluationId) ?: return null
+        val sockets = this.viewerSockets[evaluationId]?.get(viewer)
+        if (sockets?.remove(sessionId) == true && sockets.isEmpty()) {
+            this.viewerSockets[evaluationId]?.remove(viewer, sockets)
+            return DisconnectedViewer(evaluationId, viewer)
+        }
+        return null
+    }
+
+    private fun disconnectSocketViewer(sessionId: String) {
+        val disconnected = synchronized(this.viewerSocketLock) {
+            val evaluationIds = this.socketViewers[sessionId]?.keys?.toList().orEmpty()
+            val lastSockets = evaluationIds.mapNotNull { evaluationId -> this.unregisterSocketViewer(sessionId, evaluationId) }
+            this.socketViewers.remove(sessionId)
+            this.lastViewerPing.remove(sessionId)
+            lastSockets
+        }
+        disconnected.forEach { this.managerForId(it.evaluationId)?.viewerConnectionChanged(it.viewer, false) }
     }
 
     /**

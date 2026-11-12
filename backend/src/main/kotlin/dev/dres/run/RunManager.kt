@@ -128,6 +128,24 @@ interface RunManager : Runnable {
      */
     fun viewers(): Map<ViewerInfo,Boolean>
 
+    /** Current WebSocket liveness, separate from the task READY state. */
+    fun viewerPresence(): Map<ViewerInfo, ViewerPresence>
+
+    /** Looks up one viewer's liveness without copying the full presence map. */
+    fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence?
+
+    /** Updates connection state for a viewer that is authorized to observe this run. */
+    fun viewerConnectionChanged(viewerInfo: ViewerInfo, connected: Boolean, lastSeen: Long = System.currentTimeMillis())
+
+    /** Refreshes last-seen time without publishing an admin viewer-list update. */
+    fun viewerConnectionHeartbeat(viewerInfo: ViewerInfo)
+
+    /** Removes offline viewer records older than the supplied timestamp. */
+    fun cleanupViewerPresence(offlineBefore: Long)
+
+    /** Tracks a viewer identified by the HTTP readiness lifecycle if its WebSocket is not registered yet. */
+    fun recordViewerActivity(viewerInfo: ViewerInfo, ready: Boolean, connected: Boolean = false)
+
     fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo)
 
     fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo)

@@ -81,6 +81,8 @@ class InteractiveAsynchronousRunManager(
 
     /** A [Map] of all viewers, i.e., DRES clients currently registered with this [InteractiveAsynchronousRunManager]. */
     private val viewers = ConcurrentHashMap<ViewerInfo, Boolean>()
+    private val viewerPresences = ConcurrentHashMap<ViewerInfo, ViewerPresence>()
+    private val viewerStateLock = Any()
 
     /** A lock for state changes to this [InteractiveAsynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -618,21 +620,71 @@ class InteractiveAsynchronousRunManager(
      *
      * @return List of viewer [WebSocketConnection]s for this [RunManager].
      */
-    override fun viewers(): Map<ViewerInfo, Boolean> = Collections.unmodifiableMap(this.viewers)
+    override fun viewers(): Map<ViewerInfo, Boolean> = synchronized(this.viewerStateLock) { HashMap(this.viewers) }
+
+    override fun viewerPresence(): Map<ViewerInfo, ViewerPresence> = synchronized(this.viewerStateLock) { HashMap(this.viewerPresences) }
+
+    override fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence? = synchronized(this.viewerStateLock) { this.viewerPresences[viewerInfo] }
+
+    override fun viewerConnectionChanged(viewerInfo: ViewerInfo, connected: Boolean, lastSeen: Long) {
+        val changed = synchronized(this.viewerStateLock) {
+            val previous = this.viewerPresences[viewerInfo]
+            val ready = this.viewers[viewerInfo] ?: previous?.ready ?: false
+            this.viewerPresences[viewerInfo] = ViewerPresence(viewerInfo.host, ready, connected, lastSeen)
+            previous?.connected != connected
+        }
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+    }
+
+    override fun viewerConnectionHeartbeat(viewerInfo: ViewerInfo) {
+        synchronized(this.viewerStateLock) {
+            val previous = this.viewerPresences[viewerInfo] ?: return
+            this.viewerPresences[viewerInfo] = previous.copy(lastSeen = System.currentTimeMillis())
+        }
+    }
+
+    override fun cleanupViewerPresence(offlineBefore: Long) {
+        synchronized(this.viewerStateLock) {
+            this.viewerPresences.entries.removeIf { (viewer, presence) ->
+                if (!presence.connected && presence.lastSeen < offlineBefore) {
+                    this.viewers.remove(viewer)
+                    true
+                } else false
+            }
+            /* Keep the READY entries that predate WebSocket presence tracking. */
+        }
+    }
+
+    override fun recordViewerActivity(viewerInfo: ViewerInfo, ready: Boolean, connected: Boolean) {
+        val changed = synchronized(this.viewerStateLock) {
+            val current = this.viewerPresences[viewerInfo]
+            this.viewerPresences[viewerInfo] = ViewerPresence(viewerInfo.host, ready, connected, System.currentTimeMillis())
+            current == null || current.connected != connected || current.ready != ready || current.host != viewerInfo.host
+        }
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+    }
 
     override fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
         val currentTaskId = this.currentTask(rac)?.taskId
         if (taskTemplateId == currentTaskId) {
-            this.viewers[viewerInfo] = false
-            EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+            synchronized(this.viewerStateLock) {
+                if (this.viewers[viewerInfo] != false) {
+                    this.viewers[viewerInfo] = false
+                    this.recordViewerActivity(viewerInfo, ready = false, connected = this.viewerPresences[viewerInfo]?.connected ?: false)
+                }
+            }
         }
     }
 
     override fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
         val currentTaskId = this.currentTask(rac)?.taskId
         if (taskTemplateId == currentTaskId) {
-            this.viewers[viewerInfo] = true
-            EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+            synchronized(this.viewerStateLock) {
+                if (this.viewers[viewerInfo] != true) {
+                    this.viewers[viewerInfo] = true
+                    this.recordViewerActivity(viewerInfo, ready = true, connected = this.viewerPresences[viewerInfo]?.connected ?: false)
+                }
+            }
         }
     }
 

@@ -43,12 +43,17 @@ class ListViewersHandler : AbstractEvaluationAdminHandler(), GetRestHandler<List
         val evaluationId = ctx.evaluationId()
         val evaluation = getManager(evaluationId) ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)
 
-        return evaluation.viewers().map {
+        val viewerStates = evaluation.viewers()
+        val presence = evaluation.viewerPresence()
+        return (viewerStates.keys + presence.keys).distinct().map { viewer ->
+            val live = presence[viewer]
             ApiViewerInfo(
-                it.key.sessionToken,
-                UserManager.get(AccessManager.userIdForSession(it.key.sessionToken))?.username ?: "UNKNOWN",
-                it.key.host,
-                it.value
+                viewer.sessionToken,
+                UserManager.get(AccessManager.userIdForSession(viewer.sessionToken))?.username ?: "UNKNOWN",
+                viewer.host,
+                viewerStates[viewer] ?: live?.ready ?: false,
+                live?.connected ?: false,
+                live?.lastSeen
             )
         }
 

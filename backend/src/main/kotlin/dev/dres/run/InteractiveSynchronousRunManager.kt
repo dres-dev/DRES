@@ -36,6 +36,7 @@ import kotlinx.dnq.query.*
 import kotlinx.dnq.util.findById
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -98,6 +99,8 @@ class InteractiveSynchronousRunManager(
 
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state. */
     private val readyLatch = ReadyLatch<ViewerInfo>()
+    private val viewerPresences = ConcurrentHashMap<ViewerInfo, ViewerPresence>()
+    private val viewerStateLock = Any()
 
     /** List of [Updatable] held by this [InteractiveSynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
@@ -220,8 +223,17 @@ class InteractiveSynchronousRunManager(
             /* Update active task. */
             this.evaluation.goTo(index)
 
-            /* Clear ready latch */
-            this.readyLatch.clear()
+            /* Reset task readiness without dropping connected viewer presence. */
+            val viewerReadinessChanged = synchronized(this.viewerStateLock) {
+                this.readyLatch.clear()
+                var changed = false
+                this.viewerPresences.replaceAll { _, presence ->
+                    if (presence.ready) changed = true
+                    presence.copy(ready = false)
+                }
+                changed
+            }
+            if (viewerReadinessChanged) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
 
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
         } else {
@@ -412,7 +424,48 @@ class InteractiveSynchronousRunManager(
      *
      * @return Map of session ID to ready state.
      */
-    override fun viewers(): HashMap<ViewerInfo, Boolean> = this.readyLatch.state()
+    override fun viewers(): HashMap<ViewerInfo, Boolean> = synchronized(this.viewerStateLock) { this.readyLatch.state() }
+
+    override fun viewerPresence(): Map<ViewerInfo, ViewerPresence> = synchronized(this.viewerStateLock) { HashMap(this.viewerPresences) }
+
+    override fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence? = synchronized(this.viewerStateLock) { this.viewerPresences[viewerInfo] }
+
+    override fun viewerConnectionChanged(viewerInfo: ViewerInfo, connected: Boolean, lastSeen: Long) {
+        val changed = synchronized(this.viewerStateLock) {
+            val previous = this.viewerPresences[viewerInfo]
+            val ready = this.readyLatch.state()[viewerInfo] ?: previous?.ready ?: false
+            this.viewerPresences[viewerInfo] = ViewerPresence(viewerInfo.host, ready, connected, lastSeen)
+            previous?.connected != connected
+        }
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+    }
+
+    override fun viewerConnectionHeartbeat(viewerInfo: ViewerInfo) {
+        synchronized(this.viewerStateLock) {
+            val previous = this.viewerPresences[viewerInfo] ?: return
+            this.viewerPresences[viewerInfo] = previous.copy(lastSeen = System.currentTimeMillis())
+        }
+    }
+
+    override fun cleanupViewerPresence(offlineBefore: Long) {
+        synchronized(this.viewerStateLock) {
+            this.viewerPresences.entries.removeIf { (viewer, presence) ->
+                if (!presence.connected && presence.lastSeen < offlineBefore) {
+                    this.readyLatch.unregister(viewer)
+                    true
+                } else false
+            }
+        }
+    }
+
+    override fun recordViewerActivity(viewerInfo: ViewerInfo, ready: Boolean, connected: Boolean) {
+        val changed = synchronized(this.viewerStateLock) {
+            val current = this.viewerPresences[viewerInfo]
+            this.viewerPresences[viewerInfo] = ViewerPresence(viewerInfo.host, ready, connected, System.currentTimeMillis())
+            current == null || current.connected != connected || current.ready != ready || current.host != viewerInfo.host
+        }
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+    }
 
     /**
      * Can be used to manually override the READY state of a viewer. Can be used in case a viewer hangs in the PREPARING_TASK phase.
@@ -425,9 +478,17 @@ class InteractiveSynchronousRunManager(
         checkContext(context)
 
         return try {
-            val viewer = this.readyLatch.state().keys.find { it.sessionToken == viewerId }
+            val viewer = synchronized(this.viewerStateLock) { this.readyLatch.state().keys.find { it.sessionToken == viewerId } }
             if (viewer != null) {
-                this.readyLatch.setReady(viewer)
+                val changed = synchronized(this.viewerStateLock) {
+                    this.readyLatch.setReady(viewer)
+                    val presence = this.viewerPresences[viewer]
+                    if (presence != null && !presence.ready) {
+                        this.viewerPresences[viewer] = presence.copy(ready = true)
+                        true
+                    } else false
+                }
+                if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
                 true
             } else {
                 false
@@ -465,30 +526,36 @@ class InteractiveSynchronousRunManager(
 //        }
 
     override fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
-
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
+        if (taskTemplateId != currentTemplateId) return
 
-        if (taskTemplateId == currentTemplateId) {
-            this.readyLatch.register(viewerInfo)
-            EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+        synchronized(this.viewerStateLock) {
+            val ready = this.readyLatch.state()[viewerInfo]
+            if (ready != true) {
+                if (ready == null) this.readyLatch.register(viewerInfo)
+                val connected = this.viewerPresences[viewerInfo]?.connected ?: false
+                this.recordViewerActivity(viewerInfo, ready = false, connected = connected)
+            }
         }
-
     }
 
     override fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
-
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
+        if (taskTemplateId != currentTemplateId) return
 
-        if (taskTemplateId == currentTemplateId) {
-//            val status = this.evaluation.currentTaskRun?.status
-//            if (status == ApiTaskStatus.PREPARING) {
-            /* Since the viewer does send the ready message too early, we cannot care whether the task is (already) preparing or not */
-                this.readyLatch.register(viewerInfo) //avoid redying previously untracked viewers
+        /* Since the viewer can send READY early, do not require the task to already be preparing. */
+        val changed = synchronized(this.viewerStateLock) {
+            if (this.readyLatch.state()[viewerInfo] == true) {
+                false
+            } else {
+                this.readyLatch.register(viewerInfo) // Register previously untracked viewers.
                 this.readyLatch.setReady(viewerInfo)
-                EventStreamProcessor.event(ViewerUpdateEvent(this.id))
-//            }
+                val presence = this.viewerPresences[viewerInfo]
+                if (presence != null) this.viewerPresences[viewerInfo] = presence.copy(ready = true)
+                true
+            }
         }
-
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
     }
 
     /**

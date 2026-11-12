@@ -513,6 +513,15 @@
           },
           "ready" : {
             "type" : "boolean"
+          },
+          "connected" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "lastSeen" : {
+            "type" : "integer",
+            "format" : "int64",
+            "nullable" : true
           }
         },
         "required" : [ "viewersId", "username", "host", "ready" ]

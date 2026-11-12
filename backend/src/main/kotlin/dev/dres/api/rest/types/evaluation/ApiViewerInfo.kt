@@ -9,4 +9,11 @@ import kotlinx.serialization.Serializable
  * @version 1.1.0
  */
 @Serializable
-data class ApiViewerInfo(val viewersId: String, val username: String, val host: String, val ready: Boolean)
+data class ApiViewerInfo(
+    val viewersId: String,
+    val username: String,
+    val host: String,
+    val ready: Boolean,
+    val connected: Boolean = false,
+    val lastSeen: Long? = null
+)

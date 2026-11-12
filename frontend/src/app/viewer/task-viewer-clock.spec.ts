@@ -31,6 +31,20 @@ describe('taskClock', () => {
     subscription.unsubscribe();
   }));
 
+  it('recomputes elapsed time from monotonic time after a delayed timer callback', fakeAsync(() => {
+    const source = new Subject<ApiEvaluationState>();
+    const values: ApiEvaluationState[] = [];
+    let now = 0;
+    const subscription = taskClock(source, () => now).subscribe((value) => values.push(value));
+
+    source.next(state());
+    now = 3500;
+    tick(1000);
+
+    expect(values.slice(-1).map((value) => [value.timeElapsed, value.timeLeft])).toEqual([[13, 27]]);
+    subscription.unsubscribe();
+  }));
+
   it('resynchronizes from a new server snapshot and clamps remaining time at zero', fakeAsync(() => {
     const source = new Subject<ApiEvaluationState>();
     const values: ApiEvaluationState[] = [];

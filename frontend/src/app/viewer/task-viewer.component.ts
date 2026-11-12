@@ -25,19 +25,28 @@ enum ViewerState {
 }
 
 /** Advances task clock values locally between authoritative server snapshots. */
-export function taskClock(state: Observable<ApiEvaluationState>): Observable<ApiEvaluationState> {
+export function taskClock(
+  state: Observable<ApiEvaluationState>,
+  monotonicNow: () => number = () => globalThis.performance?.now() ?? Date.now()
+): Observable<ApiEvaluationState> {
   return state.pipe(
     switchMap((snapshot) => {
       if (snapshot.taskStatus !== 'RUNNING') {
         return of(snapshot);
       }
+      const startedAt = monotonicNow();
       return timer(0, 1000).pipe(
-        map((seconds) => ({
-          ...snapshot,
-          timeElapsed: snapshot.timeElapsed + seconds,
-          timeLeft:
-            snapshot.timeLeft == null || snapshot.timeLeft < 0 ? snapshot.timeLeft : Math.max(0, snapshot.timeLeft - seconds),
-        }))
+        map(() => {
+          const elapsedSeconds = Math.floor(Math.max(0, monotonicNow() - startedAt) / 1000);
+          return {
+            ...snapshot,
+            timeElapsed: snapshot.timeElapsed + elapsedSeconds,
+            timeLeft:
+              snapshot.timeLeft == null || snapshot.timeLeft < 0
+                ? snapshot.timeLeft
+                : Math.max(0, snapshot.timeLeft - elapsedSeconds),
+          };
+        })
       );
     }),
     shareReplay({ bufferSize: 1, refCount: true })

@@ -79,6 +79,13 @@ fun Context.sessionToken(): String? = this.attribute<String>("session")
  */
 fun WsContext.sessionToken(): String? = this.attribute<String>("session")
 
+/** Resolves a client address from the forwarded headers present on a WebSocket upgrade request. */
+fun WsContext.realIP(): String = clientIP(
+    this.header("X-Forwarded-For"),
+    this.header("X-Real-IP"),
+    (this.session.remoteSocketAddress as? java.net.InetSocketAddress)?.address?.hostAddress ?: "UNKNOWN"
+)
+
 fun Context.getOrCreateSessionToken(): String {
     val attributeId = this.attribute<String>("session")
     if (attributeId != null) {
@@ -190,4 +197,13 @@ fun Context.isViewer(): Boolean {
 /**
  * Returns the remote IP address of a context, taking forwarding headers into account
  */
-fun Context.realIP(): String = this.header("X-Forwarded-For") ?: this.ip()
+fun Context.realIP(): String = clientIP(this.header("X-Forwarded-For"), this.header("X-Real-IP"), this.ip())
+
+internal fun clientIP(forwardedFor: String?, realIP: String?, fallback: String): String =
+    forwardedFor
+        ?.split(',')
+        ?.firstOrNull()
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: realIP?.trim()?.takeIf { it.isNotEmpty() }
+        ?: fallback

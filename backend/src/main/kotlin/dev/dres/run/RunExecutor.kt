@@ -50,11 +50,13 @@ object RunExecutor : StreamEventHandler {
     /** List of [JudgementValidator]s registered with this [RunExecutor]. */
     private val judgementValidators = LinkedList<JudgementValidator>()
 
-    /** WebSocket sessions currently connected, keyed by session ID. */
-    private val connectedClients = ConcurrentHashMap<String, WsContext>()
-
     /** Session IDs currently observing each evaluation. */
     private val observingClients = ConcurrentHashMap<EvaluationId, MutableSet<String>>()
+
+    /** Bounded FIFO sender per websocket session so a slow observer cannot block event dispatch. */
+    private val outboundSenders = ConcurrentHashMap<String, BoundedSerialMessageSender>()
+
+    private val maxPendingWebSocketMessages = 256
 
     /** Viewer identities registered by each WebSocket session, grouped by evaluation. */
     private val socketViewers = ConcurrentHashMap<String, ConcurrentHashMap<EvaluationId, ViewerInfo>>()
@@ -200,15 +202,25 @@ object RunExecutor : StreamEventHandler {
      */
     fun accept(ws: WsConfig) {
         ws.onConnect { ctx ->
-            this.connectedClients[ctx.sessionId()] = ctx
-            this.socketViewers[ctx.sessionId()] = ConcurrentHashMap()
-            logger.debug("WebSocket client connected: ${ctx.sessionId()}")
+            val sessionId = ctx.sessionId()
+            this.socketViewers[sessionId] = ConcurrentHashMap()
+            lateinit var sender: BoundedSerialMessageSender
+            sender = BoundedSerialMessageSender(
+                maxPendingMessages = maxPendingWebSocketMessages,
+                sendAsync = { text, succeeded, failed ->
+                    ctx.session.sendText(text, org.eclipse.jetty.websocket.api.Callback.from(succeeded, failed))
+                },
+                closeSession = { code, reason ->
+                    ctx.session.close(code, reason, org.eclipse.jetty.websocket.api.Callback.NOOP)
+                },
+                onClosed = { this.removeWebSocketSession(sessionId, sender) }
+            )
+            this.outboundSenders[sessionId] = sender
+            logger.debug("WebSocket client connected: $sessionId")
         }
 
         ws.onClose { ctx ->
-            this.connectedClients.remove(ctx.sessionId())
-            this.observingClients.values.forEach { it.remove(ctx.sessionId()) }
-            this.disconnectSocketViewer(ctx.sessionId())
+            this.removeWebSocketSession(ctx.sessionId())
             logger.debug("WebSocket client disconnected: ${ctx.sessionId()}")
         }
 
@@ -266,7 +278,9 @@ object RunExecutor : StreamEventHandler {
                                     }
                                 }
                             }
-                            ctx.send(mapper.writeValueAsString(ServerMessage(message.evaluationId, ServerMessageType.PING)))
+                            this.outboundSenders[ctx.sessionId()]?.send(
+                                mapper.writeValueAsString(ServerMessage(message.evaluationId, ServerMessageType.PING))
+                            )
                         }
                     }
                 }
@@ -275,10 +289,20 @@ object RunExecutor : StreamEventHandler {
 
         ws.onError { ctx ->
             logger.error("WebSocket error for session ${ctx.sessionId()}: ${ctx.error()?.message}")
-            this.connectedClients.remove(ctx.sessionId())
-            this.observingClients.values.forEach { it.remove(ctx.sessionId()) }
-            this.disconnectSocketViewer(ctx.sessionId())
+            this.removeWebSocketSession(ctx.sessionId())
         }
+    }
+
+    private fun removeWebSocketSession(sessionId: String, expectedSender: BoundedSerialMessageSender? = null) {
+        if (expectedSender == null) {
+            this.outboundSenders.remove(sessionId)?.cancel()
+        } else if (!this.outboundSenders.remove(sessionId, expectedSender)) {
+            return
+        } else {
+            expectedSender.cancel()
+        }
+        this.observingClients.values.forEach { it.remove(sessionId) }
+        this.disconnectSocketViewer(sessionId)
     }
 
     private fun registerSocketViewer(sessionId: String, evaluationId: EvaluationId, viewer: ViewerInfo, manager: RunManager): DisconnectedViewer? {
@@ -335,11 +359,7 @@ object RunExecutor : StreamEventHandler {
         }
         val observers = this.observingClients[message.evaluationId]?.toSet() ?: emptySet()
         observers.forEach { sessionId ->
-            try {
-                this.connectedClients[sessionId]?.send(json)
-            } catch (e: Exception) {
-                logger.warn("Failed to send WebSocket message to session $sessionId: ${e.message}")
-            }
+            this.outboundSenders[sessionId]?.send(json)
         }
     }
 

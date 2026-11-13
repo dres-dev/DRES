@@ -5,7 +5,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { ApiTaskType, TemplateService } from '../../../../../../openapi';
 import { Observable } from 'rxjs';
 import { filter, map, shareReplay, tap } from 'rxjs/operators';
-import { CreateTaskTypeDialogComponent } from '../create-task-type-dialog/create-task-type-dialog.component';
+import {
+  CreateTaskTypeDialogComponent,
+  CreateTaskTypeDialogData,
+} from '../create-task-type-dialog/create-task-type-dialog.component';
 import {
   ActionableDynamicTable,
   ActionableDynamicTableActionType,
@@ -94,6 +97,25 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
       .subscribe((t) => {
         this.builderService.getTemplate().taskTypes.push(t);
         this.builderService.update();
+        this.table?.renderRows();
+      });
+  }
+
+  /** Opens the task type dialog to edit an existing task type (e.g. to change its task options such as MAP_TO_SEGMENT). */
+  public edit = (taskType: ApiTaskType) => {
+    const existingNames = this.builderService.getTemplate().taskTypes.map((t) => t.name);
+    /* Pass a deep copy, so that cancelling the dialog does not alter the template. */
+    const copy = JSON.parse(JSON.stringify(taskType)) as ApiTaskType;
+    const dialogRef = this.dialog.open(CreateTaskTypeDialogComponent, {
+      data: { taskType: copy, edit: true, existingNames } as CreateTaskTypeDialogData,
+      width: "750px",
+      closeOnNavigation: false
+    });
+    dialogRef
+      .afterClosed()
+      .pipe(filter((t) => t != null))
+      .subscribe((t: ApiTaskType) => {
+        this.builderService.updateTaskType(taskType.name, t);
         this.table?.renderRows();
       });
   }

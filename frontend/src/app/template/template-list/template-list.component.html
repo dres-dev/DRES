@@ -17,6 +17,14 @@
       <mat-icon>note_add</mat-icon>
     </button>
   </div>
+  <div>
+    <app-upload-json-button [name]="''"
+                            [inline]="true"
+                            [handler]="importHandler"
+                            [errorHandler]="importErrorHandler"
+                            aria-label="Import template from JSON file."
+                            matTooltip="Import a template from a JSON file (e.g. a previously downloaded template) as a new template."></app-upload-json-button>
+  </div>
 </div>
 
 <div>

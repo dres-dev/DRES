@@ -41,17 +41,18 @@ object MediaCollectionManager {
         }
 
     fun createCollection(name: String, description: String?, basePath: String): ApiMediaCollection? =
-        this.store.transactional {
+        /* Unique constraints (name, path) are checked when the transaction is committed, hence the try has to enclose the transaction. */
             try {
+            this.store.transactional {
                 DbMediaCollection.new {
                     this.name = name
                     this.description = description
                     this.path = basePath.cleanPathString()
                 }.toApi()
+            }
             } catch (e: Exception) {
                 null
             }
-        }
 
     fun updateCollection(apiMediaCollection: ApiMediaCollection) {
         this.store.transactional {
@@ -148,7 +149,9 @@ object MediaCollectionManager {
     fun getRandomMediaItem(collectionId: CollectionId): ApiMediaItem? = this.store.transactional(true) {
         val collection =
             DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional null
-        collection.items.drop(Random.nextInt(0, collection.items.size())).take(1).firstOrNull()?.toApi()
+        val size = collection.items.size()
+        if (size == 0) return@transactional null
+        collection.items.drop(Random.nextInt(0, size)).take(1).firstOrNull()?.toApi()
     }
 
     fun updateMediaItem(mediaItem: ApiMediaItem) {
@@ -158,7 +161,8 @@ object MediaCollectionManager {
         this.store.transactional {
             val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
                 ?: throw IllegalArgumentException("Invalid parameters, collection with ID $collectionId does not exist.")
-            if (collection.items.filter { it.name eq mediaItem.name }.isNotEmpty) {
+            /* The item that is updated must not be considered a duplicate of itself. */
+            if (collection.items.filter { (it.name eq mediaItem.name) and (it.id ne mediaItem.mediaItemId) }.isNotEmpty) {
                 throw IllegalArgumentException("Media item with name '${mediaItem.name}' already exists in collection ${collection.name}.")
             }
 

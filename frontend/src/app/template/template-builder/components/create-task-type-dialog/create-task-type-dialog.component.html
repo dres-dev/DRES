@@ -1,11 +1,15 @@
-<h1 mat-dialog-title>Add task type</h1>
+<h1 mat-dialog-title>{{ editMode ? 'Edit task type' : 'Add task type' }}</h1>
+<p *ngIf="editMode" class="mat-body-2">
+  Changes apply to this template (after saving it) and to evaluations created from it afterwards. Existing evaluations keep the settings they were created with.
+</p>
 <div mat-dialog-content>
   <form [formGroup]="form">
     <p>
       <mat-form-field style="width: 80%">
         <mat-label>Name</mat-label>
         <input type="text" matInput placeholder="Name" formControlName="name" />
-        <mat-error *ngIf="form.get('name')?.invalid">Required. Name must consist of at least three characters.</mat-error>
+        <mat-error *ngIf="form.get('name')?.hasError('duplicate')">A task type with this name already exists.</mat-error>
+        <mat-error *ngIf="form.get('name')?.invalid && !form.get('name')?.hasError('duplicate')">Required. Name must consist of at least three characters.</mat-error>
       </mat-form-field>
 
       <mat-form-field style="width: 20%">

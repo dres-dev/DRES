@@ -21,6 +21,7 @@
           placeholder="Judge"
           arial-label="Judge"
           matInput
+                        [formControl]="judgeSearch"
           [matAutocomplete]="judgesAutocomplete"
           (click)="$event.stopPropagation()"
         />

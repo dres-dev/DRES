@@ -5739,6 +5739,58 @@
         }
       }
     },
+    "/api/v2/template/import": {
+      "post": {
+        "tags": ["Template"],
+        "summary": "Imports an evaluation template (e.g. a previously downloaded template JSON) as a new evaluation template.",
+        "operationId": "postApiV2TemplateImport",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiEvaluationTemplate"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEvaluationTemplate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
     "/api/v2/template/list" : {
       "get" : {
         "tags" : [ "Template" ],

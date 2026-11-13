@@ -1,6 +1,7 @@
 package dev.dres.api.cli
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -119,6 +120,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
         override fun run()  {
             if (this.id == null && this.username == null) {
                 println("You must specify a valid username or user ID in order to delete a user!")
+                return
             }
             val success = UserManager.delete(id = this.id, username = this.username)
             if (success) {
@@ -146,14 +148,14 @@ class UserCommand : NoOpCliktCommand(name = "user") {
 
             if (this.id == null && this.username == null) {
                 val users = UserManager.list()
-                Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use { writer ->
+                Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).use { writer ->
                     mapper.writeValue(writer, users)
                 }
                 println("Successfully wrote ${users.size} users to $path.")
             } else {
                 val user = UserManager.get(id = this.id, username = this.username)
                 if (user != null) {
-                    Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
+                    Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).use {
                         mapper.writeValue(it, user)
                     }
                     println("Successfully wrote user ${user.id} to $path.")
@@ -173,13 +175,14 @@ class UserCommand : NoOpCliktCommand(name = "user") {
 
         private val new: Boolean by option("-n", "--new", help = "Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
 
-        private val multiple: Boolean by option("-m", "-multiple", help = "Flag indicating whether multiple users should be  imported.").flag("-s", "--single", default = true)
+        private val multiple: Boolean by option("-m", "--multiple", help = "Flag indicating whether multiple users should be  imported.").flag("-s", "--single", default = true)
 
         private val destination: String by option("-i", "--in", help = "The input file for the users.").required()
 
         override fun run() {
             val path = Paths.get(this.destination)
-            val mapper = ObjectMapper()
+            /* Kotlin module is required to deserialize Kotlin data classes (no default constructor). */
+            val mapper = jacksonObjectMapper()
 
             val import = Files.newBufferedReader(path).use {
                 if (this.multiple) {
@@ -189,14 +192,25 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                 }
             }
 
-            import.asSequence().filter { it.password != null && it.role != null}.forEach {
+            val (valid, skipped) = import.partition { it.password != null && it.role != null }
+            var failed = 0
+            valid.forEach {
+                val result = try {
                 if (new) {
                     UserManager.create(it.username, Password.Plain(it.password!!).hash(), it.role!!)
                 } else {
                     UserManager.update(null, it.username, Password.Plain(it.password!!).hash(), it.role!!)
                 }
+                } catch (e: Exception) {
+                    null
             }
-            println("done")
+                if (result == null) {
+                    failed++
+                    println("Could not ${if (new) "create" else "update"} user '${it.username}'.")
+                }
+            }
+            skipped.forEach { println("Skipped user '${it.username}': password and role are required.") }
+            println("Imported ${valid.size - failed} of ${import.size} user(s).")
         }
     }
 

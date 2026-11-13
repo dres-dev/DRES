@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.template.tasks.options.ApiSubmissionOption
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.template.task.options.DbSubmissionOption
+import dev.dres.data.model.template.task.options.Parameters
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManagerStatus
 import kotlinx.dnq.query.*
@@ -43,7 +44,8 @@ class EndOnSubmitUpdatable(private val manager: InteractiveRunManager) : Updatab
 
                 /* If there is no submission, we can abort here. */
                 if (submissions.isNotEmpty()) {
-                    val limit = taskType.configuration["LIMIT_CORRECT_PER_TEAM"]?.toIntOrNull() ?: 1
+                    val limit = Parameters.value(taskType.configuration, Parameters.LIMIT_CORRECT_PER_TEAM_PARAM)
+                        ?.toIntOrNull() ?: 1
 
                     /* Count number of correct submissions per team. */
                     if (currentTask.duration != null) {

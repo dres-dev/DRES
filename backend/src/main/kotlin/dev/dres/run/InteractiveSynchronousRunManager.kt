@@ -222,7 +222,6 @@ class InteractiveSynchronousRunManager(
     override fun goTo(context: RunActionContext, index: Int) = this.stateLock.write {
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
-        this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING }
         if (index >= 0 && index < this.template.tasks.size) {
             /* Update active task. */
             this.evaluation.goTo(index)
@@ -843,7 +842,8 @@ class InteractiveSynchronousRunManager(
      * @throws IllegalArgumentException If task is neither preparing nor running.
      */
     private fun assureNoRunningTask() {
-        if (this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING }) throw IllegalStateException("Task is already running!")
+        /* A task that is still preparing (waiting for viewers) counts as running; switching away from it would leave it dangling. */
+        if (this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING || it.status == ApiTaskStatus.PREPARING }) throw IllegalStateException("Task is already running!")
     }
 
     /**

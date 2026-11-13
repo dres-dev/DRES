@@ -31,7 +31,10 @@ class MaximumCorrectPerTeamFilter(private val limit: Int = PARAMETER_KEY_LIMIT_D
      *
      * @param parameters The parameters map.
      */
-    constructor(parameters: Map<String, String>) : this(parameters[PARAMETER_KEY_LIMIT]?.toIntOrNull() ?: PARAMETER_KEY_LIMIT_DEFAULT)
+    constructor(parameters: Map<String, String>) : this(
+        (parameters[PARAMETER_KEY_LIMIT] ?: parameters["LIMIT_CORRECT_PER_TEAM"])
+            ?.toIntOrNull() ?: PARAMETER_KEY_LIMIT_DEFAULT
+    )
 
     /**
      * Tests the given [ApiClientSubmission] with this [SubmissionFilter] return true, if test succeeds.

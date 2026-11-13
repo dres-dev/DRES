@@ -145,29 +145,33 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
             )
         }
 
-        /* Copy team groups. */
-        this.teamGroups.asSequence().forEach { g ->
-            evaluation.teamGroups.add(
-                DbTeamGroup.new {
-                    id = UUID.randomUUID().toString()
-                    name = g.name
-                    defaultAggregator = g.defaultAggregator
-                }
-            )
+        /* Copy teams (remembering which copy belongs to which original team). */
+        val teamCopies = mutableMapOf<String, DbTeam>()
+        this.teams.asSequence().forEach { t ->
+            val copy = DbTeam.new {
+                id = UUID.randomUUID().toString()
+                name = t.name
+                color = t.color
+                logo = t.logo
+                users.addAll(t.users)
+            }
+            teamCopies[t.id] = copy
+            evaluation.teams.add(copy)
         }
 
-        /* Copy teams. */
-        this.teams.asSequence().forEach { t ->
-            evaluation.teams.add(
-                DbTeam.new {
-                    id = UUID.randomUUID().toString()
-                    name = t.name
-                    color = t.color
-                    logo = t.logo
-                    groups.addAll(t.groups)
-                    users.addAll(t.users)
-                }
-            )
+        /* Copy team groups; they must reference the copied teams (not the teams of this template). */
+        this.teamGroups.asSequence().forEach { g ->
+            val members = g.teams.asSequence().mapNotNull { teamCopies[it.id] }.toList()
+            if (members.isNotEmpty()) {
+                evaluation.teamGroups.add(
+                    DbTeamGroup.new {
+                        id = UUID.randomUUID().toString()
+                        name = g.name
+                        defaultAggregator = g.defaultAggregator
+                        teams.addAll(members)
+                    }
+                )
+            }
         }
 
         /* Copy tasks. */
@@ -187,19 +191,21 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
     fun getAllVideos(): Set<VideoSource> {
         val hints = this.tasks
             .flatMapDistinct { it.hints }
-            .filter { it.type eq DbHintType.VIDEO }.asSequence().map {
+            .filter { it.type eq DbHintType.VIDEO }.asSequence().mapNotNull {
+                val range = it.range ?: return@mapNotNull null
                 if (it.item != null) {
-                    VideoSource.ItemSource(it.item!!, it.range!!)
+                    VideoSource.ItemSource(it.item!!, range)
                 } else {
-                    VideoSource.PathSource(it.path!!, it.range!!)
+                    VideoSource.PathSource(it.path ?: return@mapNotNull null, range)
                 }
             }
 
         val targets = this.tasks
             .flatMapDistinct { it.targets }
             .filter { (it.item ne null) and (it.item!!.type eq DbMediaType.VIDEO) }.asSequence()
-            .map {
-                VideoSource.ItemSource(it.item!!, it.range!!)
+            .mapNotNull { target ->
+                /* Only temporal targets have a range; plain media item targets do not need a preview segment. */
+                target.range?.let { VideoSource.ItemSource(target.item!!, it) }
             }
 
         return (hints + targets).toSet()

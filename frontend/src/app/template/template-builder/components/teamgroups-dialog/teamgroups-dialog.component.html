@@ -28,9 +28,9 @@
               {{ team.name }}
               <mat-icon matChipRemove>cancel</mat-icon>
             </mat-chip-row>
-            <input placeholder="Add team..." [matAutocomplete]="auto" [matChipInputFor]="chipList" />
+            <input placeholder="Add team..." #teamInput formControlName="teamInput" [matAutocomplete]="auto" [matChipInputFor]="chipList" />
           </mat-chip-grid>
-          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addTeam($event)">
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addTeam($event, teamInput)">
             <mat-option *ngFor="let team of availableTeams | async" [value]="team">
               {{ team.name }}
             </mat-option>

@@ -11,6 +11,7 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.transformer.basics.SubmissionTransformer
 import kotlinx.dnq.query.FilteringContext.eq
 import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.isEmpty
 import kotlinx.dnq.query.iterator
 import kotlinx.dnq.query.singleOrNull
 
@@ -47,9 +48,14 @@ class MapToSegmentTransformer : SubmissionTransformer {
      */
     private fun transformAnswer(answer: ApiClientAnswer): ApiClientAnswer {
         /* Extract item and find start and end segment. */
-        val dbItem = answer.getDbItem() ?: throw IllegalStateException("Media item not specified for answer.")
+        /* Without a media item, there is nothing to map; the submission filters / validators take care of such answers. */
+        val dbItem = answer.getDbItem() ?: return answer
+
+        /* If the media item has no segments at all (e.g., images or videos without imported segments), the answer is left unchanged. */
+        if (dbItem.segments.isEmpty) return answer
+
         val startSegment = answer.start?.let { DbMediaSegment.findContaining(dbItem, TemporalPoint.Millisecond(it)) }
-        val endSegment = answer.end?.let { DbMediaSegment.findContaining(dbItem, TemporalPoint.Millisecond(it)) }
+        val endSegment = answer.end?.let { DbMediaSegment.findContaining(dbItem, TemporalPoint.Millisecond(it), isEnd = true) }
 
         /* Calculate bounds. */
         val bounds = when {

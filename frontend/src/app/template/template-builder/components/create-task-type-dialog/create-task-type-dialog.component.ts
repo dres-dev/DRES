@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import {
   ApiHintOption,
@@ -17,6 +17,18 @@ import {
 interface ActivatedType<T> {
   type: T;
   activated: boolean;
+}
+
+/**
+ * Data that can be passed to the [CreateTaskTypeDialogComponent]. For backwards compatibility, a plain [ApiTaskType] (or null) is accepted as well.
+ */
+export interface CreateTaskTypeDialogData {
+  /** The task type to start from (preset, or the task type to edit). */
+  taskType?: ApiTaskType;
+  /** True, if an existing task type is edited (instead of a new one being created). */
+  edit?: boolean;
+  /** Names of the task types that already exist in the template (used to prevent duplicate names). */
+  existingNames?: string[];
 }
 
 @Component({
@@ -51,10 +63,27 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
       return { type: v, activated: false } as ActivatedType<ApiTaskOption>;
     });
 
+  /** The task type this dialog was opened with. */
+  data: ApiTaskType;
+
+  /** True, if an existing task type is edited. */
+  editMode = false;
+
+  /** Names that must not be used for this task type (other task types in the template). */
+  private reservedNames: string[] = [];
+
   constructor(
     public dialogRef: MatDialogRef<CreateTaskTypeDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ApiTaskType
+    @Inject(MAT_DIALOG_DATA) dialogData: ApiTaskType | CreateTaskTypeDialogData
   ) {
+    if (dialogData && ('taskType' in dialogData || 'edit' in dialogData || 'existingNames' in dialogData)) {
+      const d = dialogData as CreateTaskTypeDialogData;
+      this.data = d.taskType ?? null;
+      this.editMode = d.edit ?? false;
+      this.reservedNames = (d.existingNames ?? []).filter((n) => !(this.editMode && n === this.data?.name));
+    } else {
+      this.data = (dialogData as ApiTaskType) ?? null;
+    }
     this.init();
   }
 
@@ -66,22 +95,18 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
   onCheckboxChange(e: MatCheckboxChange, name: string) {
     const arr: UntypedFormArray = this.form.get(name) as UntypedFormArray;
 
+    const idx = arr.controls.findIndex((item) => item.value === e.source.value);
     if (e.checked) {
-      arr.push(new UntypedFormControl(e.source.value));
-    } else {
-      let i = 0;
-      arr.controls.forEach((item: UntypedFormControl) => {
-        if (item.value === e.source.value) {
-          arr.removeAt(i);
-          return;
-        }
-        i++;
-      });
+      if (idx === -1) {
+        arr.push(new UntypedFormControl(e.source.value));
+      }
+    } else if (idx > -1) {
+      arr.removeAt(idx);
     }
   }
 
-  uploaded = (data: string) => {
-    const parsed = JSON.parse(data) as ApiTaskType;
+  uploaded = (data: string | ApiTaskType) => {
+    const parsed = (typeof data === 'string' ? JSON.parse(data) : data) as ApiTaskType;
     this.data = parsed;
     this.init();
     console.log('Loaded task group: ' + JSON.stringify(parsed));
@@ -113,7 +138,7 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
    * Adds a new parameter entry to the list of parameter entries.
    */
   public addParameter() {
-    (this.form.get('parameters') as UntypedFormArray).controls.push(
+    (this.form.get('parameters') as UntypedFormArray).push(
       new UntypedFormArray([new UntypedFormControl(null), new UntypedFormControl(null), new UntypedFormControl(null)])
     );
   }
@@ -122,10 +147,10 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
    * Removes a parameter entry from the list of parameter entries.
    */
   public removeParameter(entry: UntypedFormArray) {
-    const array = (this.form.get('parameters') as UntypedFormArray).controls;
-    const index = array.indexOf(entry);
+    const array = this.form.get('parameters') as UntypedFormArray;
+    const index = array.controls.indexOf(entry);
     if (index >= 0) {
-      array.splice(index, 1);
+      array.removeAt(index);
     }
   }
 
@@ -145,6 +170,7 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {}
 
   save(): void {
+    this.form.markAllAsTouched();
     if (this.form.valid) {
       this.dialogRef.close(this.fetchFromForm());
     }
@@ -180,7 +206,7 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
     /* Prepare empty FormControl. */
     this.form = new UntypedFormGroup({
       /* Name. Required */
-      name: new UntypedFormControl(this.data?.name, [Validators.required, Validators.minLength(3)]),
+      name: new UntypedFormControl(this.data?.name, [Validators.required, Validators.minLength(3), this.uniqueNameValidator]),
 
       /* Default Duration. Required */
       defaultTaskDuration: new UntypedFormControl(this.data?.duration, [Validators.min(1), Validators.max(999999)]),
@@ -219,12 +245,18 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /** Validator that prevents the use of a name that is already used by another task type of the template. */
+  private uniqueNameValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value ?? '').toString().trim();
+    return this.reservedNames?.some((n) => n.trim() === value) ? { duplicate: true } : null;
+  };
+
   /**
    * Creates the [TaskType] object from the form data and returns it.
    */
   private fetchFromForm(): ApiTaskType {
     return {
-      name: this.form.get('name').value,
+      name: (this.form.get('name').value ?? '').trim(),
       duration: this.form.get('defaultTaskDuration').value ?? null,
       targetOption: this.form.get('target').value as ApiTargetOption,
       hintOptions: (this.form.get('components') as UntypedFormArray).controls.map((c) => {

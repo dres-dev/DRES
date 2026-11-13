@@ -285,6 +285,9 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
         /** Path to the file that should be imported.*/
         private val path: Path by option("-i", "--in", help = "The file to import the template from.").path().required()
 
+        /** Optional name of the imported template. */
+        private val name: String? by option("-n", "--name", help = "Name of the imported template. Defaults to the name stored in the file.")
+
         override fun run() {
 
             /* Read template from file */
@@ -304,12 +307,12 @@ class EvaluationTemplateCommand(private val cache: CacheManager) :
                 return
             }
 
-            val created = TemplateManager.createEvaluationTemplate(template.name, template.description ?: "")
-
-            val import = template.copy(id = created.id)
-
-            TemplateManager.updateTemplate(import)
-            println("template imported")
+            try {
+                val imported = TemplateManager.importTemplate(template, this.name)
+                println("Successfully imported template '${imported.name}' (ID = ${imported.id}).")
+            } catch (e: Exception) {
+                println("Could not import template from $path: ${e.message}. Nothing was created.")
+            }
 
 
         }

@@ -53,7 +53,7 @@ object UserManager {
             val user = if (id != null) {
                 DbUser.query(DbUser::id eq id).firstOrNull()
             } else if (username != null) {
-                DbUser.query(DbUser::username eq username).firstOrNull()
+                DbUser.query(DbUser::username eq username.lowercase()).firstOrNull() /* usernames are stored in lower case */
             } else {
                 null
             }

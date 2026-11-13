@@ -226,6 +226,26 @@ export class TemplateBuilderService {
     return this.dirtySubject.asObservable();
   }
 
+  /**
+   * Replaces a task type and updates every group and task that references its old name.
+   */
+  public updateTaskType(oldName: string, taskType: ApiTaskType) {
+    const index = this.getTemplate().taskTypes.findIndex((type) => type.name === oldName);
+    if (index < 0) {
+      this.getTemplate().taskTypes.push(taskType);
+    } else {
+      this.getTemplate().taskTypes[index] = taskType;
+    }
+    if (oldName !== taskType.name) {
+      this.getTemplate().taskGroups.filter((group) => group.type === oldName).forEach((group) => (group.type = taskType.name));
+      this.getTemplate().tasks.filter((task) => task.taskType === oldName).forEach((task) => (task.taskType = taskType.name));
+    }
+    if (this._selectedTaskType?.name === oldName) {
+      this._selectedTaskType = taskType;
+    }
+    this.update(this.getTemplate());
+  }
+
   public removeTaskType(taskType: ApiTaskType) {
     const idx = this.getTemplate().taskTypes.findIndex((t) => t.name === taskType.name);
     if (idx > -1) {
@@ -262,7 +282,12 @@ export class TemplateBuilderService {
   }
 
   removeTeamGroup(teamGroup: ApiTeamGroup) {
-    this.getTemplate().teamGroups.splice(this.getTemplate().teamGroups.indexOf(teamGroup), 1);
+    const idx = this.getTemplate().teamGroups.findIndex((group) =>
+      teamGroup.id ? group.id === teamGroup.id : group === teamGroup
+    );
+    if (idx > -1) {
+      this.getTemplate().teamGroups.splice(idx, 1);
+    }
     this.update(this.getTemplate());
   }
 
@@ -334,6 +359,7 @@ export class TemplateBuilderService {
       if (alteredGroups.has(it.taskGroup)) {
         it.taskGroup = alteredGroups.get(it.taskGroup).name;
       }
+      it.id = undefined;
       if (
         !this.getTemplate()
           .tasks.map((that) => that.name)
@@ -345,31 +371,30 @@ export class TemplateBuilderService {
         this.getTemplate().tasks.push(it);
       }
     });
-    /* teams */
+    /* Teams are new entities in the destination template; drop their source IDs. */
+    const importedTeamNames = new Map<string, string>();
     from.teams.forEach((it) => {
-      if (
-        !this.getTemplate()
-          .teams.map((that) => that.name)
-          .includes(it.name)
-      ) {
-        this.getTemplate().teams.push(it);
-      } else {
-        it.name = `${it.name} (Imported)`;
-        this.getTemplate().teams.push(it);
+      if (this.getTemplate().teams.some((that) => that.name === it.name)) {
+        it.name = `${it.name} ${nameCollisionSuffix}`;
       }
+      if (it.id) {
+        importedTeamNames.set(it.id, it.name);
+      }
+      it.id = undefined;
+      this.getTemplate().teams.push(it);
     });
-    /* team groups */
+    /* Team groups refer to destination teams by the possibly renamed team names. */
     from.teamGroups.forEach((it) => {
-      if (
-        !this.getTemplate()
-          .teamGroups.map((that) => that.name)
-          .includes(it.name)
-      ) {
-        this.getTemplate().teamGroups.push(it);
-      } else {
-        it.name = `${it.name} (Imported)`;
-        this.getTemplate().teamGroups.push(it);
+      it.id = undefined;
+      it.teams = (it.teams ?? []).map((team) => ({
+        ...team,
+        id: undefined,
+        name: importedTeamNames.get(team.id) ?? team.name,
+      }));
+      if (this.getTemplate().teamGroups.some((group) => group.name === it.name)) {
+        it.name = `${it.name} ${nameCollisionSuffix}`;
       }
+      this.getTemplate().teamGroups.push(it);
     });
     /* judges are userids, hence no renaming */
     from.judges.forEach((it) => {

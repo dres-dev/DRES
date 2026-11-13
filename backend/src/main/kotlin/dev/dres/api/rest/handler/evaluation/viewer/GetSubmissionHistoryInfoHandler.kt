@@ -10,9 +10,10 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.template.tasks.options.ApiTaskOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
-import jetbrains.exodus.database.TransientEntityStore
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.toList
 
 
 class GetSubmissionHistoryInfoHandler(private val store: TransientEntityStore): AbstractEvaluationViewerHandler(), GetRestHandler<List<ApiSubmission>> {
@@ -60,7 +61,16 @@ class GetSubmissionHistoryInfoHandler(private val store: TransientEntityStore): 
                 }
             }
         } else {
-            emptyList()
+            this.store.transactional(true) {
+                manager.taskForId(rac, taskId)?.getDbSubmissions()?.toList()?.map { submission ->
+                    HiddenResultsVisibility.redactIfRequired(
+                        false,
+                        ctx.isParticipant(),
+                        submission.toApi(),
+                        emptySet()
+                    )
+                } ?: throw ErrorStatusException(404, "Task $taskId was not found.", ctx)
+            }
         }
     }
 }

@@ -227,7 +227,7 @@ export class TaskTemplateFormBuilder {
           type: t.get('type').value,
           target: t.get('mediaItem')?.value?.mediaItemId ?? null,
           range:
-            t.get('segment_start') && t.get('segment_start')
+              t.get('segment_start') && t.get('segment_end')
               ? ({
                   start: { value: t.get('segment_start').value, unit: t.get('segment_time_unit').value } as ApiTemporalPoint,
                   end: { value: t.get('segment_end').value, unit: t.get('segment_time_unit').value } as ApiTemporalPoint,
@@ -273,7 +273,7 @@ export class TaskTemplateFormBuilder {
         /** Either its the mediaItem's ID or its text that is stored in 'mediaItem' form control */
         target: t.get('mediaItem')?.value?.mediaItemId ?? t.get('mediaItem')?.value,
         range:
-          t.get('segment_start') && t.get('segment_start')
+            t.get('segment_start') && t.get('segment_end')
             ? ({
                 start: { value: t.get('segment_start').value, unit: t.get('segment_time_unit').value } as ApiTemporalPoint,
                 end: { value: t.get('segment_end').value, unit: t.get('segment_time_unit').value } as ApiTemporalPoint,
@@ -301,7 +301,7 @@ export class TaskTemplateFormBuilder {
           return { error: `${control.value} does not conform [[[HH:]MM:]SS:]fff format` };
         }
       } else {
-        return Validators.min(0);
+        return Validators.min(0)(control);
       }
     };
   }

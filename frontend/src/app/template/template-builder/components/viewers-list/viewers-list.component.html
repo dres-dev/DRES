@@ -21,6 +21,7 @@
           placeholder="Viewer"
           aria-label="Viewer"
           matInput
+          [formControl]="userSearch"
           [matAutocomplete]="userAutocomplete"
           (click)="$event.stopPropagation()"
         />

@@ -123,7 +123,7 @@ export class TaskTemplateEditorComponent implements OnInit, OnDestroy {
 
   public isFormValid() {
     if (this.builderService.hasTouchedTasks()) {
-      return this?.form?.valid || true;
+      return this.form ? this.form.valid : true;
     } else {
       return true;
     }

@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.api.rest.types.users.ApiRole
+import dev.dres.api.rest.handler.preview.ExternalMediaPath
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.javalin.security.RouteRole
@@ -47,8 +48,9 @@ class UploadExternalItemHandler : PostRestHandler<SuccessStatus>, AccessManagedR
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val fileName = ctx.pathParamMap()["name"] ?: throw ErrorStatusException(400, "No filename given", ctx)
+        val toStorePath = ExternalMediaPath.resolveForWrite(DRES.EXTERNAL_ROOT, fileName)
+            ?: throw ErrorStatusException(400, "Invalid filename '$fileName'.", ctx)
         try {
-            val toStorePath = DRES.EXTERNAL_ROOT.resolve(fileName)
             toStorePath.writeBytes(ctx.bodyAsBytes())
             return SuccessStatus("The file $fileName was successfully processed.")
         } catch (ioe: IOException) {

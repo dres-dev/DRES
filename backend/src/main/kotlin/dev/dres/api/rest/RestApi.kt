@@ -141,6 +141,7 @@ object RestApi {
             // Template
             ListEvaluationTemplatesHandler(),
             CreateEvaluationTemplateHandler(),
+            ImportEvaluationTemplateHandler(),
             UpdateEvaluationTemplateHandler(),
             CloneEvaluationTemplateHandler(),
             ShowEvaluationTemplateHandler(),

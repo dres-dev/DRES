@@ -1,7 +1,9 @@
 import { AfterViewInit, Component } from '@angular/core';
 import {
   ApiCreateEvaluation,
+  ApiEvaluation,
   ApiEvaluationOverview,
+  ApiEvaluationTemplate,
   ApiEvaluationStartMessage,
   ApiEvaluationTemplateOverview,
   DownloadService,
@@ -24,6 +26,7 @@ import {
   EvaluationStartDialogResult,
 } from '../evaluation-start-dialog/evaluation-start-dialog.component';
 import { mergeMap } from 'rxjs';
+import { instanceOfEvaluation, instanceOfTemplate } from '../../utilities/api.utilities';
 
 @Component({
   selector: 'app-template-list',
@@ -67,6 +70,32 @@ export class TemplateListComponent implements AfterViewInit {
         }
       );
   }
+
+  /** Imports a template JSON or an evaluation export containing a template as a new template. */
+  importHandler = (contents: unknown) => {
+    const template = instanceOfTemplate(contents)
+      ? contents
+      : instanceOfEvaluation(contents)
+        ? contents.template
+        : null;
+    if (!template) {
+      this.snackBar.open('Error: The file does not contain an evaluation template.', null, { duration: 5000 });
+      return;
+    }
+    this.templateService.postApiV2TemplateImport(template).subscribe({
+      next: (imported) => {
+        this.refresh();
+        this.snackBar.open(`Successfully imported template '${imported.name}' (${imported.id}).`, null, { duration: 5000 });
+      },
+      error: (err) => {
+        this.snackBar.open(`Error: ${err?.error?.description ?? err?.message}`, null, { duration: 5000 });
+      },
+    });
+  };
+
+  importErrorHandler = (_error: unknown) => {
+    this.snackBar.open('Error: The selected file could not be read as JSON.', null, { duration: 5000 });
+  };
 
   public refresh() {
     this.templateService.getApiV2TemplateList().subscribe({

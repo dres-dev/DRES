@@ -44,6 +44,7 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
   }
 
   ngOnInit(): void {
+    /* The template itself is loaded by the TemplateBuilderComponent; loading it here again would reset the builder twice. */
     this.onInit();
     this.routeSub = this.route.params.subscribe((p) => {
       this.templateService.getApiV2TemplateByTemplateId(p.templateId).subscribe(
@@ -71,7 +72,7 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
         const buckets = new Map<string, number>();
         this.builderService.getTemplate().tasks.forEach((t) => {
           if (buckets.has(t.collectionId)) {
-            buckets[t.collectionId]++;
+            buckets.set(t.collectionId, buckets.get(t.collectionId) + 1);
           } else {
             buckets.set(t.collectionId, 1);
           }
@@ -99,7 +100,7 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
       const buckets = new Map<string, number>();
       this.builderService.getTemplate().tasks.forEach((t) => {
         if (buckets.has(t.collectionId)) {
-          buckets[t.collectionId]++;
+          buckets.set(t.collectionId, buckets.get(t.collectionId) + 1);
         } else {
           buckets.set(t.collectionId, 1);
         }

@@ -4,6 +4,7 @@ import dev.dres.DRES
 import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.api.rest.types.template.ApiEvaluationTemplateOverview
 import dev.dres.api.rest.types.template.tasks.ApiTargetType
+import dev.dres.api.rest.types.template.team.ApiTeam
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.media.DbMediaCollection
 import dev.dres.data.model.media.DbMediaItem
@@ -11,6 +12,7 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.TemplateId
 import dev.dres.data.model.template.task.*
 import dev.dres.data.model.template.task.options.DbConfiguredOption
+import dev.dres.data.model.template.task.options.Parameters
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.template.team.TeamId
@@ -147,7 +149,7 @@ object TemplateManager {
             taskType.options.clear()
             taskType.options.addAll(apiTaskType.taskOptions.map { it.toDb() })
             taskType.configurations.clear()
-            taskType.configurations.addAll(apiTaskType.configuration.entries.map {
+            taskType.configurations.addAll(Parameters.normalizeLegacyKeys(apiTaskType.configuration).entries.map {
                 if (!it.key.contains(".") || it.key.split(".").size != 2) {
                     throw IllegalArgumentException("Type Configurations must be in the form of DOMAIN.KEY, but ${it.key} given")
                 }
@@ -167,11 +169,11 @@ object TemplateManager {
                 DbTaskGroup.findOrNew(DbTaskGroup.query((DbTaskGroup::name eq apiTaskGroup.name) and (DbTaskGroup::evaluation eq dbEvaluationTemplate))) {
                     this.name = apiTaskGroup.name
                 }
-            if (taskGroup.getSafe(DbTaskGroup::type)?.name != apiTaskGroup.name) {
+            if (taskGroup.getSafe(DbTaskGroup::type)?.name != apiTaskGroup.type) {
                 taskGroup.type =
                     DbTaskType.query((DbTaskType::name eq apiTaskGroup.type) and (DbTaskType::evaluation eq dbEvaluationTemplate))
                         .firstOrNull()
-                        ?: throw IllegalArgumentException("Unknown task group ${apiTaskGroup.type} for evaluation ${apiEvaluationTemplate.id}.")
+                        ?: throw IllegalArgumentException("Unknown task type ${apiTaskGroup.type} for task group ${apiTaskGroup.name} in evaluation ${apiEvaluationTemplate.id}.")
             }
             if (taskGroup.isNew) {
                 dbEvaluationTemplate.taskGroups.add(taskGroup)
@@ -215,15 +217,19 @@ object TemplateManager {
             /* Update task targets. */
             task.targets.clear()
             for (target in apiTask.targets) {
+                /* Resolve the media item first: its frame rate is required to convert frame-based time units to milliseconds. */
+                val targetItem = if (target.type == ApiTargetType.TEXT) null else target.target?.let { id ->
+                    DbMediaItem.query(DbMediaItem::id eq id).firstOrNull()
+                        ?: throw IllegalArgumentException("Unknown media item $id for target of task '${apiTask.name}'.")
+                }
                 task.targets.add(DbTaskTemplateTarget.new {
                     this.type = target.type.toDb()
-                    this.start = target.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
-                    this.end = target.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
                     when (target.type) {
                         ApiTargetType.TEXT -> this.text = target.target
-                        else -> this.item =
-                            target.target?.let { DbMediaItem.query(DbMediaItem::id eq it).firstOrNull() }
+                        else -> this.item = targetItem
                     }
+                    this.start = target.range?.start?.toTemporalPoint(targetItem?.fps ?: 0.0f)?.toMilliseconds()
+                    this.end = target.range?.end?.toTemporalPoint(targetItem?.fps ?: 0.0f)?.toMilliseconds()
                 })
             }
 
@@ -233,7 +239,10 @@ object TemplateManager {
                 task.hints.add(DbHint.new {
                     this.type = hint.type.toDb()
                     this.item =
-                        hint.item?.let { DbMediaItem.query(DbMediaItem::id eq hint.item.mediaItemId).firstOrNull() }
+                        hint.item?.let {
+                            DbMediaItem.query(DbMediaItem::id eq hint.item.mediaItemId).firstOrNull()
+                                ?: throw IllegalArgumentException("Unknown media item ${hint.item.mediaItemId} for hint of task '${apiTask.name}'.")
+                        }
                     this.text = hint.description
 
                     this.path = hint.path
@@ -310,9 +319,16 @@ object TemplateManager {
             teamGroup.name = apiTeamGroup.name ?: throw IllegalArgumentException("Team group name must be specified.")
             teamGroup.defaultAggregator = apiTeamGroup.aggregation.toDb()
 
+            /* Resolve teams within this template: by ID if possible, otherwise by name (e.g., for teams that were created in the same request). */
             teamGroup.teams.clear()
-            teamGroup.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*apiTeamGroup.teams.map { it.id }
-                .toTypedArray())))
+            for (apiTeam in apiTeamGroup.teams) {
+                val team = apiTeam.id?.let { id -> dbEvaluationTemplate.teams.filter { it.id eq id }.firstOrNull() }
+                    ?: apiTeam.name?.trim()?.let { name -> dbEvaluationTemplate.teams.filter { it.name eq name }.firstOrNull() }
+                    ?: throw IllegalArgumentException("Unknown team ${apiTeam.name ?: apiTeam.id} in team group ${apiTeamGroup.name} for evaluation ${apiEvaluationTemplate.id}.")
+                if (!teamGroup.teams.contains(team)) {
+                    teamGroup.teams.add(team)
+                }
+            }
 
             /* Establish relationship if entry is new. */
             if (teamGroup.isNew) {
@@ -359,24 +375,58 @@ object TemplateManager {
      * Creates a copy of an existing [DbEvaluationTemplate]
      */
     fun copyTemplate(dbEvaluationTemplate: DbEvaluationTemplate): TemplateId {
-
         val apiTemplate = dbEvaluationTemplate.toApi()
-        val copy = apiTemplate.copy(
-            name = "${apiTemplate.name} (copy)",
-            tasks = apiTemplate.tasks.map {
-                it.copy(id = null)
+        return createFromApi(apiTemplate, "${apiTemplate.name} (copy)").templateId
+    }
+
+    /**
+     * Imports an [ApiEvaluationTemplate] (e.g. read from an exported JSON file) as a new, independent [DbEvaluationTemplate].
+     *
+     * All IDs contained in the [ApiEvaluationTemplate] (template, tasks, teams, team groups) are discarded and
+     * new entities are created. Everything happens in a single transaction, i.e., if the import fails, nothing is created.
+     *
+     * @param apiTemplate The [ApiEvaluationTemplate] to import.
+     * @param name Optional name for the new template. Defaults to the name of the [apiTemplate].
+     * @return The imported [ApiEvaluationTemplate].
+     */
+    @Throws(IllegalArgumentException::class)
+    fun importTemplate(apiTemplate: ApiEvaluationTemplate, name: String? = null): ApiEvaluationTemplate {
+        val id = this.store.transactional { createFromApi(apiTemplate, name ?: apiTemplate.name).templateId }
+        return getTemplate(id)!!
+    }
+
+    /**
+     * Creates a new [DbEvaluationTemplate] from an [ApiEvaluationTemplate], creating new entities for tasks, teams and team groups.
+     * Team logos are carried over if they are part of the [ApiEvaluationTemplate] or if the referenced team still exists.
+     *
+     * Requires a transaction context.
+     */
+    private fun createFromApi(apiTemplate: ApiEvaluationTemplate, name: String): DbEvaluationTemplate {
+        val newTemplate = DbEvaluationTemplate.new {
+            this.instance = false
+            this.name = name
+            this.description = apiTemplate.description
+            this.created = DateTime.now()
+            this.modified = DateTime.now()
+        }
+
+        /* All IDs are dropped so that new entities are created. Team groups reference their teams by name, which is resolved within the new template. */
+        val oldTeamNames = apiTemplate.teams.associate { it.id to it.name }
+        val withoutIds = apiTemplate.copy(
+            id = newTemplate.templateId,
+            name = name,
+            tasks = apiTemplate.tasks.map { it.copy(id = null) },
+            teams = apiTemplate.teams.map { team ->
+                team.copy(id = null, logoData = team.logoData ?: team.id?.let { teamId ->
+                    getTeamLogo(teamId)?.use { Base64.getEncoder().encodeToString(it.readAllBytes()) }
+                })
             },
-            teams = apiTemplate.teams.map {
-                it.copy(id = null, logoData = if(getTeamLogo(it.teamId) != null) {Base64.getEncoder().encodeToString(getTeamLogo(it.teamId)?.readAllBytes())}else{null})
+            teamGroups = apiTemplate.teamGroups.map { group ->
+                group.copy(id = null, teams = group.teams.map { team -> ApiTeam(id = null, name = oldTeamNames[team.id] ?: team.name) })
             }
         )
-
-        val newTemplate = DbEvaluationTemplate.new()
-
-        updateTemplate(newTemplate, copy)
-
-        return newTemplate.templateId
-
+        updateTemplate(newTemplate, withoutIds)
+        return newTemplate
     }
 
     fun prepareTemplate(templateId: TemplateId, cache: CacheManager) = this.store.transactional (true) {

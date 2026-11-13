@@ -102,7 +102,8 @@ class NonInteractiveEvaluation(store: TransientEntityStore, evaluation: DbEvalua
                     CombiningSubmissionFilter(
                         task.template.taskGroup.type.submission.asSequence().map { option ->
                             val parameters =
-                                task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq option.description)
+                                /* Parameters are stored as <OPTION>.<parameter>, e.g. LIMIT_CORRECT_PER_TEAM.limit */
+                                task.template.taskGroup.type.configurations.query(DbConfiguredOption::key.startsWith("${option.description}."))
                                     .asSequence().map { it.key to it.value }.toMap()
                             option.newFilter(parameters)
                         }.toList()

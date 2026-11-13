@@ -1,6 +1,7 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.task.options.DbTargetOption
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.validation.*
@@ -48,7 +49,7 @@ abstract class AbstractInteractiveTask(store: TransientEntityStore, task: DbTask
                     val knownRanges =
                         template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }
                             .asSequence().map {
-                                ItemRange(it.item?.name!!, it.start!!, it.end!!)
+                                ItemRange(it.item!!, it.start!!, it.end!!) /* keyed by item ID, like ItemRange(answer) */
                             }.toSet()
                     BasicJudgementValidator(template.toApi(), this.store, template.taskGroup.type.toApi(), knownCorrectRanges = knownRanges)
                 }
@@ -57,10 +58,10 @@ abstract class AbstractInteractiveTask(store: TransientEntityStore, task: DbTask
                     val knownRanges =
                         template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }
                             .asSequence().map {
-                                ItemRange(it.item?.name!!, it.start!!, it.end!!)
+                                ItemRange(it.item!!, it.start!!, it.end!!) /* keyed by item ID, like ItemRange(answer) */
                             }.toSet()
                     val parameters =
-                        template.taskGroup.type.configurations.filter { it.key eq targetOption.description }
+                        template.taskGroup.type.configurations.query(DbConfiguredOption::key.startsWith("${targetOption.description}."))
                             .asSequence().associate { it.key to it.value }
                     BasicVoteValidator(template.toApi(), this.store, template.taskGroup.type.toApi(), knownCorrectRanges = knownRanges, parameters = parameters)
                 }

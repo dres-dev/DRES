@@ -495,10 +495,10 @@ class MediaCollectionCommand :
         ).required()
 
         /** The duration of the new [DbMediaItem]. */
-        private val duration: Long? by option("-d", "--duration", help = "video duration in seconds").long()
+        private val duration: Long? by option("-d", "--duration", help = "video duration in milliseconds").long()
 
         /** The fps rate of the new [DbMediaItem]. */
-        private val fps: Float? by option("-f", "--fps").float().required()
+        private val fps: Float? by option("-f", "--fps", help = "video frame rate (required for videos)").float()
 
         override fun run() {
             /* Find media collection. */

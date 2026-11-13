@@ -68,7 +68,8 @@ export class TeamBuilderDialogComponent {
         Validators.maxLength(7),
       ]),
       logoData: new FormControl(team?.logoData),
-      users: new FormControl(team?.users || []),
+      /* Copy, so that the team of the template is only changed when the dialog is saved. */
+      users: new FormControl([...(team?.users ?? [])]),
       userInput: new FormControl(''),
     });
     this.filterUsers();
@@ -127,9 +128,9 @@ export class TeamBuilderDialogComponent {
    * @param user The selected user.
    */
   public removeUser(user: ApiUser): void {
-    const index = this.form.get('users').value.indexOf(user);
-    if (index >= 0) {
-      this.form.get('users').value.splice(index, 1);
+    const members: ApiUser[] = this.form.get('users').value ?? [];
+    if (members.includes(user)) {
+      this.form.get('users').setValue(members.filter((u) => u !== user));
     }
   }
 

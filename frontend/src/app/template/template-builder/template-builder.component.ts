@@ -204,6 +204,25 @@ export class TemplateBuilderComponent
     }
   }
 
+  /** Reloads the template from the server (without re-registering subscriptions, which would leak). */
+  private reload(done?: () => void) {
+    const id = this.builderService.getTemplate()?.id;
+    if (!id) {
+      done?.();
+      return;
+    }
+    this.templateService.getApiV2TemplateByTemplateId(id).subscribe({
+      next: (t) => {
+        this.builderService.initialise(t);
+        done?.();
+      },
+      error: (r) => {
+        this.snackBar.open(`Error: ${r?.error?.description}`, null, {duration: 5000});
+        done?.();
+      }
+    });
+  }
+
   editTask(taskType: ApiTaskType, taskGroup: ApiTaskGroup, task?: ApiTaskTemplate) {
     this.taskEditor.taskType = taskType;
     this.taskEditor.taskGroup = taskGroup;

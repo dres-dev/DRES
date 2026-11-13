@@ -53,6 +53,7 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
     this.afterInitComplete = true;
   }
 
+  /* Called by the base class for every change of the template; must not subscribe again (would leak a subscription per change). */
   onChange() {
     this.updateSub = this.builderService.templateAsObservable().subscribe((t) => {
       if (t) {
@@ -67,7 +68,7 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
 
   ngOnDestroy() {
     this.onDestroy();
-    this.updateSub.unsubscribe();
+    this.updateSub?.unsubscribe();
   }
 
   /**

@@ -80,8 +80,9 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     /* Custom filter: on ID, Name and Location */
+    /* The filter value is lower-cased by applyFilter, hence the comparison has to be case-insensitive. */
     this.dataSource.filterPredicate = (data: ApiMediaItem, value: string) =>
-      data.mediaItemId.includes(value) || data.name.includes(value) || data.location.includes(value);
+      [data.mediaItemId, data.name, data.location].some((s) => s?.toLowerCase().includes(value));
 
     /*
      * Initialize subscription for collection data.
@@ -89,7 +90,8 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
      * IMPORTANT: Unsubscribe OnDestroy!
      */
     this.collection = this.refreshSubject.pipe(
-      mergeMap((s) => this.collectionId),
+      /* take(1): the route parameters never complete, so every refresh would otherwise add another subscription. */
+      mergeMap((s) => this.collectionId.pipe(take(1))),
       switchMap((id) =>
         this.collectionService.getApiV2CollectionByCollectionId(id).pipe(
           retry(3),
@@ -253,13 +255,13 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
   }
 
   show(id: string) {
-    this.collectionId.subscribe((collectionId) => {
+    this.collectionId.pipe(take(1)).subscribe((collectionId) => {
       window.open(this.mediaUrlForItem(id), '_blank');
     });
   }
 
   create(id?: string) {
-    this.collectionId.subscribe((colId: string) => {
+    this.collectionId.pipe(take(1)).subscribe((colId: string) => {
       const config = { width: '500px' } as MatDialogConfig<Partial<MediaItemBuilderData>>;
       if (id) {
         config.data = {

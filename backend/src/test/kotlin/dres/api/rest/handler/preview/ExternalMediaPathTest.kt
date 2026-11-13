@@ -31,6 +31,21 @@ class ExternalMediaPathTest {
     }
 
     @Test
+    fun `resolves upload targets inside root and rejects parent or target symlinks`() {
+        val root = Files.createDirectory(tempDir.resolve("external"))
+        val outside = Files.createDirectory(tempDir.resolve("outside"))
+        Files.createSymbolicLink(root.resolve("outside-link"), outside)
+        Files.writeString(outside.resolve("existing.txt"), "outside")
+        Files.writeString(root.resolve("existing-link-target.txt"), "target")
+        Files.createSymbolicLink(root.resolve("existing-link.txt"), root.resolve("existing-link-target.txt"))
+
+        assertEquals(root.resolve("new.txt"), ExternalMediaPath.resolveForWrite(root, "new.txt"))
+        assertNull(ExternalMediaPath.resolveForWrite(root, "../outside/new.txt"))
+        assertNull(ExternalMediaPath.resolveForWrite(root, "outside-link/new.txt"))
+        assertNull(ExternalMediaPath.resolveForWrite(root, "existing-link.txt"))
+    }
+
+    @Test
     fun `rejects symlinks that escape root`() {
         val root = Files.createDirectory(tempDir.resolve("external"))
         val secret = Files.writeString(tempDir.resolve("secret.txt"), "secret")

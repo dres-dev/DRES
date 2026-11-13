@@ -1,0 +1,30 @@
+.hint {
+  margin: 1rem 0;
+}
+
+.empty {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.ended-table {
+  width: 100%;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.submission-counts {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.total {
+  font-variant-numeric: tabular-nums;
+}
+
+.id {
+  font-family: monospace;
+}

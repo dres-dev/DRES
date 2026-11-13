@@ -1,10 +1,15 @@
 package dev.dres.api.rest.types.evaluation
 
 import dev.dres.run.*
+import dev.dres.mgmt.EvaluationManager
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ApiEvaluationOverview(val state: RunManagerStatus, val teamOverviews: List<ApiTeamTaskOverview>) {
+data class ApiEvaluationOverview(
+    val state: RunManagerStatus,
+    val teamOverviews: List<ApiTeamTaskOverview>,
+    val verdicts: ApiVerdictCounts
+) {
     companion object {
         fun of(manager: InteractiveRunManager): ApiEvaluationOverview {
             val teamOverviews = when (manager) {
@@ -23,7 +28,11 @@ data class ApiEvaluationOverview(val state: RunManagerStatus, val teamOverviews:
                 else -> throw IllegalStateException("Unsupported run manager type") //should never happen
             }
 
-            return ApiEvaluationOverview(manager.status, teamOverviews)
+            return ApiEvaluationOverview(
+                manager.status,
+                teamOverviews,
+                EvaluationManager.verdictCounts(manager)
+            )
         }
     }
 }

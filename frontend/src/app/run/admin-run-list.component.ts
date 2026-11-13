@@ -33,6 +33,8 @@ export interface RunInfoOverviewTuple {
 export class AdminRunListComponent extends AbstractRunListComponent implements AfterViewInit {
   @ViewChild('table', { static: true }) table: MatTable<any>;
 
+  override displayedColumns = ['actions', 'id', 'name', 'status', 'currentTask', 'timeLeft', 'submissions', 'description', 'teamCount'];
+
   postRefresh: () => void = () => {
     if (this.table) {
       this.table.renderRows();
@@ -141,6 +143,7 @@ export class AdminRunListComponent extends AbstractRunListComponent implements A
                 timeLeft: 'n/a',
                 asynchronous: run.type === 'ASYNCHRONOUS',
                 runProperties: run.properties,
+                verdicts: overview.verdicts,
               } as RunInfoWithState;
 
               if (!infoState.asynchronous) {

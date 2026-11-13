@@ -2,6 +2,11 @@
   <app-back-button></app-back-button>
   <h1>Ongoing Evaluations</h1>
   <div class="spacer-flex"></div>
+  <div *ngIf="hasAccessFor(adminGroup)">
+    <button mat-button routerLink="/evaluation/ended" aria-label="View stopped evaluations">
+      Stopped
+    </button>
+  </div>
   <div>
     <button
       mat-icon-button

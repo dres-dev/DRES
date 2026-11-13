@@ -16,6 +16,7 @@ import dev.dres.data.model.template.task.options.*
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamAggregator
 import dev.dres.data.model.template.team.DbTeamGroup
+import dev.dres.mgmt.EvaluationManager
 import dev.dres.mgmt.MediaCollectionManager
 import dev.dres.mgmt.TemplateManager
 import dev.dres.mgmt.admin.UserManager
@@ -124,6 +125,7 @@ object DRES {
         UserManager.init(store)
         MediaCollectionManager.init(store)
         TemplateManager.init(store)
+        EvaluationManager.init(store)
 
         /* Initialize RunExecutor. */
         RunExecutor.init(store)

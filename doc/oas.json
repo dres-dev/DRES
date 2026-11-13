@@ -300,9 +300,39 @@
             "items" : {
               "$ref" : "#/components/schemas/ApiTeamTaskOverview"
             }
+          },
+          "verdicts" : {
+            "$ref" : "#/components/schemas/ApiVerdictCounts"
           }
         },
-        "required" : [ "state", "teamOverviews" ]
+        "required" : [ "state", "teamOverviews", "verdicts" ]
+      },
+      "ApiEndedEvaluationInfo" : {
+        "type" : "object",
+        "properties" : {
+          "evaluationId" : { "type" : "string" },
+          "name" : { "type" : "string" },
+          "templateName" : { "type" : "string" },
+          "templateDescription" : { "type" : "string", "nullable" : true },
+          "type" : { "$ref" : "#/components/schemas/ApiEvaluationType" },
+          "created" : { "type" : "integer", "format" : "int64" },
+          "started" : { "type" : "integer", "format" : "int64", "nullable" : true },
+          "ended" : { "type" : "integer", "format" : "int64", "nullable" : true },
+          "taskCount" : { "type" : "integer", "format" : "int32" },
+          "submissionCount" : { "type" : "integer", "format" : "int32" },
+          "verdicts" : { "$ref" : "#/components/schemas/ApiVerdictCounts" }
+        },
+        "required" : [ "evaluationId", "name", "templateName", "type", "created", "taskCount", "submissionCount", "verdicts" ]
+      },
+      "ApiVerdictCounts" : {
+        "type" : "object",
+        "properties" : {
+          "correct" : { "type" : "integer", "format" : "int32" },
+          "wrong" : { "type" : "integer", "format" : "int32" },
+          "indeterminate" : { "type" : "integer", "format" : "int32" },
+          "undecidable" : { "type" : "integer", "format" : "int32" }
+        },
+        "required" : [ "correct", "wrong", "indeterminate", "undecidable" ]
       },
       "ApiEvaluationState" : {
         "type" : "object",
@@ -2222,6 +2252,30 @@
         }
       }
     },
+    "/api/v2/evaluation/admin/ended/list" : {
+      "get" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Lists stored evaluations that are no longer running.",
+        "operationId" : "getApiV2EvaluationAdminEndedList",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : { "$ref" : "#/components/schemas/ApiEndedEvaluationInfo" }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/ErrorStatus" } } }
+          }
+        }
+      }
+    },
     "/api/v2/evaluation/admin/create" : {
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
@@ -2325,6 +2379,24 @@
               }
             }
           }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Permanently deletes a stopped evaluation including its submissions.",
+        "operationId" : "deleteApiV2EvaluationAdminByEvaluationId",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "Evaluation ID",
+          "required" : true,
+          "schema" : { "type" : "string" }
+        } ],
+        "responses" : {
+          "200" : { "description" : "OK", "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/SuccessStatus" } } } },
+          "401" : { "description" : "Unauthorized", "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/ErrorStatus" } } } },
+          "404" : { "description" : "Not Found", "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/ErrorStatus" } } } },
+          "409" : { "description" : "Conflict", "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/ErrorStatus" } } } }
         }
       }
     },

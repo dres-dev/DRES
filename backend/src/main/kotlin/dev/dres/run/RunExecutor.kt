@@ -110,6 +110,14 @@ object RunExecutor : StreamEventHandler {
         }
     }
 
+    /** Runs an operation that requires this evaluation to remain unscheduled. */
+    fun <T> withNoActiveManager(evaluationId: EvaluationId, action: () -> T): T = this.runManagerLock.write {
+        check(!this.runManagers.containsKey(evaluationId)) {
+            "Evaluation $evaluationId is still running. Terminate it first."
+        }
+        action()
+    }
+
     /**
      * Schedules a new [RunManager] with this [RunExecutor].
      *

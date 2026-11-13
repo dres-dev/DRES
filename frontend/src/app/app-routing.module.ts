@@ -6,6 +6,7 @@ import { ProfileComponent } from './user/profile/profile.component';
 import { AdminUserListComponent } from './user/admin-user-list/admin-user-list.component';
 import { JudgementViewerComponent } from './judgement/judgement-viewer.component';
 import { RunListComponent } from './run/run-list.component';
+import { EndedRunListComponent } from './run/ended-run-list.component';
 import { RunAdminViewComponent } from './run/run-admin-view.component';
 import { CollectionListComponent } from './collection/collection-list/collection-list.component';
 import { CollectionViewerComponent } from './collection/collection-viewer/collection-viewer.component';
@@ -53,6 +54,11 @@ const routes: Routes = [
     path: EVALUATION_ROUTE + '/list',
     component: RunListComponent,
     canActivate: [canActivateAnyRole],
+  },
+  {
+    path: EVALUATION_ROUTE + '/ended',
+    component: EndedRunListComponent,
+    canActivate: [canActivateAdministrator],
   },
   {
     path: EVALUATION_ROUTE + '/admin/:runId',

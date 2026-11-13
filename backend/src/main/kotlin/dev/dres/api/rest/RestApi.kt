@@ -190,6 +190,8 @@ object RestApi {
             ListSubmissionsHandler(),
             ListPastTaskHandler(),
             EvaluationOverviewHandler(),
+            ListEndedEvaluationsHandler(),
+            DeleteEvaluationHandler(),
             ListAllTeamsHandler(store),
             CreateTeamHandler(store),
             UpdateTeamHandler(store),

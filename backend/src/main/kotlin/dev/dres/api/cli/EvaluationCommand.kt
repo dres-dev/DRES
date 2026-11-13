@@ -16,6 +16,7 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.*
+import dev.dres.mgmt.EvaluationManager
 import dev.dres.utilities.extensions.toDateString
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
@@ -224,18 +225,15 @@ class EvaluationCommand(internal val store: TransientEntityStore) :
         private val id: EvaluationId by option("-r", "--run").required()
 
         override fun run() {
-            if (RunExecutor.managers().any { it.id == id }) {
-                println("Evaluation with ID $id could not be deleted because it is still running! Terminate it and try again.")
-                return
-            }
-
-            this@EvaluationCommand.store.transactional {
-                val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
-                if (evaluation == null) {
-                    println("Evaluation with ID ${this.id} could not be deleted because it doesn't exist!")
-                    return@transactional
+            try {
+                val deleted = EvaluationManager.deleteEvaluation(id)
+                if (deleted == null) {
+                    println("Evaluation with ID $id could not be deleted because it doesn't exist!")
+                } else {
+                    println("Evaluation '${deleted.name}' and ${deleted.submissions} submissions were deleted.")
                 }
-                evaluation.delete()
+            } catch (e: IllegalStateException) {
+                println("Evaluation with ID $id could not be deleted because it is still running. Terminate it and try again.")
             }
         }
     }

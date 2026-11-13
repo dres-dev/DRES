@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ApiRunProperties,
   ApiTaskStatus,
+  ApiVerdictCounts,
   DownloadService,
   EvaluationAdministratorService,
   EvaluationScoresService,
@@ -24,6 +25,7 @@ export interface RunInfoWithState {
   timeLeft: string;
   asynchronous: boolean;
   runProperties: ApiRunProperties;
+  verdicts?: ApiVerdictCounts;
 }
 
 export class AbstractRunListComponent {

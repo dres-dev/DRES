@@ -3,6 +3,9 @@ package dres.integration
 import dev.dres.data.model.template.task.DbTaskGroup
 import dev.dres.data.model.template.task.DbTaskType
 import dev.dres.data.model.template.task.options.DbConfiguredOption
+import dev.dres.data.model.template.task.options.Parameters
+import dev.dres.api.rest.types.template.tasks.options.ApiTaskOption
+import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.mgmt.TemplateManager
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.size
@@ -28,6 +31,67 @@ class TemplateManagerDeletionTest : AbstractDresIntegrationTest() {
     @BeforeAll
     fun initTemplateManager() {
         TemplateManager.init(store)
+    }
+
+    @Test
+    fun `template export can be imported with new IDs and independent team group memberships`() {
+        val collection = createTestCollection()
+        val source = createTemplateShell("round-trip-${UUID.randomUUID()}", teamCount = 2)
+        val group = addTaskTypeAndGroup(source, "KIS", "KIS", "KIS", "MEDIA_ITEM")
+        addTask(source, group, collection, "Task-1")
+        val sourceIds = store.transactional {
+            val sourceTeams = source.teams.asSequence().toList()
+            val sourceGroup = DbTeamGroup.new {
+                id = UUID.randomUUID().toString()
+                name = "all-teams"
+                defaultAggregator = dev.dres.data.model.template.team.DbTeamAggregator.MEAN
+            }
+            sourceTeams.forEach { sourceGroup.teams.add(it) }
+            source.teamGroups.add(sourceGroup)
+            Triple(source.id, sourceTeams.map { it.id }.toSet(), sourceGroup.id)
+        }
+        val exported = TemplateManager.getTemplate(sourceIds.first)!!
+
+        val imported = TemplateManager.importTemplate(exported, "round-trip-copy-${UUID.randomUUID()}")
+
+        assertNotEquals(sourceIds.first, imported.id)
+        assertNotEquals(exported.tasks.single().id, imported.tasks.single().id)
+        assertNotEquals(sourceIds.third, imported.teamGroups.single().id)
+        assertEquals("Task-1", imported.tasks.single().name)
+        assertEquals(setOf("Team 1", "Team 2"), imported.teamGroups.single().teams.mapNotNull { it.name }.toSet())
+        assertTrue(imported.teamGroups.single().teams.all { team -> team.id in imported.teams.mapNotNull { it.id } })
+    }
+
+    @Test
+    fun `legacy submission option configuration is normalized when template is saved`() {
+        val template = createTemplateShell("legacy-config-${UUID.randomUUID()}", teamCount = 0)
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_ITEM")
+        addTask(template, group, createTestCollection(), "Task-1")
+        val current = store.transactional(true) { template.toApi() }
+        val legacy = current.copy(taskTypes = current.taskTypes.map { type ->
+            type.copy(
+                taskOptions = type.taskOptions + dev.dres.api.rest.types.template.tasks.options.ApiTaskOption.PROLONG_ON_SUBMISSION,
+                configuration = mapOf(
+                    Parameters.LEGACY_PROLONG_ON_SUBMISSION_LIMIT_PARAM to "1500",
+                    Parameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM to "2500",
+                    Parameters.LEGACY_PROLONG_ON_SUBMISSION_BY_PARAM to "30",
+                    Parameters.LEGACY_PROLONG_ON_SUBMISSION_CORRECT_PARAM to "true"
+                )
+            )
+        })
+
+        TemplateManager.updateTemplate(legacy)
+
+        val saved = TemplateManager.getTemplate(current.id)!!.taskTypes.single()
+        assertEquals(
+            mapOf(
+                Parameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM to "2500",
+                Parameters.PROLONG_ON_SUBMISSION_BY_PARAM to "30",
+                Parameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM to "true"
+            ),
+            saved.configuration
+        )
+        assertNull(Parameters.value(saved.configuration, Parameters.LEGACY_PROLONG_ON_SUBMISSION_LIMIT_PARAM))
     }
 
     // ── Task type deletion ─────────────────────────────────────────────────────

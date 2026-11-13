@@ -46,6 +46,23 @@ class ExternalMediaPathTest {
     }
 
     @Test
+    fun `rejects absolute paths`() {
+        val root = Files.createDirectory(tempDir.resolve("external"))
+        val outside = Files.writeString(tempDir.resolve("absolute.txt"), "outside")
+
+        assertNull(ExternalMediaPath.resolve(root, outside.toString()))
+        assertNull(ExternalMediaPath.resolveForWrite(root, outside.toString()))
+    }
+
+    @Test
+    fun `rejects malformed paths`() {
+        val root = Files.createDirectory(tempDir.resolve("external"))
+
+        assertNull(ExternalMediaPath.resolve(root, "\u0000"))
+        assertNull(ExternalMediaPath.resolveForWrite(root, "\u0000"))
+    }
+
+    @Test
     fun `rejects symlinks that escape root`() {
         val root = Files.createDirectory(tempDir.resolve("external"))
         val secret = Files.writeString(tempDir.resolve("secret.txt"), "secret")

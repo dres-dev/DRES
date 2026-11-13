@@ -104,16 +104,15 @@ export class AuthenticationService {
    */
   public canActivate(
     rolesAllows: Array<ApiRole>,
-    route: ActivatedRouteSnapshot,
+    _route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
     return this.role.pipe(
       map((role) => {
         if (!role) {
           return this.router.parseUrl(`/login?returnUrl=${state.url}`);
-        } else if (route.data.roles && route.data.roles.indexOf(role) === -1) {
-          //return this.router.parseUrl('/forbidden');
-          return this.router.parseUrl(`/login?returnUrl=${state.url}`);
+        } else if (!rolesAllows.includes(role)) {
+          return this.router.parseUrl('/forbidden');
         } else {
           return true;
         }

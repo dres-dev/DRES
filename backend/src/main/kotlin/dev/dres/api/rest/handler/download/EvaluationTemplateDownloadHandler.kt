@@ -4,9 +4,11 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.data.model.template.DbEvaluationTemplate
 import io.javalin.http.Context
+import io.javalin.security.RouteRole
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.eq
@@ -21,6 +23,9 @@ import kotlinx.dnq.query.query
  */
 class EvaluationTemplateDownloadHandler(private val store: TransientEntityStore) : AbstractDownloadHandler(),
     GetRestHandler<ApiEvaluationTemplate> {
+
+    /** Full template exports include targets; restrict them to administrators. */
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
     /** The route of this [EvaluationTemplateDownloadHandler]. */
     override val route = "download/template/{templateId}"

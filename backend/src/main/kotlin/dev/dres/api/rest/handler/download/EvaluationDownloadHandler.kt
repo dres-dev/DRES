@@ -4,6 +4,8 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.evaluation.ApiEvaluation
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.users.ApiRole
+import io.javalin.security.RouteRole
 import dev.dres.data.model.run.DbEvaluation
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -19,6 +21,9 @@ import kotlinx.dnq.query.query
  * @version 1.0.0
  */
 class EvaluationDownloadHandler(private val store: TransientEntityStore) : AbstractDownloadHandler(), GetRestHandler<ApiEvaluation> {
+
+    /** Full evaluation exports can contain targets and submissions, so only administrators may download them. */
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
     /** The route of this [EvaluationDownloadHandler]. */
     override val route = "download/evaluation/{evaluationId}"

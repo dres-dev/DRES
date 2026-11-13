@@ -12,7 +12,6 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.javalin.security.RouteRole
 import java.nio.file.Files
-import kotlin.io.path.Path
 
 /**
  * An [GetRestHandler] used to access files from the external media collection.
@@ -57,9 +56,9 @@ class GetExternalMediaHandler : GetRestHandler<Any>, AccessManagedRestHandler {
             return
         }
 
-        /* Lookup */
-        val path = DRES.EXTERNAL_ROOT.resolve(Path(file))
-        if (!Files.exists(path)) {
+        /* Resolve the real path and reject traversal or symlinks outside the configured root. */
+        val path = ExternalMediaPath.resolve(DRES.EXTERNAL_ROOT, file)
+        if (path == null) {
             ctx.errorResponse(404, "External file with name $file was not found")
             return
         }

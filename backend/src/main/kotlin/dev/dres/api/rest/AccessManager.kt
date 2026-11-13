@@ -73,19 +73,15 @@ object AccessManager {
      */
     fun registerUserForSession(sessionId: String, user: ApiUser) = this.locks.write {
         require(user.id != null) { "Can only register user with userId for session. This is a programmer's error!"}
-        if (!this.sessionRoleMap.containsKey(sessionId)){
-            this.sessionRoleMap[sessionId] = mutableSetOf()
+        val roles = when(user.role) {
+            ApiRole.ADMIN -> setOf(ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE, ApiRole.ADMIN)
+            ApiRole.JUDGE -> setOf(ApiRole.VIEWER, ApiRole.JUDGE)
+            ApiRole.PARTICIPANT -> setOf(ApiRole.VIEWER, ApiRole.PARTICIPANT)
+            ApiRole.VIEWER -> setOf(ApiRole.VIEWER)
+            else -> throw IllegalStateException("Role held by user is unknown!")
         }
         this.sessionUserMap[sessionId] = user.id
-        this.sessionRoleMap[sessionId]!!.addAll(
-            when(user.role) {
-                ApiRole.ADMIN -> arrayOf(ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE, ApiRole.ADMIN)
-                ApiRole.JUDGE -> arrayOf(ApiRole.VIEWER, ApiRole.JUDGE)
-                ApiRole.PARTICIPANT -> arrayOf(ApiRole.VIEWER, ApiRole.PARTICIPANT)
-                ApiRole.VIEWER -> arrayOf(ApiRole.VIEWER)
-                else -> throw IllegalStateException("Role held by user is unknown!")
-            }
-        )
+        this.sessionRoleMap[sessionId] = roles.toMutableSet()
     }
 
     /**

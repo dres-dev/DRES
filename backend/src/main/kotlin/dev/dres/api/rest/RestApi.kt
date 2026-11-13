@@ -120,6 +120,7 @@ object RestApi {
             ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
             ListMediaItemHandler(),
             StartCollectionScanHandler(),
+            CancelCollectionScanHandler(),
             CollectionScanStatusHandler(),
             CheckCollectionHandler(),
             DeleteCollectionItemsHandler(),

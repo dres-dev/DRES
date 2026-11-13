@@ -30,6 +30,7 @@ export class CollectionScanDialogComponent implements OnInit, OnDestroy {
   status: ApiCollectionScanStatus = null;
   error: string = null;
   starting = false;
+  cancelling = false;
 
   /** True, if at least one item was added while this dialog was open (the item list should be refreshed). */
   changed = false;
@@ -54,7 +55,8 @@ export class CollectionScanDialogComponent implements OnInit, OnDestroy {
     this.collectionService.getApiV2CollectionByCollectionIdScanStatus(this.data.collectionId).subscribe({
       next: (s) => {
         this.status = s;
-        if (s.state === 'RUNNING') this.poll();
+        this.cancelling = s.state === 'CANCELLING';
+        if (this.active(s.state)) this.poll();
       },
       error: () => (this.status = null),
     });
@@ -66,6 +68,10 @@ export class CollectionScanDialogComponent implements OnInit, OnDestroy {
 
   get running(): boolean {
     return this.status?.state === 'RUNNING';
+  }
+
+  private active(state: string): boolean {
+    return state === 'RUNNING' || state === 'CANCELLING';
   }
 
   get progress(): number {
@@ -109,16 +115,38 @@ export class CollectionScanDialogComponent implements OnInit, OnDestroy {
     this.polling = timer(1000, 1000)
       .pipe(
         switchMap(() => this.collectionService.getApiV2CollectionByCollectionIdScanStatus(this.data.collectionId)),
-        takeWhile((s) => s.state === 'RUNNING', true)
+        takeWhile((s) => this.active(s.state), true)
       )
       .subscribe({
         next: (s) => {
           if (s.itemsAdded > (this.status?.itemsAdded ?? 0)) this.changed = true;
           this.status = s;
-          if (s.state !== 'RUNNING' && s.itemsAdded > 0) this.changed = true;
+          this.cancelling = s.state === 'CANCELLING';
+          if (!this.active(s.state) && s.itemsAdded > 0) this.changed = true;
         },
         error: (e) => (this.error = e?.error?.description ?? e.message),
       });
+  }
+
+  cancel() {
+    if (!this.running || this.cancelling) return;
+    this.cancelling = true;
+    this.collectionService.postApiV2CollectionByCollectionIdScanCancel(this.data.collectionId).subscribe({
+      next: (s) => {
+        this.status = s;
+        if (s.state === 'CANCELLED' || s.state === 'DONE' || s.state === 'FAILED') {
+          this.cancelling = false;
+          this.polling?.unsubscribe();
+          if (s.itemsAdded > 0) this.changed = true;
+        } else {
+          this.poll();
+        }
+      },
+      error: (e) => {
+        this.cancelling = false;
+        this.error = e?.error?.description ?? e.message;
+      },
+    });
   }
 
   close() {

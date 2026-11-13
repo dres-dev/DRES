@@ -1643,7 +1643,7 @@
       },
       "ApiCollectionScanState" : {
         "type" : "string",
-        "enum" : [ "NONE", "RUNNING", "DONE", "FAILED" ]
+        "enum" : [ "NONE", "RUNNING", "CANCELLING", "DONE", "FAILED", "CANCELLED" ]
       },
       "ApiCollectionScanStatus" : {
         "type" : "object",
@@ -6817,6 +6817,60 @@
           },
           "409" : {
             "description" : "Conflict",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : []
+      }
+    },
+    "/api/v2/collection/{collectionId}/scan/cancel" : {
+      "post" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Cancels a running scan of a media collection.",
+        "operationId" : "postApiV2CollectionByCollectionIdScanCancel",
+        "parameters" : [
+          {
+            "name" : "collectionId",
+            "in" : "path",
+            "description" : "Collection ID",
+            "required" : true,
+            "deprecated" : false,
+            "allowEmptyValue" : false,
+            "schema" : {
+              "type" : "string"
+            }
+          }
+        ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiCollectionScanStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
             "content" : {
               "application/json" : {
                 "schema" : {

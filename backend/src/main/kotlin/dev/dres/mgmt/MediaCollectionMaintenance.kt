@@ -23,6 +23,7 @@ import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ThreadFactory
+import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.extension
@@ -55,14 +56,13 @@ object MediaCollectionMaintenance {
     @Synchronized
     fun init(store: TransientEntityStore, ffmpegPath: () -> Path?) {
         if (this::store.isInitialized && this.store !== store) {
-            check(scanExecutor.isShutdown || scans.values.none { it.state == ApiCollectionScanState.RUNNING }) {
-                "Cannot reinitialize collection maintenance while scans are running."
-            }
-            if (scanExecutor.isShutdown) {
-                scanExecutor = createScanExecutor()
-            }
+            check(scanExecutor.isShutdown || scans.values.none {
+                it.state == ApiCollectionScanState.RUNNING || it.state == ApiCollectionScanState.CANCELLING
+            }) { "Cannot reinitialize collection maintenance while scans are running." }
             scans.clear()
         }
+        if (scanExecutor.isShutdown) scanExecutor = createScanExecutor()
+        stopped = false
         this.store = store
         this.ffmpegPath = ffmpegPath
     }
@@ -77,9 +77,62 @@ object MediaCollectionMaintenance {
         @Volatile var itemsAdded = 0
         @Volatile var itemsSkipped = 0
         @Volatile var message: String? = null
-        val issues: MutableList<ApiCollectionIssue> = mutableListOf()
+        private val issues: MutableList<ApiCollectionIssue> = mutableListOf()
         @Volatile var issueCount = 0
         val started = System.currentTimeMillis()
+        @Volatile var future: Future<*>? = null
+        @Volatile var cancellationRequested = false
+        private var workerStarted = false
+        @Volatile var finished: Long? = null
+
+        @Synchronized fun requestCancellation(message: String): Boolean {
+            if (state != ApiCollectionScanState.RUNNING && state != ApiCollectionScanState.CANCELLING) return false
+            cancellationRequested = true
+            this.message = message
+            if (workerStarted) state = ApiCollectionScanState.CANCELLING else markCancelled(message)
+            return true
+        }
+
+        @Synchronized fun startWorker(): Boolean {
+            if (cancellationRequested || state != ApiCollectionScanState.RUNNING) {
+                markCancelled("Scan cancelled before it started.")
+                return false
+            }
+            workerStarted = true
+            return true
+        }
+
+        @Synchronized fun finishWorker() {
+            workerStarted = false
+            if (cancellationRequested || state == ApiCollectionScanState.CANCELLING) markCancelled("Scan cancelled.")
+            if (finished == null) finished = System.currentTimeMillis()
+        }
+
+        @Synchronized fun completeSuccessfully() {
+            if (cancellationRequested || state == ApiCollectionScanState.CANCELLING) {
+                markCancelled("Scan cancelled.")
+            } else {
+                state = ApiCollectionScanState.DONE
+                finished = System.currentTimeMillis()
+            }
+        }
+
+        @Synchronized fun completeWithFailure(error: Exception) {
+            if (cancellationRequested || Thread.currentThread().isInterrupted) {
+                markCancelled("Scan cancelled.")
+            } else {
+                message = "Scan failed: ${error.message}"
+                state = ApiCollectionScanState.FAILED
+                finished = System.currentTimeMillis()
+            }
+        }
+
+        @Synchronized private fun markCancelled(message: String) {
+            cancellationRequested = true
+            this.message = message
+            state = ApiCollectionScanState.CANCELLED
+            finished = System.currentTimeMillis()
+        }
 
         @Synchronized fun addIssue(issue: ApiCollectionIssue) {
             issueCount++
@@ -87,7 +140,6 @@ object MediaCollectionMaintenance {
         }
 
         @Synchronized fun issuesSnapshot(): List<ApiCollectionIssue> = issues.toList()
-        @Volatile var finished: Long? = null
 
         fun status() = ApiCollectionScanStatus(
             collectionId = collectionId,
@@ -107,7 +159,9 @@ object MediaCollectionMaintenance {
     /** Retain completed scan status for a bounded period to avoid an unbounded per-collection history. */
     private val scans = ConcurrentHashMap<CollectionId, ScanJob>()
     private val scanRetentionMs = 60 * 60 * 1000L
+    private const val MAX_SCAN_HISTORY = 512
     @Volatile private var scanExecutor = createScanExecutor()
+    @Volatile private var stopped = false
 
     private fun createScanExecutor() = ThreadPoolExecutor(
         2, 2, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(16), ThreadFactory { runnable ->
@@ -115,10 +169,18 @@ object MediaCollectionMaintenance {
         }, ThreadPoolExecutor.AbortPolicy()
     )
 
+    /** Cancels the active scan for a collection; returns its last known status if no scan is active. */
+    @Synchronized
+    fun cancelScan(collectionId: CollectionId): ApiCollectionScanStatus {
+        val job = scans[collectionId] ?: return scanStatus(collectionId)
+        if (job.requestCancellation("Scan cancellation requested.")) job.future?.cancel(true)
+        return job.status()
+    }
+
     /** Returns the status of the most recent scan of the given collection. */
     fun scanStatus(collectionId: CollectionId): ApiCollectionScanStatus {
         val job = this.scans[collectionId]
-        if (job != null && job.state != ApiCollectionScanState.RUNNING &&
+        if (job != null && job.state != ApiCollectionScanState.RUNNING && job.state != ApiCollectionScanState.CANCELLING &&
             (job.finished ?: Long.MAX_VALUE) < System.currentTimeMillis() - scanRetentionMs
         ) {
             this.scans.remove(collectionId, job)
@@ -129,18 +191,37 @@ object MediaCollectionMaintenance {
     }
 
     private fun trimScanHistory() {
-        val completed = scans.values.filter { it.state != ApiCollectionScanState.RUNNING }
+        val completed = scans.values.filter {
+            it.state != ApiCollectionScanState.RUNNING && it.state != ApiCollectionScanState.CANCELLING
+        }
             .sortedBy { it.finished ?: Long.MIN_VALUE }
-        val excess = scans.size - 512
-        if (excess > 0) completed.take(excess).forEach { scans.remove(it.collectionId, it) }
         val oldestAllowed = System.currentTimeMillis() - scanRetentionMs
         completed.filter { (it.finished ?: Long.MAX_VALUE) < oldestAllowed }
             .forEach { scans.remove(it.collectionId, it) }
+        val excess = scans.size - MAX_SCAN_HISTORY
+        if (excess > 0) completed.take(excess).forEach { scans.remove(it.collectionId, it) }
     }
 
-    /** Stops accepting scan requests and interrupts queued/background work during application shutdown. */
+    /** Stops accepting scan requests and cancels running and queued scans during application shutdown. */
+    @Synchronized
     fun stop() {
-        scanExecutor.shutdownNow()
+        stopped = true
+        val executor = scanExecutor
+        val queued = executor.shutdownNow()
+        scans.values.forEach { job ->
+            if (job.requestCancellation("Scan cancelled during shutdown.")) job.future?.cancel(true)
+        }
+        queued.forEach { task ->
+            (task as? Future<*>)?.cancel(false)
+        }
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                logger.warn("Collection scan workers did not stop within 5 seconds during shutdown.")
+            }
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            logger.warn("Interrupted while waiting for collection scan workers to stop.")
+        }
     }
 
     /**
@@ -150,7 +231,9 @@ object MediaCollectionMaintenance {
      * @throws IllegalArgumentException If the collection does not exist, its folder cannot be read or no endings are given.
      * @throws IllegalStateException If a scan of this collection is already running.
      */
+    @Synchronized
     fun startScan(collectionId: CollectionId, videoTypes: Collection<String>, imageTypes: Collection<String>): ApiCollectionScanStatus {
+        check(!stopped && !scanExecutor.isShutdown) { "The collection scan service is stopped." }
         val videos = normaliseTypes(videoTypes)
         val images = normaliseTypes(imageTypes)
         require(videos.isNotEmpty() || images.isNotEmpty()) { "No file types specified." }
@@ -158,27 +241,34 @@ object MediaCollectionMaintenance {
 
         val now = System.currentTimeMillis()
         scans.entries.removeIf { (_, scan) ->
-            scan.state != ApiCollectionScanState.RUNNING && (scan.finished ?: now) < now - scanRetentionMs
+            scan.state != ApiCollectionScanState.RUNNING && scan.state != ApiCollectionScanState.CANCELLING &&
+                (scan.finished ?: now) < now - scanRetentionMs
         }
         val job = ScanJob(collectionId)
         val previous = this.scans.compute(collectionId) { _, current ->
-            if (current?.state == ApiCollectionScanState.RUNNING) current else job
+            if (current?.state == ApiCollectionScanState.RUNNING || current?.state == ApiCollectionScanState.CANCELLING) current else job
         }
         check(previous === job) { "A scan of this collection is already running." }
         trimScanHistory()
 
         try {
-            scanExecutor.execute {
+            job.future = scanExecutor.submit {
+                if (!job.startWorker()) return@submit
                 try {
                     runScan(job, base, videos, images) { }
+                } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    job.requestCancellation("Scan cancelled.")
                 } catch (e: Exception) {
-                    logger.error("Scan of collection $collectionId failed.", e)
-                    job.message = "Scan failed: ${e.message}"
-                    job.state = ApiCollectionScanState.FAILED
+                    if (!job.cancellationRequested && !Thread.currentThread().isInterrupted) {
+                        logger.error("Scan of collection $collectionId failed.", e)
+                    }
+                    job.completeWithFailure(e)
                 } finally {
-                    job.finished = System.currentTimeMillis()
+                    job.finishWorker()
                 }
             }
+            if (job.cancellationRequested) job.future?.cancel(true)
         } catch (e: java.util.concurrent.RejectedExecutionException) {
             scans.remove(collectionId, job)
             throw IllegalStateException("The collection scan service is busy. Try again later.", e)
@@ -222,8 +312,11 @@ object MediaCollectionMaintenance {
 
     private fun runScan(job: ScanJob, base: Path, videoTypes: Set<String>, imageTypes: Set<String>, log: (String) -> Unit) {
         val collectionId = job.collectionId
+        checkScanActive(job)
         val files = Files.walk(base).use { stream ->
             stream.filter { path ->
+                checkScanActive(job)
+                if (Thread.currentThread().isInterrupted) return@filter false
                 if (path == base || !Files.isRegularFile(path)) return@filter false
                 val extension = path.extension.lowercase()
                 (extension in videoTypes || extension in imageTypes) &&
@@ -239,7 +332,9 @@ object MediaCollectionMaintenance {
         }
 
         files.chunked(SCAN_CHUNK_SIZE).forEach { chunk ->
+            checkScanActive(job)
             val items = chunk.mapNotNull { file ->
+                checkScanActive(job)
                 val location = file.relativeTo(base).toString()
                 val item = if (location in existing) {
                     job.itemsSkipped++
@@ -254,12 +349,16 @@ object MediaCollectionMaintenance {
                         else -> {
                             log("Found video $file; analysing...")
                             val (durationMs, fps) = analyseVideo(file)
+                            checkScanActive(job)
                             log("Frame rate $fps fps, duration $durationMs ms.")
                             ApiMediaItem(mediaItemId = "", name = file.fileName.nameWithoutExtension, type = ApiMediaType.VIDEO,
                                 collectionId = collectionId, location = location, durationMs = durationMs, fps = fps)
                         }
                     }
                 } catch (e: Exception) {
+                    if (job.cancellationRequested || Thread.currentThread().isInterrupted || e is InterruptedException) {
+                        throw InterruptedException("Collection scan was cancelled.").also { it.initCause(e) }
+                    }
                     logger.warn("Could not analyse $file during scan of collection $collectionId.", e)
                     log("Could not analyse $file: ${e.message}. Skipping.")
                     job.addIssue(ApiCollectionIssue(file.fileName.nameWithoutExtension, location, e.message ?: e.javaClass.simpleName))
@@ -269,15 +368,23 @@ object MediaCollectionMaintenance {
                 item
             }
             if (items.isNotEmpty()) {
+                checkScanActive(job)
                 val added = MediaCollectionManager.addMediaItems(collectionId, items)
                 job.itemsAdded += added
                 job.itemsSkipped += items.size - added
             }
         }
 
+        checkScanActive(job)
         job.message = "Added ${job.itemsAdded} new items, skipped ${job.itemsSkipped} existing or duplicate items" +
                 if (job.issueCount > 0) ", ${job.issueCount} files could not be analysed." else "."
-        job.state = ApiCollectionScanState.DONE
+        job.completeSuccessfully()
+    }
+
+    private fun checkScanActive(job: ScanJob) {
+        if (job.cancellationRequested || Thread.currentThread().isInterrupted) {
+            throw InterruptedException("Collection scan was cancelled.")
+        }
     }
 
     private fun ffprobe(file: Path, countFrames: Boolean): FFprobeResult =

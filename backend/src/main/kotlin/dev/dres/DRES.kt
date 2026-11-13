@@ -151,12 +151,12 @@ object DRES {
 
         /* Stop. */
         try {
+            RestApi.stop()
+            MediaCollectionMaintenance.stop()
             global.stop()
         } finally {
-            RestApi.stop()
             RunExecutor.stop()
             EventStreamProcessor.stop()
-            MediaCollectionMaintenance.stop()
             AuditLogger.stop()
         }
     }

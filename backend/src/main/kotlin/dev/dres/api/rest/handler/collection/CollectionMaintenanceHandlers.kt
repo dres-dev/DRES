@@ -52,6 +52,32 @@ class StartCollectionScanHandler : AbstractCollectionHandler(), PostRestHandler<
     }
 }
 
+/** Requests cancellation of a running scan. The background task stops between files/chunks. */
+class CancelCollectionScanHandler : AbstractCollectionHandler(), PostRestHandler<ApiCollectionScanStatus> {
+    override val route: String = "collection/{collectionId}/scan/cancel"
+
+    @OpenApi(
+        summary = "Cancels a running scan of a media collection.",
+        path = "/api/v2/collection/{collectionId}/scan/cancel",
+        pathParams = [OpenApiParam("collectionId", String::class, "Collection ID", required = true)],
+        tags = ["Collection"],
+        operationId = OpenApiOperation.AUTO_GENERATE,
+        methods = [HttpMethod.POST],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(ApiCollectionScanStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
+    override fun doPost(ctx: Context): ApiCollectionScanStatus {
+        val id = collectionId(ctx)
+        if (MediaCollectionManager.getCollection(id) == null) {
+            throw ErrorStatusException(404, "Collection not found.", ctx)
+        }
+        return MediaCollectionMaintenance.cancelScan(id)
+    }
+}
+
 /** Returns progress and result of the most recent scan of a collection. */
 class CollectionScanStatusHandler : AbstractCollectionHandler(), GetRestHandler<ApiCollectionScanStatus> {
     override val route: String = "collection/{collectionId}/scan/status"

@@ -6,7 +6,7 @@
     item name is the file name without ending.
   </p>
 
-  <ng-container *ngIf="!running">
+  <ng-container *ngIf="!running && !cancelling">
     <mat-form-field class="full">
       <mat-label>Video file endings</mat-label>
       <input matInput [(ngModel)]="videoTypes" placeholder="mp4, webm, mkv" />
@@ -21,25 +21,26 @@
 
   <div *ngIf="status && status.state !== 'NONE'" class="status">
     <div class="status-line">
-      <b>{{ running ? 'Scanning…' : status.state === 'DONE' ? 'Last scan finished' : 'Last scan failed' }}</b>
+      <b>{{ running ? 'Scanning…' : cancelling ? 'Cancelling…' : status.state === 'DONE' ? 'Last scan finished' : status.state === 'CANCELLED' ? 'Last scan cancelled' : 'Last scan failed' }}</b>
       <span *ngIf="status.finished && !running" class="muted">({{ status.finished | date: 'yyyy-MM-dd HH:mm:ss' }})</span>
     </div>
-    <mat-progress-bar *ngIf="running" [mode]="status.filesFound ? 'determinate' : 'indeterminate'" [value]="progress"></mat-progress-bar>
+    <mat-progress-bar *ngIf="running || cancelling" [mode]="status.filesFound ? 'determinate' : 'indeterminate'" [value]="progress"></mat-progress-bar>
     <div class="counts">
       <span>{{ status.filesProcessed }} / {{ status.filesFound }} files processed</span>
       <span>{{ status.itemsAdded }} added</span>
       <span>{{ status.itemsSkipped }} skipped (already present or duplicate name)</span>
       <span [class.warn]="status.issueCount > 0">{{ status.issueCount }} problems</span>
     </div>
-    <p *ngIf="status.message && !running">{{ status.message }}</p>
+    <p *ngIf="status.message && !running && !cancelling">{{ status.message }}</p>
     <app-collection-issue-list *ngIf="status.issues?.length" [issues]="status.issues" [total]="status.issueCount"></app-collection-issue-list>
   </div>
 
   <p *ngIf="error" class="warn">{{ error }}</p>
 </div>
 <div mat-dialog-actions align="end">
-  <button mat-button (click)="close()">{{ running ? 'Close (scan continues)' : 'Close' }}</button>
-  <button mat-flat-button color="primary" *ngIf="!running" [disabled]="starting" (click)="start()">
+  <button mat-button (click)="close()">{{ running || cancelling ? 'Close (scan continues)' : 'Close' }}</button>
+  <button mat-button color="warn" *ngIf="running && !cancelling" [disabled]="cancelling" (click)="cancel()">Cancel scan</button>
+  <button mat-flat-button color="primary" *ngIf="!running && !cancelling" [disabled]="starting" (click)="start()">
     <mat-icon>travel_explore</mat-icon> Start scan
   </button>
 </div>

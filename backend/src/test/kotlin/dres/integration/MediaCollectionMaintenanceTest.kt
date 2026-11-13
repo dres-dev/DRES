@@ -102,16 +102,46 @@ class MediaCollectionMaintenanceTest : AbstractDresIntegrationTest() {
         val outside = folder.resolveSibling("outside-${UUID.randomUUID()}.jpg")
         Files.writeString(outside, "outside")
         val id = collectionAt(folder)
-        MediaCollectionManager.addMediaItem(
-            ApiMediaItem("", "outside", ApiMediaType.IMAGE, id, "../${outside.fileName}")
-        )
+        MediaCollectionManager.addMediaItem(ApiMediaItem("", "relative", ApiMediaType.IMAGE, id, "../${outside.fileName}"))
+        MediaCollectionManager.addMediaItem(ApiMediaItem("", "absolute", ApiMediaType.IMAGE, id, outside.toString()))
 
-        val result = MediaCollectionMaintenance.check(id)!!
+        try {
+            val result = MediaCollectionMaintenance.check(id)!!
 
-        assertEquals(1, result.total)
-        assertEquals(0, result.ok)
-        assertEquals("Invalid path outside collection folder.", result.issues.single().problem)
-        Files.deleteIfExists(outside)
+            assertEquals(2, result.total)
+            assertEquals(0, result.ok)
+            assertEquals(2, result.issueCount)
+            assertEquals(setOf("Invalid path outside collection folder.", "Invalid or absolute path."), result.issues.map { it.problem }.toSet())
+        } finally {
+            Files.deleteIfExists(outside)
+        }
+    }
+
+    @Test
+    fun `check rejects symlinks that resolve outside the collection folder`(@TempDir folder: Path) {
+        val outside = folder.resolveSibling("outside-${UUID.randomUUID()}.jpg")
+        Files.writeString(outside, "outside")
+        val link = folder.resolve("outside-link.jpg")
+        try {
+            try {
+                Files.createSymbolicLink(link, outside)
+            } catch (_: UnsupportedOperationException) {
+                return
+            } catch (_: java.io.IOException) {
+                return
+            }
+            val id = collectionAt(folder)
+            MediaCollectionManager.addMediaItem(ApiMediaItem("", "outside-link", ApiMediaType.IMAGE, id, link.fileName.toString()))
+
+            val result = MediaCollectionMaintenance.check(id)!!
+
+            assertEquals(1, result.total)
+            assertEquals(0, result.ok)
+            assertEquals("File resolves outside collection folder.", result.issues.single().problem)
+        } finally {
+            Files.deleteIfExists(link)
+            Files.deleteIfExists(outside)
+        }
     }
 
     @Test
@@ -129,6 +159,67 @@ class MediaCollectionMaintenanceTest : AbstractDresIntegrationTest() {
         }
         assertEquals(ApiCollectionScanState.DONE, status.state)
         assertEquals(1, status.itemsAdded)
+    }
+
+    @Test
+    fun `cancelled scan reaches terminal cancelled status and can be replaced`(@TempDir folder: Path) {
+        val nested = Files.createDirectories(folder.resolve("nested"))
+        repeat(2_000) { Files.writeString(nested.resolve("$it.jpg"), "x") }
+        val id = collectionAt(folder)
+
+        MediaCollectionMaintenance.startScan(id, emptyList(), listOf("jpg"))
+        val beforeCancel = MediaCollectionMaintenance.scanStatus(id)
+        assertTrue(beforeCancel.state == ApiCollectionScanState.RUNNING || beforeCancel.state == ApiCollectionScanState.DONE)
+        val result = MediaCollectionMaintenance.cancelScan(id)
+        assertTrue(result.state == ApiCollectionScanState.CANCELLING || result.state == ApiCollectionScanState.CANCELLED)
+
+        var status = MediaCollectionMaintenance.scanStatus(id)
+        for (i in 0 until 100) {
+            if (status.state == ApiCollectionScanState.CANCELLED) break
+            Thread.sleep(20)
+            status = MediaCollectionMaintenance.scanStatus(id)
+        }
+        assertEquals(ApiCollectionScanState.CANCELLED, status.state)
+
+        val replacementFolder = Files.createTempDirectory("collection-restart-")
+        val replacementId = collectionAt(replacementFolder)
+        val replacement = MediaCollectionMaintenance.startScan(replacementId, emptyList(), listOf("jpg"))
+        assertTrue(replacement.state == ApiCollectionScanState.RUNNING || replacement.state == ApiCollectionScanState.DONE)
+        var replacementStatus = MediaCollectionMaintenance.scanStatus(replacementId)
+        for (i in 0 until 100) {
+            if (replacementStatus.state != ApiCollectionScanState.RUNNING) break
+            Thread.sleep(20)
+            replacementStatus = MediaCollectionMaintenance.scanStatus(replacementId)
+        }
+        assertEquals(ApiCollectionScanState.DONE, replacementStatus.state)
+        replacementFolder.toFile().deleteRecursively()
+    }
+
+    @Test
+    fun `stop cancels running scans and init restarts the service`(@TempDir folder: Path) {
+        val nested = Files.createDirectories(folder.resolve("nested"))
+        repeat(2_000) { Files.writeString(nested.resolve("$it.jpg"), "x") }
+        val id = collectionAt(folder)
+
+        MediaCollectionMaintenance.startScan(id, emptyList(), listOf("jpg"))
+        MediaCollectionMaintenance.stop()
+
+        var status = MediaCollectionMaintenance.scanStatus(id)
+        for (i in 0 until 100) {
+            if (status.state == ApiCollectionScanState.CANCELLED) break
+            Thread.sleep(20)
+            status = MediaCollectionMaintenance.scanStatus(id)
+        }
+        assertEquals(ApiCollectionScanState.CANCELLED, status.state)
+
+        assertThrows(IllegalStateException::class.java) {
+            MediaCollectionMaintenance.startScan(id, emptyList(), listOf("jpg"))
+        }
+        val restartFolder = Files.createTempDirectory("collection-restart-")
+        val restartId = collectionAt(restartFolder)
+        MediaCollectionMaintenance.init(store) { Paths.get("/nonexistent-ffmpeg") }
+        val restarted = MediaCollectionMaintenance.startScan(restartId, emptyList(), listOf("jpg"))
+        assertTrue(restarted.state == ApiCollectionScanState.RUNNING || restarted.state == ApiCollectionScanState.DONE)
     }
 
     @Test

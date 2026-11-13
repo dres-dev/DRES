@@ -11,7 +11,7 @@ data class ApiCollectionIssue(val name: String, val location: String, val proble
 data class ApiCollectionScanRequest(val videoTypes: List<String> = emptyList(), val imageTypes: List<String> = emptyList())
 
 /** State of the most recent scan of a collection. */
-enum class ApiCollectionScanState { NONE, RUNNING, DONE, FAILED }
+enum class ApiCollectionScanState { NONE, RUNNING, CANCELLING, DONE, FAILED, CANCELLED }
 
 /** Progress and result of the most recent scan of a collection. */
 @Serializable

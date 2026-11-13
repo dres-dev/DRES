@@ -627,6 +627,10 @@
             "type" : "integer",
             "nullable" : true
           },
+          "hidden" : {
+            "type" : "boolean",
+            "default" : false
+          },
           "temporalRange" : {
             "$ref" : "#/components/schemas/TemporalRange",
             "nullable" : true

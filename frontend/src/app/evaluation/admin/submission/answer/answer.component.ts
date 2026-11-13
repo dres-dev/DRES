@@ -31,6 +31,9 @@ export class AnswerComponent {
     return undefined;
   }
 
+  /** True when the server redacted answer fields while HIDDEN_RESULTS is active. */
+  public isHidden = (rowData: ApiAnswer) => rowData.hidden === true;
+
   public hasTextType = (index: number, rowData: ApiAnswer) => rowData.type === ApiAnswerType.TEXT;
 
   public hasNotTextType = (index: number, rowData: ApiAnswer) => rowData.type !== ApiAnswerType.TEXT;

@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.handler.evaluation.HiddenResultsVisibility
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.isParticipant
@@ -19,7 +20,7 @@ import kotlinx.dnq.query.contains
 /**
  *
  */
-class GetSubmissionAfterInfoHandler : AbstractEvaluationViewerHandler(), GetRestHandler<List<ApiSubmission>> {
+class GetSubmissionAfterInfoHandler(private val store: TransientEntityStore) : AbstractEvaluationViewerHandler(), GetRestHandler<List<ApiSubmission>> {
     override val route = "evaluation/{evaluationId}/submission/list/after/{timestamp}"
 
     @OpenApi(
@@ -63,7 +64,16 @@ class GetSubmissionAfterInfoHandler : AbstractEvaluationViewerHandler(), GetRest
             currentTask.isRunning && manager.template.taskTypes.find { it.name == currentTask.template.taskType }?.taskOptions?.contains(
                 ApiTaskOption.HIDDEN_RESULTS
             ) == true
-        return manager.currentSubmissions(rac).filter { it.timestamp >= timestamp }.map { it.toApi(blind) }
+        val ownTeams = if (blind && ctx.isParticipant()) ownTeamIds(ctx, manager) else emptySet()
+        return this.store.transactional(true) {
+            manager.currentSubmissions(rac).asSequence()
+                .filter { it.timestamp >= timestamp }
+                .map { it.toApi() }
+                .map { submission ->
+                    HiddenResultsVisibility.redactIfRequired(blind, ctx.isParticipant(), submission, ownTeams)
+                }
+                .toList()
+        }
 
     }
 }

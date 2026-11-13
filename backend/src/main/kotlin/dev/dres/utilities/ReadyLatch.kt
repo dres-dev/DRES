@@ -86,6 +86,7 @@ class ReadyLatch<T> {
      */
     fun clear() = this.lock.write {
         this.map.clear()
+        this.timeout = null
     }
 
     /**

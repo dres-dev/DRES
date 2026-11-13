@@ -22,6 +22,7 @@ import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
+import dev.dres.run.eventstream.TaskPrepareEvent
 import dev.dres.run.eventstream.ViewerUpdateEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
@@ -86,6 +87,9 @@ class InteractiveAsynchronousRunManager(
 
     /** A lock for state changes to this [InteractiveAsynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
+
+    /** Serializes submission filtering with persistence so concurrent requests cannot bypass team limits. */
+    private val submissionLock = Any()
 
     /** List of [Updatable] held by this [InteractiveAsynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
@@ -339,12 +343,24 @@ class InteractiveAsynchronousRunManager(
 
         }
 
-        val currentTaskRun = store.transactional {
-            val currentTaskRun = this.evaluation.IATaskRun(dbTask)
-            currentTaskRun.prepare()
-            currentTaskRun
+        val dbTaskId = this.store.transactional(true) { dbTask.id }
+        val currentTaskRun = try {
+            store.transactional {
+                val taskRun = this.evaluation.IATaskRun(dbTask)
+                taskRun.prepare()
+                taskRun
+            }
+        } catch (e: Exception) {
+            LOGGER.error("Could not start task ${currentTaskTemplate.id} for team $teamId in evaluation ${this.id}: ${e.message}", e)
+            this.evaluation.removeTaskRun(teamId, dbTaskId)
+            this.store.transactional {
+                DbTask.filter { it.id eq dbTaskId }.firstOrNull()?.delete()
+            }
+            throw e
         }
 
+        EventStreamProcessor.event(TaskPrepareEvent(this.id, currentTaskRun.taskId, currentTaskTemplate))
+        EventStreamProcessor.event(ViewerUpdateEvent(this.id))
         LOGGER.info("Run manager  ${this.id} started task $currentTaskTemplate.")
 
         currentTaskRun.taskId
@@ -531,51 +547,54 @@ class InteractiveAsynchronousRunManager(
      * @return [DbVerdictStatus] of the [DbSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE].
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) = this.stateLock.read {
+    override fun postSubmission(
+        context: RunActionContext,
+        submission: ApiClientSubmission
+    ) = synchronized(this.submissionLock) {
+        this.stateLock.read {
+            /* Phase 1: Basic lookups required for validation (read-only). */
+            val (task, transformedSubmission) = this.store.transactional(true) {
+                val teamId = context.teamId()
 
-        /* Phase 1: Basic lookups required for validation (read-only). */
-        val (task, transformedSubmission) = this.store.transactional(true) {
-            val teamId = context.teamId()
+                require(teamHasRunningTask(teamId)) { "No running task for Team ${teamId}" }
+                val task = this.currentTask(context)
+                    ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[teamId]}. This is a programmer's error!")
 
-            require(teamHasRunningTask(teamId)) { "No running task for Team ${teamId}" }
-            val task = this.currentTask(context)
-                ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[teamId]}. This is a programmer's error!")
+                /* Sanity check. */
+                check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
 
-            /* Sanity check. */
-            check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
+                /* Update submission with contextual information. */
+                submission.userId = context.userId
+                submission.teamId = teamId
+                submission.answerSets.forEach {
+                    it.taskId = task.taskId /* All answers are explicitly associated with the running task. */
+                }
 
-            /* Update submission with contextual information. */
-            submission.userId = context.userId
-            submission.teamId = teamId
-            submission.answerSets.forEach {
-                it.taskId = task.taskId /* All answers are explicitly associated with the running task. */
+                /* Apply transformer(s) to submission. */
+                val transformedSubmission = task.transformer.transform(submission)
+
+                /* Run submission through all the filters. */
+                task.filter.acceptOrThrow(transformedSubmission)
+                task to transformedSubmission
             }
 
-            /* Apply transformer(s) to submission. */
-            val transformedSubmission = task.transformer.transform(submission)
+            /* Phase 2: Create DbSubmission, apply transformers and validate it. */
+            this.store.transactional {
+                /* Convert submission to database representation. */
+                val db = transformedSubmission.toNewDb()
 
+                /* Check if there are answers left after transformation */
+                if (db.answerSets.isEmpty) {
+                    throw IllegalStateException("Submission contains no valid answer sets.")
+                }
 
-            /* Run submission through all the filters. */
-            task.filter.acceptOrThrow(transformedSubmission)
-            task to transformedSubmission
-        }
+                /* Apply validators to each answer set. */
+                db.answerSets.asSequence().forEach {
+                    task.validator.validate(it)
+                }
 
-        /* Phase 2: Create DbSubmission, apply transformers and validate it. */
-        return@read this.store.transactional {
-            /* Convert submission to database representation. */
-            val db = transformedSubmission.toNewDb()
-
-            /* Check if there are answers left after transformation */
-            if (db.answerSets.isEmpty) {
-                throw IllegalStateException("Submission contains no valid answer sets.")
+                db.toApi()
             }
-
-            /* Apply validators to each answer set. */
-            db.answerSets.asSequence().forEach {
-                task.validator.validate(it)
-            }
-
-            db.toApi()
         }
     }
 
@@ -672,8 +691,8 @@ class InteractiveAsynchronousRunManager(
     }
 
     override fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
-        val currentTaskId = this.currentTask(rac)?.taskId
-        if (taskTemplateId == currentTaskId) {
+        val currentTaskTemplateId = this.currentTask(rac)?.taskTemplateId
+        if (taskTemplateId == currentTaskTemplateId) {
             synchronized(this.viewerStateLock) {
                 if (this.viewers[viewerInfo] != false) {
                     this.viewers[viewerInfo] = false
@@ -684,8 +703,8 @@ class InteractiveAsynchronousRunManager(
     }
 
     override fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
-        val currentTaskId = this.currentTask(rac)?.taskId
-        if (taskTemplateId == currentTaskId) {
+        val currentTaskTemplateId = this.currentTask(rac)?.taskTemplateId
+        if (taskTemplateId == currentTaskTemplateId) {
             synchronized(this.viewerStateLock) {
                 if (this.viewers[viewerInfo] != true) {
                     this.viewers[viewerInfo] = true
@@ -718,7 +737,7 @@ class InteractiveAsynchronousRunManager(
         /* Start [InteractiveSynchronousRunManager]; main run-loop. */
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
-                this.stateLock.read {
+                this.stateLock.write {
                     this.store.transactional {
                         /* 1) Invoke all relevant [Updatable]s. */
                         this.invokeUpdatables()

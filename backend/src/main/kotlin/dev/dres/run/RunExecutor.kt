@@ -426,6 +426,8 @@ object RunExecutor : StreamEventHandler {
 
         is RunEndEvent -> ServerMessage(event.runId, ServerMessageType.COMPETITION_END)
 
+        is TaskPrepareEvent -> ServerMessage(event.runId, ServerMessageType.TASK_PREPARE, event.taskId)
+
         is TaskStartEvent -> {
             val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
             val (state, overview) = manager?.buildStateAndOverview() ?: Pair(null, null)

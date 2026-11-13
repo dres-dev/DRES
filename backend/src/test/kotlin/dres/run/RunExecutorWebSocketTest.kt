@@ -50,6 +50,15 @@ class RunExecutorWebSocketTest {
     }
 
     @Test
+    fun `TaskPrepareEvent maps to TASK_PREPARE with correct taskId`() {
+        val msg = RunExecutor.eventToMessage(TaskPrepareEvent(runId, taskId, minimalTaskTemplate()))
+        assertNotNull(msg)
+        assertEquals(ServerMessageType.TASK_PREPARE, msg!!.type)
+        assertEquals(runId, msg.evaluationId)
+        assertEquals(taskId, msg.taskId)
+    }
+
+    @Test
     fun `TaskStartEvent maps to TASK_START with correct taskId`() {
         val msg = RunExecutor.eventToMessage(TaskStartEvent(runId, taskId, minimalTaskTemplate()))
         assertNotNull(msg)
@@ -109,6 +118,7 @@ class RunExecutorWebSocketTest {
         val events: List<StreamEvent> = listOf(
             RunStartEvent(runId, minimalTemplate()),
             RunEndEvent(runId),
+            TaskPrepareEvent(runId, taskId, minimalTaskTemplate()),
             TaskStartEvent(runId, taskId, minimalTaskTemplate()),
             TaskEndEvent(runId, taskId),
             ScoreUpdateEvent(runId, "board", emptyMap()),

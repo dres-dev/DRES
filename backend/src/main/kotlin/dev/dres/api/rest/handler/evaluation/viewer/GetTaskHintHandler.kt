@@ -104,6 +104,16 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
                 if (ctx.isParticipant() || ctx.isAdmin()) {
                     this.viewerPreparing(taskTemplateId, rac, ViewerInfo(ctx))
                 }
+
+                /* Participants and judges only receive hints once a task run exists. */
+                val taskRunExists = this.tasks(rac).any { it.taskTemplateId == taskTemplateId }
+                if (!isTaskHintAccessAllowed(ctx.isParticipant(), ctx.isJudge(), taskRunExists)) {
+                    throw ErrorStatusException(
+                        403,
+                        "Access denied; task hint cannot be displayed before the task run exists.",
+                        ctx
+                    )
+                }
             }
             else -> { /* No op */ }
         }

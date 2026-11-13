@@ -24,6 +24,7 @@ import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
+import dev.dres.run.eventstream.TaskPrepareEvent
 import dev.dres.run.eventstream.ViewerUpdateEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.score.scoreboard.Scoreboard
@@ -96,6 +97,9 @@ class InteractiveSynchronousRunManager(
     /** List of [Scoreboard]s for this [InteractiveSynchronousRunManager]. */
     override val scoreboards: List<Scoreboard>
         get() = this.evaluation.scoreboards
+
+    /** Serializes submission filtering with persistence so concurrent requests cannot bypass team limits. */
+    private val submissionLock = Any()
 
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state. */
     private val readyLatch = ReadyLatch<ViewerInfo>()
@@ -252,33 +256,50 @@ class InteractiveSynchronousRunManager(
         }
 
         val dbTask = this.store.transactional {
-
             val dbTaskTemplate = DbTaskTemplate.filter { it.id eq currentTaskTemplate.id!! }.first()
 
-            /* create task, needs to be persisted before run can be created */
-            val dbTask = DbTask.new {
+            /* Persist before creating the task run because the run needs a task ID. */
+            DbTask.new {
                 status = DbTaskStatus.CREATED
                 evaluation = this@InteractiveSynchronousRunManager.evaluation.dbEvaluation
                 template = dbTaskTemplate
             }
+        }
+        val dbTaskId = this.store.transactional(true) { dbTask.id }
+        val previousReadyState = this.readyLatch.state()
+        val previousPresences = synchronized(this.viewerStateLock) { HashMap(this.viewerPresences) }
 
-            dbTask
+        try {
+            this.store.transactional {
+                val taskRun = this.evaluation.ISTaskRun(dbTask)
+                /* Reset before PREPARING reaches viewers, so their readiness reports are not lost. */
+                this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
+                synchronized(this.viewerStateLock) {
+                    this.viewerPresences.replaceAll { _, presence -> presence.copy(ready = false) }
+                }
+                taskRun.prepare()
+            }
+        } catch (e: Exception) {
+            LOGGER.error("Could not start task with template ${currentTaskTemplate.id} in evaluation ${this.id}: ${e.message}", e)
+            this.evaluation.taskRuns.removeIf { it.taskId == dbTaskId }
+            this.readyLatch.clear()
+            previousReadyState.forEach { (viewer, ready) ->
+                this.readyLatch.register(viewer)
+                if (ready) this.readyLatch.setReady(viewer)
+            }
+            synchronized(this.viewerStateLock) {
+                this.viewerPresences.clear()
+                this.viewerPresences.putAll(previousPresences)
+            }
+            this.store.transactional {
+                DbTask.filter { it.id eq dbTaskId }.firstOrNull()?.delete()
+            }
+            throw e
         }
 
-        this.store.transactional {
 
-            /* Create and prepare pipeline for submission. */
-            this.evaluation.ISTaskRun(dbTask)
-
-            /* Update status. */
-            this.evaluation.currentTaskRun!!.prepare()
-
-            /* Reset the ReadyLatch. */
-            //this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
-            /* Since the viewer sends its ready message too early, if we reset the readyLatch here, we will override the previously sent ready and will always run into the timout */
-        }
-
-
+        EventStreamProcessor.event(TaskPrepareEvent(this.id, dbTaskId, currentTaskTemplate))
+        EventStreamProcessor.event(ViewerUpdateEvent(this.id))
         LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.currentTaskRun?.taskId} with task template ${this.evaluation.getCurrentTaskTemplate().id}.")
 
         this.evaluation.currentTaskRun!!.taskId
@@ -577,7 +598,7 @@ class InteractiveSynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @param submission [ApiSubmission] that should be registered.
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) : ApiSubmission {
+    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) : ApiSubmission = synchronized(this.submissionLock) {
 
         /* Phase 1: Basic lookups required for validation (read-only). */
         val (task, transformedSubmission) = this.store.transactional(true) {
@@ -680,7 +701,7 @@ class InteractiveSynchronousRunManager(
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
                 /* Obtain lock on current state. */
-                this.stateLock.read {
+                this.stateLock.write {
                     this.store.transactional {
                         /* 1) Invoke all relevant [Updatable]s. */
                         this.invokeUpdatables()
@@ -749,13 +770,9 @@ class InteractiveSynchronousRunManager(
         if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             this.stateLock.write {
                 this.evaluation.currentTaskRun!!.start()
-                AuditLogger.taskStart(
-                    this.id,
-                    this.evaluation.currentTaskRun!!.taskId,
-                    this.evaluation.getCurrentTaskTemplate(),
-                    AuditLogSource.INTERNAL,
-                    null
-                )
+                val task = this.evaluation.currentTaskRun!!
+                val taskTemplate = this.evaluation.getCurrentTaskTemplate()
+                AuditLogger.taskStart(this.id, task.taskId, taskTemplate, AuditLogSource.INTERNAL, null)
             }
 
 //            /* Enqueue WS message for sending */

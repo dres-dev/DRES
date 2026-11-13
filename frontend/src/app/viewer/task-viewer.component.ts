@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatest, from, interval, mergeMap, Observable, of, Subscription, timer } from 'rxjs';
-import { catchError, delayWhen, filter, map, repeat, shareReplay, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, delayWhen, distinctUntilChanged, filter, map, repeat, shareReplay, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import {
   ApiContentElement,
@@ -138,33 +138,39 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
    * Create a subscription for task changes.
    */
   ngAfterViewInit(): void {
-    /*  Observable for the current query hint. */
-    this.currentTaskHintSubscription = this.taskChanged
+    /*
+     * Request hints when the selected task changes and again after its task run starts. The server can
+     * withhold protected hints until the task run exists; do not acknowledge readiness for a failed request.
+     */
+    this.currentTaskHintSubscription = this.state
       .pipe(
-        mergeMap((task) => {
-          return this.runService.getHintForTaskTemplateId(task.evaluationId, task.taskTemplateId).pipe(
-            catchError((e) => {
-              console.error('[TaskViewerComponent] Could not load current query hint due to an error.', e);
+        distinctUntilChanged(
+          (previous, current) =>
+            previous.taskTemplateId === current.taskTemplateId && previous.taskId === current.taskId
+        ),
+        filter((task) => task.taskTemplateId != null),
+        switchMap((task) =>
+          this.runService.getHintForTaskTemplateId(task.evaluationId, task.taskTemplateId).pipe(
+            catchError((error) => {
+              if (error?.status !== 403) {
+                console.error('[TaskViewerComponent] Could not load current query hint due to an error.', error);
+              }
               return of(null);
+            }),
+            tap((hint) => {
+              if (hint && task.taskId) {
+                this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(task.evaluationId, task.taskTemplateId).pipe(
+                  catchError((error) => {
+                    console.error('[TaskViewerComponent] Could not report readiness.', error);
+                    return of(null);
+                  })
+                ).subscribe();
+              }
             })
-          );
-        }),
-        tap((hint) => {
-          this.state
-            .pipe(
-              take(1), //use latest state, only do this once
-              switchMap((state) => {
-                console.log(state);
-                return this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(state.evaluationId, state.taskTemplateId);
-              }),
-              tap(() => {
-                console.log('READY sent');
-              })
-            )
-            .subscribe();
-        })
+          )
+        )
       )
-      .subscribe((n) => this.currentTaskHint.next(n));
+      .subscribe((hint) => this.currentTaskHint.next(hint));
 
     /*  Observable for the current query target. */
     const currentTaskTarget = this.taskEnded.pipe(

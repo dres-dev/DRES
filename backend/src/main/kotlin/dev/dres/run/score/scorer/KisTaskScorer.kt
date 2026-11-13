@@ -13,15 +13,17 @@ class KisTaskScorer(
     private val maxPointsPerTask: Double = defaultmaxPointsPerTask,
     private val maxPointsAtTaskEnd: Double = defaultmaxPointsAtTaskEnd,
     private val penaltyPerWrongSubmission: Double = defaultpenaltyPerWrongSubmission,
-    store: TransientEntityStore?
+    store: TransientEntityStore?,
+    private val countdownDuration: Long = 0L
 ) : AbstractTaskScorer(scoreable, store) {
 
-    constructor(run: TaskRun, parameters: Map<String, String>, store: TransientEntityStore?) : this(
+    constructor(run: TaskRun, parameters: Map<String, String>, store: TransientEntityStore?, countdownDuration: Long = 0L) : this(
         run,
         parameters.getOrDefault("maxPointsPerTask", "$defaultmaxPointsPerTask").toDoubleOrNull() ?: defaultmaxPointsPerTask,
         parameters.getOrDefault("maxPointsAtTaskEnd", "$defaultmaxPointsAtTaskEnd").toDoubleOrNull() ?: defaultmaxPointsAtTaskEnd,
         parameters.getOrDefault("penaltyPerWrongSubmission", "$defaultpenaltyPerWrongSubmission").toDoubleOrNull() ?: defaultpenaltyPerWrongSubmission,
-        store
+        store,
+        countdownDuration
     )
 
     companion object {
@@ -40,7 +42,7 @@ class KisTaskScorer(
      */
     override fun calculateScores(submissions: Sequence<Submission>): Map<TeamId, Double>  {
         val taskDuration = this.scoreable.duration?.toDouble()?.times(1000.0)
-        val taskStartTime = this.scoreable.started ?: throw IllegalArgumentException("No task start time specified.")
+        val taskStartTime = (this.scoreable.started ?: throw IllegalArgumentException("No task start time specified.")) + this.countdownDuration
         return this.scoreable.teams.associateWith { teamId ->
             val verdicts = submissions.filter { it.teamId == teamId }.sortedBy { it.timestamp }.flatMap { sub ->
                 sub.answerSets().filter { (it.status() == VerdictStatus.CORRECT) or (it.status() == VerdictStatus.WRONG) }
@@ -50,7 +52,7 @@ class KisTaskScorer(
                 val timeFraction = if(taskDuration == null){
                     1.0
                 }else{
-                    1.0 - (verdicts[firstCorrect].submission.timestamp - taskStartTime) / taskDuration
+                    (1.0 - (verdicts[firstCorrect].submission.timestamp - taskStartTime) / taskDuration).coerceIn(0.0, 1.0)
                 }
                 max(
                     0.0,

@@ -11,6 +11,7 @@ import dev.dres.data.model.template.task.options.DbTargetOption
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.first
+import kotlinx.dnq.query.asSequence
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -147,6 +148,26 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
         val eval = buildSyncEvaluation()
         assertTrue(eval.taskRuns.isEmpty())
         assertNull(eval.currentTaskRun)
+    }
+
+    @Test
+    fun `reloading removes a task that never started`() {
+        val eval = buildSyncEvaluation()
+        val templateId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
+        val strandedTaskId = store.transactional {
+            DbTask.new {
+                status = DbTaskStatus.PREPARING
+                evaluation = eval.dbEvaluation
+                template = DbTaskTemplate.filter { it.id eq templateId }.first()
+            }.id
+        }
+
+        val restored = store.transactional { InteractiveSynchronousEvaluation(store, eval.dbEvaluation) }
+
+        assertTrue(restored.taskRuns.isEmpty())
+        assertTrue(store.transactional(true) {
+            DbTask.filter { it.id eq strandedTaskId }.asSequence().none()
+        })
     }
 
     @Test

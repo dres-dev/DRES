@@ -14,6 +14,7 @@ import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.basics.AcceptAllSubmissionFilter
 import dev.dres.run.filter.basics.SubmissionFilter
 import dev.dres.run.filter.basics.CombiningSubmissionFilter
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scorer.*
@@ -24,7 +25,8 @@ import dev.dres.run.transformer.basics.CombiningSubmissionTransformer
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.ArrayList
+import java.util.LinkedList
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -58,12 +60,19 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
     override val scoreboards: List<Scoreboard>
 
     init {
+        val numberOfTasks = this.template.tasks.size
+        require(numberOfTasks > 0) { "Cannot create a run from a competition that doesn't have any tasks. " }
+        this.template.teams.forEach { team ->
+            this.tasksMap[team.id!!] = ArrayList(numberOfTasks)
+            goTo(team.id, 0)
+        }
+
         /* Load all ongoing tasks. */
-        this.dbEvaluation.tasks.asSequence().forEach {
-            try{
-                IATaskRun(it)
+        this.dbEvaluation.tasks.asSequence().forEach { task ->
+            try {
+                IATaskRun(task)
             } catch (e: Exception) {
-                LOGGER.error("could not load task: ${e.message}")
+                LOGGER.error("Could not load task ${task.id} for evaluation ${this.id}: ${e.message}", e)
             }
         }
 
@@ -74,21 +83,17 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
         }.toList()
     }
 
+    /** Removes a task run that failed during startup. */
+    fun removeTaskRun(teamId: TeamId, taskId: TaskId) {
+        this.tasksMap[teamId]?.removeIf { it.taskId == taskId }
+    }
+
     fun goTo(teamId: TeamId, index: Int) {
         this.navigationMap[teamId] = this.template.tasks[this.permutation[teamId]!![index]]
     }
 
     fun currentTaskTemplate(teamId: TeamId): ApiTaskTemplate {
         return navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
-    }
-
-    init {
-        val numberOfTasks = this.template.tasks.size
-        require(numberOfTasks > 0) { "Cannot create a run from a competition that doesn't have any tasks. " }
-        this.template.teams.forEach {
-            this.tasksMap[it.id!!] = ArrayList(numberOfTasks)
-            goTo(it.id, 0)
-        }
     }
 
     /**
@@ -168,11 +173,9 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
 
 
         init {
-            this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.dbTask.team!!.id) { _, v ->
-                val list = v ?: LinkedList<IATaskRun>()
-                check(list.isEmpty() || list.last().hasEnded) { "Cannot create a new task. Another task is currently running." } //FIXME crashes on restart
-                list.add(this)
-                list
+            val existing = this@InteractiveAsynchronousEvaluation.tasksMap[this.teamId]
+            check(existing.isNullOrEmpty() || existing.last().hasEnded) {
+                "Cannot create a new task. Another task is currently running."
             }
 
             /* Initialize submission filter. */
@@ -210,9 +213,10 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
                     when (val scoreOption = task.template.taskGroup.type.score) {
                         DbScoreOption.KIS -> KisTaskScorer(
                             this,
-                            task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description)
-                                .asSequence().map { it.key to it.value }.toMap(),
-                            store
+                            task.template.taskGroup.type.configurations.query(DbConfiguredOption::key.startsWith("${scoreOption.description}."))
+                                .asSequence().map { it.key.substringAfter(".") to it.value }.toMap(),
+                            store,
+                            InteractiveRunManager.COUNTDOWN_DURATION.toLong()
                         )
 
                         DbScoreOption.AVS -> AvsTaskScorer(this, store)
@@ -221,6 +225,13 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
                         else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
                     }
                 )
+            }
+
+            /* Register only after all components are ready. */
+            this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.teamId) { _, runs ->
+                val teamRuns = runs ?: LinkedList<IATaskRun>()
+                teamRuns.add(this)
+                teamRuns
             }
         }
     }

@@ -18,10 +18,15 @@ describe('taskClock', () => {
   it('advances elapsed time and decreases remaining time between server snapshots', fakeAsync(() => {
     const source = new Subject<ApiEvaluationState>();
     const values: ApiEvaluationState[] = [];
-    const subscription = taskClock(source).subscribe((value) => values.push(value));
+    let now = 0;
+    const subscription = taskClock(source, () => now).subscribe((value) => values.push(value));
 
     source.next(state());
-    tick(2000);
+    tick(0);
+    now = 1000;
+    tick(1000);
+    now = 2000;
+    tick(1000);
 
     expect(values.map((value) => [value.timeElapsed, value.timeLeft])).toEqual([
       [10, 30],
@@ -48,11 +53,17 @@ describe('taskClock', () => {
   it('resynchronizes from a new server snapshot and clamps remaining time at zero', fakeAsync(() => {
     const source = new Subject<ApiEvaluationState>();
     const values: ApiEvaluationState[] = [];
-    const subscription = taskClock(source).subscribe((value) => values.push(value));
+    let now = 0;
+    const subscription = taskClock(source, () => now).subscribe((value) => values.push(value));
 
     source.next(state());
+    tick(0);
+    now = 2000;
     tick(2000);
+    now = 2500;
     source.next(state({ timeElapsed: 50, timeLeft: 1 }));
+    tick(0);
+    now = 3500;
     tick(1000);
 
     expect(values.slice(-2).map((value) => [value.timeElapsed, value.timeLeft])).toEqual([
@@ -65,10 +76,15 @@ describe('taskClock', () => {
   it('does not advance non-running task states or invent a deadline for perpetual tasks', fakeAsync(() => {
     const source = new Subject<ApiEvaluationState>();
     const values: ApiEvaluationState[] = [];
-    const subscription = taskClock(source).subscribe((value) => values.push(value));
+    let now = 0;
+    const subscription = taskClock(source, () => now).subscribe((value) => values.push(value));
 
     source.next(state({ timeLeft: null }));
-    tick(2000);
+    tick(0);
+    now = 1000;
+    tick(1000);
+    now = 2000;
+    tick(1000);
     source.next(state({ taskStatus: 'ENDED', timeElapsed: 42, timeLeft: -1 }));
     tick(2000);
 

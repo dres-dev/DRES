@@ -18,7 +18,7 @@ function wsMsg(type: ServerMessageType.ServerMessageTypeEnum): IWsServerMessage 
   return { evaluationId: 'eval-1', type, timestamp: Date.now() };
 }
 
-const REFRESH_TYPES: ServerMessageType.ServerMessageTypeEnum[] = [
+const RUN_STATE_REFRESH_TYPES: ServerMessageType.ServerMessageTypeEnum[] = [
   ServerMessageType.ServerMessageTypeEnum.TASK_START,
   ServerMessageType.ServerMessageTypeEnum.TASK_END,
   ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED,
@@ -109,7 +109,7 @@ describe('RunAdminViewComponent WebSocket wiring', () => {
 
   // ── state refresh on WS message ────────────────────────────────────────────
 
-  REFRESH_TYPES.forEach((type) => {
+  RUN_STATE_REFRESH_TYPES.forEach((type) => {
     it(`refreshes run state when ${type} message is received`, fakeAsync(() => {
       component.ngOnInit();
       component.run.subscribe();
@@ -123,7 +123,38 @@ describe('RunAdminViewComponent WebSocket wiring', () => {
       discardPeriodicTasks();
     }));
 
-    it(`refreshes the viewer list when ${type} message is received`, fakeAsync(() => {
+  });
+
+  // ── viewer status refreshes only for viewer status changes ─────────────────
+
+  it('refreshes the viewer list for a matching VIEWER_UPDATE', fakeAsync(() => {
+    component.ngOnInit();
+    component.viewers.subscribe();
+    tick();
+    runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList.calls.reset();
+
+    messages$.next(wsMsg(ServerMessageType.ServerMessageTypeEnum.VIEWER_UPDATE));
+    tick();
+
+    expect(runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList).toHaveBeenCalledWith('eval-1');
+    discardPeriodicTasks();
+  }));
+
+  it('ignores viewer status updates for other evaluations', fakeAsync(() => {
+    component.ngOnInit();
+    component.viewers.subscribe();
+    tick();
+    runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList.calls.reset();
+
+    messages$.next({ ...wsMsg(ServerMessageType.ServerMessageTypeEnum.VIEWER_UPDATE), evaluationId: 'eval-2' });
+    tick();
+
+    expect(runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList).not.toHaveBeenCalled();
+    discardPeriodicTasks();
+  }));
+
+  RUN_STATE_REFRESH_TYPES.forEach((type) => {
+    it(`does not refresh the viewer list for ${type} messages`, fakeAsync(() => {
       component.ngOnInit();
       component.viewers.subscribe();
       tick();
@@ -132,7 +163,7 @@ describe('RunAdminViewComponent WebSocket wiring', () => {
       messages$.next(wsMsg(type));
       tick();
 
-      expect(runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList).toHaveBeenCalledWith('eval-1');
+      expect(runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList).not.toHaveBeenCalled();
       discardPeriodicTasks();
     }));
   });

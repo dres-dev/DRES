@@ -51,17 +51,22 @@ object EvaluationManager {
         }
     }
 
-    /**
-     * Deletes a stopped evaluation, its submissions and its private template instance.
-     * The original reusable template is retained.
-     * @throws IllegalStateException if the evaluation is still active.
-     */
-    /** Counts are calculated from the same run snapshot to avoid a second Xodus read per refresh. */
+    /** Counts verdicts for an evaluation using the caller's active Xodus transaction. */
+    fun verdictCountsInCurrentTransaction(evaluationId: EvaluationId): ApiVerdictCounts =
+        DbEvaluation.query(DbEvaluation::id eq evaluationId).firstOrNull()?.let(::countVerdicts)
+            ?: ApiVerdictCounts(0, 0, 0, 0)
+
+    /** Counts verdicts for the persisted evaluation backing the manager in a readonly transaction. */
     fun verdictCounts(manager: RunManager): ApiVerdictCounts = store.transactional(true) {
         DbEvaluation.query(DbEvaluation::id eq manager.id).firstOrNull()?.let(::countVerdicts)
             ?: ApiVerdictCounts(0, 0, 0, 0)
     }
 
+    /**
+     * Deletes a stopped evaluation, its submissions and its private template instance.
+     * The original reusable template is retained.
+     * @throws IllegalStateException if the evaluation is still active.
+     */
     fun deleteEvaluation(evaluationId: EvaluationId): DeletedEvaluation? =
         RunExecutor.withNoActiveManager(evaluationId) {
             store.transactional {

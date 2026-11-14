@@ -1,5 +1,6 @@
 package dres.integration
 
+import dev.dres.api.rest.types.evaluation.ApiEvaluationOverview
 import dev.dres.api.rest.types.evaluation.ApiTaskStatus
 import dev.dres.data.model.run.DbEvaluationType
 import dev.dres.data.model.run.DbTask
@@ -8,6 +9,9 @@ import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.data.model.template.task.options.DbTargetOption
+import dev.dres.mgmt.EvaluationManager
+import dev.dres.mgmt.TemplateManager
+import dev.dres.run.InteractiveSynchronousRunManager
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.first
@@ -52,6 +56,29 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
         repeat(taskCount) { i -> addTask(template, group, col, "Task-$i", idx = i) }
         val dbEval = createEvaluation(template, "sync-run-${UUID.randomUUID()}", "INTERACTIVE_SYNCHRONOUS")
         return store.transactional { InteractiveSynchronousEvaluation(store, dbEval) }
+    }
+
+    @Test
+    fun `active evaluation overview includes current verdict counts`() {
+        TemplateManager.init(store)
+        EvaluationManager.init(store)
+        val eval = buildSyncEvaluation(taskCount = 1, teamCount = 1)
+        val taskTemplateId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
+        val taskRun = createISTaskRun(eval, taskTemplateId)
+        val team = store.transactional(true) { eval.dbEvaluation.template.teams.first() }
+        val task = store.transactional(true) { DbTask.filter { it.id eq taskRun.taskId }.first() }
+        val user = createTestUser()
+        createSubmission(task, team, user, "WRONG")
+        val manager = store.transactional(true) { InteractiveSynchronousRunManager(eval, store) }
+
+        val overview = store.transactional(true) {
+            ApiEvaluationOverview.of(manager, EvaluationManager.verdictCountsInCurrentTransaction(eval.id))
+        }
+
+        assertEquals(1, overview.verdicts.wrong)
+        assertEquals(0, overview.verdicts.correct)
+        assertEquals(0, overview.verdicts.indeterminate)
+        assertEquals(0, overview.verdicts.undecidable)
     }
 
     // ── Lifecycle ──────────────────────────────────────────────────────────────

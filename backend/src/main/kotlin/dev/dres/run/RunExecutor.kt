@@ -14,6 +14,7 @@ import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.team.TeamId
+import dev.dres.mgmt.EvaluationManager
 import dev.dres.run.eventstream.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.sessionToken
@@ -385,7 +386,10 @@ object RunExecutor : StreamEventHandler {
             this.store.transactional(readonly = true) {
                 Pair(
                     ApiEvaluationState(this@buildStateAndOverview, RunActionContext.INTERNAL),
-                    ApiEvaluationOverview.of(this@buildStateAndOverview)
+                    ApiEvaluationOverview.of(
+                        this@buildStateAndOverview,
+                        EvaluationManager.verdictCountsInCurrentTransaction(this@buildStateAndOverview.id)
+                    )
                 )
             }
         }.onFailure { logger.warn("Failed to build state+overview diff for WS message: ${it.message}") }
@@ -397,7 +401,10 @@ object RunExecutor : StreamEventHandler {
      */
     private fun InteractiveRunManager.buildOverview(): ApiEvaluationOverview? = runCatching {
         this.store.transactional(readonly = true) {
-            ApiEvaluationOverview.of(this@buildOverview)
+            ApiEvaluationOverview.of(
+                this@buildOverview,
+                EvaluationManager.verdictCountsInCurrentTransaction(this@buildOverview.id)
+            )
         }
     }.onFailure { logger.warn("Failed to build overview diff for WS message: ${it.message}") }.getOrNull()
 

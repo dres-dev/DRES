@@ -1,5 +1,6 @@
 package dres.integration
 
+import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskGroup
 import dev.dres.data.model.template.task.DbTaskType
 import dev.dres.data.model.template.task.options.DbConfiguredOption
@@ -8,6 +9,7 @@ import dev.dres.api.rest.types.template.tasks.options.ApiTaskOption
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.mgmt.TemplateManager
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.first
 import kotlinx.dnq.query.size
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
@@ -60,6 +62,60 @@ class TemplateManagerDeletionTest : AbstractDresIntegrationTest() {
         assertEquals("Task-1", imported.tasks.single().name)
         assertEquals(setOf("Team 1", "Team 2"), imported.teamGroups.single().teams.mapNotNull { it.name }.toSet())
         assertTrue(imported.teamGroups.single().teams.all { team -> team.id in imported.teams.mapNotNull { it.id } })
+    }
+
+    @Test
+    fun `import rejects a target that references missing media and rolls back the template` () {
+        val collection = createTestCollection()
+        val source = createTemplateShell("missing-target-${UUID.randomUUID()}", teamCount = 0)
+        val group = addTaskTypeAndGroup(source, "KIS", "KIS", "KIS", "MEDIA_ITEM")
+        addTask(source, group, collection, "Task-1")
+        val exported = TemplateManager.getTemplate(store.transactional(true) { source.id })!!
+        val malformed = exported.copy(
+            id = "old-template-${UUID.randomUUID()}",
+            tasks = exported.tasks.map { task ->
+                task.copy(targets = listOf(task.targets.single().copy(target = "missing-media-${UUID.randomUUID()}")))
+            }
+        )
+        val before = store.transactional(true) { DbEvaluationTemplate.all().size() }
+
+        val error = assertThrows(IllegalArgumentException::class.java) {
+            TemplateManager.importTemplate(malformed)
+        }
+
+        assertTrue(error.message.orEmpty().contains("Unknown media item"))
+        assertEquals(before, store.transactional(true) { DbEvaluationTemplate.all().size() },
+            "A failed import must not leave a partial template")
+    }
+
+    @Test
+    fun `import rejects a hint that references missing media and rolls back the template`() {
+        val collection = createTestCollection()
+        val source = createTemplateShell("missing-hint-${UUID.randomUUID()}", teamCount = 0)
+        val group = addTaskTypeAndGroup(source, "KIS", "KIS", "KIS", "MEDIA_ITEM")
+        val task = addTask(source, group, collection, "Task-1")
+        store.transactional {
+            task.hints.add(dev.dres.data.model.template.task.DbHint.new {
+                type = dev.dres.data.model.template.task.DbHintType.IMAGE
+                item = collection.items.first()
+            })
+        }
+        val exported = TemplateManager.getTemplate(store.transactional(true) { source.id })!!
+        val malformed = exported.copy(
+            id = "old-template-${UUID.randomUUID()}",
+            tasks = exported.tasks.map { task ->
+                task.copy(hints = listOf(task.hints.single().copy(item = task.hints.single().item!!.copy(mediaItemId = "missing-media-${UUID.randomUUID()}"))))
+            }
+        )
+        val before = store.transactional(true) { DbEvaluationTemplate.all().size() }
+
+        val error = assertThrows(IllegalArgumentException::class.java) {
+            TemplateManager.importTemplate(malformed)
+        }
+
+        assertTrue(error.message.orEmpty().contains("Unknown media item"))
+        assertEquals(before, store.transactional(true) { DbEvaluationTemplate.all().size() },
+            "A failed import must not leave a partial template")
     }
 
     @Test

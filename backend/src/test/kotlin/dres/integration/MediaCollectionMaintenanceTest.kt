@@ -10,6 +10,7 @@ import dev.dres.mgmt.MediaCollectionManager
 import dev.dres.mgmt.TemplateManager
 import kotlinx.dnq.query.*
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -17,6 +18,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Tests the collection maintenance operations used by the admin GUI and the CLI: scan, check, CSV export and bulk deletion.
@@ -70,6 +73,94 @@ class MediaCollectionMaintenanceTest : AbstractDresIntegrationTest() {
         assertEquals(1, result.itemsAdded)
         assertEquals(1, result.itemsSkipped)
         assertEquals(setOf("same"), itemNames(id))
+    }
+
+    @Test
+    fun `scan skips duplicate names across chunk boundaries`(@TempDir folder: Path) {
+        val firstFolder = Files.createDirectories(folder.resolve("000"))
+        val middleFolder = Files.createDirectories(folder.resolve("middle"))
+        val lastFolder = Files.createDirectories(folder.resolve("zzz"))
+        Files.writeString(firstFolder.resolve("same.jpg"), "first")
+        repeat(199) { Files.writeString(middleFolder.resolve("file-$it.jpg"), "unique") }
+        Files.writeString(lastFolder.resolve("same.jpg"), "duplicate")
+        val id = collectionAt(folder)
+
+        val result = MediaCollectionMaintenance.scan(id, emptyList(), listOf("jpg")) { }
+
+        assertEquals(201, result.filesFound)
+        assertEquals(200, result.itemsAdded)
+        assertEquals(1, result.itemsSkipped)
+        assertEquals(200, itemNames(id).size)
+    }
+
+    @Test
+    fun `scan rejects a file replaced by an outside symlink during video analysis`(@TempDir folder: Path) {
+        val video = folder.resolve("video.mp4")
+        val outside = folder.resolveSibling("outside-${UUID.randomUUID()}.mp4")
+        Files.writeString(video, "inside")
+        Files.writeString(outside, "outside")
+        val id = collectionAt(folder)
+        var replacedWithSymlink = false
+
+        try {
+            val result = MediaCollectionMaintenance.scan(id, listOf("mp4"), emptyList(), { file ->
+                Files.delete(file)
+                try {
+                    Files.createSymbolicLink(file, outside)
+                    replacedWithSymlink = true
+                } catch (_: UnsupportedOperationException) {
+                    // Symlinks are not available on every platform.
+                } catch (_: java.io.IOException) {
+                    // Creating symlinks may require extra privileges on some platforms.
+                }
+                1000L to 25f
+            }) { }
+
+            assumeTrue(replacedWithSymlink, "The platform must support creating symlinks")
+            assertEquals(ApiCollectionScanState.DONE, result.state)
+            assertEquals(1, result.filesFound)
+            assertEquals(0, result.itemsAdded)
+            assertEquals(1, result.issueCount)
+            assertTrue(itemNames(id).isEmpty())
+        } finally {
+            Files.deleteIfExists(video)
+            Files.deleteIfExists(outside)
+        }
+    }
+
+    @Test
+    fun `only one scan of a collection can run at a time`(@TempDir folder: Path) {
+        Files.writeString(folder.resolve("video.mp4"), "x")
+        val id = collectionAt(folder)
+        val analysisStarted = CountDownLatch(1)
+        val allowAnalysisToFinish = CountDownLatch(1)
+
+        try {
+            val first = MediaCollectionMaintenance.startScan(id, listOf("mp4"), emptyList()) {
+                analysisStarted.countDown()
+                if (!allowAnalysisToFinish.await(5, TimeUnit.SECONDS)) {
+                    throw IllegalStateException("Timed out waiting to finish fake video analysis.")
+                }
+                1000L to 25f
+            }
+            assertTrue(first.state == ApiCollectionScanState.RUNNING || first.state == ApiCollectionScanState.DONE)
+            assertTrue(analysisStarted.await(5, TimeUnit.SECONDS), "The first scan should reach video analysis")
+            val error = assertThrows(IllegalStateException::class.java) {
+                MediaCollectionMaintenance.startScan(id, listOf("mp4"), emptyList()) { 1000L to 25f }
+            }
+            assertTrue(error.message.orEmpty().contains("already running"))
+            assertEquals(ApiCollectionScanState.RUNNING, MediaCollectionMaintenance.scanStatus(id).state)
+        } finally {
+            allowAnalysisToFinish.countDown()
+        }
+
+        var status = MediaCollectionMaintenance.scanStatus(id)
+        for (i in 0 until 100) {
+            if (status.state != ApiCollectionScanState.RUNNING) break
+            Thread.sleep(20)
+            status = MediaCollectionMaintenance.scanStatus(id)
+        }
+        assertEquals(ApiCollectionScanState.DONE, status.state)
     }
 
     @Test

@@ -231,8 +231,17 @@ object MediaCollectionMaintenance {
      * @throws IllegalArgumentException If the collection does not exist, its folder cannot be read or no endings are given.
      * @throws IllegalStateException If a scan of this collection is already running.
      */
+    fun startScan(collectionId: CollectionId, videoTypes: Collection<String>, imageTypes: Collection<String>): ApiCollectionScanStatus =
+        startScan(collectionId, videoTypes, imageTypes, ::analyseVideo)
+
+    /** Internal overload lets tests control video analysis without invoking an external ffprobe process. */
     @Synchronized
-    fun startScan(collectionId: CollectionId, videoTypes: Collection<String>, imageTypes: Collection<String>): ApiCollectionScanStatus {
+    internal fun startScan(
+        collectionId: CollectionId,
+        videoTypes: Collection<String>,
+        imageTypes: Collection<String>,
+        videoAnalyzer: (Path) -> Pair<Long, Float>
+    ): ApiCollectionScanStatus {
         check(!stopped && !scanExecutor.isShutdown) { "The collection scan service is stopped." }
         val videos = normaliseTypes(videoTypes)
         val images = normaliseTypes(imageTypes)
@@ -255,7 +264,7 @@ object MediaCollectionMaintenance {
             job.future = scanExecutor.submit {
                 if (!job.startWorker()) return@submit
                 try {
-                    runScan(job, base, videos, images) { }
+                    runScan(job, base, videos, images, videoAnalyzer) { }
                 } catch (e: InterruptedException) {
                     Thread.currentThread().interrupt()
                     job.requestCancellation("Scan cancelled.")
@@ -282,12 +291,22 @@ object MediaCollectionMaintenance {
      *
      * @param log Receives a line for every analysed file.
      */
-    fun scan(collectionId: CollectionId, videoTypes: Collection<String>, imageTypes: Collection<String>, log: (String) -> Unit): ApiCollectionScanStatus {
+    fun scan(collectionId: CollectionId, videoTypes: Collection<String>, imageTypes: Collection<String>, log: (String) -> Unit): ApiCollectionScanStatus =
+        scan(collectionId, videoTypes, imageTypes, ::analyseVideo, log)
+
+    /** Internal overload lets tests control video analysis without invoking an external ffprobe process. */
+    internal fun scan(
+        collectionId: CollectionId,
+        videoTypes: Collection<String>,
+        imageTypes: Collection<String>,
+        videoAnalyzer: (Path) -> Pair<Long, Float>,
+        log: (String) -> Unit
+    ): ApiCollectionScanStatus {
         val videos = normaliseTypes(videoTypes)
         val images = normaliseTypes(imageTypes)
         require(videos.isNotEmpty() || images.isNotEmpty()) { "No file types specified." }
         val job = ScanJob(collectionId)
-        runScan(job, checkedBasePath(collectionId), videos, images, log)
+        runScan(job, checkedBasePath(collectionId), videos, images, videoAnalyzer, log)
         job.finished = System.currentTimeMillis()
         return job.status()
     }
@@ -310,17 +329,23 @@ object MediaCollectionMaintenance {
         }
     }
 
-    private fun runScan(job: ScanJob, base: Path, videoTypes: Set<String>, imageTypes: Set<String>, log: (String) -> Unit) {
+    private fun runScan(
+        job: ScanJob,
+        base: Path,
+        videoTypes: Set<String>,
+        imageTypes: Set<String>,
+        videoAnalyzer: (Path) -> Pair<Long, Float>,
+        log: (String) -> Unit
+    ) {
         val collectionId = job.collectionId
         checkScanActive(job)
         val files = Files.walk(base).use { stream ->
             stream.filter { path ->
                 checkScanActive(job)
                 if (Thread.currentThread().isInterrupted) return@filter false
-                if (path == base || !Files.isRegularFile(path)) return@filter false
+                if (path == base || !isSafeScanFile(base, path)) return@filter false
                 val extension = path.extension.lowercase()
-                (extension in videoTypes || extension in imageTypes) &&
-                    runCatching { path.toRealPath().startsWith(base) }.getOrDefault(false)
+                extension in videoTypes || extension in imageTypes
             }.sorted().toList()
         }
         job.filesFound = files.size
@@ -348,8 +373,9 @@ object MediaCollectionMaintenance {
                         }
                         else -> {
                             log("Found video $file; analysing...")
-                            val (durationMs, fps) = analyseVideo(file)
+                            val (durationMs, fps) = videoAnalyzer(file)
                             checkScanActive(job)
+                            checkSafeScanFile(base, file)
                             log("Frame rate $fps fps, duration $durationMs ms.")
                             ApiMediaItem(mediaItemId = "", name = file.fileName.nameWithoutExtension, type = ApiMediaType.VIDEO,
                                 collectionId = collectionId, location = location, durationMs = durationMs, fps = fps)
@@ -369,9 +395,25 @@ object MediaCollectionMaintenance {
             }
             if (items.isNotEmpty()) {
                 checkScanActive(job)
-                val added = MediaCollectionManager.addMediaItems(collectionId, items)
-                job.itemsAdded += added
-                job.itemsSkipped += items.size - added
+                val safeItems = items.filter { item ->
+                    val path = base.resolve(item.location).normalize()
+                    if (path.startsWith(base) && isSafeScanFile(base, path)) {
+                        true
+                    } else {
+                        job.itemsSkipped++
+                        job.addIssue(ApiCollectionIssue(
+                            item.name,
+                            item.location,
+                            "File changed during scan or resolves outside the collection folder."
+                        ))
+                        false
+                    }
+                }
+                if (safeItems.isNotEmpty()) {
+                    val added = MediaCollectionManager.addMediaItems(collectionId, safeItems)
+                    job.itemsAdded += added
+                    job.itemsSkipped += safeItems.size - added
+                }
             }
         }
 
@@ -384,6 +426,15 @@ object MediaCollectionMaintenance {
     private fun checkScanActive(job: ScanJob) {
         if (job.cancellationRequested || Thread.currentThread().isInterrupted) {
             throw InterruptedException("Collection scan was cancelled.")
+        }
+    }
+
+    private fun isSafeScanFile(base: Path, file: Path): Boolean =
+        Files.isRegularFile(file) && runCatching { file.toRealPath().startsWith(base) }.getOrDefault(false)
+
+    private fun checkSafeScanFile(base: Path, file: Path) {
+        if (!isSafeScanFile(base, file)) {
+            throw IllegalStateException("File changed during scan or resolves outside the collection folder.")
         }
     }
 

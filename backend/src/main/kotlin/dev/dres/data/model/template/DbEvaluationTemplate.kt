@@ -213,9 +213,18 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
 
     sealed class VideoSource(val range: TemporalRange) {
 
-        class ItemSource(val item: DbMediaItem, range: TemporalRange) : VideoSource(range)
-        class PathSource(val path: String, range: TemporalRange) : VideoSource(range)
+        class ItemSource(val item: DbMediaItem, range: TemporalRange) : VideoSource(range) {
+            override fun equals(other: Any?): Boolean =
+                other is ItemSource && item.id == other.item.id && range == other.range
 
+            override fun hashCode(): Int = 31 * item.id.hashCode() + range.hashCode()
+        }
 
+        class PathSource(val path: String, range: TemporalRange) : VideoSource(range) {
+            override fun equals(other: Any?): Boolean =
+                other is PathSource && path == other.path && range == other.range
+
+            override fun hashCode(): Int = 31 * path.hashCode() + range.hashCode()
+        }
     }
 }

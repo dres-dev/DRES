@@ -8,6 +8,10 @@ import dev.dres.data.model.template.task.DbTaskGroup
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.DbTaskTemplateTarget
 import dev.dres.data.model.template.task.DbTargetType
+import dev.dres.data.model.template.task.DbHint
+import dev.dres.data.model.template.task.DbHintType
+import dev.dres.data.model.media.DbMediaType
+import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.data.model.template.task.options.DbTargetOption
 import dev.dres.data.model.template.team.DbTeam
@@ -189,6 +193,35 @@ class EvaluationTemplateBuildingTest : AbstractDresIntegrationTest() {
             assertTrue(instance.instance)
             val instanceTask = instance.tasks.asSequence().first()
             assertNull(instanceTask.duration, "Perpetual task duration must be preserved in instance")
+        }
+    }
+
+    @Test
+    fun `identical query hint and temporal target video are collected once`() {
+        val collection = createTestCollection()
+        val template = createTemplateShell("deduplicated-videos-${UUID.randomUUID()}")
+        val group = addTaskTypeAndGroup(template, "KIS", "KIS", "KIS", "MEDIA_SEGMENT")
+        val task = addTask(template, group, collection, "Task")
+
+        store.transactional {
+            val video = collection.items.asSequence().first { it.type == DbMediaType.VIDEO }
+            val range = TemporalRange(1_000L, 5_000L)
+            task.hints.add(DbHint.new {
+                type = DbHintType.VIDEO
+                item = video
+                temporalRangeStart = 1_000L
+                temporalRangeEnd = 5_000L
+            })
+            task.targets.add(DbTaskTemplateTarget.new {
+                type = DbTargetType.MEDIA_ITEM_TEMPORAL_RANGE
+                item = video
+                start = 1_000L
+                end = 5_000L
+            })
+
+            val videos = template.getAllVideos()
+            assertEquals(1, videos.size)
+            assertTrue(videos.contains(DbEvaluationTemplate.VideoSource.ItemSource(video, range)))
         }
     }
 

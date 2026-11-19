@@ -84,20 +84,23 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
   ngOnInit(): void {
     /* Handling request */
     this.requestSub = this.req.subscribe((req) => {
-      if (req != null) {
-        JudgementMediaViewerComponent.log(`Request=${JSON.stringify(req)}`);
-        this.activeType.next(JudgementMediaViewerComponent.detectType(req, this.answerIndex));
-        switch (this.activeType.value) {
-          case 'ITEM':
-            this.initItem(req);
-            break;
-          case 'TEMPORAL':
-            this.initSegment(req);
-            break;
-          case 'TEXT':
-            this.initText(req);
-            break;
-        }
+      if (req == null) {
+        this.stop();
+        return;
+      }
+
+      JudgementMediaViewerComponent.log(`Request=${JSON.stringify(req)}`);
+      this.activeType.next(JudgementMediaViewerComponent.detectType(req, this.answerIndex));
+      switch (this.activeType.value) {
+        case 'ITEM':
+          this.initItem(req);
+          break;
+        case 'TEMPORAL':
+          this.initSegment(req);
+          break;
+        case 'TEXT':
+          this.initText(req);
+          break;
       }
     });
   }
@@ -110,8 +113,11 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
     this.endInSeconds = undefined;
     this.relativePlaytimeSeconds = 0;
     this.currentText = undefined;
-    if (this.video) {
-      this.video?.nativeElement?.pause();
+    if (this.video?.nativeElement) {
+      const video = this.video.nativeElement as HTMLVideoElement;
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
     }
     this.videoPlayerInitialized = false;
     this.removeTemporalContextClass();

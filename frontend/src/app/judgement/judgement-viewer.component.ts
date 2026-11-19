@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, HostListener, Input, OnDestroy, ViewChild} from '@angular/core';
-import {BehaviorSubject, merge, Observable, of, Subscription, timer} from 'rxjs';
+import {BehaviorSubject, merge, Observable, of, Subject, Subscription, timer} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';
 import {catchError, filter, map, switchMap, take, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
@@ -60,6 +60,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
   private runId: Observable<string>;
   private requestSub: Subscription;
   private statusSub: Subscription;
+  private nextRequestRefresh = new Subject<void>();
   private deadMansSwitchSub: Subscription;
   private deadMansSwitchTime = 0;
 
@@ -140,7 +141,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                 ServerMessageType.ServerMessageTypeEnum.TASK_END,
             ].includes(msg.type))
         );
-        const trigger$ = merge(timer(0, 30_000), wsRefresh$);
+        const trigger$ = merge(timer(0, 30_000), wsRefresh$, this.nextRequestRefresh);
 
         /* Fetch judge status on websocket event or fallback interval. */
         this.statusSub = trigger$
@@ -273,10 +274,11 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
       .subscribe((res) => {
         if (res) {
           this.snackBar.open(res.description, null, { duration: 5000 });
+          this.nextRequestRefresh.next();
         }
       });
     this.previousJudgementRequest = this.judgementRequest;
-    this.judgePlayer.stop();
+    this.observableJudgementRequest.next(null);
     this.judgementRequest = null;
     this.isJudgmentAvailable = false;
   }

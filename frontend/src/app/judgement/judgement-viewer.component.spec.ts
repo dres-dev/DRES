@@ -121,6 +121,7 @@ describe('JudgementViewerComponent', () => {
       component.judge('CORRECT');
 
       expect(component.previousJudgementRequest).toBe(req);
+      expect(component.observableJudgementRequest.value).toBeNull();
       expect(component.judgementRequest).toBeNull();
       expect(component.isJudgmentAvailable).toBeFalse();
     });
@@ -234,6 +235,31 @@ describe('JudgementViewerComponent WebSocket wiring', () => {
       discardPeriodicTasks();
     }));
   });
+
+  it('fetches the next judgement immediately after a verdict is accepted', fakeAsync(() => {
+    component.ngAfterViewInit();
+    dialogAfterClosed.next();
+    tick(); // initial immediate poll
+
+    const postResponse = new Subject<any>();
+    judgementService.postApiV2EvaluationByEvaluationIdJudge.and.returnValue(postResponse);
+    judgementService.getApiV2EvaluationByEvaluationIdJudgeNext.and.returnValue(
+      of({ status: 200, body: makeRequest('next') } as any)
+    );
+    judgementService.getApiV2EvaluationByEvaluationIdJudgeNext.calls.reset();
+    component.judgementRequest = makeRequest('current');
+    component.isJudgmentAvailable = true;
+
+    component.judge('CORRECT');
+    expect(judgementService.getApiV2EvaluationByEvaluationIdJudgeNext).not.toHaveBeenCalled();
+
+    postResponse.next({ description: 'accepted' });
+    postResponse.complete();
+    tick();
+
+    expect(judgementService.getApiV2EvaluationByEvaluationIdJudgeNext.calls.mostRecent().args).toEqual(['run1', 'response']);
+    discardPeriodicTasks();
+  }));
 
   // ── PING / unrelated messages are ignored ──────────────────────────────────
 

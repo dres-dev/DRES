@@ -677,7 +677,8 @@ class InteractiveAsynchronousRunManager(
                     true
                 } else false
             }
-            /* Keep the READY entries that predate WebSocket presence tracking. */
+            /* Legacy readiness-only rows have no timestamp and cannot still be live. */
+            (this.viewers.keys - this.viewerPresences.keys).forEach(this.viewers::remove)
         }
     }
 

@@ -483,6 +483,8 @@ class InteractiveSynchronousRunManager(
                     true
                 } else false
             }
+            /* Readiness-only rows have no timestamp and cannot still be live without a presence record. */
+            (this.readyLatch.state().keys - this.viewerPresences.keys).forEach(this.readyLatch::unregister)
         }
     }
 
@@ -573,13 +575,18 @@ class InteractiveSynchronousRunManager(
 
         /* Since the viewer can send READY early, do not require the task to already be preparing. */
         val changed = synchronized(this.viewerStateLock) {
-            if (this.readyLatch.state()[viewerInfo] == true) {
+            val previousPresence = this.viewerPresences[viewerInfo]
+            if (this.readyLatch.state()[viewerInfo] == true && previousPresence != null) {
                 false
             } else {
                 this.readyLatch.register(viewerInfo) // Register previously untracked viewers.
                 this.readyLatch.setReady(viewerInfo)
-                val presence = this.viewerPresences[viewerInfo]
-                if (presence != null) this.viewerPresences[viewerInfo] = presence.copy(ready = true)
+                this.viewerPresences[viewerInfo] = ViewerPresence(
+                    host = viewerInfo.host,
+                    ready = true,
+                    connected = previousPresence?.connected ?: false,
+                    lastSeen = System.currentTimeMillis()
+                )
                 true
             }
         }

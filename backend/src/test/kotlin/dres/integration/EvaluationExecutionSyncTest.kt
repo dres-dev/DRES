@@ -1,7 +1,10 @@
 package dres.integration
 
+import dev.dres.DRES
+import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.ApiEvaluationOverview
 import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.data.model.config.Config
 import dev.dres.data.model.run.DbEvaluationType
 import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.DbTaskStatus
@@ -12,12 +15,14 @@ import dev.dres.data.model.template.task.options.DbTargetOption
 import dev.dres.mgmt.EvaluationManager
 import dev.dres.mgmt.TemplateManager
 import dev.dres.run.InteractiveSynchronousRunManager
+import dev.dres.data.model.run.RunActionContext
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.first
 import kotlinx.dnq.query.asSequence
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.nio.file.Files
 import java.util.UUID
 
 /**
@@ -79,6 +84,29 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
         assertEquals(0, overview.verdicts.correct)
         assertEquals(0, overview.verdicts.indeterminate)
         assertEquals(0, overview.verdicts.undecidable)
+    }
+
+    @Test
+    fun `viewer ready registration records presence and cleanup removes it`() {
+        val eval = buildSyncEvaluation(taskCount = 1, teamCount = 1)
+        val manager = store.transactional(true) { InteractiveSynchronousRunManager(eval, store) }
+        val taskTemplateId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
+        val viewer = ViewerInfo("session-token", "127.0.0.1")
+        DRES.CONFIG = Config(eventsLocation = Files.createTempDirectory("dres-events-test-"))
+
+        manager.viewerReady(taskTemplateId, RunActionContext.INTERNAL, viewer)
+
+        val registered = manager.viewerSnapshot()[viewer]
+        assertNotNull(registered)
+        assertTrue(registered!!.ready)
+        val presence = registered.presence
+        assertNotNull(presence)
+        assertFalse(presence!!.connected)
+        assertTrue(presence.lastSeen > 0L)
+
+        manager.cleanupViewerPresence(System.currentTimeMillis() + 1)
+
+        assertFalse(manager.viewerSnapshot().containsKey(viewer))
     }
 
     // ── Lifecycle ──────────────────────────────────────────────────────────────

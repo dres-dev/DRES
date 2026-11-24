@@ -126,17 +126,18 @@ open class BasicJudgementValidator(
                 return@transactional
             }
 
-            //check cache first — ConcurrentHashMap, safe without lock
             val itemRange = ItemRange(answerSet.answers.first()) //TODO reason about semantics
-            val cachedStatus = this.cache[itemRange]
-            if (cachedStatus != null) {
-                answerSet.status = cachedStatus
-                return@transactional
-            }
 
-            // Everything below mutates queue/queuedItemRanges — needs write lock
+            // Serialize cache and queue decisions with judgeInternal so a concurrent submission
+            // cannot miss a just-recorded verdict and create a redundant judgement request.
             this.updateLock.write {
-                if (itemRange !in this.queuedItemRanges.keys) {
+                val cachedStatus = this.cache[itemRange]
+                if (cachedStatus != null) {
+                    answerSet.status = cachedStatus
+                    return@write
+                }
+
+                if (itemRange !in this.queuedItemRanges) {
                     if (this.lifo) {
                         this.queue.offerFirst(answerSet.id to itemRange)
                     } else {
@@ -144,7 +145,8 @@ open class BasicJudgementValidator(
                     }
                     this.queuedItemRanges[itemRange] = mutableListOf(answerSet.id)
                 } else {
-                    this.queuedItemRanges[itemRange]!!.add(answerSet.id)
+                    val answerSetIds = this.queuedItemRanges.getValue(itemRange)
+                    if (answerSet.id !in answerSetIds) answerSetIds.add(answerSet.id)
                 }
             }
         }
@@ -194,10 +196,10 @@ open class BasicJudgementValidator(
             ?: throw JudgementTimeoutException("This JudgementValidator does not contain a submission for the token '$token'.") //submission with token not found TODO: this should be logged
 
         /* Remove from queue set. */
-        val otherSubmissions = this.queuedItemRanges.remove(next.second) ?: emptyList()
+        val otherSubmissions = this.queuedItemRanges.remove(next.second).orEmpty().filterNot { it == next.first }
         this.store.transactional {
             val dbVerdict = verdict.toDb()
-            for ((i, answerSetId) in (otherSubmissions + next.first).withIndex()) {
+            for ((i, answerSetId) in (listOf(next.first) + otherSubmissions).withIndex()) {
                 val answerSet = DbAnswerSet.query(DbAnswerSet::id eq answerSetId).singleOrNull()
                 if (answerSet != null) {
                     answerSet.status = dbVerdict
@@ -217,6 +219,8 @@ open class BasicJudgementValidator(
     fun clear() = this.updateLock.write {
         this.waiting.clear()
         this.queue.clear()
+        this.queuedItemRanges.clear()
+        this.timeouts.clear()
     }
 
     /**

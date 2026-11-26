@@ -252,7 +252,7 @@ object RunExecutor : StreamEventHandler {
                         ClientMessageType.ACK -> {}
                         ClientMessageType.REGISTER -> {
                             if (AccessManager.canViewEvaluation(ctx.sessionToken(), manager)) {
-                                val viewer = runCatching { ViewerInfo(ctx) }.getOrNull()
+                                val viewer = this.viewerOf(ctx)
                                 if (viewer != null) {
                                     val disconnected = synchronized(this.viewerSocketLock) {
                                         this.observingClients[message.evaluationId]?.add(ctx.sessionId())
@@ -275,7 +275,7 @@ object RunExecutor : StreamEventHandler {
                             synchronized(this.viewerSocketLock) {
                                 var viewer = this.socketViewers[ctx.sessionId()]?.get(message.evaluationId)
                                 if (viewer == null && AccessManager.canViewEvaluation(ctx.sessionToken(), manager)) {
-                                    viewer = runCatching { ViewerInfo(ctx) }.getOrNull()
+                                    viewer = this.viewerOf(ctx)
                                     if (viewer != null) {
                                         this.observingClients[message.evaluationId]?.add(ctx.sessionId())
                                         this.registerSocketViewer(ctx.sessionId(), message.evaluationId, viewer, manager)
@@ -304,6 +304,18 @@ object RunExecutor : StreamEventHandler {
             logger.error("WebSocket error for session ${ctx.sessionId()}: ${ctx.error()?.message}")
             this.removeWebSocketSession(ctx.sessionId())
         }
+    }
+
+    /**
+     * Derives the [ViewerInfo] for a WebSocket session, or returns null if the session carries no
+     * resolvable session token. Failures are logged instead of silently dropping the viewer, which
+     * previously left viewers connected in the UI but unknown to the backend.
+     */
+    private fun viewerOf(ctx: WsContext): ViewerInfo? = try {
+        ViewerInfo(ctx)
+    } catch (e: Exception) {
+        logger.warn("Cannot determine viewer identity for WebSocket session ${ctx.sessionId()}: ${e.message}")
+        null
     }
 
     private fun removeWebSocketSession(sessionId: String, expectedSender: BoundedSerialMessageSender? = null) {

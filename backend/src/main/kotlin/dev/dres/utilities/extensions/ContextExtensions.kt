@@ -74,10 +74,19 @@ fun Context.sendFile(file: File) {
 fun Context.sessionToken(): String? = this.attribute<String>("session")
 
 /**
- * Returns the session token for this [WsContext], as set by the `before` handler on the
- * underlying HTTP upgrade request.
+ * Returns the session token associated with this [WsContext].
+ *
+ * WebSocket upgrade requests are not processed by Javalin's HTTP handler chain, so `before` handlers
+ * never run for them and the `session` attribute is absent (see `WsUpgradeProbeTest`). The session
+ * must therefore be resolved directly from the upgrade request, using the same cookie and query
+ * parameter that [AccessManager] and [RestApi][dev.dres.api.rest.RestApi] accept for regular requests.
+ *
+ * @return The [SessionToken][dev.dres.api.rest.handler.users.SessionToken] or null if the upgrade carried none.
  */
-fun WsContext.sessionToken(): String? = this.attribute<String>("session")
+fun WsContext.sessionToken(): String? =
+    this.attribute<String>("session")
+        ?: this.cookie(AccessManager.SESSION_COOKIE_NAME)
+        ?: this.queryParam("session")
 
 /** Resolves a client address from the forwarded headers present on a WebSocket upgrade request. */
 fun WsContext.realIP(): String = clientIP(

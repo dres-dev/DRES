@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.handler.preview.MediaRequestGuard
 import dev.dres.api.rest.types.evaluation.ApiTaskStatus
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.isParticipant
@@ -68,11 +69,15 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
             /* Performs (run manager specific) gate-keeping. */
             manager.executeGatekeeper(ctx, taskTemplateId, rac)
 
+            /* Targets embed media payloads, so the same budget as for direct media retrieval applies. */
+            MediaRequestGuard.enforce(ctx, "task-target", taskTemplateId)
+
             /* Accesses template and converts it to target. */
             val template = manager.evaluation.template.tasks.find { it.id == taskTemplateId }
                 ?: throw ErrorStatusException(404, "Task template not found.", ctx)
             try {
-                ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
+                /* Targets contain the ground truth; never let a shared cache retain them. */
+                ctx.header("Cache-Control", "private, no-store")
                 template.toTaskTarget()
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)

@@ -70,7 +70,7 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
         if (item == null) {
             ctx.status(404)
             ctx.header("Content-Type", "image/png")
-            ctx.header("Cache-Control", "max-age=31622400")
+            ctx.header("Cache-Control", "private, max-age=31622400")
             ctx.outputStream().write(MISSING_IMAGE)
             return
         }
@@ -79,12 +79,12 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
             is FailedFuture -> {
                 ctx.status(500)
                 ctx.header("Content-Type", "image/png")
-                ctx.header("Cache-Control", "max-age=31622400")
+                ctx.header("Cache-Control", "private, max-age=31622400")
                 ctx.outputStream().write(MISSING_IMAGE)
             }
             is CompletedFuture -> {
                 ctx.status(200)
-                ctx.header("Cache-Control", "max-age=31622400")
+                ctx.header("Cache-Control", "private, max-age=31622400")
                 ctx.sendFile(result.get())
             }
             else -> {
@@ -111,7 +111,7 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
             is FailedFuture -> throw ErrorStatusException(500, "Failed to load preview video.", ctx)
             is CompletedFuture -> {
                 ctx.status(200)
-                ctx.header("Cache-Control", "max-age=31622400")
+                ctx.header("Cache-Control", "private, max-age=31622400")
                 ctx.streamFile(result.get())
             }
             else -> {

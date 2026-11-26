@@ -2,6 +2,7 @@ package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.DRES
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.handler.preview.MediaRequestGuard
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.template.tasks.ApiHintContent
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -74,10 +75,14 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
             /* Performs (run manager specific) gate-keeping. */
             manager.executeGatekeeper(ctx, taskTemplateId, rac)
 
+            /* Hints embed media payloads, so the same budget as for direct media retrieval applies. */
+            MediaRequestGuard.enforce(ctx, "task-hint", taskTemplateId)
+
             /* Find template and load hint. */
             val template = manager.evaluation.template.tasks.find { it.id == taskTemplateId } ?: throw ErrorStatusException(404, "Task template not found.", ctx)
             try {
-                ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
+                /* Hints are participant-specific payloads; a shared cache must never retain them. */
+                ctx.header("Cache-Control", "private, no-store")
                 template.toTaskHint()
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)

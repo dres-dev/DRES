@@ -370,7 +370,9 @@ object RestApi {
             logger.info(
                 logMarker,
                 "${ctx.req().method} request to ${ctx.path()} with params (${
-                    ctx.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()
+                    ctx.queryParamMap().entries.joinToString { e ->
+                        if (e.key.equals("session", ignoreCase = true)) "${e.key}=REDACTED" else "${e.key}=${e.value}"
+                    }
                 }) from ${ctx.req().remoteAddr}"
             )
             if (ctx.path().startsWith("/api/")) { //do not cache api requests

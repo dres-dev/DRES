@@ -54,6 +54,9 @@ class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<
             return
         }
 
+        /* Whole-original delivery is the highest-value target for scraping, so meter and audit it. */
+        MediaRequestGuard.enforce(ctx, "media", itemId)
+
         /* Lookup item by ID. */
         val path = this.store.transactional(readonly = true) {
             val item = this.store.transactional(true) {
@@ -68,6 +71,10 @@ class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<
         }
 
         try{
+            /* `private` keeps shared proxies out; a zero lifetime keeps browsers from retaining
+             * session-authorized media, while still allowing the player to reuse range segments
+             * within a single load instead of re-fetching them for every seek. */
+            ctx.header("Cache-Control", "private, max-age=0, must-revalidate")
             ctx.streamFile( path )
         } catch (e: org.eclipse.jetty.io.EofException) {
             //is triggered by a client abruptly stopping playback, can be safely ignored

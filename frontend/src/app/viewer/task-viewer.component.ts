@@ -247,6 +247,11 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
           }
           break;
         case 'ENDED':
+          /*
+           * The task's grants die with it, so abandoned prefetches are aborted and forgotten rather
+           * than left to delay the next task's payloads.
+           */
+          this.mediaPrefetch.cancelInFlight();
           return this.viewerState.next(ViewerState.VIEWER_TASK_ENDED);
       }
     });
@@ -331,6 +336,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     this.viewerStateSubscription = null;
     this.currentTaskHintSubscription.unsubscribe();
     this.currentTaskHintSubscription = null;
+    /* Abort warming downloads; nothing will consume them once the viewer is gone. */
+    this.mediaPrefetch.cancelInFlight();
   }
 
   /**

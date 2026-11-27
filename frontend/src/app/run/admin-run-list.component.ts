@@ -12,7 +12,6 @@ import { map, switchMap } from 'rxjs/operators';
 import {
   ApiEvaluationInfo,
   ApiEvaluationOverview,
-  ApiTaskStatus,
   DownloadService,
   EvaluationAdministratorService,
   EvaluationScoresService,
@@ -152,12 +151,17 @@ export class AdminRunListComponent extends AbstractRunListComponent implements A
                   infoState.currentTaskName = teamOverview.name;
                   infoState.currentTask = teamOverview.id;
                   infoState.taskRunStatus = teamOverview?.status;
+                  /*
+                   * The backend reports the remaining time so this list, the viewer and the task controls
+                   * cannot disagree. Deriving it here ignored COUNTDOWN_DURATION and drifted from the
+                   * viewer as the run went on.
+                   */
                   infoState.timeLeft =
-                    teamOverview?.status !== ApiTaskStatus.RUNNING
-                      ? '0'
-                      : teamOverview.duration == null
-                        ? '∞' /* Perpetual task: no deadline to count down to. */
-                        : '' + (teamOverview.duration - Math.round(-1 * ((teamOverview.started - Date.now()) / 1000)));
+                    teamOverview.timeLeft == null
+                      ? '∞' /* Perpetual task: no deadline to count down to. */
+                      : teamOverview.timeLeft < 0
+                        ? '0' /* Not running. */
+                        : '' + teamOverview.timeLeft;
                 }
               }
 

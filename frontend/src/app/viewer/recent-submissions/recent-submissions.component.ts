@@ -115,7 +115,8 @@ export class RecentSubmissionsComponent implements OnInit {
 
   public previewOfItem(item: ApiMediaItem, start: number): string | null {
     if (!item) return null;
-    return this.config.resolveApiUrl(`/preview/${item.mediaItemId}/${start == null ? 0 : start}`);
+    /* Routed through AppConfig so scoping or signing added to that endpoint is applied in one place. */
+    return this.config.resolveImagePreviewUrl(item.mediaItemId, `${start == null ? 0 : start}`);
   }
 
   public trackByUniqueId(index: number, sub: any): string {

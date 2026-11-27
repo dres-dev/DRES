@@ -617,6 +617,11 @@
             "format" : "int64",
             "type" : "integer",
             "nullable" : true
+          },
+          "timeLeft" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
           }
         },
         "required" : [ "id", "name", "type", "group", "taskId", "status" ]

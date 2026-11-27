@@ -1,20 +1,19 @@
-import { Component, ElementRef, Inject, ViewChild } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
-import { ApiMediaItem, CollectionService } from "../../../../../../openapi";
+import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { ApiMediaItem, CollectionService } from '../../../../../../openapi';
 
-export interface BatchAddTargetDialogData{
+export interface BatchAddTargetDialogData {
   collectionId: string;
 }
 
 @Component({
-    selector: 'app-batch-add-target-dialog',
-    templateUrl: './batch-add-target-dialog.component.html',
-    styleUrls: ['./batch-add-target-dialog.component.scss'],
-    standalone: false
+  selector: 'app-batch-add-target-dialog',
+  templateUrl: './batch-add-target-dialog.component.html',
+  styleUrls: ['./batch-add-target-dialog.component.scss'],
+  standalone: false,
 })
 export class BatchAddTargetDialogComponent {
-
-  @ViewChild('targetArea') textArea: ElementRef<HTMLTextAreaElement>
+  @ViewChild('targetArea') textArea: ElementRef<HTMLTextAreaElement>;
 
   private targets: string[] = [];
 
@@ -24,32 +23,27 @@ export class BatchAddTargetDialogComponent {
     private dialogRef: MatDialogRef<BatchAddTargetDialogComponent>,
     private mediaService: CollectionService,
     @Inject(MAT_DIALOG_DATA) private data: BatchAddTargetDialogData
-  ){
+  ) {}
 
-  }
-
-  processUpload(event){
+  processUpload(event) {
     const file = event.target.files[0];
     const reader = new FileReader();
     reader.readAsText(file);
-    reader.onload = () =>{
-      const text = (reader.result as string)
+    reader.onload = () => {
+      const text = reader.result as string;
       this.textArea.nativeElement.value = text;
-    }
+    };
   }
 
-  processInput(event){
+  processInput(event) {}
 
+  close() {
+    this.dialogRef.close(null);
   }
 
-  close(){
-    this.dialogRef.close(null)
-  }
-
-  save(){
+  save() {
     /* Sanitation: break up on newline and trim each line */
-    const lines = this.textArea.nativeElement.value?.trim().split('\n')
-    this.dialogRef.close(lines.map(it => it.trim()))
+    const lines = this.textArea.nativeElement.value?.trim().split('\n');
+    this.dialogRef.close(lines.map((it) => it.trim()));
   }
-
 }

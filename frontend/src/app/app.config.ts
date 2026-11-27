@@ -71,7 +71,7 @@ export class AppConfig {
    * @param mediaItemId The media item's id to resolve the url for
    * @param version The API version
    */
-  public resolveMediaItemUrl(mediaItemId: string, version: string = "v2"): string{
+  public resolveMediaItemUrl(mediaItemId: string, version: string = 'v2'): string {
     return this.resolveApiUrl(`/media/${mediaItemId}`, version);
   }
 
@@ -80,8 +80,8 @@ export class AppConfig {
    * @param mediaItemId The media item's id to resolve the PREVIEW url for
    * @param version The API version
    */
-  public resolveImagePreviewUrl(mediaItemId: string, timeInMs?:string,version: string = "v2"): string{
-    return this.resolveApiUrl(`/preview/${mediaItemId}${timeInMs ? `/${timeInMs}` : ''}`, version)
+  public resolveImagePreviewUrl(mediaItemId: string, timeInMs?: string, version: string = 'v2'): string {
+    return this.resolveApiUrl(`/preview/${mediaItemId}${timeInMs ? `/${timeInMs}` : ''}`, version);
   }
 
   /**
@@ -89,11 +89,23 @@ export class AppConfig {
    * @param file The file including extension to resolve the URL for
    * @param version The API version
    */
-  public resolveExternalUrl(file: string, version: string= "v2"): string {
-    return this.resolveApiUrl(`/media/external/${file}`, version)
+  public resolveExternalUrl(file: string, version: string = 'v2'): string {
+    return this.resolveApiUrl(`/media/external/${file}`, version);
   }
 
-
+  /**
+   * Resolves the URL of a short-lived media grant, as delivered inside {@link ApiContentElement.mediaUrl}.
+   *
+   * The backend returns the grant path relative to the API root (e.g. `media/grant/{id}`) so that the
+   * client's own base URL keeps working behind reverse proxies and tunnels. The grant is bound to the
+   * calling session and expires, so the URL must be used as delivered rather than cached long-term.
+   *
+   * @param grantPath The grant path as delivered by the backend.
+   * @param version The API version
+   */
+  public resolveMediaGrantUrl(grantPath: string, version: string = 'v2'): string {
+    return this.resolveApiUrl(`/${grantPath.replace(/^\//, '')}`, version);
+  }
 
   /**
    * (Re-)loads the default configuration from a JSON file.
@@ -110,7 +122,6 @@ export class AppConfig {
         })
         .catch((response: any) => {
           this.settings.next(new DefaultConfig());
-          console.log(`Could not load config file '${jsonFile}'. Fallback to default.`);
           resolve();
         });
     });

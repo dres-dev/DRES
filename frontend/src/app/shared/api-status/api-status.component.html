@@ -1,7 +1,27 @@
-<div style="width: 4em">
-  <mat-icon style="vertical-align: middle">{{ (rtt | async) > 0 ? 'sensors' : 'sensors_off' }}</mat-icon>
-  &#x02004;
-  <span matTooltip="RTT. Server to client clock Diff: {{ clockDiff | async }}ms" style="font-size: 10pt"
-    >{{ rtt | async }}ms</span
+<!-- One indicator for "can this client still see what the backend is doing". -->
+<ng-container *ngIf="view | async as status">
+  <div
+    class="status"
+    [class.degraded]="status.restDown || status.degraded"
+    [matTooltip]="tooltip(status)"
+    matTooltipClass="status-tooltip"
   >
-</div>
+    <!-- REST liveness: the icon and the number report the same request. -->
+    <span class="rest" aria-hidden="true">
+      <mat-icon>{{ status.restDown ? 'sensors_off' : 'sensors' }}</mat-icon>
+      <span class="rtt">{{ status.restDown ? 'no response' : status.rtt < 0 ? '…' : status.rtt + 'ms' }}</span>
+    </span>
+
+    <!--
+      Socket liveness. Hidden when no run view is open, because then there is no socket to report on
+      and an "idle" badge would be noise on every non-viewer page.
+    -->
+    <span class="socket" *ngIf="status.socket !== 'idle'" [attr.data-state]="status.socket">
+      <mat-icon *ngIf="status.socket === 'live'">bolt</mat-icon>
+      <mat-icon *ngIf="status.socket === 'waiting'">hourglass_empty</mat-icon>
+      <mat-icon *ngIf="status.socket === 'reconnecting'">sync_problem</mat-icon>
+      <mat-icon *ngIf="status.socket === 'rejected'">block</mat-icon>
+      <span class="label">{{ socketLabel(status) }}</span>
+    </span>
+  </div>
+</ng-container>

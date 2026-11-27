@@ -1,26 +1,23 @@
-import { Component, Input } from "@angular/core";
-import { UntypedFormControl } from "@angular/forms";
-import {
-  TaskTemplateFormBuilder
-} from "../../task-template-form.builder";
-import { AppConfig } from "../../../../app.config";
+import { Component, Input } from '@angular/core';
+import { UntypedFormControl } from '@angular/forms';
+import { TaskTemplateFormBuilder } from '../../task-template-form.builder';
+import { AppConfig } from '../../../../app.config';
 
 @Component({
-    selector: 'app-query-description-external-form-field',
-    templateUrl: './query-description-external-form-field.component.html',
-    styleUrls: ['./query-description-external-form-field.component.scss'],
-    standalone: false
+  selector: 'app-query-description-external-form-field',
+  templateUrl: './query-description-external-form-field.component.html',
+  styleUrls: ['./query-description-external-form-field.component.scss'],
+  standalone: false,
 })
 export class QueryDescriptionExternalFormFieldComponent {
   @Input()
-  pathControl: UntypedFormControl
+  pathControl: UntypedFormControl;
   @Input()
-  formBuilder: TaskTemplateFormBuilder
+  formBuilder: TaskTemplateFormBuilder;
   @Input()
-  index: number
+  index: number;
 
   showing: boolean = false;
 
-  constructor(public config: AppConfig) {
-  }
+  constructor(public config: AppConfig) {}
 }

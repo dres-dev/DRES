@@ -35,9 +35,19 @@ class DbMediaSegment(entity: Entity) : PersistentEntity(entity) {
         /**
          *
          */
-        fun findContaining(item: DbMediaItem, time: TemporalPoint): DbMediaSegment? {
+        fun findContaining(item: DbMediaItem, time: TemporalPoint, isEnd: Boolean = false): DbMediaSegment? {
             val ms = time.toMilliseconds().toInt()
-            return item.segments.filter { (ms ge it.start) and (it.end ge ms) }.firstOrNull()
+            /*
+             * Adjacent segments usually share their boundary (e.g., [0, 1000] and [1000, 2000]). To avoid ambiguity, a point on a
+             * boundary belongs to the segment that starts there, unless it is the end of a range ([isEnd]), in which case it belongs
+             * to the segment that ends there. Falls back to the inclusive match (e.g., for the very first / last boundary).
+             */
+            val preferred = if (isEnd) {
+                item.segments.filter { (ms gt it.start) and (it.end ge ms) }.firstOrNull()
+            } else {
+                item.segments.filter { (ms ge it.start) and (it.end gt ms) }.firstOrNull()
+            }
+            return preferred ?: item.segments.filter { (ms ge it.start) and (it.end ge ms) }.firstOrNull()
         }
     }
 

@@ -1,51 +1,53 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Observable, combineLatest, of } from 'rxjs';
-import { catchError, map, switchMap, filter, sampleTime, shareReplay } from 'rxjs/operators';
+import { Observable, combineLatest, EMPTY, of } from 'rxjs';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import { ApiEvaluationInfo, ApiEvaluationState, ApiMediaItem, EvaluationService } from '../../../../openapi';
 import { AppConfig } from '../../app.config';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { VIEWER_SUBMISSION_UPDATE_TYPES, viewerData, ViewerRefreshEvent } from '../viewer-refresh';
 
 @Component({
   selector: 'app-recent-submissions',
   templateUrl: './recent-submissions.component.html',
   styleUrls: ['./recent-submissions.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatTooltipModule]
+  imports: [CommonModule, MatTooltipModule],
 })
 export class RecentSubmissionsComponent implements OnInit {
   @Input() info: Observable<ApiEvaluationInfo>;
   @Input() state: Observable<ApiEvaluationState>;
+  @Input() refreshEvents: Observable<ViewerRefreshEvent> = EMPTY;
+  @Input() reconnected: Observable<void> = EMPTY;
 
   recentSubmissions$: Observable<any[]>;
-  
+
   private serverTimeOffset = 0;
   private currentTaskId: string | null = null;
   private currentTaskStartTime: number = 0;
 
-  constructor(
-    private evaluationService: EvaluationService,
-    private config: AppConfig,
-    private http: HttpClient
-  ) {}
+  constructor(private evaluationService: EvaluationService, private config: AppConfig, private http: HttpClient) {}
 
   ngOnInit(): void {
     // Calculate the offset between server time and client time
-    this.http.get(this.config.resolveApiUrl('/client/evaluation/list'), { observe: 'response', responseType: 'text' }).subscribe(res => {
-      const serverDateStr = res.headers.get('Date');
-      if (serverDateStr) {
-        const serverTime = new Date(serverDateStr).getTime();
-        this.serverTimeOffset = Date.now() - serverTime; 
-      }
-    });
+    this.http
+      .get(this.config.resolveApiUrl('/client/evaluation/list'), { observe: 'response', responseType: 'text' })
+      .subscribe((res) => {
+        const serverDateStr = res.headers.get('Date');
+        if (serverDateStr) {
+          const serverTime = new Date(serverDateStr).getTime();
+          this.serverTimeOffset = Date.now() - serverTime;
+        }
+      });
 
-    const submissions$ = this.state.pipe(
-      sampleTime(2000),
-      switchMap(st => this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(st.evaluationId).pipe(
-        catchError(() => of([]))
-      )),
-      shareReplay({ bufferSize: 1, refCount: true })
+    const submissions$ = viewerData(
+      this.state,
+      this.refreshEvents,
+      this.reconnected,
+      VIEWER_SUBMISSION_UPDATE_TYPES,
+      'submissions',
+      (evaluationId) => this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(evaluationId).pipe(catchError(() => of([])))
     );
 
     this.recentSubmissions$ = combineLatest([this.info, submissions$, this.state]).pipe(
@@ -58,23 +60,23 @@ export class RecentSubmissionsComponent implements OnInit {
           if (this.currentTaskId !== state.taskId) {
             this.currentTaskId = state.taskId;
             const syncedServerTime = Date.now() - this.serverTimeOffset;
-            this.currentTaskStartTime = syncedServerTime - (state.timeElapsed * 1000);
+            this.currentTaskStartTime = syncedServerTime - state.timeElapsed * 1000;
           }
         } else {
           this.currentTaskId = null;
         }
 
         const teamMap = new Map<string, string>();
-        info.teams.forEach(t => teamMap.set(t.id, t.name));
+        info.teams.forEach((t) => teamMap.set(t.id, t.name));
 
         const feed: any[] = [];
 
-        submissions.forEach(sub => {
+        submissions.forEach((sub) => {
           const teamName = teamMap.get(sub.teamId) || 'Unknown';
-          
+
           sub.answers.forEach((ans, index) => {
             const firstAns = ans.answers && ans.answers.length > 0 ? ans.answers[0] : null;
-            
+
             let timeDisplay = '';
 
             // Branch for different time display logic based on whether the task is still running or not
@@ -93,7 +95,7 @@ export class RecentSubmissionsComponent implements OnInit {
               const ss = d.getSeconds().toString().padStart(2, '0');
               timeDisplay = `${hh}:${mm}:${ss}`;
             }
-            
+
             feed.push({
               uniqueId: `${sub.submissionId}-${index}`,
               teamName: teamName,
@@ -101,7 +103,7 @@ export class RecentSubmissionsComponent implements OnInit {
               type: firstAns?.type,
               previewUrl: this.previewOfItem(firstAns?.item, firstAns?.start),
               previewText: firstAns?.text,
-              relativeTime: timeDisplay 
+              relativeTime: timeDisplay,
             });
           });
         });
@@ -113,7 +115,8 @@ export class RecentSubmissionsComponent implements OnInit {
 
   public previewOfItem(item: ApiMediaItem, start: number): string | null {
     if (!item) return null;
-    return this.config.resolveApiUrl(`/preview/${item.mediaItemId}/${start == null ? 0 : start}`);
+    /* Routed through AppConfig so scoping or signing added to that endpoint is applied in one place. */
+    return this.config.resolveImagePreviewUrl(item.mediaItemId, `${start == null ? 0 : start}`);
   }
 
   public trackByUniqueId(index: number, sub: any): string {

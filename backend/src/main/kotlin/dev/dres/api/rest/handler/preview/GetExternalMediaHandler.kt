@@ -12,7 +12,6 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.javalin.security.RouteRole
 import java.nio.file.Files
-import kotlin.io.path.Path
 
 /**
  * An [GetRestHandler] used to access files from the external media collection.
@@ -57,9 +56,12 @@ class GetExternalMediaHandler : GetRestHandler<Any>, AccessManagedRestHandler {
             return
         }
 
-        /* Lookup */
-        val path = DRES.EXTERNAL_ROOT.resolve(Path(file))
-        if (!Files.exists(path)) {
+        /* Externally hosted media is a primary exfiltration target, so meter and audit retrieval. */
+        MediaRequestGuard.enforce(ctx, "media-external", file)
+
+        /* Resolve the real path and reject traversal or symlinks outside the configured root. */
+        val path = ExternalMediaPath.resolve(DRES.EXTERNAL_ROOT, file)
+        if (path == null) {
             ctx.errorResponse(404, "External file with name $file was not found")
             return
         }
@@ -69,7 +71,12 @@ class GetExternalMediaHandler : GetRestHandler<Any>, AccessManagedRestHandler {
             return
         }
 
+        /* External files are not part of a collection, so access is bound to a run that references them. */
+        MediaAuthorization.enforceExternalMediaAccess(ctx, file)
+
         try {
+            /* See GetMediaHandler: keep proxies and browser persistence out, keep range reuse in. */
+            ctx.header("Cache-Control", "private, max-age=0, must-revalidate")
             ctx.streamFile(path)
         } catch (e: org.eclipse.jetty.io.EofException) {
             //is triggered by a client abruptly stopping playback, can be safely ignored

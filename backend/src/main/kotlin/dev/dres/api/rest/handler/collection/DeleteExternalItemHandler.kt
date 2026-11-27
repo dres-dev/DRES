@@ -5,6 +5,7 @@ import dev.dres.api.rest.handler.DeleteRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
+import dev.dres.api.rest.handler.preview.ExternalMediaPath
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import java.io.IOException
@@ -28,8 +29,10 @@ class DeleteExternalItemHandler: DeleteRestHandler<SuccessStatus>, AbstractExter
     )
     override fun doDelete(ctx: Context): SuccessStatus {
         val filename = ctx.pathParamMap()["name"] ?: throw ErrorStatusException(400, "No filename given", ctx)
+        val toDelete = ExternalMediaPath.resolveForWrite(DRES.EXTERNAL_ROOT, filename)
+            ?: throw ErrorStatusException(400, "Invalid filename '$filename'.", ctx)
         try {
-            Files.delete(DRES.EXTERNAL_ROOT.resolve(filename))
+            Files.delete(toDelete)
             return SuccessStatus("Successfully deleted $filename")
         }catch(nsf: NoSuchFileException){
             throw ErrorStatusException(404, "The file $filename does not exist", ctx)

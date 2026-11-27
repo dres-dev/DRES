@@ -22,6 +22,10 @@ import { RouterModule } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatSortModule } from '@angular/material/sort';
 import { MatSelectModule } from '@angular/material/select';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { CollectionScanDialogComponent } from './collection-maintenance/collection-scan-dialog.component';
+import { CollectionReportDialogComponent } from './collection-maintenance/collection-report-dialog.component';
+import { CollectionIssueListComponent } from './collection-maintenance/collection-issue-list.component';
 
 @NgModule({
   imports: [
@@ -44,6 +48,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatInputModule,
     MatListModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatMenuModule,
   ],
   exports: [CollectionViewerComponent, CollectionListComponent],
@@ -52,6 +57,9 @@ import { MatSelectModule } from '@angular/material/select';
     CollectionListComponent,
     MediaItemBuilderDialogComponent,
     CollectionBuilderDialogComponent,
+    CollectionScanDialogComponent,
+    CollectionReportDialogComponent,
+    CollectionIssueListComponent,
   ],
   providers: [],
 })

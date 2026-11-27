@@ -1,9 +1,10 @@
 .team-grid {
   display: grid;
   grid-template-columns: 100px 1fr;
-  grid-gap: 20px;
+  gap: 20px;
   width: 100%;
 }
+
 .grid-element-logo {
   margin: 10px;
   width: 100px;
@@ -14,7 +15,7 @@
 }
 
 /* copied from  https://v15.material.angular.io/cdk/drag-drop/overview */
-.member-list-container{
+.member-list-container {
   width: 400px;
   max-width: 100%;
   margin: 0 25px 25px 0;
@@ -22,9 +23,9 @@
   vertical-align: top;
 }
 
-.member-list{
+.member-list {
   min-height: 48px;
-  background: rgba(74,74,74, 0.84);
+  background: rgb(74 74 74 / 84%);
   border-radius: 4px;
   overflow: auto;
   display: block;
@@ -34,17 +35,18 @@
   cursor: move;
 }
 
-.member-list-item-border{
-  border-bottom: solid 1px rgba(255,255,255,0.87);
+.member-list-item-border {
+  border-bottom: solid 1px rgb(255 255 255 / 87%);
 }
-.member-list-item:last-child{
+
+.member-list-item:last-child {
   border: none;
 }
 
-.member-box{
+.member-box {
   padding: 20px 10px;
   border-bottom: solid 1px #ccc;
-  color: rgba(0, 0, 0, 0.87);
+  color: rgb(0 0 0 / 87%);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -54,12 +56,14 @@
   background: white;
   font-size: 14px;
 }
+
 .cdk-drag-preview {
   box-sizing: border-box;
   border-radius: 4px;
-  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
-  0 8px 10px 1px rgba(0, 0, 0, 0.14),
-  0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 5px 5px -3px rgb(0 0 0 / 20%),
+    0 8px 10px 1px rgb(0 0 0 / 14%),
+    0 3px 14px 2px rgb(0 0 0 / 12%);
 }
 
 .cdk-drag-placeholder {
@@ -69,13 +73,15 @@
 .cdk-drag-animating {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
-.member-box:last-child{
+
+.member-box:last-child {
   border: none;
 }
 
-.member-list.cdk-drop-list-dragging .member-box:not(.cdk-drag-placeholder){
+.member-list.cdk-drop-list-dragging .member-box:not(.cdk-drag-placeholder) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
+
 .content-left {
   grid-area: left;
 }
@@ -86,10 +92,7 @@
 
 .tb-container-2col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto;
-  grid-template-areas:
-  "left right";
+  grid-template: 'left right' auto / 1fr 1fr;
   column-gap: 1em;
 
   > * {

@@ -1,6 +1,8 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.handler.evaluation.HiddenResultsVisibility
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
@@ -11,9 +13,11 @@ import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.toList
 
 
-class GetSubmissionHistoryInfoHandler: AbstractEvaluationViewerHandler(), GetRestHandler<List<ApiSubmission>> {
+class GetSubmissionHistoryInfoHandler(private val store: TransientEntityStore): AbstractEvaluationViewerHandler(), GetRestHandler<List<ApiSubmission>> {
 
     override val route = "evaluation/{evaluationId}/task/{taskId}/submission/list"
 
@@ -37,22 +41,37 @@ class GetSubmissionHistoryInfoHandler: AbstractEvaluationViewerHandler(), GetRes
     override fun doGet(ctx: Context): List<ApiSubmission> {
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
         val rac = ctx.runActionContext()
-        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+        if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
         val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(404, "Missing task id", ctx)
         val task = manager.currentTask(rac)
         return if (task?.template?.id == taskId && task.isRunning) {
-            if (task.isRunning) {
-                val hidden = manager.template.taskTypes.find { it.name == task.template.taskType }?.taskOptions?.contains(
-                    ApiTaskOption.HIDDEN_RESULTS
-                ) == true
-                manager.currentSubmissions(rac).map { it.toApi(hidden) }
-            } else {
-                manager.taskForId(rac, taskId)?.getSubmissions() ?: emptyList()
+            val hidden = manager.template.taskTypes.find { it.name == task.template.taskType }?.taskOptions?.contains(
+                ApiTaskOption.HIDDEN_RESULTS
+            ) == true
+            val ownTeams = if (hidden && ctx.isParticipant()) ownTeamIds(ctx, manager) else emptySet()
+            this.store.transactional(true) {
+                manager.currentSubmissions(rac).map { submission ->
+                    HiddenResultsVisibility.redactIfRequired(
+                        hidden,
+                        ctx.isParticipant(),
+                        submission.toApi(),
+                        ownTeams
+                    )
+                }
             }
         } else {
-            emptyList()
+            this.store.transactional(true) {
+                manager.taskForId(rac, taskId)?.getDbSubmissions()?.toList()?.map { submission ->
+                    HiddenResultsVisibility.redactIfRequired(
+                        false,
+                        ctx.isParticipant(),
+                        submission.toApi(),
+                        emptySet()
+                    )
+                } ?: throw ErrorStatusException(404, "Task $taskId was not found.", ctx)
+            }
         }
     }
 }

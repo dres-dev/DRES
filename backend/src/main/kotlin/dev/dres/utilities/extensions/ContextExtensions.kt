@@ -11,6 +11,7 @@ import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import io.javalin.http.Context
+import io.javalin.websocket.WsContext
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.flatMapDistinct
 import kotlinx.dnq.query.isNotEmpty
@@ -71,6 +72,28 @@ fun Context.sendFile(file: File) {
 }
 
 fun Context.sessionToken(): String? = this.attribute<String>("session")
+
+/**
+ * Returns the session token associated with this [WsContext].
+ *
+ * WebSocket upgrade requests are not processed by Javalin's HTTP handler chain, so `before` handlers
+ * never run for them and the `session` attribute is absent (see `WsUpgradeProbeTest`). The session
+ * must therefore be resolved directly from the upgrade request, using the same cookie and query
+ * parameter that [AccessManager] and [RestApi][dev.dres.api.rest.RestApi] accept for regular requests.
+ *
+ * @return The [SessionToken][dev.dres.api.rest.handler.users.SessionToken] or null if the upgrade carried none.
+ */
+fun WsContext.sessionToken(): String? =
+    this.attribute<String>("session")
+        ?: this.cookie(AccessManager.SESSION_COOKIE_NAME)
+        ?: this.queryParam("session")
+
+/** Resolves a client address from the forwarded headers present on a WebSocket upgrade request. */
+fun WsContext.realIP(): String = clientIP(
+    this.header("X-Forwarded-For"),
+    this.header("X-Real-IP"),
+    (this.session.remoteSocketAddress as? java.net.InetSocketAddress)?.address?.hostAddress ?: "UNKNOWN"
+)
 
 fun Context.getOrCreateSessionToken(): String {
     val attributeId = this.attribute<String>("session")
@@ -183,4 +206,13 @@ fun Context.isViewer(): Boolean {
 /**
  * Returns the remote IP address of a context, taking forwarding headers into account
  */
-fun Context.realIP(): String = this.header("X-Forwarded-For") ?: this.ip()
+fun Context.realIP(): String = clientIP(this.header("X-Forwarded-For"), this.header("X-Real-IP"), this.ip())
+
+internal fun clientIP(forwardedFor: String?, realIP: String?, fallback: String): String =
+    forwardedFor
+        ?.split(',')
+        ?.firstOrNull()
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: realIP?.trim()?.takeIf { it.isNotEmpty() }
+        ?: fallback

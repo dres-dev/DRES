@@ -7,7 +7,7 @@ export interface DeactivationGuarded {
 }
 
 @Injectable()
-export class CanDeactivateGuard  {
+export class CanDeactivateGuard {
   canDeactivate(
     component: DeactivationGuarded,
     currentRoute: ActivatedRouteSnapshot,

@@ -1,7 +1,7 @@
 /**
  * A class with time related utilities. Basically a port of dev.dres.utilities.TimeUtil.kt
  */
-import {ApiTemporalPoint, ApiTemporalRange} from '../../../openapi';
+import { ApiTemporalPoint, ApiTemporalRange } from '../../../openapi';
 
 export class TimeUtilities {
   /**
@@ -40,24 +40,25 @@ export class TimeUtilities {
     return this.range2Milliseconds(range, 24);
   }
 
+  /**
+   * Converts a timecode such as `01:02:03:456`, `02:03:456`, `03:456` or `456` into milliseconds.
+   *
+   * The pattern is matched level by level rather than by position, which is why the three cases
+   * shuffle the group indices: a shorter timecode simply has fewer leading groups.
+   *
+   * @param timecode The timecode to convert.
+   * @param fps Frames per second, used for the last component.
+   * @throws Error when [timecode] does not contain a number this method can interpret.
+   */
   static timeCode2Milliseconds(timecode: string, fps: number): number {
-    // console.log(`Input: ${timecode}`);
+    const matches = timecode?.match(this.timeCodeRegexParsing);
     /*
-const a1 = '01:02:03:456';
-const a2 = '02:03:456';
-const a3 = '03:456';
-const a4 = '456';
-
-const regexpSize = /([0-9]+:)?([0-5]?\d:)?([0-5]?\d:)?([0-9]+)/;
-
-console.log(a1.match(regexpSize));
-console.log(a2.match(regexpSize));
-console.log(a3.match(regexpSize));
-console.log(a4.match(regexpSize));
-for testing at e.g. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
-         */
-    const matches = timecode.match(this.timeCodeRegexParsing);
-    // console.log(`Matches: ${matches}`);
+     * Without this guard the code below read `matches[4]` on null and threw
+     * "Cannot read properties of null", which pointed at the parse rather than at the malformed input.
+     */
+    if (!matches || matches[4] == null) {
+      throw new Error(`Cannot parse the timecode '${timecode}'.`);
+    }
 
     let hIdx = 1;
     let mIdx = 2;
@@ -86,7 +87,7 @@ for testing at e.g. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
     return this.timeCode2Milliseconds(timecode, 24);
   }
 
-  static temporalPointEquals(a: ApiTemporalPoint, b: ApiTemporalPoint){
-    return a.value === b.value && a.unit === b.unit
+  static temporalPointEquals(a: ApiTemporalPoint, b: ApiTemporalPoint) {
+    return a.value === b.value && a.unit === b.unit;
   }
 }

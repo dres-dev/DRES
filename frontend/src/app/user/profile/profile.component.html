@@ -1,13 +1,19 @@
-<mat-card appearance="outlined" *ngIf="loggedIn | async" style="min-width: 480px;">
+<mat-card appearance="outlined" *ngIf="loggedIn | async" style="min-width: 480px">
   <app-back-button></app-back-button>
   <mat-card-header>
     <div mat-card-avatar class="flex flex-row align-center">
       <mat-icon>person</mat-icon>
     </div>
-    <mat-card-title>{{(user | async)?.username}}</mat-card-title>
+    <mat-card-title>{{ (user | async)?.username }}</mat-card-title>
     <mat-card-subtitle>User Profile</mat-card-subtitle>
     <div class="spacer-flex"></div>
-    <button *ngIf="!isEditing()" mat-icon-button matTooltip="Edit your profile" aria-label="Edit your profile" (click)="toggleEdit()">
+    <button
+      *ngIf="!isEditing()"
+      mat-icon-button
+      matTooltip="Edit your profile"
+      aria-label="Edit your profile"
+      (click)="toggleEdit()"
+    >
       <mat-icon>edit</mat-icon>
     </button>
   </mat-card-header>

@@ -1,51 +1,43 @@
-import { Component, Injector, Input } from "@angular/core";
-import {
-  QueryDescriptionMediaItemFormFieldComponent
-} from "../query-description-media-item-form-field/query-description-media-item-form-field.component";
-import { UntypedFormControl } from "@angular/forms";
-import { ApiMediaItem, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit } from "../../../../../../openapi";
-import {
-  VideoPlayerSegmentBuilderData
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component";
-import { TimeUtilities } from "../../../../utilities/time.utilities";
-import { FormatMediaItemPipe, MediaItemDisplayOptions } from "../../../../services/pipes/format-media-item.pipe";
+import { Component, Injector, Input } from '@angular/core';
+import { QueryDescriptionMediaItemFormFieldComponent } from '../query-description-media-item-form-field/query-description-media-item-form-field.component';
+import { UntypedFormControl } from '@angular/forms';
+import { ApiMediaItem, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit } from '../../../../../../openapi';
+import { VideoPlayerSegmentBuilderData } from '../../../../competition/competition-builder/competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component';
+import { TimeUtilities } from '../../../../utilities/time.utilities';
+import { FormatMediaItemPipe, MediaItemDisplayOptions } from '../../../../services/pipes/format-media-item.pipe';
 
 @Component({
-    selector: 'app-query-description-media-item-video-form-field',
-    templateUrl: './query-description-media-item-video-form-field.component.html',
-    styleUrls: ['./query-description-media-item-video-form-field.component.scss'],
-    standalone: false
+  selector: 'app-query-description-media-item-video-form-field',
+  templateUrl: './query-description-media-item-video-form-field.component.html',
+  styleUrls: ['./query-description-media-item-video-form-field.component.scss'],
+  standalone: false,
 })
-export class QueryDescriptionMediaItemVideoFormFieldComponent extends QueryDescriptionMediaItemFormFieldComponent{
-
+export class QueryDescriptionMediaItemVideoFormFieldComponent extends QueryDescriptionMediaItemFormFieldComponent {
   @Input()
-  startControl: UntypedFormControl
+  startControl: UntypedFormControl;
   @Input()
-  endControl: UntypedFormControl
+  endControl: UntypedFormControl;
   @Input()
-  unitControl
+  unitControl;
 
-
-
-  units = [ApiTemporalUnit.FRAME_NUMBER, ApiTemporalUnit.MILLISECONDS, ApiTemporalUnit.SECONDS, ApiTemporalUnit.TIMECODE]
-
+  units = [ApiTemporalUnit.FRAME_NUMBER, ApiTemporalUnit.MILLISECONDS, ApiTemporalUnit.SECONDS, ApiTemporalUnit.TIMECODE];
 
   constructor(injector: Injector) {
-    super(injector)
+    super(injector);
   }
 
-  timeUnitChanged($event, start: HTMLInputElement, end: HTMLInputElement){
-    const type = $event.value === 'TIMECODE' ? 'text' :'number';
-    if(start){
-      start.type =type;
+  timeUnitChanged($event, start: HTMLInputElement, end: HTMLInputElement) {
+    const type = $event.value === 'TIMECODE' ? 'text' : 'number';
+    if (start) {
+      start.type = type;
     }
-    if(end){
+    if (end) {
       end.type = type;
     }
   }
 
   segmentBuilderData(): VideoPlayerSegmentBuilderData {
-    const mediaItem = this.itemControl.value
+    const mediaItem = this.itemControl.value;
     let start = -1;
     let end = -1;
     const unit = this.unitControl?.value ? (this.unitControl.value as ApiTemporalUnit) : ApiTemporalUnit.SECONDS;
@@ -61,16 +53,16 @@ export class QueryDescriptionMediaItemVideoFormFieldComponent extends QueryDescr
       if (this.unitControl.value === 'TIMECODE') {
         end = TimeUtilities.timeCode2Milliseconds(this.endControl.value, mediaItem.fps) / 1000;
       } else {
-        end = TimeUtilities.point2Milliseconds({ value: this.endControl.value, unit } as ApiTemporalPoint, mediaItem.fps) / 1000;
+        end =
+          TimeUtilities.point2Milliseconds({ value: this.endControl.value, unit } as ApiTemporalPoint, mediaItem.fps) / 1000;
       }
     }
     return { mediaItem, segmentStart: start, segmentEnd: end } as VideoPlayerSegmentBuilderData;
   }
 
-  rangeChanged(range: ApiTemporalRange){
-    this.startControl.setValue(range.start.value)
-    this.endControl.setValue(range.end.value)
-    this.unitControl.setValue(ApiTemporalUnit.SECONDS)
+  rangeChanged(range: ApiTemporalRange) {
+    this.startControl.setValue(range.start.value);
+    this.endControl.setValue(range.end.value);
+    this.unitControl.setValue(ApiTemporalUnit.SECONDS);
   }
-
 }

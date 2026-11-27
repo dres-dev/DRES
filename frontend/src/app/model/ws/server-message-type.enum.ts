@@ -8,7 +8,9 @@ export namespace ServerMessageType {
     | 'TASK_START'
     | 'TASK_UPDATED'
     | 'TASK_END'
-    | 'PING';
+    | 'VIEWER_UPDATE'
+    | 'PING'
+    | 'ERROR';
   export const ServerMessageTypeEnum = {
     COMPETITION_START: 'COMPETITION_START' as ServerMessageTypeEnum,
     COMPETITION_UPDATE: 'COMPETITION_UPDATE' as ServerMessageTypeEnum,
@@ -17,7 +19,9 @@ export namespace ServerMessageType {
     TASK_START: 'TASK_START' as ServerMessageTypeEnum,
     TASK_UPDATED: 'TASK_UPDATED' as ServerMessageTypeEnum,
     TASK_END: 'TASK_END' as ServerMessageTypeEnum,
+    VIEWER_UPDATE: 'VIEWER_UPDATE' as ServerMessageTypeEnum,
     PING: 'PING' as ServerMessageTypeEnum,
+    ERROR: 'ERROR' as ServerMessageTypeEnum,
   };
   export const ServerMessageTypes: ServerMessageTypeEnum[] = [
     'COMPETITION_START',
@@ -27,6 +31,8 @@ export namespace ServerMessageType {
     'TASK_START',
     'TASK_UPDATED',
     'TASK_END',
+    'VIEWER_UPDATE',
     'PING',
+    'ERROR',
   ];
 }

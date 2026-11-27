@@ -3,10 +3,10 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { JudgementDialogContent } from './judgement-dialog-content.model';
 
 @Component({
-    selector: 'app-judgement-welcome-dialog',
-    templateUrl: './judgement-dialog.component.html',
-    styleUrls: ['./judgement-dialog.component.scss'],
-    standalone: false
+  selector: 'app-judgement-welcome-dialog',
+  templateUrl: './judgement-dialog.component.html',
+  styleUrls: ['./judgement-dialog.component.scss'],
+  standalone: false,
 })
 export class JudgementDialogComponent implements OnInit {
   constructor(@Inject(MAT_DIALOG_DATA) public content: JudgementDialogContent) {}

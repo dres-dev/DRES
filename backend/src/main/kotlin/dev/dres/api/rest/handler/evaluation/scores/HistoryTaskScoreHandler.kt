@@ -57,15 +57,15 @@ class HistoryTaskScoreHandler : AbstractScoreHandler(), GetRestHandler<ApiScoreO
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
 
         val rac = ctx.runActionContext()
-        val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(
-            404,
-            "No task run with ID $taskId in run ${manager.id}.",
-            ctx
-        )
-        val scores = scorer.scoreMap()
+        /* Use the requested task (falls back to the current task, if it is addressed by its template ID). */
+        val current = manager.currentTask(rac)
+        val task = manager.taskForId(rac, taskId)
+            ?: current?.takeIf { it.template.id == taskId }
+            ?: throw ErrorStatusException(404, "No task run with ID $taskId in run ${manager.id}.", ctx)
+        val scores = task.scorer.scoreMap()
         return ApiScoreOverview(
             "task",
-            manager.currentTaskTemplate(rac).taskGroup,
+            task.template.taskGroup,
             manager.template.teams.asSequence().map { ApiScore(it.teamId, scores[it.teamId] ?: 0.0) }.toList()
         )
 

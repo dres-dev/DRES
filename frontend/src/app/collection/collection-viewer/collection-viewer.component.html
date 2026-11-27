@@ -16,6 +16,25 @@
     <button mat-icon-button aria-label="Create new media item." matTooltip="Create new media item." (click)="create()">
       <mat-icon>note_add</mat-icon>
     </button>
+    <span class="toolbar-separator"></span>
+    <button mat-icon-button aria-label="Scan collection folder." matTooltip="Scan folder and add new files" (click)="scan()">
+      <mat-icon>travel_explore</mat-icon>
+    </button>
+    <button mat-icon-button aria-label="Check files." matTooltip="Check that all files exist and are readable" [disabled]="busy" (click)="check()">
+      <mat-icon>fact_check</mat-icon>
+    </button>
+    <app-download-button
+      [inline]="true"
+      [icon]="'file_download'"
+      [contentType]="'text/csv'"
+      [fileName]="csvFileName"
+      [downloadProvider]="csvProvider"
+      matTooltip="Export item list as CSV"
+      aria-label="Export item list as CSV."
+    ></app-download-button>
+    <button mat-icon-button color="warn" aria-label="Delete all media items." matTooltip="Delete all media items" [disabled]="busy" (click)="deleteAll()">
+      <mat-icon>delete_sweep</mat-icon>
+    </button>
   </div>
 </div>
 <div class="flex">
@@ -28,9 +47,9 @@
   <mat-spinner *ngIf="isLoading"></mat-spinner>
 
   <!-- Filter -->
-  <mat-form-field style="width: 100%;">
+  <mat-form-field style="width: 100%">
     <mat-label>Filter</mat-label>
-    <input matInput (keyup)="applyFilter($event)" #filterInput style="width: 100%;">
+    <input matInput (keyup)="applyFilter($event)" #filterInput style="width: 100%" />
   </mat-form-field>
 
   <!-- Pagination -->
@@ -56,7 +75,12 @@
         <button mat-icon-button aria-label="Edit media item." matTooltip="Edit media item." (click)="edit(row.mediaItemId)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button aria-label="Delete media item." matTooltip="Delete media item." (click)="delete(row.mediaItemId)">
+        <button
+          mat-icon-button
+          aria-label="Delete media item."
+          matTooltip="Delete media item."
+          (click)="delete(row.mediaItemId)"
+        >
           <mat-icon>delete</mat-icon>
         </button>
       </td>
@@ -65,7 +89,12 @@
     <!-- Id column -->
     <ng-container matColumnDef="id">
       <th mat-header-cell *matHeaderCellDef>ID</th>
-      <td mat-cell *matCellDef="let row" matTooltip="Click to copy to clipboard id: {{ row.mediaItemId }}" [cdkCopyToClipboard]="row.mediaItemId">
+      <td
+        mat-cell
+        *matCellDef="let row"
+        matTooltip="Click to copy to clipboard id: {{ row.mediaItemId }}"
+        [cdkCopyToClipboard]="row.mediaItemId"
+      >
         {{ row.mediaItemId.substring(0, 8) }}
       </td>
     </ng-container>
@@ -104,5 +133,4 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
-
 </div>

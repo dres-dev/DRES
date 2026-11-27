@@ -46,11 +46,11 @@ class UpdateMediaItemHandler : AbstractCollectionHandler(), PatchRestHandler<Suc
             throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        try{
+        try {
             MediaCollectionManager.updateMediaItem(mediaItem)
             return SuccessStatus("Media item ${mediaItem.mediaItemId} updated successfully.")
-        } catch (e: Exception) {
-            throw ErrorStatusException(404, e.message ?: "Could not update item", ctx)
+        } catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(404, e.message ?: "Could not update item.", ctx)
         }
     }
 }

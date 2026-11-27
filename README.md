@@ -83,6 +83,19 @@ However, the entire setup process is Gradle based. To setup DRES, follow these s
 
 If you want to run DRES from your IDE (e.g. for debuging or development), please remember to run `$> ./gradlew setupFFMpeg` to download the required FFMpeg dependencies!
 
+### API Specifications
+
+`doc/oas.json` and `doc/oas-client.json` are committed snapshots of what a running server publishes at `/openapi.json` and `/clientapi.json`; the generated frontend bindings in `frontend/openapi/` are derived from `doc/oas.json`. Both snapshots are checked in CI, because a stale one silently hides new fields and routes from the generated client.
+
+After changing an API handler, regenerate them with a server running on the default port:
+
+1. `$> ./gradlew :backend:installDist`
+2. Start `backend/build/install/dres-dist/bin/backend`
+3. `$> ./gradlew regenerateApi`
+4. Commit `doc/oas.json` and `doc/oas-client.json`
+
+`$> ./doc/check-api-spec.sh` performs the same comparison the CI job does (it starts its own server on a spare port, so it does not need one running) and prints the differences it finds.
+
 ## Configuration
 
 Both the backend and the frontend have several properties which can be configured using a json configuration file.
@@ -96,15 +109,17 @@ The backend looks for a file named `config.json` at the location from where it i
 {
   "httpPort":         8080,           //the port to be used for HTTP
   "httpsPort":        8443,           //the port to be used for HTTPS, if enabled
-  "enableSsl":        true,           //specifies if HTTPS is supposed to be enabled. If set to true, HTTP connections will be upgraded
-  "keystorePath":     "keystore.jks", //path to the Java Key Store file to be used for the SSL certificate
-  "keystorePassword": "password",     //password for the Key Store file
+  "enableSsl":        false,          //specifies if HTTPS is supposed to be enabled. Disabled by default. If set to true, a keystore must be provided (see below), otherwise the backend refuses to start
+  "keystorePath":     "keystore.jks", //path to the Java Key Store file to be used for the SSL certificate, resolved relative to the working directory. Only used if enableSsl is true
+  "keystorePassword": "password",     //password for the Key Store file. Only used if enableSsl is true
   "externalPath":     "./external",   //path for external media items
   "dataPath":         "./data",       //path where the local database is to be stored
   "cachePath":        "./cache"       //path where pre-rendered media items are to be stored
 }
 
 ```
+
+HTTPS is disabled by default: no keystore ships with the distribution. To enable it, provide a Java Key Store and its password and set `enableSsl` to `true`; the backend then serves HTTPS on `httpsPort` in addition to HTTP on `httpPort`.
 
 ## First Steps
 
@@ -120,8 +135,16 @@ DRES> user create -u admin -p password -r ADMIN
 ```
 
 Additional users are required in order to perform an evaluation. At least one user per participating system instance
-(i.e. with `-r PARTICIPANT`). To simply have a user to view evaluation runs, but otherwise not interact with the system, 
+(i.e. with `-r PARTICIPANT`). To simply have a user to view evaluation runs, but otherwise not interact with the system,
 we recommend to create a viewer user: `-r VIEWER`.
+
+Users can also be imported from a CSV file with `user importCsv --input users.csv`. The CSV must have a header row with `username,password,role` columns. Roles are `ADMIN`, `JUDGE`, `PARTICIPANT`, and `VIEWER`; usernames must be 4–254 characters and passwords at least 6 characters. Duplicate usernames are skipped by default. Add `--update` to update existing users' password and role instead. The `password` column contains plaintext passwords and must be handled as sensitive data. For example:
+
+```csv
+username,password,role
+alice,change-me-now,PARTICIPANT
+bob,another-secret,VIEWER
+```
 
 ### Create Media Collection
 

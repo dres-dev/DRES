@@ -1,6 +1,7 @@
 package dev.dres
 
 import dev.dres.api.cli.Cli
+import com.github.ajalt.clikt.core.parse
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
 import dev.dres.data.model.admin.DbRole
@@ -15,6 +16,8 @@ import dev.dres.data.model.template.task.options.*
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamAggregator
 import dev.dres.data.model.template.team.DbTeamGroup
+import dev.dres.mgmt.MediaCollectionMaintenance
+import dev.dres.mgmt.EvaluationManager
 import dev.dres.mgmt.MediaCollectionManager
 import dev.dres.mgmt.TemplateManager
 import dev.dres.mgmt.admin.UserManager
@@ -27,6 +30,7 @@ import kotlinx.dnq.XdModel
 import kotlinx.dnq.store.container.StaticStoreContainer
 import kotlinx.dnq.util.initMetaData
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.system.exitProcess
@@ -38,11 +42,11 @@ import kotlin.system.exitProcess
  * @author Ralph Gasser
  * @author Luca Rossetto
  * @author Loris Sauter
- * @version 2.0.0
+ * @version 2.1.0
  */
 object DRES {
     /** Version of DRES. */
-    const val VERSION = "2.0.5"
+    const val VERSION = "2.1.0"
 
     /** Application root; should be relative to JAR file or classes path. */
     val APPLICATION_ROOT: Path =
@@ -92,6 +96,16 @@ object DRES {
             Config()
         }
 
+        /* Fail fast with an actionable message when SSL is enabled but no usable keystore is configured,
+           instead of crashing later during server start-up with a cryptic keystore error. */
+        if (CONFIG.enableSsl) {
+            val keystore = Paths.get(CONFIG.keystorePath)
+            if (!Files.isReadable(keystore)) {
+                println("ERROR: SSL is enabled ('enableSsl': true), but the keystore file '${CONFIG.keystorePath}' (resolved to ${keystore.toAbsolutePath()}) does not exist or is not readable. Provide a valid 'keystorePath' and 'keystorePassword', or set 'enableSsl' to false to serve plain HTTP.")
+                exitProcess(12)
+            }
+        }
+
         EXTERNAL_ROOT = CONFIG.externalMediaLocation
         TASK_TYPE_PRESETS_EXTERNAL_LOCATION = CONFIG.presetsLocation
         DATA_ROOT = CONFIG.dataPath
@@ -111,13 +125,15 @@ object DRES {
         /* Initialize data managers */
         UserManager.init(store)
         MediaCollectionManager.init(store)
+        MediaCollectionMaintenance.init(store) { CONFIG.cache.ffmpegPath() }
         TemplateManager.init(store)
+        EvaluationManager.init(store)
 
         /* Initialize RunExecutor. */
         RunExecutor.init(store)
 
         /* Initialize EventStreamProcessor */
-        EventStreamProcessor.register( /* Add handlers here */)
+        EventStreamProcessor.register(RunExecutor)
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */
@@ -134,11 +150,15 @@ object DRES {
         }
 
         /* Stop. */
-        global.stop()
-        RestApi.stop()
-        RunExecutor.stop()
-        EventStreamProcessor.stop()
-        AuditLogger.stop()
+        try {
+            RestApi.stop()
+            MediaCollectionMaintenance.stop()
+            global.stop()
+        } finally {
+            RunExecutor.stop()
+            EventStreamProcessor.stop()
+            AuditLogger.stop()
+        }
     }
 
     /**

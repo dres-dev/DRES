@@ -14,8 +14,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { SharedModule } from '../shared/shared.module';
 import { JudgementVotingViewerComponent } from './judgement-voting-viewer.component';
 import { QRCodeComponent } from 'angularx-qrcode';
-import { MatSlideToggleModule } from "@angular/material/slide-toggle";
-import { FormsModule } from "@angular/forms";
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -37,7 +37,7 @@ import { FormsModule } from "@angular/forms";
     SharedModule,
     QRCodeComponent,
     MatSlideToggleModule,
-    FormsModule
+    FormsModule,
   ],
   exports: [JudgementViewerComponent],
 })

@@ -13,6 +13,7 @@ import dev.dres.run.score.scoreboard.Score
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "class")
 sealed class StreamEvent(val timeStamp : Long = System.currentTimeMillis(), val session: String? = null)
+class TaskPrepareEvent(val runId: EvaluationId, val taskId: EvaluationId, val taskTemplate: ApiTaskTemplate) : StreamEvent()
 class TaskStartEvent(val runId: EvaluationId, val taskId: EvaluationId, val taskTemplate: ApiTaskTemplate) : StreamEvent()
 class TaskEndEvent(val runId: EvaluationId, val taskId: EvaluationId) : StreamEvent()
 class RunStartEvent(val runId: EvaluationId, val description: ApiEvaluationTemplate) : StreamEvent()
@@ -24,3 +25,4 @@ class InvalidRequestEvent(session: String?, val runId: EvaluationId, val request
 class ScoreUpdateEvent(val runId: EvaluationId, val scoreboardName: String, val scores: List<Score>) : StreamEvent() {
     constructor(runId: EvaluationId, scoreboardName: String, scores: Map<TeamId, Double>): this(runId, scoreboardName, scores.map { Score(it.key, it.value) })
 }
+class ViewerUpdateEvent(val runId: EvaluationId) : StreamEvent()

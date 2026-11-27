@@ -220,6 +220,39 @@ abstract class AbstractDresIntegrationTest {
     }
 
     /**
+     * Adds a [DbSubmissionOption] with its parameters to the [DbTaskType] of [group]. Replaces an existing
+     * option of the same kind so that a test can configure e.g. `LIMIT_CORRECT_PER_TEAM` after the fact.
+     *
+     * @param group The [DbTaskGroup] whose [DbTaskType] is configured.
+     * @param option Description of the [DbSubmissionOption], e.g. "LIMIT_CORRECT_PER_TEAM".
+     * @param parameters Option parameters without the option prefix, e.g. `mapOf("limit" to "1")`.
+     */
+    fun configureSubmissionOption(group: DbTaskGroup, option: String, parameters: Map<String, String> = emptyMap()) {
+        val s = store
+        s.transactional {
+            val submissionOption = DbSubmissionOption.filter { it.description eq option }.first()
+            val taskType = group.type
+            /* XdMutableQuery only offers add/remove/clear, so stale entries are detached explicitly. */
+            taskType.submission.asSequence().filter { it.description == option }.toList().forEach {
+                taskType.submission.remove(it)
+            }
+            taskType.submission.add(submissionOption)
+            parameters.forEach { (key, value) ->
+                /* Parameters are persisted under "<OPTION>.<parameter>", mirroring the template importer. */
+                taskType.configurations.asSequence().filter { it.key == "$option.$key" }.toList().forEach {
+                    taskType.configurations.remove(it)
+                }
+                val configured = DbConfiguredOption.new {
+                    this.key = "$option.$key"
+                    this.value = value
+                }
+                /* `task` is a parent link derived from the child collection, so it is attached that way. */
+                taskType.configurations.add(configured)
+            }
+        }
+    }
+
+    /**
      * Adds a [DbTaskTemplate] to [template] within [group], backed by [collection].
      */
     fun addTask(
@@ -253,7 +286,7 @@ abstract class AbstractDresIntegrationTest {
         return s.transactional {
             val role = DbRole.filter { it.description eq "PARTICIPANT" }.first()
             DbUser.new {
-                username = "user-$nameSuffix".take(16)
+                username = "user-$nameSuffix".take(DbUser.MAX_LENGTH_USERNAME)
                 password = "password"
                 this.role = role
             }

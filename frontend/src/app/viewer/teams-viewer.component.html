@@ -2,7 +2,7 @@
   <mat-card-content>
     <div class="flex" [style.overflow-x]="'auto'">
       <div
-        *ngFor="let team of ((info | async)?.teams | orderBy:'asc':orderTeamsByName)"
+        *ngFor="let team of (info | async)?.teams | orderBy: 'asc':orderTeamsByName"
         [style.background-color]="team.color + '44'"
         class="tile"
         [@highlight]="(highlight | async).get(team.id)"
@@ -26,27 +26,62 @@
           </p>
 
           <div class="submissions">
-            <div *ngFor="let answer of submissionPreviews(team.id) | async; trackBy: previewById" [className]="'submission ' + answer.status">
+            <div
+              *ngFor="let answer of submissionPreviews(team.id) | async; trackBy: previewById"
+              [className]="'submission ' + answer.status"
+            >
               <div [ngSwitch]="answer.type">
                 <div *ngSwitchCase="'ITEM'">
-                  <img *ngIf="answer.previewItem !== null && answer.previewStart !== null" src="{{previewOfItem(answer.previewItem, answer.previewStart)}}" alt="Preview for submission {{answer.submissionId}}." />
+                  <img
+                    *ngIf="answer.previewItem !== null && answer.previewStart !== null"
+                    src="{{ previewOfItem(answer.previewItem, answer.previewStart) }}"
+                    alt="Preview for submission {{ answer.submissionId }}."
+                  />
                   <p *ngIf="answer.previewItem === null || answer.previewStart === null">?</p>
                 </div>
                 <div *ngSwitchCase="'TEMPORAL'">
-                  <img *ngIf="answer.previewItem !== null && answer.previewStart !== null" src="{{previewOfItem(answer.previewItem, answer.previewStart)}}" alt="Preview for submission {{answer.submissionId}}." />
+                  <img
+                    *ngIf="answer.previewItem !== null && answer.previewStart !== null"
+                    src="{{ previewOfItem(answer.previewItem, answer.previewStart) }}"
+                    alt="Preview for submission {{ answer.submissionId }}."
+                  />
                   <p *ngIf="answer.previewItem === null || answer.previewStart === null">?</p>
                 </div>
                 <div *ngSwitchCase="'TEXT'">
-                  <img matTooltip="{{answer.previewText}}" src="/immutable/assets/images/text.png" alt="A texticon, the actual submission text is displayed via tooltip"/>
+                  <img
+                    matTooltip="{{ answer.previewText }}"
+                    src="/immutable/assets/images/text.png"
+                    alt="A texticon, the actual submission text is displayed via tooltip"
+                  />
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <audio #audio_correct src="/immutable/assets/audio/correct.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
-        <audio #audio_wrong src="/immutable/assets/audio/wrong.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
-        <audio #audio_applause src="/immutable/assets/audio/applause.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
-        <audio #audio_trombone src="/immutable/assets/audio/sad_trombone.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+        <audio
+          #audio_correct
+          src="/immutable/assets/audio/correct.ogg"
+          [muted]="(config.configAsObservable | async).effects.mute"
+          hidden
+        ></audio>
+        <audio
+          #audio_wrong
+          src="/immutable/assets/audio/wrong.ogg"
+          [muted]="(config.configAsObservable | async).effects.mute"
+          hidden
+        ></audio>
+        <audio
+          #audio_applause
+          src="/immutable/assets/audio/applause.ogg"
+          [muted]="(config.configAsObservable | async).effects.mute"
+          hidden
+        ></audio>
+        <audio
+          #audio_trombone
+          src="/immutable/assets/audio/sad_trombone.ogg"
+          [muted]="(config.configAsObservable | async).effects.mute"
+          hidden
+        ></audio>
       </div>
     </div>
   </mat-card-content>

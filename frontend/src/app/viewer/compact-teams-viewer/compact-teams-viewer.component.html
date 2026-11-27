@@ -1,8 +1,7 @@
 <div class="compact-teams-container">
   <div class="teams-grid" *ngIf="teamsData$ | async as teams">
-    
-    <div 
-      *ngFor="let team of teams" 
+    <div
+      *ngFor="let team of teams"
       class="tile"
       [class.status-correct]="team.correct > 0"
       [class.status-wrong]="team.wrong > 0 && team.correct === 0"
@@ -25,6 +24,5 @@
         <span class="INDETERMINATE">{{ team.indeterminate }}</span>
       </p>
     </div>
-
   </div>
 </div>

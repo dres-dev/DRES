@@ -1,37 +1,43 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { TemplateBuilderService } from "../../template-builder.service";
-import { forkJoin, Observable, Subscription, takeUntil } from "rxjs";
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { TemplateBuilderService } from '../../template-builder.service';
+import { forkJoin, Observable, Subscription, takeUntil } from 'rxjs';
 import {
-  ApiHintOption, ApiHintType,
-  ApiMediaCollection, ApiMediaItem, ApiTarget, ApiTargetOption, ApiTargetType,
+  ApiHintOption,
+  ApiHintType,
+  ApiMediaCollection,
+  ApiMediaItem,
+  ApiTarget,
+  ApiTargetOption,
+  ApiTargetType,
   ApiTaskGroup,
   ApiTaskTemplate,
-  ApiTaskType, ApiTemporalPoint, ApiTemporalRange,
+  ApiTaskType,
+  ApiTemporalPoint,
+  ApiTemporalRange,
   ApiTemporalUnit,
-  CollectionService, MediaService
-} from "../../../../../../openapi";
-import { UntypedFormControl, UntypedFormGroup } from "@angular/forms";
+  CollectionService,
+  MediaService,
+} from '../../../../../../openapi';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { TaskTemplateFormBuilder } from '../../task-template-form.builder';
+import { VideoPlayerSegmentBuilderData } from '../../../../competition/competition-builder/competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component';
+import { AppConfig } from '../../../../app.config';
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import { filter, first, map } from 'rxjs/operators';
+import { TimeUtilities } from '../../../../utilities/time.utilities';
 import {
-  TaskTemplateFormBuilder
-} from "../../task-template-form.builder";
-import {
-  VideoPlayerSegmentBuilderData
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component";
-import { AppConfig } from "../../../../app.config";
-import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
-import { filter, first, map } from "rxjs/operators";
-import { TimeUtilities } from "../../../../utilities/time.utilities";
-import { BatchAddTargetDialogComponent, BatchAddTargetDialogData } from "../batch-add-target-dialog/batch-add-target-dialog.component";
-import { NavigationEnd, Router, RouterEvent } from "@angular/router";
+  BatchAddTargetDialogComponent,
+  BatchAddTargetDialogData,
+} from '../batch-add-target-dialog/batch-add-target-dialog.component';
+import { NavigationEnd, Router, RouterEvent } from '@angular/router';
 
 @Component({
-    selector: 'app-task-template-editor',
-    templateUrl: './task-template-editor.component.html',
-    styleUrls: ['./task-template-editor.component.scss'],
-    standalone: false
+  selector: 'app-task-template-editor',
+  templateUrl: './task-template-editor.component.html',
+  styleUrls: ['./task-template-editor.component.scss'],
+  standalone: false,
 })
-export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
-
+export class TaskTemplateEditorComponent implements OnInit, OnDestroy {
   public task: ApiTaskTemplate;
 
   public taskType: ApiTaskType;
@@ -39,13 +45,13 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   form: UntypedFormGroup;
 
-  units = [ApiTemporalUnit.FRAME_NUMBER, ApiTemporalUnit.SECONDS, ApiTemporalUnit.MILLISECONDS, ApiTemporalUnit.TIMECODE]
+  units = [ApiTemporalUnit.FRAME_NUMBER, ApiTemporalUnit.SECONDS, ApiTemporalUnit.MILLISECONDS, ApiTemporalUnit.TIMECODE];
 
   mediaCollectionSource: Observable<ApiMediaCollection[]>;
 
   formBuilder: TaskTemplateFormBuilder;
 
-  @ViewChild('videoPlayer', {static: false}) video: ElementRef;
+  @ViewChild('videoPlayer', { static: false }) video: ElementRef;
 
   viewLayout = 'list';
 
@@ -53,45 +59,41 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   videoSegmentData: VideoPlayerSegmentBuilderData;
 
   externalImagePreviewActive = false;
-  externalImagePreviewUrl = ''
+  externalImagePreviewUrl = '';
   externalVideoPreviewActive = false;
-  externalVideoData: VideoPlayerSegmentBuilderData
+  externalVideoData: VideoPlayerSegmentBuilderData;
 
   private imagePreviewMap = new Set<number>();
   private taskSub: Subscription;
 
-  taskGroupOptions: ApiTaskGroup[]
+  taskGroupOptions: ApiTaskGroup[];
 
-  constructor(private builderService: TemplateBuilderService,
-              public collectionService: CollectionService,
-              public config: AppConfig,
-              private dialog: MatDialog,
-              private router: Router
+  constructor(
+    private builderService: TemplateBuilderService,
+    public collectionService: CollectionService,
+    public config: AppConfig,
+    private dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.router.events.subscribe((event) => {
-      if(event instanceof NavigationEnd){
-        console.log("NavigationEnd", event);
-        this.builderService?.selectTaskTemplate(null)
+      if (event instanceof NavigationEnd) {
+        this.builderService?.selectTaskTemplate(null);
       }
-    })
-    this.taskSub = this.builderService.selectedTaskTemplateAsObservable().subscribe((t)=>{
-      if(t){
+    });
+    this.taskSub = this.builderService.selectedTaskTemplateAsObservable().subscribe((t) => {
+      if (t) {
         this.task = t;
         this.taskGroup = this.builderService.selectedTaskGroup;
         this.taskType = this.builderService.selectedTaskType;
         this.init();
-      }else{
+      } else {
         this.task = null;
         this.taskGroup = null;
         this.taskType = null;
       }
-    })
-
-
-
-
+    });
   }
 
   ngOnDestroy() {
@@ -99,37 +101,43 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     this.taskSub = null;
   }
 
-  public init(){
-    this.formBuilder = new TaskTemplateFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, this.task);
+  public init() {
+    this.formBuilder = new TaskTemplateFormBuilder(
+      this.taskGroup,
+      this.taskType,
+      this.collectionService,
+      this.builderService,
+      this.task
+    );
     this.form = this.formBuilder.form;
-    this.form.valueChanges.subscribe(newValue => {
+    this.form.valueChanges.subscribe((newValue) => {
       this.formBuilder.storeFormData();
       this.builderService.markDirty();
     });
     this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
-    this.taskGroupOptions = this.builderService.findGroupsByType(this.taskType)
+    this.taskGroupOptions = this.builderService.findGroupsByType(this.taskType);
     /* Close open video preview */
     this.showVideo = false;
   }
 
-  public isFormValid(){
-    if(this.builderService.hasTouchedTasks()){
-      return this?.form?.valid || true;
-    }else{
+  public isFormValid() {
+    if (this.builderService.hasTouchedTasks()) {
+      return this.form ? this.form.valid : true;
+    } else {
       return true;
     }
   }
 
-  public hasCollectionSet(){
-    if(this.form){
-      if(this.form.get('mediaCollection')?.value){
-        return true
+  public hasCollectionSet() {
+    if (this.form) {
+      if (this.form.get('mediaCollection')?.value) {
+        return true;
       }
     }
-    return false
+    return false;
   }
 
-  public fetchData(){
+  public fetchData() {
     return this.formBuilder.fetchFormData();
   }
 
@@ -141,7 +149,13 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   uploaded = (taskData: string) => {
     const task = JSON.parse(taskData) as ApiTaskTemplate;
-    this.formBuilder = new TaskTemplateFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, task);
+    this.formBuilder = new TaskTemplateFormBuilder(
+      this.taskGroup,
+      this.taskType,
+      this.collectionService,
+      this.builderService,
+      task
+    );
     this.form = this.formBuilder.form;
   };
 
@@ -149,10 +163,10 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
    * Handler for (+) button for query target form component.
    */
   public addQueryTarget(targetType: ApiTargetOption) {
-    if(targetType){
+    if (targetType) {
       this.formBuilder.addTargetForm(targetType);
-    }else{
-      this.formBuilder.addTargetForm(this.taskType.targetOption)
+    } else {
+      this.formBuilder.addTargetForm(this.taskType.targetOption);
     }
   }
 
@@ -169,7 +183,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
    * Handler for (+) button for query hint form component.
    */
   public addQueryComponent(componentType: ApiHintOption, previous: number = null) {
-    switch(componentType){
+    switch (componentType) {
       case 'IMAGE_ITEM':
         this.formBuilder.addComponentForm(ApiHintType.IMAGE, previous);
         break;
@@ -212,8 +226,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   public sortMediaItemByName = (itemA: ApiMediaItem, itemB: ApiMediaItem) => {
     return itemA.name.localeCompare(itemB.name);
-  }
-
+  };
 
   /**
    * The form data as json
@@ -249,19 +262,22 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
    * @param endControl The target {@link FormControl} to apply the value to.
    * @param unitControl The target {@link FormControl} to apply the value to.
    */
-  public pickRandomSegment(item: ApiMediaItem, startControl: UntypedFormControl, endControl: UntypedFormControl, unitControl: UntypedFormControl) {
+  public pickRandomSegment(
+    item: ApiMediaItem,
+    startControl: UntypedFormControl,
+    endControl: UntypedFormControl,
+    unitControl: UntypedFormControl
+  ) {
     const start = TaskTemplateEditorComponent.randInt(1, item.durationMs / 1000 / 2); // always in first half
     let end = 1;
-    if(this.builderService.defaultSegmentLength === 0){
-      console.log("Using random length for random segment")
+    if (this.builderService.defaultSegmentLength === 0) {
       do {
         end = start + TaskTemplateEditorComponent.randInt(5, item.durationMs / 1000); // Arbitrary 5 seconds minimal length
       } while (end > item.durationMs / 1000);
-    }else{
-      console.log("Using default length for random segment (start, defaultLength)", start, this.builderService.defaultSegmentLength)
+    } else {
       end = start + this.builderService.defaultSegmentLength;
-      if(end > item.durationMs / 1000){
-        end = (item.durationMs / 1000) - start;
+      if (end > item.durationMs / 1000) {
+        end = item.durationMs / 1000 - start;
       }
     }
 
@@ -270,7 +286,12 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     unitControl.setValue('SECONDS');
   }
 
-  toggleExternalVideoPreview(path: string, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
+  toggleExternalVideoPreview(
+    path: string,
+    startControl?: UntypedFormControl,
+    endControl?: UntypedFormControl,
+    unitControl?: UntypedFormControl
+  ) {
     let start = -1;
     let end = -1;
     const unit = unitControl?.value ? (unitControl.value as ApiTemporalUnit) : ApiTemporalUnit.SECONDS;
@@ -278,8 +299,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
       if (unitControl.value === 'TIMECODE') {
         start = TimeUtilities.timeCode2Milliseconds24fps(startControl.value) / 1000;
       } else {
-        start =
-          TimeUtilities.point2Milliseconds24fps({ value: startControl.value, unit } as ApiTemporalPoint) / 1000;
+        start = TimeUtilities.point2Milliseconds24fps({ value: startControl.value, unit } as ApiTemporalPoint) / 1000;
       }
     }
     if (endControl && endControl.value) {
@@ -290,26 +310,30 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
       }
     }
 
-    console.log('Start=' + start + ', End=' + end);
     this.externalVideoData = { externalPath: path, segmentStart: start, segmentEnd: end } as VideoPlayerSegmentBuilderData;
     this.externalVideoPreviewActive = !this.externalVideoPreviewActive;
   }
 
-  externalPreviewActive():boolean{
-    return this.externalImagePreviewActive || this.externalVideoPreviewActive
+  externalPreviewActive(): boolean {
+    return this.externalImagePreviewActive || this.externalVideoPreviewActive;
   }
 
-  toggleExternalImagePreview(path: string){
-    if(this.externalImagePreviewActive){
-      this.externalImagePreviewActive = false
-      this.externalImagePreviewUrl = ''
-    }else{
-      this.externalImagePreviewActive = true
-      this.externalImagePreviewUrl = this.config.resolveExternalUrl(path)
+  toggleExternalImagePreview(path: string) {
+    if (this.externalImagePreviewActive) {
+      this.externalImagePreviewActive = false;
+      this.externalImagePreviewUrl = '';
+    } else {
+      this.externalImagePreviewActive = true;
+      this.externalImagePreviewUrl = this.config.resolveExternalUrl(path);
     }
   }
 
-  toggleVideoPlayer(mediaItem: ApiMediaItem, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
+  toggleVideoPlayer(
+    mediaItem: ApiMediaItem,
+    startControl?: UntypedFormControl,
+    endControl?: UntypedFormControl,
+    unitControl?: UntypedFormControl
+  ) {
     /* Add to toggleVideoPlayer button if
         [disabled]="!target.get('mediaItem').value && !target.get('segment_start').value && !target.get('segment_end').value"
          */
@@ -324,8 +348,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
       if (unitControl.value === 'TIMECODE') {
         start = TimeUtilities.timeCode2Milliseconds(startControl.value, mediaItem.fps) / 1000;
       } else {
-        start =
-          TimeUtilities.point2Milliseconds({ value: startControl.value, unit } as ApiTemporalPoint, mediaItem.fps) / 1000;
+        start = TimeUtilities.point2Milliseconds({ value: startControl.value, unit } as ApiTemporalPoint, mediaItem.fps) / 1000;
       }
       // start = Number.parseInt(startControl.value, 10);
     }
@@ -337,7 +360,6 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
       }
     }
 
-    console.log('Start=' + start + ', End=' + end);
     // const config = {
     //     width: '800px', data: {mediaItem, segmentStart: start, segmentEnd: end}
     // } as MatDialogConfig<VideoPlayerSegmentBuilderData>;
@@ -345,7 +367,6 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     /*dialogRef.afterClosed().pipe(
             filter(r => r != null))
             .subscribe((r: TemporalRange) => {
-                console.log(`Finished: ${r}`);
                 startControl.setValue(r.start.value);
                 endControl.setValue(r.end.value);
                 unitControl.setValue(TemporalPoint.UnitEnum.SECONDS);
@@ -354,7 +375,12 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     this.showVideo = !this.showVideo;
   }
 
-  onRangeChange(range: ApiTemporalRange, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
+  onRangeChange(
+    range: ApiTemporalRange,
+    startControl?: UntypedFormControl,
+    endControl?: UntypedFormControl,
+    unitControl?: UntypedFormControl
+  ) {
     startControl?.setValue(range.start.value);
     endControl?.setValue(range.end.value);
     unitControl?.setValue(ApiTemporalUnit.SECONDS);
@@ -385,48 +411,54 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     }
   }
 
-
   batchAddTargets() {
     const config = {
-      width: '400px'
+      width: '400px',
     } as MatDialogConfig;
     const dialogRef = this.dialog.open(BatchAddTargetDialogComponent, config);
     dialogRef
       .afterClosed()
       .pipe(filter((r) => r != null))
       .subscribe((r: Array<string>) => {
-        let targets : ApiTarget[]
-        switch(this.taskType.targetOption){
-          case "SINGLE_MEDIA_ITEM":
-          case "SINGLE_MEDIA_SEGMENT":
-            this.collectionService.postApiV2CollectionByCollectionIdResolve(this.form.get('mediaCollection').value, r)
-              .subscribe(items => {
-                items.forEach(it => {
-                  const type = this.taskType.targetOption === "SINGLE_MEDIA_ITEM" ? ApiTargetType.MEDIA_ITEM : ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE;
-                  this.formBuilder.addTargetForm(this.taskType.targetOption, {type: type, target: it.mediaItemId} as ApiTarget, true, it)
-                })
-              })
+        let targets: ApiTarget[];
+        switch (this.taskType.targetOption) {
+          case 'SINGLE_MEDIA_ITEM':
+          case 'SINGLE_MEDIA_SEGMENT':
+            this.collectionService
+              .postApiV2CollectionByCollectionIdResolve(this.form.get('mediaCollection').value, r)
+              .subscribe((items) => {
+                items.forEach((it) => {
+                  const type =
+                    this.taskType.targetOption === 'SINGLE_MEDIA_ITEM'
+                      ? ApiTargetType.MEDIA_ITEM
+                      : ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE;
+                  this.formBuilder.addTargetForm(
+                    this.taskType.targetOption,
+                    { type: type, target: it.mediaItemId } as ApiTarget,
+                    true,
+                    it
+                  );
+                });
+              });
             break;
-          case "JUDGEMENT":
-          case "VOTE":
-            console.warn("Cannot batch-add targets for target option JUDGEMENT or VOTE.")
+          case 'JUDGEMENT':
+          case 'VOTE':
+            console.warn('Cannot batch-add targets for target option JUDGEMENT or VOTE.');
             break;
-          case "TEXT":
-            const targets = r.map(it => {
-              return {target: it, type: ApiTargetType.TEXT} as ApiTarget
+          case 'TEXT':
+            const targets = r.map((it) => {
+              return { target: it, type: ApiTargetType.TEXT } as ApiTarget;
             });
-            targets.forEach(target => {
-              this.formBuilder.addTargetForm(this.taskType.targetOption, target)
-            })
+            targets.forEach((target) => {
+              this.formBuilder.addTargetForm(this.taskType.targetOption, target);
+            });
             break;
         }
       });
   }
 
   timeUnitChanged($event, startElementRef: HTMLInputElement, endElementRef: HTMLInputElement) {
-    console.log($event);
     const type = $event.value === 'TIMECODE' ? 'text' : 'number';
-    console.log('New type: ' + type);
     if (startElementRef) {
       startElementRef.type = type;
     }
@@ -454,7 +486,8 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
         timeSuffix = `#t=${Math.round(this.form.get('start').value / 1000)},${Math.round(this.form.get('end').value / 1000)}`;
         break;
       case 'TIMECODE':
-        console.log('Not yet supported'); // TODO make it!
+        /* Timecodes are still unsupported; the caller is told rather than silently given a wrong target. */
+        throw new Error('Timecode targets are not supported yet.');
         break;
       default:
         console.error(`The time unit ${this.form.get('time_unit').value} is not supported`);

@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -14,8 +15,11 @@ import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
+import org.slf4j.LoggerFactory
 
 class ViewerReadyHandler : AbstractEvaluationViewerHandler(), GetRestHandler<SuccessStatus> {
+
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override val route = "evaluation/{evaluationId}/{taskId}/ready"
 
@@ -46,8 +50,8 @@ class ViewerReadyHandler : AbstractEvaluationViewerHandler(), GetRestHandler<Suc
             )
             val rac = ctx.runActionContext()
             val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access denied!", ctx)
+            if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
+                throw ErrorStatusException(403, "Access denied.", ctx)
             }
 
             if (ctx.isParticipant() || ctx.isAdmin()) {
@@ -55,8 +59,10 @@ class ViewerReadyHandler : AbstractEvaluationViewerHandler(), GetRestHandler<Suc
             }
 
             return SuccessStatus("ready received")
-        }catch (e: Exception) {
-            e.printStackTrace()
+        } catch (e: ErrorStatusException) {
+            throw e
+        } catch (e: Exception) {
+            logger.error("Unexpected error while handling viewer-ready request", e)
             throw ErrorStatusException(500, e.message ?: "???", ctx)
         }
 

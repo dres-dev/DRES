@@ -1,6 +1,8 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.handler.evaluation.HiddenResultsVisibility
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
@@ -8,8 +10,6 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.template.tasks.options.ApiTaskOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -42,41 +42,37 @@ class GetSubmissionInfoHandler(private val store: TransientEntityStore): Abstrac
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
         val rac = ctx.runActionContext()
 
-        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+        if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
         val limit = manager.runProperties.limitSubmissionPreviews
-        val currentTask = manager.currentTask(rac) ?: return emptyList()
+        val participant = ctx.isParticipant()
 
-        val blind = currentTask.isRunning && manager.template.taskTypes.find { it.name == currentTask.template.taskType }?.taskOptions?.contains(
-            ApiTaskOption.HIDDEN_RESULTS
-        ) == true
-
-        /* Obtain current task run and check status. */
-        return this.store.transactional (true) {
-            if (limit > 0) {
-                limitSubmissions(manager.currentSubmissions(rac), limit, blind)
-            } else {
-                manager.currentSubmissions(rac).map { it.toApi(blind) }
+        return this.store.transactional(true) {
+            val currentTask = manager.currentTask(rac) ?: return@transactional emptyList()
+            val blind = currentTask.isRunning && manager.template.taskTypes.find { it.name == currentTask.template.taskType }
+                ?.taskOptions?.contains(ApiTaskOption.HIDDEN_RESULTS) == true
+            val ownTeams = if (blind && participant) ownTeamIds(ctx, manager) else emptySet()
+            val submissions = manager.currentSubmissions(rac).map { it.toApi() }
+            val limited = if (limit > 0) limitSubmissions(submissions, limit) else submissions
+            limited.map { submission ->
+                HiddenResultsVisibility.redactIfRequired(blind, participant, submission, ownTeams)
             }
         }
     }
 
     /**
-     * Implements a manual limit on the provided list of [DbSubmission]s.
+     * Implements a manual limit on the provided list of [ApiSubmission]s.
      *
      * TODO: Delegate to database?
      *
-     * @param submissions The [List] of [DbSubmission]s to limit.
+     * @param submissions The [List] of [ApiSubmission]s to limit.
      * @param limit The number of items to limit to.
-     * @param blind If [DbSubmission] should be anonymised.
-     * @return Limited [List] of [DbSubmission]
+     * @return Limited [List] of [ApiSubmission]
      */
-    private fun limitSubmissions(submissions: List<DbSubmission>, limit: Int, blind: Boolean = false): List<ApiSubmission>
-        = submissions.groupBy { it.team.id }.values.map {
-            it.sortedBy { s -> s.timestamp }.take(limit)
-        }.flatMap {
-            it.map { s -> s.toApi(blind) }
-        }
+    private fun limitSubmissions(submissions: List<ApiSubmission>, limit: Int): List<ApiSubmission> =
+        submissions.groupBy { it.teamId }.values.map { teamSubmissions ->
+            teamSubmissions.sortedBy { it.timestamp }.take(limit)
+        }.flatten()
 }

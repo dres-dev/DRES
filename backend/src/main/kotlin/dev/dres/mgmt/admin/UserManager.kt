@@ -53,7 +53,7 @@ object UserManager {
             val user = if (id != null) {
                 DbUser.query(DbUser::id eq id).firstOrNull()
             } else if (username != null) {
-                DbUser.query(DbUser::username eq username).firstOrNull()
+                DbUser.query(DbUser::username eq username.lowercase()).firstOrNull() /* usernames are stored in lower case */
             } else {
                 null
             }
@@ -139,6 +139,17 @@ object UserManager {
             DbUser.query(DbUser::username eq username.lowercase()).firstOrNull()?.toApi()
         } else {
             null
+        }
+    }
+
+    /** Resolves many user IDs in one readonly database transaction. */
+    fun getAll(ids: Collection<UserId>): Map<UserId, ApiUser> {
+        if (ids.isEmpty()) return emptyMap()
+        val requested = ids.toSet()
+        return this.store.transactional(true) {
+            requested.mapNotNull { id ->
+                DbUser.query(DbUser::id eq id).firstOrNull()?.let { user -> id to user.toApi() }
+            }.toMap()
         }
     }
 

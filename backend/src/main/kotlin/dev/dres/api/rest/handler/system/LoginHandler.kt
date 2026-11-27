@@ -13,7 +13,9 @@ import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.getOrCreateSessionToken
 import io.javalin.http.BadRequestResponse
+import io.javalin.http.Cookie
 import io.javalin.http.Context
+import io.javalin.http.SameSite
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.serialization.Serializable
@@ -68,8 +70,19 @@ class LoginHandler() : RestHandler, PostRestHandler<ApiUser> {
         AccessManager.registerUserForSession(sessionToken, user)
         AuditLogger.login(loginRequest.username, AuditLogSource.REST, sessionToken)
 
-        //explicitly set cookie on login
-        ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)
+        /*
+         * Explicitly set the cookie on login. It is HttpOnly because no script needs the token - the
+         * browser attaches it automatically - and not readable by an injected script.
+         */
+        val cookie = Cookie(
+            AccessManager.SESSION_COOKIE_NAME,
+            sessionToken,
+            maxAge = AccessManager.SESSION_COOKIE_LIFETIME,
+            /* Matches the refresh in RestApi, which cannot know whether the deployment uses TLS. */
+            sameSite = SameSite.LAX
+        )
+        cookie.isHttpOnly = true
+        ctx.cookie(cookie)
 
         user.sessionId = sessionToken
         return user

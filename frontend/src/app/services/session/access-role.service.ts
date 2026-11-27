@@ -2,16 +2,11 @@ import { Injectable } from '@angular/core';
 import { AuthenticationService } from './authentication.sevice';
 import { UserGroup } from '../../model/user-group.model';
 import { BehaviorSubject } from 'rxjs';
-import {ApiRole} from '../../../../openapi';
+import { ApiRole } from '../../../../openapi';
 
 @Injectable()
 export class AccessRoleService {
-  static readonly VIEWER_GROUP = new UserGroup('viewer', [
-    ApiRole.JUDGE,
-    ApiRole.VIEWER,
-    ApiRole.PARTICIPANT,
-    ApiRole.ADMIN,
-  ]);
+  static readonly VIEWER_GROUP = new UserGroup('viewer', [ApiRole.JUDGE, ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.ADMIN]);
   static readonly PARTICIPANT_GROUP = new UserGroup('participant', [ApiRole.PARTICIPANT, ApiRole.ADMIN]);
   static readonly JUDGE_GROUP = new UserGroup('judge', [ApiRole.JUDGE, ApiRole.ADMIN]);
   static readonly ADMIN_GROUP = new UserGroup('admin', [ApiRole.ADMIN]);

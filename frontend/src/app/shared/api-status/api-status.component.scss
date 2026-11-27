@@ -1,0 +1,54 @@
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0 0.5em;
+  border-radius: 1em;
+  font-size: 10pt;
+
+  /* Only the degraded state gets chrome; the healthy state stays as quiet as the old indicator. */
+  border: 1px solid transparent;
+  transition: border-color 150ms ease-in-out;
+
+  &.degraded {
+    border-color: var(--mat-sys-error, #ba1a1a);
+  }
+}
+
+.rest,
+.socket {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  vertical-align: middle;
+}
+
+.rtt {
+  min-width: 3.5em;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The socket half is colour-coded but never relies on colour alone: each state has its own icon and
+ * label, so it stays readable without colour vision.
+ */
+.socket {
+  &[data-state='live'] {
+    opacity: 0.75;
+  }
+
+  &[data-state='waiting'],
+  &[data-state='reconnecting'] {
+    font-weight: 500;
+  }
+
+  /* A refusal is not transient: it is the one state the user has to act on. */
+  &[data-state='rejected'] {
+    font-weight: 600;
+    color: var(--mat-sys-error, #ba1a1a);
+  }
+}
+
+.status-tooltip {
+  white-space: pre-line;
+}

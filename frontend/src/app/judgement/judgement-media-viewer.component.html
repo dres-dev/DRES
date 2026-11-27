@@ -1,6 +1,6 @@
 <ng-container *ngIf="(activeType | async) === 'TEMPORAL'"
   ><!-- Media Type Video or Segment -->
-  Answer Index: {{answerIndex}}<br>
+  Answer Index: {{ answerIndex }}<br />
   <video
     #videoPlayer
     class="video-player"
@@ -24,14 +24,11 @@
       </button>
     </div>
     <div class="flex-70" (click)="seekToPosition($event)" style="cursor: pointer" matTooltip="Click to seek">
-      <mat-progress-bar
-        mode="determinate"
-        [value]="playtimeRelative | async"
-      ></mat-progress-bar>
+      <mat-progress-bar mode="determinate" [value]="playtimeRelative | async"></mat-progress-bar>
     </div>
     <div class="flex-15">
-
-      Temporal Context: <mat-slide-toggle [(ngModel)]="hasTemporalPadding" (change)="onTemporalContextToggle($event)"></mat-slide-toggle>
+      Temporal Context:
+      <mat-slide-toggle [(ngModel)]="hasTemporalPadding" (change)="onTemporalContextToggle($event)"></mat-slide-toggle>
     </div>
   </div>
 </ng-container>

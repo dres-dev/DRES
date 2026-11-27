@@ -3,7 +3,8 @@ package dev.dres.api.cli
 import com.github.ajalt.clikt.core.CliktCommand
 import dev.dres.DRES
 
-class ConfigCommand:CliktCommand(name="config", help="Command that prints the current config in use") {
+class ConfigCommand:CliktCommand(name="config") {
+    override fun help(context: com.github.ajalt.clikt.core.Context): String = "Command that prints the current config in use"
 
     override fun run() {
         println("Currently active configuration: ")
@@ -16,7 +17,8 @@ class ConfigCommand:CliktCommand(name="config", help="Command that prints the cu
         println(" Cache information")
         println("  Cleanup interval (ms): ${DRES.CONFIG.cache.cleanupIntervalMs}")
         println("  Eviction threshold (ms): ${DRES.CONFIG.cache.evictionThresholdMs}")
-        println("  FFMPEG: ${DRES.CONFIG.cache.ffmpegPath()}")
+        val ffmpegPath = DRES.CONFIG.cache.ffmpegPath()?.toString() ?: "not found (run setup ffmpeg)"
+        println("  FFMPEG: $ffmpegPath")
         println("  Logo max size: ${DRES.CONFIG.cache.logoMaxSize}")
         println("  Max rendering threads: ${DRES.CONFIG.cache.maxRenderingThreads}")
         println("  Preview image max size: ${DRES.CONFIG.cache.previewImageMaxSize}")

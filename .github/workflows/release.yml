@@ -8,42 +8,48 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # required to create the release and upload the artefact
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: set up JDK 11
-        uses: actions/setup-java@v1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          java-version: 11.0.6
+          distribution: temurin
+          java-version: '17'
+
       - name: Cache Gradle packages
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', 'gradle.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: Cache the Yarn cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/.yarn/cache
+          key: ${{ runner.os }}-yarn-${{ hashFiles('frontend/package.json', 'frontend/.yarnrc.yml') }}
+          restore-keys: ${{ runner.os }}-yarn-
+
       - name: Build distribution
-        run: ./gradlew distTar
+        run: ./gradlew distTar --console=plain
+
       - name: Get the version
         id: get_version
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+        # `2.1.0` rather than `v2.1.0`: the tag prefix is not part of the version.
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      # `gh release` replaces actions/create-release@v1 and actions/upload-release-asset@v1, which are both
+      # archived and no longer receive fixes. The distribution is uploaded in the same command.
+      - name: Create release and upload the distribution
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.VERSION }}
-          release_name: Release ${{ env.VERSION }}
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./backend/build/distributions/dres-dist.tar
-          asset_name: dres-dist-${{ env.VERSION }}.tar
-          asset_content_type: application/tar
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Release $VERSION" \
+            --generate-notes \
+            "backend/build/distributions/dres-dist.tar#dres-dist-$VERSION.tar"

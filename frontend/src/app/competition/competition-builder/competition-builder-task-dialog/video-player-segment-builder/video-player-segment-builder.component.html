@@ -1,4 +1,4 @@
-<div style="max-width: 100%;">
+<div style="max-width: 100%">
   <h1 *ngIf="showTitle">Segment Editor for {{ data?.mediaItem?.name }}</h1>
   <div mat-dialog-content>
     <video
@@ -39,18 +39,17 @@
       </div>
     </div>
     <div class="controls-container flex flex-row align-center content-between fill" *ngIf="videoUrl | async">
-      <div class="flex-15">{{ video.nativeElement.currentTime | formatTime: false }}
-        / {{ durationInSeconds | formatTime: false }}</div>
+      <div class="flex-15">
+        {{ video.nativeElement.currentTime | formatTime: false }} / {{ durationInSeconds | formatTime: false }}
+      </div>
       <div class="flex-85">
-        <mat-slider
-          style="width: 100%"
-          [min]="0"
-          [max]="durationInSeconds"
-        ><input matSliderThumb [(value)]="video.nativeElement.currentTime" /></mat-slider>
+        <mat-slider style="width: 100%" [min]="0" [max]="durationInSeconds"
+          ><input matSliderThumb [(value)]="video.nativeElement.currentTime"
+        /></mat-slider>
       </div>
     </div>
     <div class="controls-container flex flex-row align-center content-between fill" *ngIf="videoUrl | async">
-      <div class="flex-15">Start: {{ startInSeconds | formatTime:false }}</div>
+      <div class="flex-15">Start: {{ startInSeconds | formatTime: false }}</div>
       <mat-form-field class="flex-35">
         <mat-label>Start [s]</mat-label>
         <input type="number" matInput [(ngModel)]="startInSeconds" (change)="recalcVideoTime($event)" />
@@ -60,7 +59,7 @@
         <input type="number" matInput [(ngModel)]="endInSeconds" (change)="recalcVideoTime($event)" />
       </mat-form-field>
       <div class="spacer-flex"></div>
-      <div class="flex-15">End: {{ endInSeconds | formatTime:false }}</div>
+      <div class="flex-15">End: {{ endInSeconds | formatTime: false }}</div>
     </div>
   </div>
 </div>

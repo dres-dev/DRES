@@ -39,7 +39,7 @@ data class TemporalRange constructor(val start: TemporalPoint, val end: Temporal
 
                 //if overlapping, merge
                 current = if (current.second + overlap >= next.first){
-                    current.copy(second = next.second)
+                    current.copy(second = maxOf(current.second, next.second)) /* next may lie entirely within current */
                 } else { //else add to list and continue
                     merged.add(current)
                     next

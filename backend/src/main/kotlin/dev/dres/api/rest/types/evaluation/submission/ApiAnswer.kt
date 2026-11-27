@@ -29,7 +29,10 @@ data class ApiAnswer(
     override val start: Long? = null,
 
     /** For [ApiAnswer]s of type [ApiAnswerType.TEMPORAL]: Start of the segment in question in milliseconds that is part of this [ApiAnswer]. */
-    override val end: Long? = null
+    override val end: Long? = null,
+
+    /** True when answer content is withheld by HIDDEN_RESULTS while a task is running. */
+    val hidden: Boolean = false
 ) : Answer {
     override fun type(): AnswerType = when(type) {
         ApiAnswerType.TEMPORAL -> AnswerType.TEMPORAL

@@ -1,23 +1,16 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
-import {BehaviorSubject, combineLatest, from, interval, mergeMap, Observable, of, Subscription} from 'rxjs';
-import {
-  catchError,
-  delayWhen, filter,
-  map,
-  repeat,
-  shareReplay,
-  switchMap,
-  take,
-  tap,
-  withLatestFrom,
-} from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, from, interval, mergeMap, Observable, of, Subscription, timer } from 'rxjs';
+import { catchError, delayWhen, distinctUntilChanged, filter, map, repeat, shareReplay, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { MediaPrefetchService } from '../services/media-prefetch.service';
 import {
-  ApiContentElement, ApiContentType, ApiEvaluationInfo,
+  ApiContentElement,
+  ApiContentType,
+  ApiEvaluationInfo,
   ApiEvaluationState,
   ApiHintContent,
   ApiTargetContent,
-  EvaluationService
+  EvaluationService,
 } from '../../../openapi';
 
 /**
@@ -29,14 +22,66 @@ enum ViewerState {
   VIEWER_SYNC,
   VIEWER_COUNTDOWN,
   VIEWER_PLAYBACK,
-  VIEWER_TASK_ENDED
+  VIEWER_TASK_ENDED,
+}
+
+/**
+ * Formats a number of remaining seconds as `hh:mm:ss`.
+ *
+ * `null`/`undefined` means the task runs perpetually and is rendered as `∞`. Zero is a real remaining time (the
+ * task is over or the deadline just passed) and has to render as `00:00`; conflating the two used to flash an
+ * infinite countdown in the viewer right before a task ended.
+ */
+export function formatTimeLeft(sec?: number | null): string {
+  if (sec == null) {
+    return '∞';
+  }
+
+  const remaining = Math.max(0, sec);
+  const hours = Math.floor(remaining / 3600);
+  const minutes = Math.floor(remaining / 60) % 60;
+  const seconds = remaining % 60;
+
+  return [hours, minutes, seconds]
+    .map((v) => (v < 10 ? '0' + v : v))
+    .filter((v, i) => v !== '00' || i > 0)
+    .join(':');
+}
+
+/** Advances task clock values locally between authoritative server snapshots. */
+export function taskClock(
+  state: Observable<ApiEvaluationState>,
+  monotonicNow: () => number = () => globalThis.performance?.now() ?? Date.now()
+): Observable<ApiEvaluationState> {
+  return state.pipe(
+    switchMap((snapshot) => {
+      if (snapshot.taskStatus !== 'RUNNING') {
+        return of(snapshot);
+      }
+      const startedAt = monotonicNow();
+      return timer(0, 1000).pipe(
+        map(() => {
+          const elapsedSeconds = Math.floor(Math.max(0, monotonicNow() - startedAt) / 1000);
+          return {
+            ...snapshot,
+            timeElapsed: snapshot.timeElapsed + elapsedSeconds,
+            timeLeft:
+              snapshot.timeLeft == null || snapshot.timeLeft < 0
+                ? snapshot.timeLeft
+                : Math.max(0, snapshot.timeLeft - elapsedSeconds),
+          };
+        })
+      );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 }
 
 @Component({
-    selector: 'app-task-viewer',
-    templateUrl: './task-viewer.component.html',
-    styleUrls: ['./task-viewer.component.scss'],
-    standalone: false
+  selector: 'app-task-viewer',
+  templateUrl: './task-viewer.component.html',
+  styleUrls: ['./task-viewer.component.scss'],
+  standalone: false,
 })
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @Input() evaluationId: Observable<string>;
@@ -81,7 +126,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   currentTaskHint = new BehaviorSubject<ApiHintContent | null>(null);
 
   /** Subscription related to {@link currentTaskHint}. */
-  currentTaskHintSubscription: Subscription
+  currentTaskHintSubscription: Subscription;
 
   /** Reference to the {@link ApiHintContent} of the current {@link ApiHintContent}. */
   currentHintContent: Observable<ApiContentElement>;
@@ -98,53 +143,68 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @ViewChild('audio_ding') ding: ElementRef<HTMLAudioElement>;
   @ViewChild('audio_glass') glass: ElementRef<HTMLAudioElement>;
 
-  constructor(protected runService: EvaluationService, public config: AppConfig) {}
+  constructor(
+    protected runService: EvaluationService,
+    public config: AppConfig,
+    private mediaPrefetch: MediaPrefetchService
+  ) {}
 
   private playOnce(audio: HTMLAudioElement) {
     if (this.config.config.effects.mute) {
-      return
+      return;
     }
     audio
-        .play()
-        .catch((reason) => console.warn('Failed to play audio effects due to an error:', reason))
-        .then(() => {});
+      .play()
+      .catch((reason) => console.warn('Failed to play audio effects due to an error:', reason))
+      .then(() => {});
   }
 
   /**
    * Create a subscription for task changes.
    */
   ngAfterViewInit(): void {
-    /*  Observable for the current query hint. */
-    this.currentTaskHintSubscription = this.taskChanged.pipe(
-      mergeMap((task) => {
-          return this.runService.getHintForTaskTemplateId(task.evaluationId, task.taskTemplateId).pipe(
-            catchError((e) => {
-              console.error("[TaskViewerComponent] Could not load current query hint due to an error.", e);
+    /*
+     * Request hints when the selected task changes and again after its task run starts. The server can
+     * withhold protected hints until the task run exists; do not acknowledge readiness for a failed request.
+     */
+    this.currentTaskHintSubscription = this.state
+      .pipe(
+        distinctUntilChanged(
+          (previous, current) =>
+            previous.taskTemplateId === current.taskTemplateId && previous.taskId === current.taskId
+        ),
+        filter((task) => task.taskTemplateId != null),
+        switchMap((task) =>
+          this.runService.getHintForTaskTemplateId(task.evaluationId, task.taskTemplateId).pipe(
+            catchError((error) => {
+              if (error?.status !== 403) {
+                console.error('[TaskViewerComponent] Could not load current query hint due to an error.', error);
+              }
               return of(null);
+            }),
+            tap((hint) => {
+              /* Warm the cache while the viewer waits, so playback does not stall on a download. */
+              this.mediaPrefetch.prefetch(hint?.sequence);
+              if (hint && task.taskId) {
+                this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(task.evaluationId, task.taskTemplateId).pipe(
+                  catchError((error) => {
+                    console.error('[TaskViewerComponent] Could not report readiness.', error);
+                    return of(null);
+                  })
+                ).subscribe();
+              }
             })
-          );
-        }
-      ),
-      tap((hint) => {
-
-        this.state.pipe(
-          take(1), //use latest state, only do this once
-          switchMap(
-            (state) => {
-              console.log(state)
-              return this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(state.evaluationId, state.taskTemplateId)
-            }
-            ),
-          tap(() => {console.log("READY sent")})
-          ).subscribe()
-      })
-    ).subscribe(n => this.currentTaskHint.next(n))
-
+          )
+        )
+      )
+      .subscribe((hint) => this.currentTaskHint.next(hint));
 
     /*  Observable for the current query target. */
     const currentTaskTarget = this.taskEnded.pipe(
       withLatestFrom(this.evaluationId),
       switchMap(([task, evaluationId]) =>
+        /* Only hints are prefetched. The target is not: its media is ground truth revealed after the
+         * task, so fetching it early would move bytes the viewer is not yet meant to have. */
         this.runService.getTargetForTaskTemplateId(evaluationId, task.taskTemplateId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
@@ -155,13 +215,14 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
+    const clock = taskClock(this.state);
 
     /*
      * This is the main switch that updates the viewer's state and the only actual subscription.
      *
      * IMPORTANT: Unsubscribe onDestroy.
      */
-    this.viewerStateSubscription = this.state.subscribe((s) => {
+    this.viewerStateSubscription = clock.subscribe((s) => {
       // this.timeElapsed = of(s.timeElapsed)
       switch (s.taskStatus) {
         case 'NO_TASK':
@@ -186,31 +247,35 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
           }
           break;
         case 'ENDED':
-            return this.viewerState.next(ViewerState.VIEWER_TASK_ENDED);
+          /*
+           * The task's grants die with it, so abandoned prefetches are aborted and forgotten rather
+           * than left to delay the next task's payloads.
+           */
+          this.mediaPrefetch.cancelInFlight();
+          return this.viewerState.next(ViewerState.VIEWER_TASK_ENDED);
       }
     });
 
     /* Map task target to representation used by viewer. */
     this.currentTargetContent = currentTaskTarget.pipe(
       mergeMap((h: ApiHintContent) => {
-        console.log("TARGET HINT, ", h)
         if (!h) {
           return from([]);
         }
         return from(h.sequence).pipe(
           delayWhen<ApiContentElement>((c: ApiContentElement) => interval(1000 * c.offset)),
-          repeat({delay: 1000}) /* we **want** an infinite loop here, so we do not limit the repetitions (but delay by 1s */
+          repeat({ delay: 1000 }) /* we **want** an infinite loop here, so we do not limit the repetitions (but delay by 1s */
         );
       })
     );
 
     /* Map task hint to representation used by viewer. */
     this.currentHintContent = this.currentTaskHint.pipe(
-      filter(h => h != null),
+      filter((h) => h != null),
       mergeMap((hint) => {
         return this.timeElapsed.pipe(
-            take(1),
-            mergeMap((timeElapsed) => {
+          take(1),
+          mergeMap((timeElapsed) => {
             const actualTimeElapsed = Math.max(timeElapsed, 0);
             const sequence = [];
             if (hint) {
@@ -246,13 +311,12 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
     /* Observable for the name of the current task. */
     this.currentTaskName = combineLatest([this.info, this.taskChanged]).pipe(
-        map(([info, state]) => info.taskTemplates.find(t => t.templateId == state.taskTemplateId)?.name)
-    )
-
+      map(([info, state]) => info.taskTemplates.find((t) => t.templateId == state.taskTemplateId)?.name)
+    );
 
     /* Observable for the time that is still left. */
-    this.timeLeft = this.state.pipe(
-      map((s) => s.timeLeft) /* Compensating for added countdown. */,
+    this.timeLeft = clock.pipe(
+      map((s) => s.timeLeft),
       tap((t) => {
         if (t === this.lateWarningThreshold || t === this.earlyWarningThreshold) {
           this.playOnce(this.glass.nativeElement); /* Reminder that time is running out. */
@@ -261,7 +325,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /* Observable for the time that has elapsed. */
-    this.timeElapsed = this.state.pipe(map((s) => s.timeElapsed));
+    this.timeElapsed = clock.pipe(map((s) => s.timeElapsed));
   }
 
   /**
@@ -270,27 +334,22 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.viewerStateSubscription.unsubscribe(); /* IMPORTANT! */
     this.viewerStateSubscription = null;
-    this.currentTaskHintSubscription.unsubscribe()
+    this.currentTaskHintSubscription.unsubscribe();
     this.currentTaskHintSubscription = null;
+    /* Abort warming downloads; nothing will consume them once the viewer is gone. */
+    this.mediaPrefetch.cancelInFlight();
   }
 
   /**
    * Formats a given number of seconds into a time format hh:mm:ss.
    *
-   * @param sec The number of seconds to convert.
+   * A missing value means the task runs perpetually and is rendered as `∞`. Zero is a real remaining time
+   * (the task is over) and must therefore be formatted as `00:00`; conflating the two used to flash an
+   * infinite countdown while the viewer was still in the playback state.
+   *
+   * @param sec The number of seconds to convert, or null/undefined for a perpetual task.
    */
-  public toFormattedTime(sec?: number): string {
-    if (sec) {
-      const hours = Math.floor(sec / 3600);
-      const minutes = Math.floor(sec / 60) % 60;
-      const seconds = sec % 60;
-
-      return [hours, minutes, seconds]
-        .map((v) => (v < 10 ? "0" + v : v))
-        .filter((v, i) => v !== "00" || i > 0)
-        .join(":");
-    } else {
-      return "∞";
-    }
+  public toFormattedTime(sec?: number | null): string {
+    return formatTimeLeft(sec);
   }
 }

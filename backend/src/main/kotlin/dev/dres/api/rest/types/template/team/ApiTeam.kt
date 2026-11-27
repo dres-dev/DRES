@@ -42,13 +42,17 @@ data class ApiTeam(
          * @return [ByteArray] representation of the normalized log.
          */
         fun normalizeLogo(submittedData: String): ByteArray? {
-            /* Try to read image. */
-            val image: BufferedImage = submittedData.drop(submittedData.indexOf(',') + 1).decodeBase64().let {
-                try {
-                    ImageIO.read(ByteArrayInputStream(it))
-                }  catch (e: Exception) {
-                    null
-                }
+            /*
+             * A logo that cannot be decoded is reported as absent by returning null; callers treat an absent
+             * logo as "leave the stored one alone". Both the base64 decode and the image read used to be
+             * assumed infallible except for the read, so a malformed data URL threw out of a request that
+             * only meant to update a name.
+             */
+            val image: BufferedImage = try {
+                val bytes = submittedData.drop(submittedData.indexOf(',') + 1).decodeBase64()
+                ImageIO.read(ByteArrayInputStream(bytes))
+            } catch (e: Exception) {
+                null
             } ?: return null
 
             /* Scale image to a maximum of 500x500 pixels. */

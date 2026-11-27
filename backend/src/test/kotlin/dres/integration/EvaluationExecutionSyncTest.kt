@@ -1,6 +1,10 @@
 package dres.integration
 
+import dev.dres.DRES
+import dev.dres.api.rest.types.ViewerInfo
+import dev.dres.api.rest.types.evaluation.ApiEvaluationOverview
 import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.data.model.config.Config
 import dev.dres.data.model.run.DbEvaluationType
 import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.DbTaskStatus
@@ -8,11 +12,17 @@ import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.data.model.template.task.options.DbTargetOption
+import dev.dres.mgmt.EvaluationManager
+import dev.dres.mgmt.TemplateManager
+import dev.dres.run.InteractiveSynchronousRunManager
+import dev.dres.data.model.run.RunActionContext
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.first
+import kotlinx.dnq.query.asSequence
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.nio.file.Files
 import java.util.UUID
 
 /**
@@ -51,6 +61,52 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
         repeat(taskCount) { i -> addTask(template, group, col, "Task-$i", idx = i) }
         val dbEval = createEvaluation(template, "sync-run-${UUID.randomUUID()}", "INTERACTIVE_SYNCHRONOUS")
         return store.transactional { InteractiveSynchronousEvaluation(store, dbEval) }
+    }
+
+    @Test
+    fun `active evaluation overview includes current verdict counts`() {
+        TemplateManager.init(store)
+        EvaluationManager.init(store)
+        val eval = buildSyncEvaluation(taskCount = 1, teamCount = 1)
+        val taskTemplateId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
+        val taskRun = createISTaskRun(eval, taskTemplateId)
+        val team = store.transactional(true) { eval.dbEvaluation.template.teams.first() }
+        val task = store.transactional(true) { DbTask.filter { it.id eq taskRun.taskId }.first() }
+        val user = createTestUser()
+        createSubmission(task, team, user, "WRONG")
+        val manager = store.transactional(true) { InteractiveSynchronousRunManager(eval, store) }
+
+        val overview = store.transactional(true) {
+            ApiEvaluationOverview.of(manager, EvaluationManager.verdictCountsInCurrentTransaction(eval.id))
+        }
+
+        assertEquals(1, overview.verdicts.wrong)
+        assertEquals(0, overview.verdicts.correct)
+        assertEquals(0, overview.verdicts.indeterminate)
+        assertEquals(0, overview.verdicts.undecidable)
+    }
+
+    @Test
+    fun `viewer ready registration records presence and cleanup removes it`() {
+        val eval = buildSyncEvaluation(taskCount = 1, teamCount = 1)
+        val manager = store.transactional(true) { InteractiveSynchronousRunManager(eval, store) }
+        val taskTemplateId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
+        val viewer = ViewerInfo("session-token", "127.0.0.1")
+        DRES.CONFIG = Config(eventsLocation = Files.createTempDirectory("dres-events-test-"))
+
+        manager.viewerReady(taskTemplateId, RunActionContext.INTERNAL, viewer)
+
+        val registered = manager.viewerSnapshot()[viewer]
+        assertNotNull(registered)
+        assertTrue(registered!!.ready)
+        val presence = registered.presence
+        assertNotNull(presence)
+        assertFalse(presence!!.connected)
+        assertTrue(presence.lastSeen > 0L)
+
+        manager.cleanupViewerPresence(System.currentTimeMillis() + 1)
+
+        assertFalse(manager.viewerSnapshot().containsKey(viewer))
     }
 
     // ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -147,6 +203,26 @@ class EvaluationExecutionSyncTest : AbstractDresIntegrationTest() {
         val eval = buildSyncEvaluation()
         assertTrue(eval.taskRuns.isEmpty())
         assertNull(eval.currentTaskRun)
+    }
+
+    @Test
+    fun `reloading removes a task that never started`() {
+        val eval = buildSyncEvaluation()
+        val templateId = store.transactional(true) { eval.getCurrentTaskTemplate().id!! }
+        val strandedTaskId = store.transactional {
+            DbTask.new {
+                status = DbTaskStatus.PREPARING
+                evaluation = eval.dbEvaluation
+                template = DbTaskTemplate.filter { it.id eq templateId }.first()
+            }.id
+        }
+
+        val restored = store.transactional { InteractiveSynchronousEvaluation(store, eval.dbEvaluation) }
+
+        assertTrue(restored.taskRuns.isEmpty())
+        assertTrue(store.transactional(true) {
+            DbTask.filter { it.id eq strandedTaskId }.asSequence().none()
+        })
     }
 
     @Test

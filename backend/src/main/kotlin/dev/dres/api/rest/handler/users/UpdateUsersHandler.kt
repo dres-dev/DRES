@@ -21,8 +21,13 @@ import io.javalin.openapi.*
  */
 class UpdateUsersHandler() : AbstractUserHandler(), PatchRestHandler<ApiUser>, AccessManagedRestHandler {
 
-    /** [UpdateUsersHandler] can be used by [ApiRole.ADMIN], [[ApiRole.VIEWER], [ApiRole.PARTICIPANT]*/
-    override val permittedRoles = setOf(ApiRole.VIEWER, ApiRole.ADMIN, ApiRole.PARTICIPANT)
+    /**
+     * [UpdateUsersHandler] can be used by every registered role, because every role may update itself.
+     *
+     * [ApiRole.JUDGE] used to be missing, so a judge could not change its own password while a participant
+     * could. Whether a caller may touch *another* user is decided in [doPatch], not here.
+     */
+    override val permittedRoles = setOf(ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE, ApiRole.ADMIN)
 
     override val route = "user/{userId}"
 

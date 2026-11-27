@@ -1,6 +1,6 @@
-import { LogService } from "./log.service";
-import { logServiceFactory } from "./log-service.factory";
-import { LOGGER_CONFIG } from "./logger-config.token";
+import { LogService } from './log.service';
+import { logServiceFactory } from './log-service.factory';
+import { LOGGER_CONFIG } from './logger-config.token';
 
 export const logServiceProvider = {
   provide: LogService,

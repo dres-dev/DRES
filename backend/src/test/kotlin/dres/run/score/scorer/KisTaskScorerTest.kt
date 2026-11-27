@@ -115,6 +115,38 @@ class KisTaskScorerTest {
     }
 
     @Test
+    fun countdownIsNotPenalisedAndTimeFractionIsClamped() {
+        val countdown = 5_000L
+        val countdownAwareScorer = KisTaskScorer(
+            scoreable,
+            maxPointsPerTask,
+            maxPointsAtTaskEnd,
+            penaltyPerWrongSubmission,
+            null,
+            countdown
+        )
+        fun correctAnswers() = listOf(
+            ApiAnswerSet(
+                "correct-${java.util.UUID.randomUUID()}",
+                ApiVerdictStatus.CORRECT,
+                "task",
+                listOf(ApiAnswer(ApiAnswerType.ITEM, dummyImageItem, null, null, null))
+            )
+        )
+        val scores = countdownAwareScorer.calculateScores(
+            sequenceOf(
+                ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", taskStartTime + countdown, correctAnswers()),
+                ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", taskStartTime + countdown + defaultTaskDuration * 1000, correctAnswers()),
+                ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", taskStartTime + 1_000, correctAnswers())
+            )
+        )
+
+        assertEquals(maxPointsPerTask, scores[teams[0]])
+        assertEquals(maxPointsAtTaskEnd, scores[teams[1]])
+        assertEquals(maxPointsPerTask, scores[teams[2]])
+    }
+
+    @Test
     fun wrongSubmissionPenalty() {
         val submissions = sequenceOf(
 

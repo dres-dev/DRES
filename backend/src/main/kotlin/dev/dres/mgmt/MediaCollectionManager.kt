@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.collection.ApiPopulatedMediaCollection
 import dev.dres.data.model.media.*
 import dev.dres.utilities.extensions.cleanPathString
 import jetbrains.exodus.database.TransientEntityStore
+import jetbrains.exodus.database.exceptions.ConstraintsValidationException
 import kotlinx.dnq.query.*
 import java.lang.Exception
 import kotlin.random.Random
@@ -40,17 +41,33 @@ object MediaCollectionManager {
             ApiPopulatedMediaCollection(ApiMediaCollection.fromMediaCollection(collection), items)
         }
 
-    fun createCollection(name: String, description: String?, basePath: String): ApiMediaCollection? =
-        this.store.transactional {
-            try {
+    /**
+     * Creates a collection, or throws if one with the same name or path already exists.
+     *
+     * This used to catch every exception and return `null`, which reported a name or path collision as
+     * "Could not create collection" and hid real failures such as an uninitialised store behind the same
+     * `null`. Uniqueness is checked when the transaction commits, so the transaction has to be inside the
+     * `try`, and the resulting [IllegalArgumentException] carries the message the handlers report.
+     *
+     * @param name The collection's name, unique.
+     * @param description An optional description.
+     * @param basePath The collection's base path.
+     * @return The created [ApiMediaCollection].
+     * @throws IllegalArgumentException if the name or path is already taken.
+     */
+    fun createCollection(name: String, description: String?, basePath: String): ApiMediaCollection =
+        try {
+            this.store.transactional {
                 DbMediaCollection.new {
                     this.name = name
                     this.description = description
                     this.path = basePath.cleanPathString()
                 }.toApi()
-            } catch (e: Exception) {
-                null
             }
+        } catch (e: ConstraintsValidationException) {
+            throw IllegalArgumentException(
+                "A collection with the same name or base path already exists: ${e.localizedMessage}", e
+            )
         }
 
     fun updateCollection(apiMediaCollection: ApiMediaCollection) {
@@ -96,26 +113,31 @@ object MediaCollectionManager {
 
     }
 
-    fun addMediaItems(collectionId: CollectionId, mediaItems: Collection<ApiMediaItem>) {
+    /** Adds media items that do not conflict by either location or collection-unique name. Returns the count added. */
+    fun addMediaItems(collectionId: CollectionId, mediaItems: Collection<ApiMediaItem>): Int = this.store.transactional {
+        val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
+            ?: throw IllegalArgumentException("Invalid parameters, collection with ID $collectionId does not exist.")
 
-        this.store.transactional {
-            val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
-                ?: throw IllegalArgumentException("Invalid parameters, collection with ID $collectionId does not exist.")
+        val knownItems = collection.items.asSequence().toList()
+        val knownLocations = knownItems.mapTo(mutableSetOf()) { it.location }
+        val knownNames = knownItems.mapTo(mutableSetOf()) { it.name }
+        var added = 0
 
-            mediaItems.filter { item -> collection.items.filter { it.location eq item.location }.isEmpty }
-                .forEach { mediaItem ->
-                    val item = DbMediaItem.new {
-                        this.type = mediaItem.type.toDb()
-                        this.name = mediaItem.name
-                        this.location = mediaItem.location
-                        this.fps = mediaItem.fps
-                        this.durationMs = mediaItem.durationMs
-                    }
-                    collection.items.add(item)
-                }
-
+        mediaItems.forEach { mediaItem ->
+            if (mediaItem.location in knownLocations || mediaItem.name in knownNames) return@forEach
+            knownLocations.add(mediaItem.location)
+            knownNames.add(mediaItem.name)
+            val item = DbMediaItem.new {
+                this.type = mediaItem.type.toDb()
+                this.name = mediaItem.name
+                this.location = mediaItem.location
+                this.fps = mediaItem.fps
+                this.durationMs = mediaItem.durationMs
+            }
+            collection.items.add(item)
+            added++
         }
-
+        added
     }
 
     fun getMediaItem(mediaItemId: MediaItemId): ApiMediaItem? = this.store.transactional(true) {
@@ -143,7 +165,9 @@ object MediaCollectionManager {
     fun getRandomMediaItem(collectionId: CollectionId): ApiMediaItem? = this.store.transactional(true) {
         val collection =
             DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull() ?: return@transactional null
-        collection.items.drop(Random.nextInt(0, collection.items.size())).take(1).firstOrNull()?.toApi()
+        val size = collection.items.size()
+        if (size == 0) return@transactional null
+        collection.items.drop(Random.nextInt(0, size)).take(1).firstOrNull()?.toApi()
     }
 
     fun updateMediaItem(mediaItem: ApiMediaItem) {
@@ -153,7 +177,8 @@ object MediaCollectionManager {
         this.store.transactional {
             val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
                 ?: throw IllegalArgumentException("Invalid parameters, collection with ID $collectionId does not exist.")
-            if (collection.items.filter { it.name eq mediaItem.name }.isNotEmpty) {
+            /* The item that is updated must not be considered a duplicate of itself. */
+            if (collection.items.filter { (it.name eq mediaItem.name) and (it.id ne mediaItem.mediaItemId) }.isNotEmpty) {
                 throw IllegalArgumentException("Media item with name '${mediaItem.name}' already exists in collection ${collection.name}.")
             }
 

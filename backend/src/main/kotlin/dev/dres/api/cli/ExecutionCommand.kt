@@ -14,8 +14,12 @@ import com.jakewharton.picnic.table
  *
  * For convention purposes, the file suffix `ds` could be used, since it's a `dres script`.
  */
+private val logger = org.slf4j.LoggerFactory.getLogger(ExecutionCommand::class.java)
+
 class ExecutionCommand :
-    CliktCommand(name = "exec", help = "Executes a set of DRES CLI commands in a file", printHelpOnEmptyArgs = true) {
+    CliktCommand(name = "exec") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Executes a set of DRES CLI commands in a file"
+        override val printHelpOnEmptyArgs: Boolean = true
 
 
     val inFile by argument(
@@ -30,19 +34,25 @@ class ExecutionCommand :
         val results = mutableListOf<String>()
         val commands = mutableListOf<String>()
         lines.forEach { line ->
+            if (line.isBlank() || line.startsWith("#")) {
+                return@forEach
+            }
+            /* Add the command before executing it, so that commands and results stay aligned (also for failures). */
+            commands.add(line)
             try {
-                if (line.isNotBlank() && !line.startsWith("#")) {
                     Cli.execute(line)
                     results.add("Success")
-                    commands.add(line)
                     println()
-                }
             } catch (e: Exception) {
                 when (e) {
                     is com.github.ajalt.clikt.core.NoSuchSubcommand -> results.add("Unknown Command")
 //                    is com.github.ajalt.clikt.core.MissingParameter -> results.add("Missing Parameter: ${e.localizedMessage}")
                     is com.github.ajalt.clikt.core.NoSuchOption -> results.add("No Such Option: ${e.localizedMessage}")
-                    else -> results.add("Exception: ${e.printStackTrace()}")
+                    else -> {
+                        /* A CLI reports to the operator at the terminal; the trace belongs in the log. */
+                        logger.error("Command '{}' failed.", line, e)
+                        results.add("Exception: ${e.message}")
+                    }
                 }
 
             }

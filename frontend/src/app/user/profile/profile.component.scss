@@ -1,7 +1,7 @@
 :host {
   display: flex;
   justify-content: center;
-  margin: 100px 0px;
+  margin: 100px 0;
 }
 
 mat-grid-list {
@@ -19,7 +19,6 @@ mat-grid-list {
   display: flex;
   justify-content: flex-end;
 }
-
 
 .flush-right {
   margin-left: auto;

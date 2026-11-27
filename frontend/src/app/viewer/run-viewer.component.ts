@@ -1,32 +1,37 @@
 import {AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewContainerRef, DOCUMENT} from '@angular/core';
 import { ActivatedRoute, ActivationEnd, Params, Router } from "@angular/router";
-import {interval, merge, mergeMap, Observable, of, zip} from 'rxjs';
+import {merge, Observable, of, zip} from 'rxjs';
 import {
   catchError,
   filter,
   map,
   pairwise,
+  share,
   shareReplay,
-  switchMap, tap
+  switchMap,
+  take
 } from "rxjs/operators";
 import { AppConfig } from '../app.config';
+import { WebSocketService } from '../services/websocket.service';
+import { PollCadence } from '../services/poll-cadence';
+import { ServerMessageType } from '../model/ws/server-message-type.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
 
-import {Title} from '@angular/platform-browser';
-import {ApiEvaluationInfo, ApiEvaluationState, EvaluationService} from '../../../openapi';
-import {Overlay} from "@angular/cdk/overlay";
+import { Title } from '@angular/platform-browser';
+import { ApiEvaluationInfo, ApiEvaluationState, EvaluationService } from '../../../openapi';
+import { Overlay } from '@angular/cdk/overlay';
 import { ViewerPreset } from './model/run-viewer-preset';
+import { ViewerRefreshEvent, viewerRefreshEvents } from './viewer-refresh';
 
 @Component({
-    selector: 'app-run-viewer',
-    templateUrl: './run-viewer.component.html',
-    styleUrls: ['./run-viewer.component.scss'],
-    standalone: false
+  selector: 'app-run-viewer',
+  templateUrl: './run-viewer.component.html',
+  styleUrls: ['./run-viewer.component.scss'],
+  standalone: false,
 })
 export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
-
   /** Observable for current run ID. */
   evaluationId: Observable<string>;
 
@@ -35,6 +40,15 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Observable for information about the current run's {@link ApiEvaluationState}. */
   state: Observable<ApiEvaluationState>;
+
+  /** Evaluation-scoped WebSocket updates shared with viewer widgets. */
+  messages: Observable<import('../model/ws/ws-server-message.interface').IWsServerMessage>;
+
+  /** Coalesced, evaluation-scoped event batches shared by REST-backed widgets. */
+  refreshEvents: Observable<ViewerRefreshEvent>;
+
+  /** Signals that widget data must be refreshed after a missed WebSocket interval. */
+  reconnected: Observable<void>;
 
   /** Observable that fires whenever a task starts. Emits the {@link ApiEvaluationState} that triggered the fire. */
   taskStarted: Observable<ApiEvaluationState>;
@@ -64,18 +78,18 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     {
       name: 'Original View',
       icon: 'dashboard',
-      config: { left: 'task_type_score', center: 'player', right: 'competition_score', bottom: 'team_score' }
+      config: { left: 'task_type_score', center: 'player', right: 'competition_score', bottom: 'team_score' },
     },
     {
       name: 'Compact View',
       icon: 'view_compact',
-      config: { left: 'scoreboard', center: 'player', right: 'compact_score_graph', bottom: 'compact_team_score' }
+      config: { left: 'scoreboard', center: 'player', right: 'compact_score_graph', bottom: 'compact_team_score' },
     },
     {
       name: 'View with Submissions',
       icon: 'assignment_turned_in',
-      config: { left: 'scoreboard', center: 'player', right: 'recent_submissions', bottom: 'compact_team_score' }
-    }
+      config: { left: 'scoreboard', center: 'player', right: 'recent_submissions', bottom: 'compact_team_score' },
+    },
   ];
 
   /** Cached config */
@@ -92,10 +106,10 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     private snackBar: MatSnackBar,
     private titleService: Title,
     private overlay: Overlay,
+    private wsService: WebSocketService,
     @Inject(DOCUMENT) private document: Document,
     private _viewContainerRef: ViewContainerRef
   ) {
-
     /** Observable for the current run ID. */
     this.evaluationId = this.activeRoute.params.pipe(
       map((a) => {
@@ -130,20 +144,16 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     );
     this.noUi = this.activeRoute.paramMap.pipe(
       map((a) => {
-        console.log("A", a);
-        const map = this.parseMatrixParams(a.get('runId'))
-        return Object.keys(map).includes("noUi") && map['noUi'] === "true"
+        const map = this.parseMatrixParams(a.get('runId'));
+        return Object.keys(map).includes('noUi') && map['noUi'] === 'true';
       })
-    )
+    );
 
     /* Basic observable for general run info; this information is static and does not change over the course of a run. */
     this.info = this.evaluationId.pipe(
       switchMap((evaluationId) =>
         this.runService.getApiV2EvaluationByEvaluationIdInfo(evaluationId).pipe(
           catchError((err, o) => {
-            console.log(
-              `[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`
-            );
             this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
               duration: 5000,
             });
@@ -158,12 +168,61 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    this.state = interval(1000).pipe(mergeMap(() => this.evaluationId)).pipe(
-      switchMap((id) => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
+    /* Widgets refetch on a reconnect or on recovery from a silent socket window; both mean events may
+       have been missed while the UI believed it was up to date. */
+    this.reconnected = merge(this.wsService.reconnected$, this.wsService.resync$);
+    this.messages = this.evaluationId.pipe(
+      switchMap((id) => this.wsService.messages$.pipe(filter((msg) => msg.evaluationId === id))),
+      share()
+    );
+    this.refreshEvents = viewerRefreshEvents(this.messages);
+
+    /* WS messages that carry a state diff directly (TASK_START, TASK_END). */
+    const stateWs$ = this.messages.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
+      ].includes(msg.type))
+    );
+
+    /* WS messages that signal a state change but carry no payload of their own. */
+    const stateRefreshWs$ = this.messages.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_START,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+      ].includes(msg.type))
+    );
+
+    this.state = this.evaluationId.pipe(
+      switchMap((id) =>
+        merge(
+          /* Initial load for this evaluation. */
+          this.runService.getApiV2EvaluationByEvaluationIdState(id),
+          /* Apply diff directly when the WS message carries state — no HTTP needed. */
+          stateWs$.pipe(
+            filter((msg) => msg.evaluationId === id && msg.state != null),
+            map((msg) => msg.state as ApiEvaluationState)
+          ),
+          /* Fallback HTTP fetch for state-carrying messages without a payload, for messages that
+             signal a state change without carrying one, after a WebSocket reconnect, and after the
+             socket recovers from a silent window — any event missed while coverage was degraded
+             needs a full resync. */
+          merge(
+            stateWs$.pipe(filter((msg) => msg.evaluationId === id && msg.state == null)),
+            stateRefreshWs$.pipe(filter((msg) => msg.evaluationId === id)),
+            this.wsService.reconnected$,
+            this.wsService.resync$
+          ).pipe(
+            switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
+            map((state) => {
+              this.statePolls.observe(state);
+              return state;
+            })
+          )
+        )
+      ),
       catchError((err, o) => {
-        console.log(
-          `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
-        );
         this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
           duration: 5000,
         });
@@ -201,29 +260,33 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     this.info.subscribe((info: ApiEvaluationInfo) => {
-        this.titleService.setTitle(info.name + ' - DRES');
-    })
+      this.titleService.setTitle(info.name + ' - DRES');
+    });
   }
+
+  /**
+   * Watch the state refetches, so the shared polling cadence slows down on a quiet run and speeds up
+   * as soon as a task moves.
+   */
+  private readonly statePolls = new PollCadence(this.wsService, 'viewer-state');
 
   /**
    * Registers this RunViewerComponent on view initialization and creates the WebSocket subscription.
    */
   ngOnInit(): void {
-    
+    this.evaluationId.pipe(take(1)).subscribe((id) => this.wsService.connect(id));
   }
 
   /**
    * Prepare the overlay that is being displayed when WebSocket connection times out.
    */
-  ngAfterViewInit() {
-    
+  ngAfterViewInit() {}
 
-  }
-
-    /**
+  /**
    * Unregisters this RunViewerComponent on view destruction and cleans the WebSocket subscription.
    */
   ngOnDestroy(): void {
+    this.wsService.disconnect();
     this.titleService.setTitle('DRES');
   }
 
@@ -246,7 +309,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Applies a predefined layout configuration to the viewer.
-   * 
+   *
    * @param config The layout configuration to apply, containing widget assignments for each position ({@link ViewerPreset}).
    */
   public applyLayoutPreset(config: ViewerPreset['config']) {
@@ -371,7 +434,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       this.p = params.params;
     }
     const w = Widget.resolveWidget(this.p[position], position);
-    //console.log(`Position ${this.p[position]}/${position} resolved to `, w);
     return w;
   }
 

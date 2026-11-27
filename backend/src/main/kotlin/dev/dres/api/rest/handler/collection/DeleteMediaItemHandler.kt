@@ -42,8 +42,8 @@ class DeleteMediaItemHandler : AbstractCollectionHandler(), DeleteRestHandler<Su
         try {
             MediaCollectionManager.deleteMediaItem(mediaId)
             return SuccessStatus("Media item $mediaId deleted successfully.")
-        } catch (e: Exception) {
-            throw ErrorStatusException(404, e.message ?: "Could not delete item", ctx)
+        } catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(404, e.message ?: "Could not delete item.", ctx)
         }
     }
 }

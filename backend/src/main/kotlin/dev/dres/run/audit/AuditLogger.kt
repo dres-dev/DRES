@@ -34,6 +34,14 @@ object AuditLogger {
 
     private val queue = LinkedBlockingQueue<AuditLogEntry>()
 
+    /**
+     * Whether the writer thread should keep draining the queue.
+     *
+     * Written by [stop] from the shutdown thread and read by the writer thread, so it needs the
+     * visibility guarantee of `@Volatile`; without it a JIT could cache the old value and the thread
+     * would keep draining until the next poll timeout, or exit before the queue was flushed.
+     */
+    @Volatile
     private var active = true
 
 
@@ -65,7 +73,11 @@ object AuditLogger {
                     }
 
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    /*
+                     * An audit entry that cannot be written is a serious problem but not a reason to kill the
+                     * writer thread, or every subsequent entry would be lost too.
+                     */
+                    logger.error(logMarker, "Could not append an audit log entry.", e)
                 }
             }
 
@@ -250,6 +262,17 @@ object AuditLogger {
      */
     fun logout(userId: UserId, api: AuditLogSource, sessionToken: SessionToken) {
         log(LogoutAuditLogEntry(userId, api, sessionToken))
+    }
+
+    /**
+     * Logs the deletion of a user account.
+     *
+     * @param userId The [UserId] of the deleted user.
+     * @param deletedBy The [UserId] of the administrator who deleted it, if known.
+     * @param session The [SessionToken] of the caller.
+     */
+    fun userDeleted(userId: UserId, deletedBy: UserId?, session: SessionToken?) {
+        log(UserDeletedAuditLogEntry(userId, deletedBy, session))
     }
 
     fun startup() {

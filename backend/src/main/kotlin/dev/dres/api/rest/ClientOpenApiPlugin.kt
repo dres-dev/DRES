@@ -2,25 +2,21 @@ package dev.dres.api.rest
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import dev.dres.DRES
-import io.javalin.openapi.CookieAuth
 import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.openapi.plugin.SecurityComponentConfiguration
 
 class ClientOpenApiPlugin : OpenApiPlugin({
     it
         .withDocumentationPath("/clientapi.json")
         .withDefinitionConfiguration { _, u ->
-            u.withInfo { t ->
-                t.title = "DRES Client API"
-                t.version = DRES.VERSION
-                t.description =
-                    "Client API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
+            u.openApiVersion("3.0.3")
+            u.info { info ->
+                info.title("DRES Client API")
+                    .version(DRES.VERSION)
+                    .description("Client API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}")
             }
-            u.withSecurity(
-                SecurityComponentConfiguration()
-                    .withSecurityScheme("CookieAuth", CookieAuth(AccessManager.SESSION_COOKIE_NAME))
-            )
-            u.withDefinitionProcessor { doc ->
+            u.withCookieAuth("CookieAuth", AccessManager.SESSION_COOKIE_NAME)
+        }
+        .withDefinitionProcessor { doc: ObjectNode ->
 
                 val blacklist = setOf(
                     "/external/",
@@ -45,15 +41,12 @@ class ClientOpenApiPlugin : OpenApiPlugin({
                     "/status/info"
                 )
 
-                val relevantRoutes =
-                    doc["paths"].fields().asSequence()
-                        .filter { blacklist.none { b -> it.key.contains(b) } }.map { it.key }
-                        .toList()
+                val relevantRoutes = doc.get("paths").fieldNames().asSequence()
+                    .filter { path -> blacklist.none { b -> path.contains(b) } }
+                    .toList()
 
-                (doc["paths"] as ObjectNode).retain(relevantRoutes)
+                (doc.get("paths") as ObjectNode).retain(relevantRoutes)
 
-                doc.toPrettyString()
-
-            }
+                doc.withOpenApi30Nullability().toPrettyString()
         }
 })

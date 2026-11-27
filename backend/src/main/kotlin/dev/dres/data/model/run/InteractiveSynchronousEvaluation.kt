@@ -14,6 +14,7 @@ import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.filter.basics.AcceptAllSubmissionFilter
 import dev.dres.run.filter.basics.SubmissionFilter
 import dev.dres.run.filter.basics.CombiningSubmissionFilter
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scorer.*
@@ -25,6 +26,7 @@ import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import java.lang.IndexOutOfBoundsException
 import java.util.LinkedList
+import org.slf4j.LoggerFactory
 
 /**
  * Represents a concrete, interactive and synchronous [Run] of a [DbEvaluationTemplate].
@@ -36,6 +38,10 @@ import java.util.LinkedList
  */
 class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: DbEvaluation) :
     AbstractEvaluation(store, evaluation) {
+
+    companion object {
+        private val LOGGER = LoggerFactory.getLogger(InteractiveSynchronousEvaluation::class.java)
+    }
 
     init {
         store.transactional(true) { require(this.dbEvaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.dbEvaluation.type}. This is a programmer's error!" } }
@@ -61,8 +67,40 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
     override val scoreboards: List<Scoreboard>
 
     init {
-        /* Load all ongoing tasks. */
-        this.dbEvaluation.tasks.asSequence().forEach { ISTaskRun(it) }
+        /*
+         * Remove task rows that never started and contain no submissions; they cannot contribute results and would
+         * otherwise block the synchronous evaluation from restoring or starting another task.
+         */
+        val persistedTaskIds = store.transactional(true) {
+            this.dbEvaluation.tasks.asSequence().map { it.id }.toList()
+        }
+        persistedTaskIds.forEach { taskId ->
+            val shouldLoad = store.transactional {
+                val task = DbTask.filter { it.id eq taskId }.firstOrNull() ?: return@transactional false
+                if (task.started == null &&
+                    (task.status == DbTaskStatus.CREATED || task.status == DbTaskStatus.PREPARING) &&
+                    task.answerSets.isEmpty
+                ) {
+                    task.delete()
+                    false
+                } else {
+                    true
+                }
+            }
+            if (!shouldLoad) {
+                LOGGER.warn("Removing task $taskId of evaluation ${this.id}, which was created but never started.")
+                return@forEach
+            }
+
+            /* Load ongoing tasks; one corrupt task must not prevent the evaluation from loading. */
+            try {
+                store.transactional {
+                    DbTask.filter { it.id eq taskId }.firstOrNull()?.let { ISTaskRun(it) }
+                }
+            } catch (e: Exception) {
+                LOGGER.error("Could not load task $taskId of evaluation ${this.id}: ${e.message}", e)
+            }
+        }
 
         /* Prepare the evaluation scoreboards. */
         val teams = this.template.teams.asSequence().map { it.teamId }.toList()
@@ -124,10 +162,9 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
 
         init {
 
-            check(this@InteractiveSynchronousEvaluation.taskRuns.isEmpty() || this@InteractiveSynchronousEvaluation.taskRuns.last().hasEnded) { //FIXME causes issues when resuming evaluation
+            check(this@InteractiveSynchronousEvaluation.taskRuns.isEmpty() || this@InteractiveSynchronousEvaluation.taskRuns.last().hasEnded) {
                 "Cannot create a new task. Another task is currently running."
             }
-            this@InteractiveSynchronousEvaluation.taskRuns.add(this)
 
             /* Initialize submission filter. */
             this.filter = store.transactional {
@@ -137,7 +174,8 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
                     CombiningSubmissionFilter(
                         task.template.taskGroup.type.submission.asSequence().map { option ->
                             val parameters =
-                                task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq option.description)
+                                /* Parameters are stored as <OPTION>.<parameter>, e.g. LIMIT_CORRECT_PER_TEAM.limit */
+                                task.template.taskGroup.type.configurations.query(DbConfiguredOption::key.startsWith("${option.description}."))
                                     .asSequence().map { it.key to it.value }.toMap()
                             option.newFilter(parameters)
                         }.toList()
@@ -165,10 +203,11 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
                     when (val scoreOption = task.template.taskGroup.type.score) {
                         DbScoreOption.KIS -> KisTaskScorer(
                             this,
-                            task.template.taskGroup.type.configurations.query(DbConfiguredOption::key.startsWith(scoreOption.description))
+                            task.template.taskGroup.type.configurations.query(DbConfiguredOption::key.startsWith("${scoreOption.description}."))
                                 /* the split[1] is okay, as DOMAIN.KEY is enforced in template manager (here, DOMAIN is scoreOption.description)*/
                                 .asSequence().map { it.key.substringAfter(".") to it.value }.toMap(),
-                            store
+                            store,
+                            InteractiveRunManager.COUNTDOWN_DURATION.toLong()
                         )
 
                         DbScoreOption.AVS -> AvsTaskScorer(this, store)
@@ -178,6 +217,9 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
                     }
                 )
             }
+
+            /* Register only after all components are ready, so initialization errors leave no partial run in memory. */
+            this@InteractiveSynchronousEvaluation.taskRuns.add(this)
         }
     }
 }

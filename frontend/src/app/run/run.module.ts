@@ -10,6 +10,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { CompetitionBuilderModule } from '../competition/competition-builder/competition-builder.module';
 import { MatSelectModule } from '@angular/material/select';
@@ -29,7 +30,9 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { RunAsyncAdminViewComponent } from './run-async-admin-view/run-async-admin-view.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RunAdminToolbarComponent } from './run-admin-toolbar/run-admin-toolbar.component';
-import { EvaluationModule } from "../evaluation/evaluation.module";
+import { EvaluationModule } from '../evaluation/evaluation.module';
+import { EndedRunListComponent } from './ended-run-list.component';
+import { VerdictCountsComponent } from './verdict-counts.component';
 
 @NgModule({
   imports: [
@@ -46,6 +49,7 @@ import { EvaluationModule } from "../evaluation/evaluation.module";
     CommonModule,
     MatListModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatMenuModule,
     CompetitionBuilderModule,
     MatSelectModule,
@@ -57,7 +61,7 @@ import { EvaluationModule } from "../evaluation/evaluation.module";
     NgApexchartsModule,
     MatExpansionModule,
     MatToolbarModule,
-    EvaluationModule
+    EvaluationModule,
   ],
   exports: [RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent],
   declarations: [
@@ -68,6 +72,8 @@ import { EvaluationModule } from "../evaluation/evaluation.module";
     ViewerRunListComponent,
     RunAsyncAdminViewComponent,
     RunAdminToolbarComponent,
+    EndedRunListComponent,
+    VerdictCountsComponent,
   ],
   providers: [],
 })

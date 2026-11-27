@@ -13,13 +13,13 @@ import {
   ApexXAxis,
   ApexYAxis,
 } from 'ng-apexcharts';
-import {ApiEvaluationInfo, EvaluationScoresService, EvaluationService} from '../../../../openapi';
+import { ApiEvaluationInfo, EvaluationScoresService, EvaluationService } from '../../../../openapi';
 
 @Component({
-    selector: 'app-score-history',
-    templateUrl: './run-score-history.component.html',
-    styleUrls: ['./run-score-history.component.scss'],
-    standalone: false
+  selector: 'app-score-history',
+  templateUrl: './run-score-history.component.html',
+  styleUrls: ['./run-score-history.component.scss'],
+  standalone: false,
 })
 export class RunScoreHistoryComponent {
   /** List of available scoreboards (by name). */
@@ -123,9 +123,6 @@ export class RunScoreHistoryComponent {
       switchMap((runId) =>
         this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
           catchError((err, o) => {
-            console.log(
-              `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
-            );
             if (err.status === 404) {
               this.router.navigate(['/template/list']);
             }
@@ -154,9 +151,6 @@ export class RunScoreHistoryComponent {
       switchMap((runId) =>
         this.scoreService.getApiV2ScoreEvaluationByEvaluationIdTeamGroupList(runId).pipe(
           catchError((err, o) => {
-            console.log(
-              `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
-            );
             if (err.status === 404) {
               this.router.navigate(['/template/list']);
             }
@@ -181,7 +175,6 @@ export class RunScoreHistoryComponent {
           switchMap((i) => {
             return this.scoreService.getApiV1ScoreRunWithRunidSeriesWithScoreboard(r, this.selectedScoreboard).pipe(
               catchError((err, o) => {
-                console.log(`[ScoreHistoryComponent] There was an error while loading scores for run: ${err?.message}`);
                 if (err.status === 404) {
                   this.router.navigate(['/template/list']);
                 }
@@ -200,7 +193,7 @@ export class RunScoreHistoryComponent {
     const series = combineLatest([scores, this.runInfo]).pipe(
       map(([data, run]) => {
         /* Prepare data structure for ApexCharts. */
-        /*
+    /*
         const array: ApexAxisChartSeries = [];
         for (const s of data) {
           const team = run.teams.find((t) => t.uid === s.team);

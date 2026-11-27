@@ -9,7 +9,8 @@ import com.github.kittinunf.fuel.Fuel
 
 import java.io.File
 
-class OpenApiCommand : CliktCommand(name="openapi",help =  "Generates and writes the OpenAPI Specifications") {
+class OpenApiCommand : CliktCommand(name="openapi") {
+    override fun help(context: com.github.ajalt.clikt.core.Context): String = "Generates and writes the OpenAPI Specifications"
 
     /** Defaults to only write internal OpenApi Specification (OAS) */
     val internalOnly: Boolean by option("--dres", "--internal-only").flag("--all", default=true)

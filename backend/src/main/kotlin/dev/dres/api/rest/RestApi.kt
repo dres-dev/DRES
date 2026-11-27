@@ -30,6 +30,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.config.Config
 import dev.dres.mgmt.cache.CacheManager
+import dev.dres.run.RunExecutor
 import dev.dres.utilities.NamedThreadFactory
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
@@ -38,11 +39,8 @@ import io.javalin.http.Cookie
 import io.javalin.http.HttpStatus
 import io.javalin.http.SameSite
 import io.javalin.http.staticfiles.Location
-import io.javalin.openapi.CookieAuth
-import io.javalin.openapi.OpenApiContact
-import io.javalin.openapi.OpenApiLicense
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import jetbrains.exodus.database.TransientEntityStore
 import org.eclipse.jetty.server.Server
@@ -106,6 +104,7 @@ object RestApi {
             ), /* [PreviewImageHandler] vs [PreviewImageTimelessHandler]: Optional path parameters are not allowed in OpenApi */
             PreviewVideoHandler(store, cache),
             GetExternalMediaHandler(), // Must be registered before GetMediaHandler, as route is similar
+            GetMediaGrantHandler(store, cache), // Must be registered before GetMediaHandler, as route is similar
             GetMediaHandler(store),
 
             // Collection
@@ -121,6 +120,12 @@ object RestApi {
             ShowMediaItemHandler(),
             ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
             ListMediaItemHandler(),
+            StartCollectionScanHandler(),
+            CancelCollectionScanHandler(),
+            CollectionScanStatusHandler(),
+            CheckCollectionHandler(),
+            DeleteCollectionItemsHandler(),
+            CollectionExportHandler(),
             if (DRES.CONFIG.externalMediaEndpointsEnabled) {
                 UploadExternalItemHandler()
             } else {
@@ -138,6 +143,7 @@ object RestApi {
             // Template
             ListEvaluationTemplatesHandler(),
             CreateEvaluationTemplateHandler(),
+            ImportEvaluationTemplateHandler(),
             UpdateEvaluationTemplateHandler(),
             CloneEvaluationTemplateHandler(),
             ShowEvaluationTemplateHandler(),
@@ -163,8 +169,8 @@ object RestApi {
             GetTaskTargetHandler(store, cache),
             GetCurrentTaskHandler(),
             GetSubmissionInfoHandler(store),
-            GetSubmissionAfterInfoHandler(),
-            GetSubmissionHistoryInfoHandler(),
+            GetSubmissionAfterInfoHandler(store),
+            GetSubmissionHistoryInfoHandler(store),
             ViewerReadyHandler(),
 
             // Evaluation run scores
@@ -191,7 +197,9 @@ object RestApi {
             ListViewersHandler(),
             ListSubmissionsHandler(),
             ListPastTaskHandler(),
-            EvaluationOverviewHandler(),
+            EvaluationOverviewHandler(store),
+            ListEndedEvaluationsHandler(),
+            DeleteEvaluationHandler(),
             ListAllTeamsHandler(store),
             CreateTeamHandler(store),
             UpdateTeamHandler(store),
@@ -222,13 +230,7 @@ object RestApi {
 
             it.jsonMapper(KotlinxJsonMapper)
 
-            it.bundledPlugins.enableCors { cors ->
-                cors.addRule { corsPluginConfig ->
-                    corsPluginConfig.reflectClientOrigin =
-                        true // anyHost() has similar implications and might be used in production? I'm not sure how to cope with production and dev here simultaneously
-                    corsPluginConfig.allowCredentials = true
-                }
-            }
+            CorsConfiguration.apply(it, config.cors.allowedOrigins)
 
             it.registerPlugin(
                 OpenApiPlugin { oapConfig ->
@@ -236,27 +238,20 @@ object RestApi {
                         .withDocumentationPath("/openapi.json")
                         .withDefinitionConfiguration { _, openApiDef ->
                             openApiDef
-                                .withInfo { info ->
-                                    info.title = "DRES API"
-                                    info.version = DRES.VERSION
-                                    info.description =
-                                        "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
-                                    val contact = OpenApiContact()
-                                    contact.url = "https://dres.dev"
-                                    contact.name = "The DRES Dev Team"
-                                    info.contact = contact
-                                    val license = OpenApiLicense()
-                                    license.name = "MIT"
-                                    info.license = license
-                                }
-
-                                .withSecurity(
-                                    SecurityComponentConfiguration()
-                                        .withSecurityScheme(
-                                            "CookieAuth",
-                                            CookieAuth(AccessManager.SESSION_COOKIE_NAME)
+                                .openApiVersion("3.0.3")
+                                .info { info ->
+                                    info.title("DRES API")
+                                        .version(DRES.VERSION)
+                                        .description(
+                                            "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
                                         )
-                                )
+                                        .contact("The DRES Dev Team", "https://dres.dev")
+                                        .license("MIT")
+                                }
+                                .withCookieAuth("CookieAuth", AccessManager.SESSION_COOKIE_NAME)
+                        }
+                        .withDefinitionProcessor { doc: ObjectNode ->
+                            doc.withOpenApi30Nullability().toPrettyString()
                         }
                 }
             )
@@ -296,7 +291,7 @@ object RestApi {
 
 
 
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("api") {
                     apiRestHandlers.groupBy { it.apiVersion }.forEach { apiGroup ->
                         path(apiGroup.key) {
@@ -328,35 +323,55 @@ object RestApi {
                             }
                         }
                     }
-                    //ws("ws/run", runExecutor)
+                    ws("ws/run", RunExecutor::accept)
                 }
             }
 
-        }.beforeMatched { ctx ->
+            /*
+             * `routes.before` and `routes.beforeMatched` do NOT run for WebSocket upgrades, so the
+             * session resolution and the access gate below never see `/api/ws/run`. Without this
+             * handler an anonymous client could hold a socket open (and only find out from a log
+             * line that its REGISTER was dropped). `wsBeforeUpgrade` does run, and its attributes
+             * are visible on the WsContext, which restores the same session handling for sockets.
+             */
+            it.routes.wsBeforeUpgrade("/api/ws/run", WsUpgradeGate::gate)
+
+        it.routes.beforeMatched { ctx ->
             /* BeforeMatched handlers are only matched if the request will be matched */
             /* See https://javalin.io/migration-guide-javalin-5-to-6 */
             if (!AccessManager.hasAccess(ctx)) {
                 ctx.status(HttpStatus.UNAUTHORIZED)
                 ctx.skipRemainingHandlers()
             }
-        }.before { ctx ->
+        }
+
+        it.routes.before { ctx ->
             /* Before are matched before every request, including static files */
 
             //check for session cookie
             val cookieId = ctx.cookie(AccessManager.SESSION_COOKIE_NAME)
             if (cookieId != null) {
+                /* Secure cookies are dropped by browsers over plain HTTP, so they are only set when the
+                   deployment actually serves HTTPS; over plain HTTP, SameSite.LAX keeps the cookie usable. */
                 val cookie = Cookie(
                     AccessManager.SESSION_COOKIE_NAME,
                     cookieId,
                     maxAge = AccessManager.SESSION_COOKIE_LIFETIME,
-                    secure = true,
-                    sameSite = SameSite.NONE
+                    secure = config.enableSsl,
+                    sameSite = if (config.enableSsl) SameSite.NONE else SameSite.LAX
                 )
+                /* The frontend never reads the token from script; only the browser and the API need it. */
+                cookie.isHttpOnly = true
                 ctx.cookie(cookie) //update cookie lifetime
                 ctx.attribute("session", cookieId) //store id in attribute for later use
             }
 
-            //check for query parameter
+            /*
+             * `?session=` is supported API surface, not a fallback to be removed: client implementations
+             * that cannot hold a cookie (the reference clients, the WebSocket upgrade, third-party tools)
+             * have no other way to name their session. It is redacted from the access log below, and the
+             * session cookie is authoritative when both are present.
+             */
             val paramId = ctx.queryParam("session")
             if (paramId != null) {
                 ctx.attribute("session", paramId) //store id in attribute for later use
@@ -366,7 +381,9 @@ object RestApi {
             logger.info(
                 logMarker,
                 "${ctx.req().method} request to ${ctx.path()} with params (${
-                    ctx.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()
+                    ctx.queryParamMap().entries.joinToString { e ->
+                        if (e.key.equals("session", ignoreCase = true)) "${e.key}=REDACTED" else "${e.key}=${e.value}"
+                    }
                 }) from ${ctx.req().remoteAddr}"
             )
             if (ctx.path().startsWith("/api/")) { //do not cache api requests
@@ -374,11 +391,14 @@ object RestApi {
             }
 
 
-        }.error(401) {
+        }
+        it.routes.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
-        }.exception(Exception::class.java) { e, ctx ->
-            ctx.status(500).json(ErrorStatus("Internal server error: ${e.localizedMessage}"))
-            logger.error("Exception during handling of request to ${ctx.path()}", e)
+        }
+        it.routes.exception(Exception::class.java) { e, ctx ->
+            /* Never return e.localizedMessage: exception messages name files, entities and ids. */
+            ServerError.respond(ctx, e)
+        }
         }.start(config.httpPort)
     }
 
@@ -399,7 +419,7 @@ object RestApi {
     )
 
     val readyThreadCount: Int
-        get() = pool.readyThreads
+        get() = pool.idleThreads
 
     private fun setupHttpServer(): Server {
         return Server(pool)

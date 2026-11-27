@@ -7,7 +7,6 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import java.io.IOException
-import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.util.stream.Collectors
 import kotlin.io.path.name
@@ -39,7 +38,7 @@ class ListExternalItemHandler : AbstractExternalItemHandler(), GetRestHandler<Li
     override fun doGet(ctx: Context): List<String> {
         // TODO https://github.com/javalin/javalin-openapi/issues/178 Apparently, we cannot use the slash-included notation here (https://javalin.io/documentation#endpoint-handlers)
         try {
-            val files = Files.walk(DRES.EXTERNAL_ROOT, 1, FileVisitOption.FOLLOW_LINKS)
+            val files = Files.walk(DRES.EXTERNAL_ROOT, 1)
             val list = files
                 .filter {
                     Files.isRegularFile(it) &&

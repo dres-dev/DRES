@@ -3,11 +3,12 @@ import { Observable } from 'rxjs';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { filter, map } from 'rxjs/operators';
 import { DataUtilities } from '../../utilities/data.utilities';
-import {ApiContentElement, ApiHint} from '../../../../openapi';
+import { AppConfig } from '../../app.config';
+import { ApiContentElement } from '../../../../openapi';
 
 @Component({
-    selector: 'app-video-object-preview',
-    template: `
+  selector: 'app-video-object-preview',
+  template: `
     <div class="video-container">
       <video
         #player
@@ -22,7 +23,7 @@ import {ApiContentElement, ApiHint} from '../../../../openapi';
       ></video>
     </div>
   `,
-    standalone: false
+  standalone: false,
 })
 export class VideoObjectPreviewComponent implements OnInit {
   /** Observable of current {@link ContentElement} that should be displayed. Provided by user of this component. */
@@ -37,21 +38,29 @@ export class VideoObjectPreviewComponent implements OnInit {
   /** Reference to the {@link HTMLVideoElement} used for playback. */
   @ViewChild('player') player: ElementRef<HTMLVideoElement>;
 
-  /** Current video to display (as data URL). */
+  /** Current video to display (as data URL or grant URL). */
   videoUrl: Observable<SafeUrl>;
   numberOfLoops = 0;
 
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(
+    private sanitizer: DomSanitizer,
+    private config: AppConfig
+  ) {}
 
   ngOnInit(): void {
     this.videoUrl = this.queryObject.pipe(
       filter((q) => q.contentType === 'VIDEO'),
       map((q) => {
+        /* Media is delivered as a short-lived, session-bound grant URL, so the browser can stream and
+         * cache it like any other resource instead of inflating a base64 blob in JS memory. Inline
+         * base64 is still honoured for older backends. */
+        if (q.mediaUrl) {
+          return this.sanitizer.bypassSecurityTrustUrl(this.config.resolveMediaGrantUrl(q.mediaUrl));
+        }
         if (q.content) {
           return this.sanitizer.bypassSecurityTrustUrl(DataUtilities.base64ToUrl(q.content, 'video/mp4'));
-        } else {
-          return null;
         }
+        return null;
       })
     );
   }

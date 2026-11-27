@@ -10,11 +10,16 @@
     </div>
   </div>
   <div class="body">
-    <app-judgement-media-viewer *ngFor="let item of allAnswers(); let idx = index" id="judge-media-viewer" [req]="observableJudgementRequest" answerIndex="{{idx}}"></app-judgement-media-viewer>
+    <app-judgement-media-viewer
+      *ngFor="let item of allAnswers(); let idx = index"
+      id="judge-media-viewer"
+      [req]="observableJudgementRequest"
+      answerIndex="{{ idx }}"
+    ></app-judgement-media-viewer>
 
     <br />
 
-    <div class="align-center content-center flex-100" >
+    <div class="align-center content-center flex-100">
       <qrcode [qrdata]="voteClientPath | async" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
     </div>
   </div>

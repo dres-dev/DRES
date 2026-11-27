@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.scores
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.evaluationId
@@ -39,14 +40,16 @@ class TeamGroupScoreHandler : AbstractScoreHandler(), GetRestHandler<List<ApiTea
     )
     override fun doGet(ctx: Context): List<ApiTeamGroupValue> {
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+        if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
-            val rac = ctx.runActionContext()
-            val aggregators = manager.currentTask(rac)?.teamGroupAggregators ?: throw ErrorStatusException(404, "No active task in evaluation ${ctx.evaluationId()}.", ctx)
-            val teamGroups = manager.template.teamGroups.toList()
-            teamGroups.map { ApiTeamGroupValue(it.name!!, aggregators[it.id]?.lastValue ?: 0.0) }
-            return emptyList()
+        val rac = ctx.runActionContext()
+        val aggregators = manager.currentTask(rac)?.teamGroupAggregators
+            ?: throw ErrorStatusException(404, "No active task in evaluation ${ctx.evaluationId()}.", ctx)
+        /* Each team group of the template, with its current aggregate; a group without a value reports 0.0. */
+        return manager.template.teamGroups.map { group ->
+            ApiTeamGroupValue(group.name!!, aggregators[group.id]?.lastValue ?: 0.0)
+        }
 
     }
 }

@@ -96,5 +96,17 @@ data class LogoutAuditLogEntry(
     val sessionToken: SessionToken
 ) : AuditLogEntry()
 
+/**
+ * Records the deletion of a user account.
+ *
+ * Deletions are irreversible and remove a principal that other entries still reference, so who removed whom
+ * has to be recoverable from the audit log alone.
+ */
+data class UserDeletedAuditLogEntry(
+    val userId: UserId,
+    val deletedBy: UserId?,
+    val session: SessionToken?
+) : AuditLogEntry()
+
 class StartupAuditLogEntry : AuditLogEntry()
 class ShutdownAuditLogEntry : AuditLogEntry()

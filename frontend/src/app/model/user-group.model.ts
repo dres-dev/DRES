@@ -1,4 +1,4 @@
-import {ApiRole} from '../../../openapi';
+import { ApiRole } from '../../../openapi';
 
 export class UserGroup {
   constructor(public readonly name: string, public readonly roles: ApiRole[]) {}

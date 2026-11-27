@@ -10,10 +10,10 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
  * @deprecated This component should not be used anymore, as there is no need for a dialog anymore
  */
 @Component({
-    selector: 'app-video-player-segment-builder-dialog',
-    templateUrl: './video-player-segment-builder-dialog.component.html',
-    styleUrls: ['./video-player-segment-builder-dialog.component.scss'],
-    standalone: false
+  selector: 'app-video-player-segment-builder-dialog',
+  templateUrl: './video-player-segment-builder-dialog.component.html',
+  styleUrls: ['./video-player-segment-builder-dialog.component.scss'],
+  standalone: false,
 })
 export class VideoPlayerSegmentBuilderDialogComponent implements OnInit {
   @ViewChild(VideoPlayerSegmentBuilderComponent) videoPlayer: VideoPlayerSegmentBuilderComponent;
@@ -30,7 +30,6 @@ export class VideoPlayerSegmentBuilderDialogComponent implements OnInit {
    * Fetches the data from the form, returns it to the dialog openeer and cloeses this dialog
    */
   save(): void {
-    console.log('save');
     this.dialogRef.close(this.videoPlayer.fetchData());
   }
 
@@ -38,7 +37,6 @@ export class VideoPlayerSegmentBuilderDialogComponent implements OnInit {
    * Closes this dialog without saving
    */
   close(): void {
-    console.log('close');
     this.dialogRef.close(null);
   }
 }

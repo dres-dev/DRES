@@ -1,6 +1,7 @@
 package dev.dres.api.cli
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -30,7 +31,7 @@ import java.util.*
  */
 class UserCommand : NoOpCliktCommand(name = "user") {
     init {
-        this.subcommands(Create(), Update(), Delete(), List(), Roles(), Export(), Import())
+        this.subcommands(Create(), Update(), Delete(), List(), Roles(), Export(), Import(), ImportCsv())
     }
 
     override fun aliases() = mapOf(
@@ -44,11 +45,13 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to create a new [DbUser].
      */
-    inner class Create: CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
+    inner class Create: CliktCommand(name = "create") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Creates a new User"
+        override val printHelpOnEmptyArgs: Boolean = true
         /** The name of the newly created user. */
-        private val username: String by option("-u", "--username", help = "Username of at least $MIN_LENGTH_USERNAME characters length. Must be unique!")
+        private val username: String by option("-u", "--username", help = "Username of $MIN_LENGTH_USERNAME to ${DbUser.MAX_LENGTH_USERNAME} characters. Must be unique!")
                 .required()
-                .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+                .validate { require(it.length in MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME) { "Username for DRES user must consist of between $MIN_LENGTH_USERNAME and ${DbUser.MAX_LENGTH_USERNAME} characters." } }
 
         /** The [Password.Plain] of the newly created user. */
         private val password: Password.Plain by option("-p", "--password", help = "Password of at least $MIN_LENGTH_PASSWORD characters length.")
@@ -74,12 +77,14 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to update an existing [DbUser].
      */
-    inner class Update: CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
+    inner class Update: CliktCommand(name = "update") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Updates Password or Role of an existing User"
+        override val printHelpOnEmptyArgs: Boolean = true
         private val id: UserId? by option("-i", "--id")
 
         /** The new username. */
         private val username: String? by option("-u", "--username", help = "Username of the user to be updated")
-                .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+                .validate { require(it.length in MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME) { "Username for DRES user must consist of between $MIN_LENGTH_USERNAME and ${DbUser.MAX_LENGTH_USERNAME} characters." } }
 
         /** The new [Password.Plain] of the updated user. Left unchanged if null! */
         private val password: Password.Plain? by option("-p", "--password", help = "New Password of at least $MIN_LENGTH_PASSWORD characters length")
@@ -105,14 +110,17 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to delete a [DbUser].
      */
-    inner class Delete: CliktCommand(name = "delete", help = "Deletes an existing user.", printHelpOnEmptyArgs = true) {
+    inner class Delete: CliktCommand(name = "delete") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Deletes an existing user."
+        override val printHelpOnEmptyArgs: Boolean = true
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be deleted.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be deleted.")
-                .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+                .validate { require(it.length in MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME) { "Username for DRES user must consist of between $MIN_LENGTH_USERNAME and ${DbUser.MAX_LENGTH_USERNAME} characters." } }
 
         override fun run()  {
             if (this.id == null && this.username == null) {
                 println("You must specify a valid username or user ID in order to delete a user!")
+                return
             }
             val success = UserManager.delete(id = this.id, username = this.username)
             if (success) {
@@ -126,10 +134,12 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to export a [DbUser].
      */
-    inner class Export: CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.", printHelpOnEmptyArgs = true) {
+    inner class Export: CliktCommand(name = "export") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Exports one or multiple user(s) as JSON."
+        override val printHelpOnEmptyArgs: Boolean = true
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be exported.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be exported.")
-                .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+                .validate { require(it.length in MIN_LENGTH_USERNAME..DbUser.MAX_LENGTH_USERNAME) { "Username for DRES user must consist of between $MIN_LENGTH_USERNAME and ${DbUser.MAX_LENGTH_USERNAME} characters." } }
         private val path: String by option("-o", "--output").required()
         override fun run()  {
 
@@ -138,14 +148,14 @@ class UserCommand : NoOpCliktCommand(name = "user") {
 
             if (this.id == null && this.username == null) {
                 val users = UserManager.list()
-                Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use { writer ->
+                Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).use { writer ->
                     mapper.writeValue(writer, users)
                 }
                 println("Successfully wrote ${users.size} users to $path.")
             } else {
                 val user = UserManager.get(id = this.id, username = this.username)
                 if (user != null) {
-                    Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
+                    Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).use {
                         mapper.writeValue(it, user)
                     }
                     println("Successfully wrote user ${user.id} to $path.")
@@ -159,17 +169,20 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * Imports a specific user(s) from JSON.
      */
-    inner class Import: CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users", printHelpOnEmptyArgs = true) {
+    inner class Import: CliktCommand(name = "import") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Imports a user description from JSON. Either a single user or an array of users"
+        override val printHelpOnEmptyArgs: Boolean = true
 
         private val new: Boolean by option("-n", "--new", help = "Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
 
-        private val multiple: Boolean by option("-m", "-multiple", help = "Flag indicating whether multiple users should be  imported.").flag("-s", "--single", default = true)
+        private val multiple: Boolean by option("-m", "--multiple", help = "Flag indicating whether multiple users should be  imported.").flag("-s", "--single", default = true)
 
         private val destination: String by option("-i", "--in", help = "The input file for the users.").required()
 
         override fun run() {
             val path = Paths.get(this.destination)
-            val mapper = ObjectMapper()
+            /* Kotlin module is required to deserialize Kotlin data classes (no default constructor). */
+            val mapper = jacksonObjectMapper()
 
             val import = Files.newBufferedReader(path).use {
                 if (this.multiple) {
@@ -179,14 +192,61 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                 }
             }
 
-            import.asSequence().filter { it.password != null && it.role != null}.forEach {
+            val (valid, skipped) = import.partition { it.password != null && it.role != null }
+            var failed = 0
+            valid.forEach {
+                val result = try {
                 if (new) {
                     UserManager.create(it.username, Password.Plain(it.password!!).hash(), it.role!!)
                 } else {
                     UserManager.update(null, it.username, Password.Plain(it.password!!).hash(), it.role!!)
                 }
+                } catch (e: Exception) {
+                    null
             }
-            println("done")
+                if (result == null) {
+                    failed++
+                    println("Could not ${if (new) "create" else "update"} user '${it.username}'.")
+                }
+            }
+            skipped.forEach { println("Skipped user '${it.username}': password and role are required.") }
+            println("Imported ${valid.size - failed} of ${import.size} user(s).")
+        }
+    }
+
+    /** Imports users from a CSV file with `username,password,role` columns. */
+    inner class ImportCsv : CliktCommand(name = "importCsv") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String =
+            "Imports users from CSV (header columns: username,password,role)."
+        override val printHelpOnEmptyArgs: Boolean = true
+
+        private val inputPath: String by option("--input", "-i", help = "CSV file to import.").required()
+        private val updateExisting: Boolean by option("--update", help = "Update existing users; by default duplicate usernames are skipped.").flag(default = false)
+
+        override fun run() {
+            val input = Paths.get(inputPath)
+            require(Files.isRegularFile(input) && Files.isReadable(input)) { "Input file '$input' does not exist or is not readable." }
+
+            val users = Files.newInputStream(input).use(UserCsvImport::read)
+
+            var created = 0
+            var updated = 0
+            var skipped = 0
+            users.forEach { record ->
+                val request = record.user
+                val existing = UserManager.exists(username = request.username)
+                when {
+                    existing && updateExisting -> {
+                        if (UserManager.update(null, request.username, Password.Plain(request.password!!).hash(), request.role) != null) updated++
+                    }
+                    existing -> skipped++
+                    else -> {
+                        UserManager.create(request.username, Password.Plain(request.password!!).hash(), request.role!!)
+                        created++
+                    }
+                }
+            }
+            println("User CSV import complete: $created created, $updated updated, $skipped existing users skipped.")
         }
     }
 
@@ -194,7 +254,8 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to list all users.
      */
-    inner class List: CliktCommand(name = "list", help = "Lists all Users") {
+    inner class List: CliktCommand(name = "list") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Lists all Users"
         val plain by option("-p", "--plain", help = "Plain print: No fancy table. Might be easier if the output should be processed").flag(default = false)
         override fun run() {
             val users = UserManager.list()
@@ -228,7 +289,8 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to list all [DbRole]s.
      */
-    inner class Roles: CliktCommand(name = "roles", help = "Lists all Roles") {
+    inner class Roles: CliktCommand(name = "roles") {
+        override fun help(context: com.github.ajalt.clikt.core.Context): String = "Lists all Roles"
         override fun run() {
             println("Available roles: ${ApiRole.values().filter { it != ApiRole.ANYONE }.joinToString(", ")}")
         }

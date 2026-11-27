@@ -19,10 +19,15 @@ import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
+import dev.dres.run.RunManager.Companion.RUN_LOOP_ERROR_BACKOFF_MS
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
+import dev.dres.run.eventstream.EventStreamProcessor
+import dev.dres.run.eventstream.TaskPrepareEvent
+import dev.dres.run.eventstream.ViewerUpdateEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
+import dev.dres.run.exceptions.PerpetualTaskException
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -79,9 +84,14 @@ class InteractiveAsynchronousRunManager(
 
     /** A [Map] of all viewers, i.e., DRES clients currently registered with this [InteractiveAsynchronousRunManager]. */
     private val viewers = ConcurrentHashMap<ViewerInfo, Boolean>()
+    private val viewerPresences = ConcurrentHashMap<ViewerInfo, ViewerPresence>()
+    private val viewerStateLock = Any()
 
     /** A lock for state changes to this [InteractiveAsynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
+
+    /** Serializes submission filtering with persistence so concurrent requests cannot bypass team limits. */
+    private val submissionLock = Any()
 
     /** List of [Updatable] held by this [InteractiveAsynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
@@ -201,7 +211,11 @@ class InteractiveAsynchronousRunManager(
      *
      */
     override fun updateProperties(properties: ApiRunProperties) {
-        TODO("Not yet implemented")
+        store.transactional {
+            this.evaluation.participantCanView = properties.participantCanView
+            this.evaluation.allowRepeatedTasks = properties.allowRepeatedTasks
+            this.evaluation.limitSubmissionPreviews = properties.limitSubmissionPreviews
+        }
     }
 
     /**
@@ -277,7 +291,21 @@ class InteractiveAsynchronousRunManager(
     override fun goTo(context: RunActionContext, index: Int) = this.stateLock.write {
         val teamId = context.teamId()
         checkTeamStatus(teamId, RunManagerStatus.ACTIVE)//, RunManagerStatus.TASK_ENDED)
-        require(!teamHasRunningTask(teamId)) { "Cannot change task while task is active" }
+
+        /*
+         * A timed task must be finished before the team may move on, so that it is not abandoned halfway.
+         * A perpetual task has no deadline of its own, so skipping is the only way to leave it; it is ended
+         * here (mirroring what [abortTask] does) rather than rejected.
+         */
+        if (teamHasRunningTask(teamId)) {
+            val runningTask = requireNotNull(this.evaluation.currentTaskForTeam(teamId)) {
+                "Cannot change task while task is active"
+            }
+            require(runningTask.duration == null) { "Cannot change task while task is active" }
+            runningTask.end()
+            AuditLogger.taskEnd(this.id, runningTask.taskId, AuditLogSource.INTERNAL, null)
+            LOGGER.info("Run manager ${this.id} skipped perpetual task ${runningTask.taskId} of team $teamId")
+        }
 
         val idx = (index + this.template.tasks.size) % this.template.tasks.size
 
@@ -331,12 +359,24 @@ class InteractiveAsynchronousRunManager(
 
         }
 
-        val currentTaskRun = store.transactional {
-            val currentTaskRun = this.evaluation.IATaskRun(dbTask)
-            currentTaskRun.prepare()
-            currentTaskRun
+        val dbTaskId = this.store.transactional(true) { dbTask.id }
+        val currentTaskRun = try {
+            store.transactional {
+                val taskRun = this.evaluation.IATaskRun(dbTask)
+                taskRun.prepare()
+                taskRun
+            }
+        } catch (e: Exception) {
+            LOGGER.error("Could not start task ${currentTaskTemplate.id} for team $teamId in evaluation ${this.id}: ${e.message}", e)
+            this.evaluation.removeTaskRun(teamId, dbTaskId)
+            this.store.transactional {
+                DbTask.filter { it.id eq dbTaskId }.firstOrNull()?.delete()
+            }
+            throw e
         }
 
+        EventStreamProcessor.event(TaskPrepareEvent(this.id, currentTaskRun.taskId, currentTaskTemplate))
+        EventStreamProcessor.event(ViewerUpdateEvent(this.id))
         LOGGER.info("Run manager  ${this.id} started task $currentTaskTemplate.")
 
         currentTaskRun.taskId
@@ -362,8 +402,12 @@ class InteractiveAsynchronousRunManager(
             ?: throw IllegalStateException("Could not find active task for team ${teamId} despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
         currentTask.end()
 
-//        /* Enqueue WS message for sending */
-//        RunExecutor.broadcastWsMessage(teamId, ServerMessage(this.id, ServerMessageType.TASK_END, currentTask.taskId))
+        /*
+         * Auditing the end is what notifies observers: AuditLogger.taskEnd emits a TaskEndEvent, which
+         * RunExecutor turns into a TASK_END broadcast. An abort used to only log, so a stopped task
+         * stayed "running" on every connected viewer until something else happened.
+         */
+        AuditLogger.taskEnd(this.id, currentTask.taskId, AuditLogSource.INTERNAL, null)
 
         LOGGER.info("Run manager ${this.id} aborted task $currentTask.")
     }
@@ -378,8 +422,13 @@ class InteractiveAsynchronousRunManager(
      * @return Time remaining until the task will end or -1, if no task is running. NULL if the task runs perpetually.
      */
     override fun timeLeft(context: RunActionContext): Long? = this.stateLock.read {
-        val currentTaskRun = this.currentTask(context)
-        return if (currentTaskRun?.duration == null) {
+        /*
+         * As in the synchronous manager, "no task run" must be distinguished from "perpetual task":
+         * `currentTaskRun?.duration == null` cannot tell them apart, and reporting null would claim a
+         * deadline-free task where the documented answer is -1L.
+         */
+        val currentTaskRun = this.currentTask(context) ?: return@read -1L
+        return if (currentTaskRun.duration == null) {
             null
         } else {
             if (currentTaskRun.isRunning) {
@@ -491,7 +540,15 @@ class InteractiveAsynchronousRunManager(
 
         val currentTaskRun = this.currentTask(context)
             ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
-        check(currentTaskRun.duration != null){"The task '${currentTaskRun.template.name}' (${currentTaskRun.taskId}) runs perpetually."} // TODO what is the semantic of a perpetual IA task?
+        /*
+         * A perpetual asynchronous task can neither be prolonged nor shortened: it ends by submission
+         * or by skipping. Reported as a [PerpetualTaskException], NOT as an IllegalArgumentException -
+         * the REST layer treats that one as "the new duration went below zero" and aborts the task,
+         * which is the opposite of what the caller asked for.
+         */
+        if (currentTaskRun.duration == null) {
+            throw PerpetualTaskException("The task '${currentTaskRun.template.name}' (${currentTaskRun.taskId}) runs perpetually and has no duration to adjust.")
+        }
         val newDuration = currentTaskRun.duration!! + s
         check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         currentTaskRun.duration = newDuration
@@ -523,51 +580,54 @@ class InteractiveAsynchronousRunManager(
      * @return [DbVerdictStatus] of the [DbSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE].
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) = this.stateLock.read {
+    override fun postSubmission(
+        context: RunActionContext,
+        submission: ApiClientSubmission
+    ) = synchronized(this.submissionLock) {
+        this.stateLock.read {
+            /* Phase 1: Basic lookups required for validation (read-only). */
+            val (task, transformedSubmission) = this.store.transactional(true) {
+                val teamId = context.teamId()
 
-        /* Phase 1: Basic lookups required for validation (read-only). */
-        val (task, transformedSubmission) = this.store.transactional(true) {
-            val teamId = context.teamId()
+                require(teamHasRunningTask(teamId)) { "No running task for Team ${teamId}" }
+                val task = this.currentTask(context)
+                    ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[teamId]}. This is a programmer's error!")
 
-            require(teamHasRunningTask(teamId)) { "No running task for Team ${teamId}" }
-            val task = this.currentTask(context)
-                ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[teamId]}. This is a programmer's error!")
+                /* Sanity check. */
+                check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
 
-            /* Sanity check. */
-            check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
+                /* Update submission with contextual information. */
+                submission.userId = context.userId
+                submission.teamId = teamId
+                submission.answerSets.forEach {
+                    it.taskId = task.taskId /* All answers are explicitly associated with the running task. */
+                }
 
-            /* Update submission with contextual information. */
-            submission.userId = context.userId
-            submission.teamId = teamId
-            submission.answerSets.forEach {
-                it.taskId = task.taskId /* All answers are explicitly associated with the running task. */
+                /* Apply transformer(s) to submission. */
+                val transformedSubmission = task.transformer.transform(submission)
+
+                /* Run submission through all the filters. */
+                task.filter.acceptOrThrow(transformedSubmission)
+                task to transformedSubmission
             }
 
-            /* Apply transformer(s) to submission. */
-            val transformedSubmission = task.transformer.transform(submission)
+            /* Phase 2: Create DbSubmission, apply transformers and validate it. */
+            this.store.transactional {
+                /* Convert submission to database representation. */
+                val db = transformedSubmission.toNewDb()
 
+                /* Check if there are answers left after transformation */
+                if (db.answerSets.isEmpty) {
+                    throw IllegalStateException("Submission contains no valid answer sets.")
+                }
 
-            /* Run submission through all the filters. */
-            task.filter.acceptOrThrow(transformedSubmission)
-            task to transformedSubmission
-        }
+                /* Apply validators to each answer set. */
+                db.answerSets.asSequence().forEach {
+                    task.validator.validate(it)
+                }
 
-        /* Phase 2: Create DbSubmission, apply transformers and validate it. */
-        return@read this.store.transactional {
-            /* Convert submission to database representation. */
-            val db = transformedSubmission.toNewDb()
-
-            /* Check if there are answers left after transformation */
-            if (db.answerSets.isEmpty) {
-                throw IllegalStateException("Submission contains no valid answer sets.")
+                db.toApi()
             }
-
-            /* Apply validators to each answer set. */
-            db.answerSets.asSequence().forEach {
-                task.validator.validate(it)
-            }
-
-            db.toApi()
         }
     }
 
@@ -612,19 +672,99 @@ class InteractiveAsynchronousRunManager(
      *
      * @return List of viewer [WebSocketConnection]s for this [RunManager].
      */
-    override fun viewers(): Map<ViewerInfo, Boolean> = Collections.unmodifiableMap(this.viewers)
+    override fun viewers(): Map<ViewerInfo, Boolean> = synchronized(this.viewerStateLock) { HashMap(this.viewers) }
+
+    override fun viewerSnapshot(): Map<ViewerInfo, ViewerStatus> = synchronized(this.viewerStateLock) {
+        (this.viewers.keys + this.viewerPresences.keys).associateWith { viewer ->
+            ViewerStatus(this.viewers[viewer] ?: this.viewerPresences[viewer]?.ready ?: false, this.viewerPresences[viewer])
+        }
+    }
+
+    override fun viewerPresence(): Map<ViewerInfo, ViewerPresence> = synchronized(this.viewerStateLock) { HashMap(this.viewerPresences) }
+
+    override fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence? = synchronized(this.viewerStateLock) { this.viewerPresences[viewerInfo] }
+
+    override fun viewerConnectionChanged(viewerInfo: ViewerInfo, connected: Boolean, lastSeen: Long) {
+        val changed = synchronized(this.viewerStateLock) {
+            val previous = this.viewerPresences[viewerInfo]
+            if (previous != null && lastSeen < previous.lastSeen) return@synchronized false
+            val ready = this.viewers[viewerInfo] ?: previous?.ready ?: false
+            this.viewerPresences[viewerInfo] = ViewerPresence(viewerInfo.host, ready, connected, lastSeen)
+            previous?.connected != connected
+        }
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+    }
+
+    override fun viewerConnectionHeartbeat(viewerInfo: ViewerInfo) {
+        synchronized(this.viewerStateLock) {
+            val previous = this.viewerPresences[viewerInfo] ?: return
+            this.viewerPresences[viewerInfo] = previous.copy(lastSeen = System.currentTimeMillis())
+        }
+    }
+
+    override fun cleanupViewerPresence(offlineBefore: Long) {
+        synchronized(this.viewerStateLock) {
+            this.viewerPresences.entries.removeIf { (viewer, presence) ->
+                if (!presence.connected && presence.lastSeen < offlineBefore) {
+                    this.viewers.remove(viewer)
+                    true
+                } else false
+            }
+            /* Legacy readiness-only rows have no timestamp and cannot still be live. */
+            (this.viewers.keys - this.viewerPresences.keys).forEach(this.viewers::remove)
+        }
+    }
+
+    override fun recordViewerActivity(viewerInfo: ViewerInfo, ready: Boolean, connected: Boolean) {
+        val changed = synchronized(this.viewerStateLock) {
+            val current = this.viewerPresences[viewerInfo]
+            this.viewerPresences[viewerInfo] = ViewerPresence(viewerInfo.host, ready, connected, System.currentTimeMillis())
+            current == null || current.connected != connected || current.ready != ready || current.host != viewerInfo.host
+        }
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+    }
 
     override fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
-        val currentTaskId = this.currentTask(rac)?.taskId
-        if (taskTemplateId == currentTaskId) {
-            this.viewers[viewerInfo] = false
+        val currentTaskTemplateId = this.currentTask(rac)?.taskTemplateId
+        if (taskTemplateId == currentTaskTemplateId) {
+            /*
+             * The readiness flag is flipped under the lock, but the activity record (which publishes a
+             * ViewerUpdateEvent) happens after it is released: the event thread must never depend on this
+             * manager's viewer lock being free.
+             */
+            val changed = synchronized(this.viewerStateLock) {
+                if (this.viewers[viewerInfo] != false) {
+                    this.viewers[viewerInfo] = false
+                    true
+                } else false
+            }
+            if (changed) {
+                this.recordViewerActivity(
+                    viewerInfo,
+                    ready = false,
+                    connected = this.viewerPresence(viewerInfo)?.connected ?: false
+                )
+            }
         }
     }
 
     override fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
-        val currentTaskId = this.currentTask(rac)?.taskId
-        if (taskTemplateId == currentTaskId) {
-            this.viewers[viewerInfo] = true
+        val currentTaskTemplateId = this.currentTask(rac)?.taskTemplateId
+        if (taskTemplateId == currentTaskTemplateId) {
+            /* See [viewerPreparing]: publish the presence change outside the viewer lock. */
+            val changed = synchronized(this.viewerStateLock) {
+                if (this.viewers[viewerInfo] != true) {
+                    this.viewers[viewerInfo] = true
+                    true
+                } else false
+            }
+            if (changed) {
+                this.recordViewerActivity(
+                    viewerInfo,
+                    ready = true,
+                    connected = this.viewerPresence(viewerInfo)?.connected ?: false
+                )
+            }
         }
     }
 
@@ -651,7 +791,7 @@ class InteractiveAsynchronousRunManager(
         /* Start [InteractiveSynchronousRunManager]; main run-loop. */
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
-                this.stateLock.read {
+                this.stateLock.write {
                     this.store.transactional {
                         /* 1) Invoke all relevant [Updatable]s. */
                         this.invokeUpdatables()
@@ -667,19 +807,28 @@ class InteractiveAsynchronousRunManager(
                 /* 4) Reset error counter and yield to other threads. */
                 errorCounter = 0
             } catch (ie: InterruptedException) {
-                LOGGER.info("Interrupted SynchronousRunManager, exiting")
+                LOGGER.info("Interrupted InteractiveAsynchronousRunManager, exiting")
+                Thread.currentThread().interrupt()
                 return
             } catch (e: Throwable) {
                 LOGGER.error(
                     "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
                     e
                 )
-                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
+                errorCounter++
+                LOGGER.error("This is the $errorCounter. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
 
-                // oh shit, something went horribly, horribly wrong
                 if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
                     LOGGER.error("Reached maximum consecutive error count, terminating loop")
                     break //terminate loop
+                }
+                /* See InteractiveSynchronousRunManager: retrying immediately burned the error budget. */
+                try {
+                    Thread.sleep(RUN_LOOP_ERROR_BACKOFF_MS * errorCounter)
+                } catch (ie: InterruptedException) {
+                    LOGGER.info("Interrupted InteractiveAsynchronousRunManager while backing off, exiting")
+                    Thread.currentThread().interrupt()
+                    return
                 }
             }
         }
@@ -733,13 +882,8 @@ class InteractiveAsynchronousRunManager(
                         )
                         if (timeLeft <= 0) {
                             task.end()
+                            /* Emits the TaskEndEvent that RunExecutor broadcasts as TASK_END. */
                             AuditLogger.taskEnd(this.id, task.taskId, AuditLogSource.INTERNAL, null)
-
-//                        /* Enqueue WS message for sending */
-//                        RunExecutor.broadcastWsMessage(
-//                            teamId,
-//                            ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId)
-//                        )
                         }
                     }
 
@@ -749,11 +893,12 @@ class InteractiveAsynchronousRunManager(
                     val task = this.evaluation.currentTaskForTeam(teamId)
                         ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                     task.start()
-                    AuditLogger.taskStart(this.id, task.teamId, task.template, AuditLogSource.REST, null)
-//                    RunExecutor.broadcastWsMessage(
-//                        teamId,
-//                        ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId)
-//                    )
+                    /*
+                     * A task that starts by itself is not a REST interaction, and the entry must carry
+                     * the task's own id - not the team's. Both go through AuditLogger, which emits the
+                     * TaskStartEvent that RunExecutor broadcasts, so observers learn about the start.
+                     */
+                    AuditLogger.taskStart(this.id, task.taskId, task.template, AuditLogSource.INTERNAL, null)
                 }
             }
         }

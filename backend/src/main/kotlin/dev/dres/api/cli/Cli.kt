@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.mordant.rendering.Widget
 import dev.dres.data.model.config.Config
 import dev.dres.mgmt.cache.CacheManager
+import dev.dres.utilities.FFmpegDownloader
 import jetbrains.exodus.database.TransientEntityStore
 import org.jline.builtins.Completers
 import org.jline.builtins.Completers.TreeCompleter.node
@@ -27,6 +28,8 @@ import kotlin.system.exitProcess
  */
 object Cli {
 
+    private val logger = org.slf4j.LoggerFactory.getLogger(this.javaClass)
+
     private const val PROMPT = "DRES> "
 
     private lateinit var clikt: CliktCommand
@@ -43,11 +46,12 @@ object Cli {
         clikt = DRESBaseCommand().subcommands(
             EvaluationTemplateCommand(cache),
             UserCommand(),
-            MediaCollectionCommand(config),
+            MediaCollectionCommand(),
             EvaluationCommand(store),
             OpenApiCommand(),
             ExecutionCommand(),
-            ConfigCommand()
+            ConfigCommand(),
+            SetupCommand()
         )
 
         val terminal = try {
@@ -82,6 +86,16 @@ object Cli {
             .completer(completer)
             .build()
 
+        if (config.cache.ffmpegPath() == null) {
+            System.err.println("FFmpeg was not found. Video preview generation is unavailable.")
+            val setupHint = if (FFmpegDownloader.platform() != null) {
+                "Run 'setup ffmpeg' to download a pinned build, or install FFmpeg system-wide."
+            } else {
+                "Install FFmpeg system-wide or provide a reviewed build on PATH."
+            }
+            System.err.println(setupHint)
+        }
+
         while (true) {
             try {
                 val line = lineReader.readLine(PROMPT).trim()
@@ -106,7 +120,7 @@ object Cli {
                         is MissingArgument -> println(e.localizedMessage)
                         is NoSuchOption -> println(e.localizedMessage)
                         is UsageError -> println("invalid command: ${e.localizedMessage}")
-                        else -> e.printStackTrace()
+                        else -> logger.error("Command '{}' failed.", line, e)
                     }
                     lineReader.printAbove(PROMPT)
                 }

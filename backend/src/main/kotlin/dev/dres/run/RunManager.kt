@@ -28,6 +28,14 @@ interface RunManager : Runnable {
     companion object {
         /** The maximum number of errors that may occur in a run loop befor aborting execution. */
         const val MAXIMUM_RUN_LOOP_ERROR_COUNT = 5
+
+        /**
+         * Pause per consecutive run-loop error, multiplied by the error count.
+         *
+         * A failing iteration used to be retried immediately, which burned the whole error budget within
+         * milliseconds: a run died before anyone could see the log line that explained why.
+         */
+        const val RUN_LOOP_ERROR_BACKOFF_MS = 1_000L
     }
 
 
@@ -127,6 +135,27 @@ interface RunManager : Runnable {
      * @return List of viewer [ViewerInfo]s for this [RunManager].
      */
     fun viewers(): Map<ViewerInfo,Boolean>
+
+    /** Atomically captured READY state and WebSocket liveness for the admin viewer list. */
+    fun viewerSnapshot(): Map<ViewerInfo, ViewerStatus>
+
+    /** Current WebSocket liveness, separate from the task READY state. */
+    fun viewerPresence(): Map<ViewerInfo, ViewerPresence>
+
+    /** Looks up one viewer's liveness without copying the full presence map. */
+    fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence?
+
+    /** Updates connection state for a viewer that is authorized to observe this run. */
+    fun viewerConnectionChanged(viewerInfo: ViewerInfo, connected: Boolean, lastSeen: Long = System.currentTimeMillis())
+
+    /** Refreshes last-seen time without publishing an admin viewer-list update. */
+    fun viewerConnectionHeartbeat(viewerInfo: ViewerInfo)
+
+    /** Removes offline viewer records older than the supplied timestamp. */
+    fun cleanupViewerPresence(offlineBefore: Long)
+
+    /** Tracks a viewer identified by the HTTP readiness lifecycle if its WebSocket is not registered yet. */
+    fun recordViewerActivity(viewerInfo: ViewerInfo, ready: Boolean, connected: Boolean = false)
 
     fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo)
 

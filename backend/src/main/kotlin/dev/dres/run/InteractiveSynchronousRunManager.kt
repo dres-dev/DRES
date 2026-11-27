@@ -18,12 +18,16 @@ import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.task.options.Defaults.VIEWER_TIMEOUT_DEFAULT
+import dev.dres.run.exceptions.PerpetualTaskException
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
+import dev.dres.run.RunManager.Companion.RUN_LOOP_ERROR_BACKOFF_MS
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
+import dev.dres.run.eventstream.TaskPrepareEvent
+import dev.dres.run.eventstream.ViewerUpdateEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
@@ -35,6 +39,7 @@ import kotlinx.dnq.query.*
 import kotlinx.dnq.util.findById
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -95,8 +100,13 @@ class InteractiveSynchronousRunManager(
     override val scoreboards: List<Scoreboard>
         get() = this.evaluation.scoreboards
 
+    /** Serializes submission filtering with persistence so concurrent requests cannot bypass team limits. */
+    private val submissionLock = Any()
+
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state. */
     private val readyLatch = ReadyLatch<ViewerInfo>()
+    private val viewerPresences = ConcurrentHashMap<ViewerInfo, ViewerPresence>()
+    private val viewerStateLock = Any()
 
     /** List of [Updatable] held by this [InteractiveSynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
@@ -214,13 +224,21 @@ class InteractiveSynchronousRunManager(
     override fun goTo(context: RunActionContext, index: Int) = this.stateLock.write {
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
-        this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING }
         if (index >= 0 && index < this.template.tasks.size) {
             /* Update active task. */
             this.evaluation.goTo(index)
 
-            /* Clear ready latch */
-            this.readyLatch.clear()
+            /* Reset task readiness without dropping connected viewer presence. */
+            val viewerReadinessChanged = synchronized(this.viewerStateLock) {
+                this.readyLatch.clear()
+                var changed = false
+                this.viewerPresences.replaceAll { _, presence ->
+                    if (presence.ready) changed = true
+                    presence.copy(ready = false)
+                }
+                changed
+            }
+            if (viewerReadinessChanged) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
 
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
         } else {
@@ -239,33 +257,50 @@ class InteractiveSynchronousRunManager(
         }
 
         val dbTask = this.store.transactional {
-
             val dbTaskTemplate = DbTaskTemplate.filter { it.id eq currentTaskTemplate.id!! }.first()
 
-            /* create task, needs to be persisted before run can be created */
-            val dbTask = DbTask.new {
+            /* Persist before creating the task run because the run needs a task ID. */
+            DbTask.new {
                 status = DbTaskStatus.CREATED
                 evaluation = this@InteractiveSynchronousRunManager.evaluation.dbEvaluation
                 template = dbTaskTemplate
             }
+        }
+        val dbTaskId = this.store.transactional(true) { dbTask.id }
+        val previousReadyState = this.readyLatch.state()
+        val previousPresences = synchronized(this.viewerStateLock) { HashMap(this.viewerPresences) }
 
-            dbTask
+        try {
+            this.store.transactional {
+                val taskRun = this.evaluation.ISTaskRun(dbTask)
+                /* Reset before PREPARING reaches viewers, so their readiness reports are not lost. */
+                this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
+                synchronized(this.viewerStateLock) {
+                    this.viewerPresences.replaceAll { _, presence -> presence.copy(ready = false) }
+                }
+                taskRun.prepare()
+            }
+        } catch (e: Exception) {
+            LOGGER.error("Could not start task with template ${currentTaskTemplate.id} in evaluation ${this.id}: ${e.message}", e)
+            this.evaluation.taskRuns.removeIf { it.taskId == dbTaskId }
+            this.readyLatch.clear()
+            previousReadyState.forEach { (viewer, ready) ->
+                this.readyLatch.register(viewer)
+                if (ready) this.readyLatch.setReady(viewer)
+            }
+            synchronized(this.viewerStateLock) {
+                this.viewerPresences.clear()
+                this.viewerPresences.putAll(previousPresences)
+            }
+            this.store.transactional {
+                DbTask.filter { it.id eq dbTaskId }.firstOrNull()?.delete()
+            }
+            throw e
         }
 
-        this.store.transactional {
 
-            /* Create and prepare pipeline for submission. */
-            this.evaluation.ISTaskRun(dbTask)
-
-            /* Update status. */
-            this.evaluation.currentTaskRun!!.prepare()
-
-            /* Reset the ReadyLatch. */
-            //this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
-            /* Since the viewer sends its ready message too early, if we reset the readyLatch here, we will override the previously sent ready and will always run into the timout */
-        }
-
-
+        EventStreamProcessor.event(TaskPrepareEvent(this.id, dbTaskId, currentTaskTemplate))
+        EventStreamProcessor.event(ViewerUpdateEvent(this.id))
         LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.currentTaskRun?.taskId} with task template ${this.evaluation.getCurrentTaskTemplate().id}.")
 
         this.evaluation.currentTaskRun!!.taskId
@@ -347,6 +382,7 @@ class InteractiveSynchronousRunManager(
      * @return Time remaining until the task will end in milliseconds
      *
      * @throws IllegalArgumentException If the specified correction cannot be applied.
+     * @throws PerpetualTaskException If the current task runs perpetually and therefore has no duration.
      * @throws IllegalStateException If [RunManager] was not in wrong [RunManagerStatus].
      */
     override fun adjustDuration(context: RunActionContext, s: Int): Long = this.stateLock.write {
@@ -356,7 +392,9 @@ class InteractiveSynchronousRunManager(
         val task = this.currentTask(context)
             ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
         check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
-        check(task.duration != null){"Task run '${this.name}.${task.position}' runs perpetually. This is a programmer's error!"}
+        if (task.duration == null) {
+            throw PerpetualTaskException("The task '${task.template.name}' (${task.taskId}) runs perpetually and has no duration to adjust.")
+        }
 
         /* Adjust duration. */
         val newDuration = task.duration!! + s
@@ -375,19 +413,23 @@ class InteractiveSynchronousRunManager(
      * @return Time remaining until the task will end or -1, if no task is running. NULL if the task runs perpetually.
      */
     override fun timeLeft(context: RunActionContext): Long? {
-        return if(this.evaluation.currentTaskRun?.duration == null){
-            null
-        }else{
-        if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
-            val currentTaskRun = this.currentTask(context)
-                ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
+        /*
+         * The task-run check must come first: `currentTaskRun?.duration == null` is also true when
+         * there is no task run at all, which used to report "perpetual" (null) instead of the
+         * documented -1L for "nothing is running".
+         */
+        val currentTaskRun = this.evaluation.currentTaskRun ?: return -1L
+        if (currentTaskRun.duration == null) {
+            return null
+        }
+        return if (currentTaskRun.status == ApiTaskStatus.RUNNING) {
             max(
                 0L,
                 currentTaskRun.duration!! * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
             )
         } else {
             -1L
-        }}
+        }
     }
 
     /**
@@ -411,7 +453,58 @@ class InteractiveSynchronousRunManager(
      *
      * @return Map of session ID to ready state.
      */
-    override fun viewers(): HashMap<ViewerInfo, Boolean> = this.readyLatch.state()
+    override fun viewers(): HashMap<ViewerInfo, Boolean> = synchronized(this.viewerStateLock) { this.readyLatch.state() }
+
+    override fun viewerSnapshot(): Map<ViewerInfo, ViewerStatus> = synchronized(this.viewerStateLock) {
+        val ready = this.readyLatch.state()
+        (ready.keys + this.viewerPresences.keys).associateWith { viewer ->
+            ViewerStatus(ready[viewer] ?: this.viewerPresences[viewer]?.ready ?: false, this.viewerPresences[viewer])
+        }
+    }
+
+    override fun viewerPresence(): Map<ViewerInfo, ViewerPresence> = synchronized(this.viewerStateLock) { HashMap(this.viewerPresences) }
+
+    override fun viewerPresence(viewerInfo: ViewerInfo): ViewerPresence? = synchronized(this.viewerStateLock) { this.viewerPresences[viewerInfo] }
+
+    override fun viewerConnectionChanged(viewerInfo: ViewerInfo, connected: Boolean, lastSeen: Long) {
+        val changed = synchronized(this.viewerStateLock) {
+            val previous = this.viewerPresences[viewerInfo]
+            if (previous != null && lastSeen < previous.lastSeen) return@synchronized false
+            val ready = this.readyLatch.state()[viewerInfo] ?: previous?.ready ?: false
+            this.viewerPresences[viewerInfo] = ViewerPresence(viewerInfo.host, ready, connected, lastSeen)
+            previous?.connected != connected
+        }
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+    }
+
+    override fun viewerConnectionHeartbeat(viewerInfo: ViewerInfo) {
+        synchronized(this.viewerStateLock) {
+            val previous = this.viewerPresences[viewerInfo] ?: return
+            this.viewerPresences[viewerInfo] = previous.copy(lastSeen = System.currentTimeMillis())
+        }
+    }
+
+    override fun cleanupViewerPresence(offlineBefore: Long) {
+        synchronized(this.viewerStateLock) {
+            this.viewerPresences.entries.removeIf { (viewer, presence) ->
+                if (!presence.connected && presence.lastSeen < offlineBefore) {
+                    this.readyLatch.unregister(viewer)
+                    true
+                } else false
+            }
+            /* Readiness-only rows have no timestamp and cannot still be live without a presence record. */
+            (this.readyLatch.state().keys - this.viewerPresences.keys).forEach(this.readyLatch::unregister)
+        }
+    }
+
+    override fun recordViewerActivity(viewerInfo: ViewerInfo, ready: Boolean, connected: Boolean) {
+        val changed = synchronized(this.viewerStateLock) {
+            val current = this.viewerPresences[viewerInfo]
+            this.viewerPresences[viewerInfo] = ViewerPresence(viewerInfo.host, ready, connected, System.currentTimeMillis())
+            current == null || current.connected != connected || current.ready != ready || current.host != viewerInfo.host
+        }
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
+    }
 
     /**
      * Can be used to manually override the READY state of a viewer. Can be used in case a viewer hangs in the PREPARING_TASK phase.
@@ -424,9 +517,17 @@ class InteractiveSynchronousRunManager(
         checkContext(context)
 
         return try {
-            val viewer = this.readyLatch.state().keys.find { it.sessionToken == viewerId }
+            val viewer = synchronized(this.viewerStateLock) { this.readyLatch.state().keys.find { it.sessionToken == viewerId } }
             if (viewer != null) {
-                this.readyLatch.setReady(viewer)
+                val changed = synchronized(this.viewerStateLock) {
+                    this.readyLatch.setReady(viewer)
+                    val presence = this.viewerPresences[viewer]
+                    if (presence != null && !presence.ready) {
+                        this.viewerPresences[viewer] = presence.copy(ready = true)
+                        true
+                    } else false
+                }
+                if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
                 true
             } else {
                 false
@@ -464,28 +565,53 @@ class InteractiveSynchronousRunManager(
 //        }
 
     override fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
-
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
+        if (taskTemplateId != currentTemplateId) return
 
-        if (taskTemplateId == currentTemplateId) {
-            this.readyLatch.register(viewerInfo)
+        val changed = synchronized(this.viewerStateLock) {
+            val ready = this.readyLatch.state()[viewerInfo]
+            if (ready != true) {
+                if (ready == null) this.readyLatch.register(viewerInfo)
+                this.viewerPresences[viewerInfo] = ViewerPresence(
+                    host = viewerInfo.host,
+                    ready = false,
+                    connected = this.viewerPresences[viewerInfo]?.connected ?: false,
+                    lastSeen = System.currentTimeMillis()
+                )
+                true
+            } else false
         }
-
+        /*
+         * The state change and the presence row are written under the lock so that a concurrent cleanup
+         * cannot observe half of it; the event is published after it is released so dispatch never waits
+         * for this manager.
+         */
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
     }
 
     override fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
-
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
+        if (taskTemplateId != currentTemplateId) return
 
-        if (taskTemplateId == currentTemplateId) {
-//            val status = this.evaluation.currentTaskRun?.status
-//            if (status == ApiTaskStatus.PREPARING) {
-            /* Since the viewer does send the ready message too early, we cannot care whether the task is (already) preparing or not */
-                this.readyLatch.register(viewerInfo) //avoid redying previously untracked viewers
+        /* Since the viewer can send READY early, do not require the task to already be preparing. */
+        val changed = synchronized(this.viewerStateLock) {
+            val previousPresence = this.viewerPresences[viewerInfo]
+            if (this.readyLatch.state()[viewerInfo] == true && previousPresence != null) {
+                false
+            } else {
+                this.readyLatch.register(viewerInfo) // Register previously untracked viewers.
                 this.readyLatch.setReady(viewerInfo)
-//            }
+                this.viewerPresences[viewerInfo] = ViewerPresence(
+                    host = viewerInfo.host,
+                    ready = true,
+                    connected = previousPresence?.connected ?: false,
+                    lastSeen = System.currentTimeMillis()
+                )
+                true
+            }
         }
-
+        /* See viewerPreparing: state and presence together under the lock, the event outside of it. */
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
     }
 
     /**
@@ -499,7 +625,7 @@ class InteractiveSynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @param submission [ApiSubmission] that should be registered.
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) : ApiSubmission {
+    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) : ApiSubmission = synchronized(this.submissionLock) {
 
         /* Phase 1: Basic lookups required for validation (read-only). */
         val (task, transformedSubmission) = this.store.transactional(true) {
@@ -602,7 +728,7 @@ class InteractiveSynchronousRunManager(
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
                 /* Obtain lock on current state. */
-                this.stateLock.read {
+                this.stateLock.write {
                     this.store.transactional {
                         /* 1) Invoke all relevant [Updatable]s. */
                         this.invokeUpdatables()
@@ -619,18 +745,33 @@ class InteractiveSynchronousRunManager(
                 errorCounter = 0
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted SynchronousRunManager, exiting")
+                /* Restore the flag so the executor sees the shutdown instead of a normal completion. */
+                Thread.currentThread().interrupt()
                 return
             } catch (e: Throwable) {
                 LOGGER.error(
                     "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
                     e
                 )
-                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
+                errorCounter++
+                LOGGER.error("This is the $errorCounter. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
 
-                // oh shit, something went horribly, horribly wrong
                 if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
                     LOGGER.error("Reached maximum consecutive error count, terminating loop")
                     break //terminate loop
+                }
+                /*
+                 * The loop used to retry immediately, so a persistent fault spun through the whole error
+                 * budget in milliseconds and the run died within a frame or two. Backing off keeps the
+                 * run alive long enough for the fault to be noticed and fixed while it is still running.
+                 * An interrupt here means shutdown, which must not be swallowed by the catch-all.
+                 */
+                try {
+                    Thread.sleep(RUN_LOOP_ERROR_BACKOFF_MS * errorCounter)
+                } catch (ie: InterruptedException) {
+                    LOGGER.info("Interrupted SynchronousRunManager while backing off, exiting")
+                    Thread.currentThread().interrupt()
+                    return
                 }
             }
         }
@@ -669,15 +810,25 @@ class InteractiveSynchronousRunManager(
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
         if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
+            /*
+             * A timeout starts the task even though viewers never reported ready, which looks exactly like
+             * a normal start from the outside. Name the viewers that were waited for, so a slow or broken
+             * viewer can be told apart from a fast start.
+             */
+            val pending = this.readyLatch.notReady()
+            if (pending.isNotEmpty()) {
+                LOGGER.warn(
+                    "Starting task in run {} after the viewer timeout with {} viewer(s) not ready: {}",
+                    this.id,
+                    pending.size,
+                    pending.joinToString { it.sessionToken }
+                )
+            }
             this.stateLock.write {
                 this.evaluation.currentTaskRun!!.start()
-                AuditLogger.taskStart(
-                    this.id,
-                    this.evaluation.currentTaskRun!!.taskId,
-                    this.evaluation.getCurrentTaskTemplate(),
-                    AuditLogSource.INTERNAL,
-                    null
-                )
+                val task = this.evaluation.currentTaskRun!!
+                val taskTemplate = this.evaluation.getCurrentTaskTemplate()
+                AuditLogger.taskStart(this.id, task.taskId, taskTemplate, AuditLogSource.INTERNAL, null)
             }
 
 //            /* Enqueue WS message for sending */
@@ -694,11 +845,8 @@ class InteractiveSynchronousRunManager(
                 )
                 if (timeLeft <= 0) {
                     task.end()
-                    AuditLogger.taskEnd(this.id, this.evaluation.currentTaskRun!!.taskId, AuditLogSource.INTERNAL, null)
-                    EventStreamProcessor.event(TaskEndEvent(this.id, task.taskId))
-
-//                    /* Enqueue WS message for sending */
-//                    RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.evaluation.currentTask?.taskId))
+                    /* AuditLogger.taskEnd already emits the TaskEndEvent, so ending it here used to broadcast twice. */
+                    AuditLogger.taskEnd(this.id, task.taskId, AuditLogSource.INTERNAL, null)
                 }
             }
         }
@@ -748,7 +896,8 @@ class InteractiveSynchronousRunManager(
      * @throws IllegalArgumentException If task is neither preparing nor running.
      */
     private fun assureNoRunningTask() {
-        if (this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING }) throw IllegalStateException("Task is already running!")
+        /* A task that is still preparing (waiting for viewers) counts as running; switching away from it would leave it dangling. */
+        if (this.evaluation.taskRuns.any { it.status == ApiTaskStatus.RUNNING || it.status == ApiTaskStatus.PREPARING }) throw IllegalStateException("Task is already running!")
     }
 
     /**

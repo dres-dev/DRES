@@ -4,7 +4,9 @@
     <h1>Judgment for Submission</h1>
     <div class="header-container flex flex-row content-between align-start">
       <div class="header-main flex-75">
-        <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> <span class="mat-h1">{{ judgementRequest?.taskDescription }}</span></p>
+        <p *ngIf="isJudgmentAvailable">
+          <strong>Description:</strong> <span class="mat-h1">{{ judgementRequest?.taskDescription }}</span>
+        </p>
         <p *ngIf="debug && isJudgmentAvailable">{{ judgePlayer?.videoUrlDebug | async }}</p>
         <div class="message" *ngIf="!isJudgmentAvailable">{{ noJudgementMessage }}</div>
       </div>
@@ -19,8 +21,17 @@
     </div>
   </div>
   <div class="body">
-    <app-judgement-media-viewer *ngFor="let item of allAnswers(); let idx = index" id="judge-media-viewer" [req]="observableJudgementRequest" answerIndex="{{idx}}"></app-judgement-media-viewer>
-    <div *ngIf="previousJudgementRequest && !isJudgmentAvailable" class="flex flex-row content-center align-center" style="margin-top: 8px;">
+    <app-judgement-media-viewer
+      *ngFor="let item of allAnswers(); let idx = index"
+      id="judge-media-viewer"
+      [req]="observableJudgementRequest"
+      answerIndex="{{ idx }}"
+    ></app-judgement-media-viewer>
+    <div
+      *ngIf="previousJudgementRequest && !isJudgmentAvailable"
+      class="flex flex-row content-center align-center"
+      style="margin-top: 8px"
+    >
       <button mat-stroked-button (click)="goBack()" matTooltip="Re-open the last judged submission to change your verdict">
         <mat-icon>undo</mat-icon> Go Back to Last Submission
       </button>
@@ -33,7 +44,7 @@
       <div class="button-wrapper flex-33 flex flex-row align-center">
         <button
           mat-fab
-          style="background-color: limegreen; color: white;"
+          style="background-color: limegreen; color: white"
           aria-label="Approve Submission"
           matTooltip="Approve Submission, shortcuts: a, c"
           (click)="judge('CORRECT')"
@@ -58,7 +69,8 @@
           style="background-color: red; color: white"
           aria-label="Reject Submission"
           matTooltip="Reject Submission, shortcut: r, w"
-          (click)="judge('WRONG')">
+          (click)="judge('WRONG')"
+        >
           <mat-icon>thumb_down</mat-icon>
         </button>
       </div>

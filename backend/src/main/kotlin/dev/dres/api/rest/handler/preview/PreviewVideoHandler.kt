@@ -18,7 +18,7 @@ import kotlinx.dnq.query.query
  */
 class PreviewVideoHandler(store: TransientEntityStore, cache: CacheManager) : AbstractPreviewHandler(store, cache) {
 
-    override val route: String = "preview/{mediaItemId}/{time}"
+    override val route: String = "preview/{mediaItemId}/{start}/{end}"
     @OpenApi(
         summary = "Returns a preview video from a media item. ",
         path = "/api/v2/preview/{mediaItemId}/{start}/{end}",
@@ -42,6 +42,9 @@ class PreviewVideoHandler(store: TransientEntityStore, cache: CacheManager) : Ab
         val mediaItemId = params["mediaItemId"] ?: throw ErrorStatusException(400, "Media item ID not specified or invalid.", ctx)
         val start = params["start"]?.toLongOrNull() ?: throw ErrorStatusException(400, "Start timestamp must be specified.", ctx)
         val end = params["end"]?.toLongOrNull() ?: throw ErrorStatusException(400, "End timestamp must be specified.", ctx)
+
+        /* Arbitrary segments allow reconstructing a video by walking the timeline, so meter and audit. */
+        MediaRequestGuard.enforce(ctx, "preview-video", "$mediaItemId#$start-$end")
         this.store.transactional(true) {
             val item = DbMediaItem.query(DbMediaItem::id eq mediaItemId).firstOrNull() ?: throw ErrorStatusException(404, "Could not find media item with ID ${mediaItemId}.", ctx)
             handlePreviewVideoRequest(item, start, end, ctx)

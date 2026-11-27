@@ -121,6 +121,14 @@ class SubmissionHandler(private val store: TransientEntityStore) : PostRestHandl
                 "Run manager does not know the given teamId ${apiClientSubmission.teamId}.",
                 ctx
             )
+        } catch (e: IllegalStateException) {
+            /* E.g., no task running, user not part of a team, submission cannot be mapped to a segment. */
+            logger.info("Submission was rejected: ${e.message}")
+            throw ErrorStatusException(400, "Submission rejected: ${e.message ?: "invalid state"}", ctx)
+        } catch (e: IllegalArgumentException) {
+            /* E.g., unknown media item. */
+            logger.info("Submission was rejected: ${e.message}")
+            throw ErrorStatusException(400, "Submission rejected: ${e.message ?: "invalid submission"}", ctx)
         } finally {
             AuditLogger.submission(
                 apiClientSubmission,

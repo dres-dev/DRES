@@ -6,7 +6,7 @@
     <mat-form-field appearance="fill">
       <mat-label>Filter</mat-label>
       <input matInput type="text" [(ngModel)]="filterValue" (keyup)="filter()" />
-      <button *ngIf="filterValue" matSuffix mat-icon-button aria-label="Clear" (click)="filterValue = ''">
+      <button *ngIf="filterValue" matSuffix mat-icon-button aria-label="Clear" (click)="filterValue = ''; filter()">
         <mat-icon>close</mat-icon>
       </button>
     </mat-form-field>

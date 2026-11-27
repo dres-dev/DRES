@@ -4,16 +4,16 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { CollectionBuilderDialogComponent } from '../collection-builder/collection-builder-dialog/collection-builder-dialog.component';
 import { filter, mergeMap } from 'rxjs/operators';
-import {ApiMediaCollection, CollectionService} from '../../../../openapi';
+import { ApiMediaCollection, CollectionService } from '../../../../openapi';
 
 /**
  * @deprecated
  */
 @Component({
-    selector: 'app-collection-list',
-    templateUrl: './collection-list.component.html',
-    styleUrls: ['./collection-list.component.scss'],
-    standalone: false
+  selector: 'app-collection-list',
+  templateUrl: './collection-list.component.html',
+  styleUrls: ['./collection-list.component.scss'],
+  standalone: false,
 })
 export class CollectionListComponent implements AfterViewInit {
   displayedColumns = ['actions', 'id', 'name', 'description', 'basePath'];
@@ -34,9 +34,8 @@ export class CollectionListComponent implements AfterViewInit {
       error: (r) => {
         this.collections = [];
         this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      }
-    }
-    );
+      },
+    });
   }
 
   ngAfterViewInit(): void {
@@ -64,15 +63,14 @@ export class CollectionListComponent implements AfterViewInit {
         })
       )
       .subscribe({
-            next: (r) => {
-              this.refresh();
-              this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-            },
-            error: (r) => {
-              this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-            }
-          }
-      );
+        next: (r) => {
+          this.refresh();
+          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
+        },
+        error: (r) => {
+          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+        },
+      });
   }
 
   edit(id: string) {
@@ -84,11 +82,11 @@ export class CollectionListComponent implements AfterViewInit {
       this.collectionService.deleteApiV2CollectionByCollectionId(id).subscribe({
         next: (r) => {
           this.refresh();
-          this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
         },
         error: (r) => {
-          this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-        }
+          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+        },
       });
     }
   }

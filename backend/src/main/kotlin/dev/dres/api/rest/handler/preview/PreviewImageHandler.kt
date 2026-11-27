@@ -41,7 +41,13 @@ class PreviewImageHandler(store: TransientEntityStore, cache: CacheManager) : Ab
     override fun get(ctx: Context) {
         val params = ctx.pathParamMap()
         val mediaItemId = params["mediaItemId"] ?: throw ErrorStatusException(400, "Media item ID was not specified or is invalid.", ctx)
-        val time = params["timestamp"]?.toLongOrNull() ?: 0L
+        /*
+         * A missing or unparseable timestamp used to become 0, silently serving the frame at the start of
+         * the video for a typo instead of telling the caller. Only an absent segment means "the beginning",
+         * which is the timeless handler's job, not this one's.
+         */
+        val time = params["timestamp"]?.toLongOrNull()
+            ?: throw ErrorStatusException(400, "Timestamp must be a whole number of milliseconds.", ctx)
         this.store.transactional(true) {
             val item = DbMediaItem.query(DbMediaItem::id eq mediaItemId).firstOrNull()
             handlePreviewImageRequest(item, time, ctx)

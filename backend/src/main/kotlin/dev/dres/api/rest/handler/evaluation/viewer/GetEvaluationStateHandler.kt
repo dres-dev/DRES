@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.evaluationId
@@ -41,8 +42,8 @@ class GetEvaluationStateHandler : AbstractEvaluationViewerHandler(), GetRestHand
         if (manager.status == RunManagerStatus.TERMINATED) {
             throw ErrorStatusException(404, "Evaluation has ended.", ctx)
         }
-        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-            throw ErrorStatusException(403, "Access Denied", ctx)
+        if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
+            throw ErrorStatusException(403, "Access denied.", ctx)
         }
         val rac = ctx.runActionContext()
         return ApiEvaluationState(manager, rac)

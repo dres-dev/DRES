@@ -1,45 +1,42 @@
-import { Component, Input } from "@angular/core";
-import { AbstractControl, UntypedFormControl, UntypedFormGroup } from "@angular/forms";
-import {
-  TaskTemplateFormBuilder
-} from "../../task-template-form.builder";
-import { ApiHintOption, ApiHintType } from "../../../../../../openapi";
+import { Component, Input } from '@angular/core';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { TaskTemplateFormBuilder } from '../../task-template-form.builder';
+import { ApiHintOption, ApiHintType } from '../../../../../../openapi';
 
 @Component({
-    selector: 'app-query-description-form-field',
-    templateUrl: './query-description-form-field.component.html',
-    styleUrls: ['./query-description-form-field.component.scss'],
-    standalone: false
+  selector: 'app-query-description-form-field',
+  templateUrl: './query-description-form-field.component.html',
+  styleUrls: ['./query-description-form-field.component.scss'],
+  standalone: false,
 })
 export class QueryDescriptionFormFieldComponent {
+  @Input()
+  startControl: UntypedFormControl;
+  @Input()
+  endControl: UntypedFormControl;
+  @Input()
+  typeControl: UntypedFormControl;
+  @Input()
+  externalControl: UntypedFormControl;
+  @Input()
+  itemControl: UntypedFormControl;
+  @Input()
+  descriptionControl: UntypedFormControl;
+  @Input()
+  pathControl: UntypedFormControl;
+  @Input()
+  segmentStartControl: UntypedFormControl;
+  @Input()
+  segmentEndControl: UntypedFormControl;
+  @Input()
+  unitControl: UntypedFormControl;
+  @Input()
+  formBuilder: TaskTemplateFormBuilder;
+  @Input()
+  index: number;
 
-  @Input()
-  startControl: UntypedFormControl
-  @Input()
-  endControl: UntypedFormControl
-  @Input()
-  typeControl: UntypedFormControl
-  @Input()
-  externalControl: UntypedFormControl
-  @Input()
-  itemControl: UntypedFormControl
-  @Input()
-  descriptionControl: UntypedFormControl
-  @Input()
-  pathControl: UntypedFormControl
-  @Input()
-  segmentStartControl: UntypedFormControl
-  @Input()
-  segmentEndControl: UntypedFormControl
-  @Input()
-  unitControl: UntypedFormControl
-  @Input()
-  formBuilder: TaskTemplateFormBuilder
-  @Input()
-  index: number
-
-  public addQueryComponent(componentType: ApiHintOption, previous: number = null){
-    switch(componentType){
+  public addQueryComponent(componentType: ApiHintOption, previous: number = null) {
+    switch (componentType) {
       case 'IMAGE_ITEM':
         this.formBuilder.addComponentForm(ApiHintType.IMAGE, previous);
         break;

@@ -1,0 +1,80 @@
+<div class="flex flex-row align-baseline">
+  <app-back-button></app-back-button>
+  <h1>Stopped Evaluations</h1>
+  <div class="spacer-flex"></div>
+  <button mat-icon-button aria-label="Refresh stopped evaluations" matTooltip="Refresh list" (click)="refresh()">
+    <mat-icon>refresh</mat-icon>
+  </button>
+</div>
+
+<p class="hint">
+  These evaluations are no longer running. Deleting one permanently removes it and its submissions and scores; its
+  reusable evaluation template is kept. Download an evaluation as JSON first if you want to retain a record.
+</p>
+
+<mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+<p *ngIf="!loading && runs.length === 0" class="empty">There are no stopped evaluations.</p>
+
+<table mat-table [dataSource]="runs" [trackBy]="trackById" *ngIf="runs.length > 0" class="ended-table">
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef>Actions</th>
+    <td mat-cell *matCellDef="let row" class="actions">
+      <app-download-button
+        [name]="''"
+        [fileName]="fileProvider(row.name)"
+        [downloadProvider]="downloadProvider(row.evaluationId)"
+        [inline]="true"
+        matTooltip="Download the evaluation as JSON"
+      ></app-download-button>
+      <button
+        mat-icon-button
+        color="warn"
+        aria-label="Delete this evaluation"
+        matTooltip="Delete this evaluation and its submissions"
+        [disabled]="deleting.has(row.evaluationId)"
+        (click)="delete(row)"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef>Name</th>
+    <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+  </ng-container>
+  <ng-container matColumnDef="template">
+    <th mat-header-cell *matHeaderCellDef>Template</th>
+    <td mat-cell *matCellDef="let row" [matTooltip]="row.templateDescription">{{ row.templateName }}</td>
+  </ng-container>
+  <ng-container matColumnDef="type">
+    <th mat-header-cell *matHeaderCellDef>Type</th>
+    <td mat-cell *matCellDef="let row">{{ row.type }}</td>
+  </ng-container>
+  <ng-container matColumnDef="started">
+    <th mat-header-cell *matHeaderCellDef>Started</th>
+    <td mat-cell *matCellDef="let row">{{ row.started ? (row.started | date: 'yyyy-MM-dd HH:mm') : '–' }}</td>
+  </ng-container>
+  <ng-container matColumnDef="ended">
+    <th mat-header-cell *matHeaderCellDef>Ended</th>
+    <td mat-cell *matCellDef="let row">{{ row.ended ? (row.ended | date: 'yyyy-MM-dd HH:mm') : '–' }}</td>
+  </ng-container>
+  <ng-container matColumnDef="tasks">
+    <th mat-header-cell *matHeaderCellDef># Tasks</th>
+    <td mat-cell *matCellDef="let row">{{ row.taskCount }}</td>
+  </ng-container>
+  <ng-container matColumnDef="submissions">
+    <th mat-header-cell *matHeaderCellDef># Submissions</th>
+    <td mat-cell *matCellDef="let row" class="submission-counts">
+      <span class="total">{{ row.submissionCount }}</span>
+      <app-verdict-counts [counts]="row.verdicts"></app-verdict-counts>
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="id">
+    <th mat-header-cell *matHeaderCellDef>Evaluation ID</th>
+    <td mat-cell *matCellDef="let row" class="id">{{ row.evaluationId }}</td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>

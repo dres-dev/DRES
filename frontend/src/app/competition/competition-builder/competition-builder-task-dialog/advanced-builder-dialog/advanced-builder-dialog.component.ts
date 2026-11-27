@@ -13,10 +13,10 @@ export class AdvancedBuilderDialogData {
  * @deprecated This has to be replaced by a proper, more sophisticated component.
  */
 @Component({
-    selector: 'app-advanced-builder-dialog',
-    templateUrl: './advanced-builder-dialog.component.html',
-    styleUrls: ['./advanced-builder-dialog.component.scss'],
-    standalone: false
+  selector: 'app-advanced-builder-dialog',
+  templateUrl: './advanced-builder-dialog.component.html',
+  styleUrls: ['./advanced-builder-dialog.component.scss'],
+  standalone: false,
 })
 export class AdvancedBuilderDialogComponent implements OnInit {
   public textualInput = '';
@@ -47,7 +47,6 @@ export class AdvancedBuilderDialogComponent implements OnInit {
    * Currently only logs the formdata as json
    */
   export(): void {
-    console.log(this.asJson());
   }
 
   asJson(): string {
@@ -56,7 +55,6 @@ export class AdvancedBuilderDialogComponent implements OnInit {
 
   private fetchData() {
     const out = this.textualInput.split('\n');
-    console.log(`Fetched: ${out}`);
     return out;
   }
 }

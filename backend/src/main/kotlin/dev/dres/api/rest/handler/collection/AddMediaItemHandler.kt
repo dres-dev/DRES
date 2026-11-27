@@ -49,8 +49,8 @@ class AddMediaItemHandler : AbstractCollectionHandler(), PostRestHandler<Success
         try {
             MediaCollectionManager.addMediaItem(mediaItem)
             return SuccessStatus("Media item added successfully.")
-        } catch (e: Exception) {
-            throw ErrorStatusException(400, e.message ?: "Could not create item", ctx)
+        } catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, e.message ?: "Could not create item.", ctx)
         }
 
     }

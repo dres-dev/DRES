@@ -70,7 +70,7 @@ class ListTaskTypePresetsHandler : AccessManagedRestHandler, GetRestHandler<List
 
             LOGGER.trace("Internal preset files (jar) resources: {}", list2.toString())
 
-            list2.map{ ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false).readValue(it, ApiTaskType::class.java) }
+            list2.map{ it!!.openStream().use { s -> ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false).readValue(s, ApiTaskType::class.java) } }
             }catch(e: Exception){
                 LOGGER.error("Error upon loading internal presets.", e)
                 LOGGER.warn("An error occurred during loading of internal task type presets. Only external ones are available. Check logs accordingly.")

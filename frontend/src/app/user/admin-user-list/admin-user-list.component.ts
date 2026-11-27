@@ -6,14 +6,14 @@ import { filter } from 'rxjs/operators';
 import { MatSort, Sort } from '@angular/material/sort';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { MatTableDataSource } from '@angular/material/table';
-import { ApiUser, ApiUserRequest, UserService } from "../../../../openapi";
-import {mergeMap} from 'rxjs';
+import { ApiUser, ApiUserRequest, UserService } from '../../../../openapi';
+import { mergeMap } from 'rxjs';
 
 @Component({
-    selector: 'app-admin-user-list',
-    templateUrl: './admin-user-list.component.html',
-    styleUrls: ['./admin-user-list.component.scss'],
-    standalone: false
+  selector: 'app-admin-user-list',
+  templateUrl: './admin-user-list.component.html',
+  styleUrls: ['./admin-user-list.component.scss'],
+  standalone: false,
 })
 export class AdminUserListComponent implements AfterViewInit {
   // TODO Add Team info / link
@@ -22,7 +22,6 @@ export class AdminUserListComponent implements AfterViewInit {
 
   @ViewChild(MatSort) sort: MatSort;
   dataSource = new MatTableDataSource<ApiUser>([]);
-
 
   shouldDisplayFilter = false;
   filterValue = '';
@@ -47,11 +46,11 @@ export class AdminUserListComponent implements AfterViewInit {
       .subscribe({
         next: (r) => {
           this.refresh();
-          this.snackBar.open(`Successfully created ${r.username}`, null, {duration: 5000});
+          this.snackBar.open(`Successfully created ${r.username}`, null, { duration: 5000 });
         },
         error: (err) => {
-          this.snackBar.open(`Error: ${err.error.description}`, null, {duration: 5000});
-        }
+          this.snackBar.open(`Error: ${err.error.description}`, null, { duration: 5000 });
+        },
       });
   }
 
@@ -69,11 +68,11 @@ export class AdminUserListComponent implements AfterViewInit {
       .subscribe({
         next: (r) => {
           this.refresh();
-          this.snackBar.open(`Successfully updated ${r.username}`, null, {duration: 5000});
+          this.snackBar.open(`Successfully updated ${r.username}`, null, { duration: 5000 });
         },
         error: (err) => {
-          this.snackBar.open(`Error: ${err.error.description}`, null, {duration: 5000});
-        }
+          this.snackBar.open(`Error: ${err.error.description}`, null, { duration: 5000 });
+        },
       });
   }
 
@@ -82,11 +81,11 @@ export class AdminUserListComponent implements AfterViewInit {
       this.userService.deleteApiV2UserByUserId(userId).subscribe({
         next: (u: ApiUser) => {
           this.refresh();
-          this.snackBar.open(`Success: ${u.username} (${u.id}) deleted`, null, {duration: 5000});
+          this.snackBar.open(`Success: ${u.username} (${u.id}) deleted`, null, { duration: 5000 });
         },
         error: (err) => {
-          this.snackBar.open(`Error: ${err.error.description}`, null, {duration: 5000});
-        }
+          this.snackBar.open(`Error: ${err.error.description}`, null, { duration: 5000 });
+        },
       });
     }
   }
@@ -100,8 +99,8 @@ export class AdminUserListComponent implements AfterViewInit {
       error: (error) => {
         this.dataSource.data = [];
         this.dataSource.sort = this.sort;
-        this.snackBar.open(`Error: ${error.error.description}`, null, {duration: 5000});
-      }
+        this.snackBar.open(`Error: ${error.error.description}`, null, { duration: 5000 });
+      },
     });
   }
 

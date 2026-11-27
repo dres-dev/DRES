@@ -5,15 +5,15 @@ import { AppConfig } from '../../app.config';
 import { ApiContentElement } from '../../../../openapi';
 
 @Component({
-    selector: 'app-text-object-preview',
-    template: `
+  selector: 'app-text-object-preview',
+  template: `
     <div class="text-container" *ngIf="currentText | async">
       <p class="text" [style.font-size]="fontSize + 'em'" [style.text-align]="'center'" [style.line-height]="'1.5em'">
         {{ currentText | async }}
       </p>
     </div>
   `,
-    standalone: false
+  standalone: false,
 })
 export class TextObjectPreviewComponent implements OnInit {
   /** Observable of current {@link QueryContentElement} that should be displayed. */

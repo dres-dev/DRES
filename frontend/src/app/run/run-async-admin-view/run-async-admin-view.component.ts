@@ -1,28 +1,41 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild } from "@angular/core";
-import { BehaviorSubject, combineLatest, forkJoin, merge, Observable, of, Subject, timer } from 'rxjs';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { BehaviorSubject, combineLatest, forkJoin, merge, Observable, of, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, filter, map, shareReplay, switchMap, take } from 'rxjs/operators';
+import { catchError, filter, map, scan, shareReplay, switchMap, take } from 'rxjs/operators';
+import { WebSocketService } from '../../services/websocket.service';
+import { PollCadence } from '../../services/poll-cadence';
+import { ServerMessageType } from '../../model/ws/server-message-type.enum';
 import { RunInfoOverviewTuple } from '../admin-run-list.component';
+import { mergeTeamOverview } from '../../utilities/api.utilities';
 import { MatAccordion } from '@angular/material/expansion';
 import {
+  ApiEvaluationOverview,
   ApiTaskTemplateInfo,
-  ApiTeam, ApiTeamInfo, ApiTeamTaskOverview, DownloadService,
+  ApiTeam,
+  ApiTeamInfo,
+  ApiTeamTaskOverview,
+  DownloadService,
   EvaluationAdministratorService,
   EvaluationClientService,
   EvaluationScoresService,
-  EvaluationService, TemplateService
+  EvaluationService,
+  TemplateService,
 } from '../../../../openapi';
 
 @Component({
-    selector: 'app-run-async-admin-view',
-    templateUrl: './run-async-admin-view.component.html',
-    styleUrls: ['./run-async-admin-view.component.scss'],
-    standalone: false
+  selector: 'app-run-async-admin-view',
+  templateUrl: './run-async-admin-view.component.html',
+  styleUrls: ['./run-async-admin-view.component.scss'],
+  standalone: false,
 })
 export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
+
+  /** Watches what each fallback poll returns, so the shared cadence can adapt to it. */
+  private readonly overviewPolls = new PollCadence(this.wsService, 'async-admin-overview');
+  private readonly countPolls = new PollCadence(this.wsService, 'async-admin-counts');
   @ViewChild(MatAccordion) accordion: MatAccordion;
 
   runId: BehaviorSubject<string> = new BehaviorSubject<string>('');
@@ -47,17 +60,33 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
     private scoreService: EvaluationScoresService,
     private downloadService: DownloadService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private wsService: WebSocketService
   ) {
     this.activeRoute.params.pipe(map((a) => a.runId)).subscribe(this.runId);
+
+    /* WS messages that may carry a full overview diff (task transitions, score changes),
+       plus the two lifecycle types that never carry one and always need an HTTP refetch. */
+    const overviewWs$ = this.wsService.messages$.pipe(
+      filter((msg) => [
+        ServerMessageType.ServerMessageTypeEnum.TASK_START,
+        ServerMessageType.ServerMessageTypeEnum.TASK_END,
+        ServerMessageType.ServerMessageTypeEnum.TASK_PREPARE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_UPDATE,
+        ServerMessageType.ServerMessageTypeEnum.COMPETITION_END,
+      ].includes(msg.type))
+    );
+
+    /* WS messages that carry a single-team overview diff (a submission from that team). */
+    const teamOverviewWs$ = this.wsService.messages$.pipe(
+      filter((msg) => msg.type === ServerMessageType.ServerMessageTypeEnum.TASK_UPDATED)
+    );
+
     this.run = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
           this.evaluationService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
             catchError((err, o) => {
-              console.log(
-                `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
-              );
               this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
               if (err.status === 404) {
                 this.router.navigate(['/template/list']);
@@ -66,8 +95,40 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 1000), this.update).pipe(
-            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
+          merge(
+            /* Safety fallback on the socket-aware cadence, on manual update trigger, whenever a
+               relevant WS message arrives without a usable payload, or after a WebSocket reconnect —
+               any event missed while disconnected needs a full resync. */
+            merge(
+              this.wsService.fallbackPolling(this.update),
+              overviewWs$.pipe(filter((msg) => msg.overview == null)),
+              teamOverviewWs$.pipe(filter((msg) => msg.teamOverview == null))
+            ).pipe(
+              switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId)),
+              map((overview) => {
+                this.overviewPolls.observe(overview);
+                return { full: overview } as { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview };
+              })
+            ),
+            /* Apply diff directly when the WS message carries a full overview — no HTTP needed. */
+            overviewWs$.pipe(
+              filter((msg) => msg.overview != null),
+              map((msg) => ({ full: msg.overview as ApiEvaluationOverview }))
+            ),
+            /* Apply a scoped single-team diff directly — no HTTP needed, and no need to touch
+               any other team's overview. */
+            teamOverviewWs$.pipe(
+              filter((msg) => msg.teamOverview != null),
+              map((msg) => ({ team: msg.teamOverview as ApiTeamTaskOverview }))
+            )
+          ).pipe(
+            scan((acc: ApiEvaluationOverview, update: { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview }) => {
+              if (update.full) {
+                return update.full;
+              }
+              return acc ? mergeTeamOverview(acc, update.team) : acc;
+            }, null as ApiEvaluationOverview),
+            filter((overview) => overview != null)
           ),
         ])
       ),
@@ -84,29 +145,32 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
 
-    this.taskSubmissionCounts = merge(timer(0, 15000), this.update).pipe(
+    this.taskSubmissionCounts = merge(this.wsService.fallbackPolling(this.update), overviewWs$, teamOverviewWs$).pipe(
       switchMap(() => this.run.pipe(take(1))),
-      switchMap(run => {
+      switchMap((run) => {
         const runId = this.runId.getValue();
         const templates = run?.runInfo?.taskTemplates ?? [];
         if (templates.length === 0) return of(new Map<string, number>());
         return forkJoin(
-          templates.map(t =>
+          templates.map((t) =>
             this.runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(runId, t.templateId).pipe(
-              map(infos => ({ key: t.templateId, count: infos.flatMap(i => i.submissions).length })),
+              map((infos) => ({ key: t.templateId, count: infos.flatMap((i) => i.submissions).length })),
               catchError(() => of({ key: t.templateId, count: 0 }))
             )
           )
-        ).pipe(
-          map(results => new Map(results.map(r => [r.key, r.count])))
-        );
+        ).pipe(map((results) => new Map(results.map((r) => [r.key, r.count]))));
+      }),
+      /* Feeding the resulting counts — not the overview the poll happened to reuse — into the cadence
+         keeps the adaptation honest when only submission counts move. */
+      map((counts) => {
+        this.countPolls.observe(Array.from(counts.entries()));
+        return counts;
       }),
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
 
   public submissionsOf(task, property = 'id') {
-    console.log("S of ", task);
     this.runId.subscribe((r) => {
       this.router.navigateByUrl(`evaluation/admin/submissions/${r}/${task[property]}`);
     });
@@ -121,20 +185,28 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.runId.pipe(take(1)).subscribe((id) => this.wsService.connect(id));
+
     /* Cache past tasks initially */
     this.runId.subscribe((runId) => {
-      this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService
+        .getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId)
+        .subscribe((arr) => (this.pastTasksValue = arr));
     });
 
     /* On each update, update past tasks */
     this.update.subscribe((_) => {
       this.runId.subscribe((runId) => {
-        this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+        this.runAdminService
+          .getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId)
+          .subscribe((arr) => (this.pastTasksValue = arr));
       });
     });
 
     this.run.subscribe((r) => {
-      this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(r.runInfo.id).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService
+        .getApiV2EvaluationAdminByEvaluationIdTaskPastList(r.runInfo.id)
+        .subscribe((arr) => (this.pastTasksValue = arr));
     });
   }
 
@@ -149,6 +221,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.update?.unsubscribe()
+    this.wsService.disconnect();
+    this.update?.unsubscribe();
   }
 }

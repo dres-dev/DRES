@@ -1,6 +1,7 @@
 package dev.dres.api.rest.types.system
 
 import dev.dres.DRES
+import kotlinx.serialization.Serializable
 
 /**
  * Information about the DRES instance.
@@ -8,6 +9,7 @@ import dev.dres.DRES
  * @author Luca Rossetto
  * @version 1.0.0
  */
+@Serializable
 data class DresInfo(
     val version: String = DRES.VERSION,
     val startTime: Long,
@@ -19,5 +21,7 @@ data class DresInfo(
     val freeMemory: Long? = null,
     val totalMemory: Long? = null,
     val load: Double? = null,
-    val availableSeverThreads: Int? = null
+    val availableSeverThreads: Int? = null,
+    /** Current system-level notices; populated only for administrator requests. */
+    val systemStatuses: List<SystemStatus> = emptyList()
 )

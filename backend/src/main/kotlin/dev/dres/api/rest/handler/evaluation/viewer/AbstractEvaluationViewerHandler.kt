@@ -63,4 +63,13 @@ abstract class AbstractEvaluationViewerHandler: RestHandler, AccessManagedRestHa
             else -> managers
         }
     }
+
+    /** Returns team IDs owned by the authenticated session's user in this evaluation. */
+    protected fun ownTeamIds(ctx: Context, manager: InteractiveRunManager): Set<String> {
+        val userId = ctx.userId()
+        return manager.template.teams.asSequence()
+            .filter { team -> team.users.any { it.id == userId } }
+            .mapNotNull { it.teamId }
+            .toSet()
+    }
 }

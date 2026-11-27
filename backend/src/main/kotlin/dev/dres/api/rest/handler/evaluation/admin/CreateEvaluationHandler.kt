@@ -88,8 +88,13 @@ class CreateEvaluationHandler(private val store: TransientEntityStore, private v
             try {
                 TemplateManager.prepareTemplate(message.templateId, this@CreateEvaluationHandler.cache)
             } catch (e: Exception) {
-                logger.error(e.message)
-                throw ErrorStatusException(500, e.message ?: "", ctx)
+                /*
+                 * Preparation renders every hint and target of the template, so its failures are about the
+                 * template's media, not about this request: report them as such instead of a bare 500 that
+                 * names nothing.
+                 */
+                logger.error("Could not prepare evaluation template {} for the new run.", message.templateId, e)
+                throw ErrorStatusException(500, "Could not prepare the evaluation template: ${e.message}", ctx)
             }
 
 

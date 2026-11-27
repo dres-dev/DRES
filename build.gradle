@@ -6,10 +6,10 @@ buildscript {
 
 plugins {
     /// Download task for FFMPEG binaries download
-    id 'de.undercouch.download' version '5.3.1'
+    id 'de.undercouch.download' version '5.7.0'
 
     /// OpenAPI Generator for Frontend internal api generation
-    id 'org.openapi.generator' version '5.2.0'
+    id 'org.openapi.generator' version '7.26.0'
 }
 
 /// Variables used for Open API generation.
@@ -32,7 +32,7 @@ openApiGenerate {
     outputDir = file("${project.projectDir}/frontend/openapi").toString()
     configOptions = [
         npmName: '@dres-openapi/api',
-        ngVersion: '15.2.9',
+        ngVersion: '21.2.25',
         snapshot: 'true', /// I suggest to remove this, as soon as we automate this,
         enumPropertyNaming: 'original'
     ]
@@ -50,3 +50,30 @@ tasks.register('generateClientOAS', Download) {
     src clientOAS
     dest f
 }
+
+/*
+ * Regenerates the committed specification, the client specification and the generated TypeScript client in
+ * the right order. Requires a running DRES on the default port.
+ *
+ * The ordering has to be declared on the tasks themselves, outside the `register` block: calling
+ * `tasks.named(...)` from within a task configuration closure fails with "DefaultTaskContainer#named(String,
+ * Action) on task set cannot be executed in the current context" because the container is still being
+ * configured at that point.
+ */
+tasks.register('regenerateApi') {
+    group = 'documentation'
+    description = 'Regenerates doc/oas.json, doc/oas-client.json and frontend/openapi from a running DRES.'
+    dependsOn 'generateOAS', 'generateClientOAS', 'openApiGenerate'
+}
+
+/*
+ * `openApiGenerate` reads doc/oas.json, which `generateOAS` writes. Without the ordering Gradle 9 fails with
+ * "uses this output of task ':generateOAS' without declaring an explicit or implicit dependency" as soon as
+ * both are requested in one invocation - which is exactly how regeneration is documented.
+ *
+ * The dependency deliberately does NOT apply to ordinary builds: `openApiGenerate` is wired into
+ * `buildFrontend`, and making it download the spec would require a running server for every frontend build.
+ * So the ordering lives on the tasks that exist for regeneration, not on `openApiGenerate` itself.
+ */
+tasks.named('generateClientOAS').configure { mustRunAfter 'generateOAS' }
+tasks.named('openApiGenerate').configure { mustRunAfter 'generateClientOAS' }

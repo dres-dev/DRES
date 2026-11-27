@@ -46,14 +46,15 @@ class AddCollectionHandler() : AbstractCollectionHandler(), PostRestHandler<Succ
             throw ErrorStatusException(400, "Invalid parameters, collection base path not set.", ctx)
         }
 
-        val collectionId = MediaCollectionManager.createCollection(
+        val collection = try {
+            MediaCollectionManager.createCollection(
                 restCollection.name, restCollection.description, restCollection.basePath.cleanPathString()
-        )?.id
-
-        if (collectionId != null) {
-            return SuccessStatus("Collection $collectionId added successfully.")
-        } else {
-            throw ErrorStatusException(400, "Could not create collection", ctx)
+            )
+        } catch (e: IllegalArgumentException) {
+            /* A duplicate name or path is a conflict with existing state, not a malformed request. */
+            throw ErrorStatusException(400, e.message ?: "Could not create collection.", ctx)
         }
+
+        return SuccessStatus("Collection ${collection.id} added successfully.")
     }
 }

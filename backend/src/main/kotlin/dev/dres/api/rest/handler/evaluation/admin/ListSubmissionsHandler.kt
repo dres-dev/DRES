@@ -1,10 +1,13 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.handler.evaluation.HiddenResultsVisibility
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.api.rest.types.evaluation.ApiSubmissionInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
+import dev.dres.api.rest.types.template.tasks.options.ApiTaskOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -45,9 +48,17 @@ class ListSubmissionsHandler : AbstractEvaluationAdminHandler(),
         val evaluationManager =
             getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         val rac = ctx.runActionContext()
-        return evaluationManager.tasks(rac).filter { it.taskTemplateId == templateId }.map {
-            ApiSubmissionInfo(evaluationId, it.taskId, it.getSubmissions())
+        return evaluationManager.tasks(rac).filter { it.taskTemplateId == templateId }.map { task ->
+            val hidden = task.isRunning && evaluationManager.template.taskTypes
+                .find { it.name == task.template.taskType }
+                ?.taskOptions?.contains(ApiTaskOption.HIDDEN_RESULTS) == true
+            val submissions = task.getSubmissions()
+            ApiSubmissionInfo(
+                evaluationId,
+                task.taskId,
+                if (hidden) submissions.map(HiddenResultsVisibility::blind) else submissions
+            )
         }
-
     }
+
 }

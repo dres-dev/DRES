@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick, discardPeriodicTasks } from
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable, of, Subject } from 'rxjs';
+import { EMPTY, Observable, Subject, merge, of } from 'rxjs';
 
 import { RunAsyncAdminViewComponent } from './run-async-admin-view.component';
 import { AppConfig } from '../../app.config';
@@ -17,6 +17,31 @@ import {
 } from '../../../../openapi';
 import { IWsServerMessage } from '../../model/ws/ws-server-message.interface';
 import { ServerMessageType } from '../../model/ws/server-message-type.enum';
+
+/**
+ * Double for the WebSocket service: exposes only the contract the component uses and never polls on
+ * its own, so a spec sees exactly the requests its trigger caused.
+ */
+function silentWebSocketService(
+  messages$: Subject<IWsServerMessage> = new Subject<IWsServerMessage>(),
+  reconnected$: Subject<void> = new Subject<void>(),
+  resync$: Subject<void> = new Subject<void>()
+): any {
+  return {
+    messages$: messages$.asObservable(),
+    reconnected$: reconnected$.asObservable(),
+    resync$: new Subject<void>().asObservable(),
+    connect: jasmine.createSpy('connect'),
+    disconnect: jasmine.createSpy('disconnect'),
+    /* Mirrors the real service: the caller's triggers, plus the recovery signals it always
+       merges in. Anything narrower would let a spec pass while the real pipeline polls. */
+    fallbackPolling: jasmine
+      .createSpy('fallbackPolling')
+      .and.callFake((triggers: any) => merge(triggers ?? EMPTY, reconnected$, resync$)),
+    reportPollResult: jasmine.createSpy('reportPollResult'),
+  };
+}
+
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -43,7 +68,7 @@ const IRRELEVANT_TYPES: ServerMessageType.ServerMessageTypeEnum[] = [
 describe('RunAsyncAdminViewComponent WebSocket wiring', () => {
   let component: RunAsyncAdminViewComponent;
   let fixture: ComponentFixture<RunAsyncAdminViewComponent>;
-  let wsService: jasmine.SpyObj<WebSocketService>;
+  let wsService: any;
   let evaluationService: jasmine.SpyObj<EvaluationService>;
   let runAdminService: jasmine.SpyObj<EvaluationAdministratorService>;
   let messages$: Subject<IWsServerMessage>;
@@ -53,10 +78,7 @@ describe('RunAsyncAdminViewComponent WebSocket wiring', () => {
     messages$ = new Subject<IWsServerMessage>();
     reconnected$ = new Subject<void>();
 
-    wsService = jasmine.createSpyObj('WebSocketService', ['connect', 'disconnect'], {
-      messages$: messages$.asObservable(),
-      reconnected$: reconnected$.asObservable(),
-    });
+    wsService = silentWebSocketService(messages$, reconnected$) as any;
 
     evaluationService = jasmine.createSpyObj('EvaluationService', ['getApiV2EvaluationByEvaluationIdInfo']);
     evaluationService.getApiV2EvaluationByEvaluationIdInfo.and.returnValue(

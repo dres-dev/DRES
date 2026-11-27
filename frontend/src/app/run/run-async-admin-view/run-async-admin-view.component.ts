@@ -1,11 +1,12 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { BehaviorSubject, combineLatest, forkJoin, merge, Observable, of, Subject, timer } from 'rxjs';
+import { BehaviorSubject, combineLatest, forkJoin, merge, Observable, of, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { catchError, filter, map, scan, shareReplay, switchMap, take } from 'rxjs/operators';
 import { WebSocketService } from '../../services/websocket.service';
+import { PollCadence } from '../../services/poll-cadence';
 import { ServerMessageType } from '../../model/ws/server-message-type.enum';
 import { RunInfoOverviewTuple } from '../admin-run-list.component';
 import { mergeTeamOverview } from '../../utilities/api.utilities';
@@ -31,6 +32,10 @@ import {
   standalone: false,
 })
 export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
+
+  /** Watches what each fallback poll returns, so the shared cadence can adapt to it. */
+  private readonly overviewPolls = new PollCadence(this.wsService, 'async-admin-overview');
+  private readonly countPolls = new PollCadence(this.wsService, 'async-admin-counts');
   @ViewChild(MatAccordion) accordion: MatAccordion;
 
   runId: BehaviorSubject<string> = new BehaviorSubject<string>('');
@@ -91,18 +96,19 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
             filter((q) => q != null)
           ),
           merge(
-            /* Safety fallback: full HTTP fetch every 30 s, on manual update trigger, whenever
-               a relevant WS message arrives without a usable payload, or after a WebSocket
-               reconnect — any event missed while disconnected needs a full resync. */
+            /* Safety fallback on the socket-aware cadence, on manual update trigger, whenever a
+               relevant WS message arrives without a usable payload, or after a WebSocket reconnect —
+               any event missed while disconnected needs a full resync. */
             merge(
-              timer(0, 30_000),
-              this.update,
-              this.wsService.reconnected$,
+              this.wsService.fallbackPolling(this.update),
               overviewWs$.pipe(filter((msg) => msg.overview == null)),
               teamOverviewWs$.pipe(filter((msg) => msg.teamOverview == null))
             ).pipe(
               switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId)),
-              map((overview) => ({ full: overview } as { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview }))
+              map((overview) => {
+                this.overviewPolls.observe(overview);
+                return { full: overview } as { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview };
+              })
             ),
             /* Apply diff directly when the WS message carries a full overview — no HTTP needed. */
             overviewWs$.pipe(
@@ -139,7 +145,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
 
-    this.taskSubmissionCounts = merge(timer(0, 30_000), this.update, this.wsService.reconnected$, overviewWs$, teamOverviewWs$).pipe(
+    this.taskSubmissionCounts = merge(this.wsService.fallbackPolling(this.update), overviewWs$, teamOverviewWs$).pipe(
       switchMap(() => this.run.pipe(take(1))),
       switchMap((run) => {
         const runId = this.runId.getValue();
@@ -153,6 +159,12 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
             )
           )
         ).pipe(map((results) => new Map(results.map((r) => [r.key, r.count]))));
+      }),
+      /* Feeding the resulting counts — not the overview the poll happened to reuse — into the cadence
+         keeps the adaptation honest when only submission counts move. */
+      map((counts) => {
+        this.countPolls.observe(Array.from(counts.entries()));
+        return counts;
       }),
       shareReplay({ bufferSize: 1, refCount: true })
     );

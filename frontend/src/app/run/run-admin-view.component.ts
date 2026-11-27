@@ -1,9 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
-import { combineLatest, merge, Observable, of, Subject, timer } from 'rxjs';
+import { combineLatest, merge, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, map, scan, shareReplay, switchMap, take } from 'rxjs/operators';
 import { WebSocketService } from '../services/websocket.service';
+import { PollCadence } from '../services/poll-cadence';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
@@ -36,9 +37,10 @@ export interface CombinedRun {
 })
 export class RunAdminViewComponent implements OnInit, OnDestroy {
 
-  private static VIEWER_POLLING_FREQUENCY = 3 * 1000; //ms
-  private static STATE_POLLING_FREQUENCY = 1 * 1000; //ms
-  private static OVERVIEW_POLLING_FREQUENCY = 5 * 1000; //ms
+  /** Watches what each fallback poll returns, so the shared cadence can adapt to it. */
+  private readonly statePolls = new PollCadence(this.wsService, 'admin-state');
+  private readonly overviewPolls = new PollCadence(this.wsService, 'admin-overview');
+  private readonly viewerPolls = new PollCadence(this.wsService, 'admin-viewers');
 
   runId: Observable<string>;
   run: Observable<CombinedRun>;
@@ -114,10 +116,14 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
             filter((q) => q != null)
           ),
           merge(
-            /* Safety fallback: full HTTP fetch every 30 s, on manual refresh, or after a
-               WebSocket reconnect — any event missed while disconnected needs a full resync. */
-            merge(timer(0, 30_000), this.refreshSubject, this.wsService.reconnected$).pipe(
-              switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(runId))
+            /* Safety fallback on the socket-aware cadence, on manual refresh, or after a WebSocket
+               reconnect — any event missed while disconnected needs a full resync. */
+            merge(this.wsService.fallbackPolling(this.refreshSubject)).pipe(
+              switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(runId)),
+              map((state) => {
+                this.statePolls.observe(state);
+                return state;
+              })
             ),
             /* Apply diff directly when the WS message carries state — no HTTP needed. */
             taskStateWs$.pipe(
@@ -204,18 +210,19 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
             filter((q) => q != null)
           ),
           merge(
-            /* Safety fallback: full HTTP fetch every 30 s, on manual refresh, whenever a
-               relevant WS message arrives without a usable payload, or after a WebSocket
-               reconnect — any event missed while disconnected needs a full resync. */
+            /* Safety fallback on the socket-aware cadence, on manual refresh, whenever a relevant
+               WS message arrives without a usable payload, or after a WebSocket reconnect — any
+               event missed while disconnected needs a full resync. */
             merge(
-              timer(0, 30_000),
-              this.refreshSubject,
-              this.wsService.reconnected$,
+              this.wsService.fallbackPolling(this.refreshSubject),
               overviewWs$.pipe(filter((msg) => msg.overview == null)),
               teamOverviewWs$.pipe(filter((msg) => msg.teamOverview == null))
             ).pipe(
               switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId)),
-              map((overview) => ({ full: overview } as { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview }))
+              map((overview) => {
+                this.overviewPolls.observe(overview);
+                return { full: overview } as { full?: ApiEvaluationOverview; team?: ApiTeamTaskOverview };
+              })
             ),
             /* Apply diff directly when the WS message carries a full overview — no HTTP needed. */
             overviewWs$.pipe(
@@ -248,12 +255,15 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
     this.viewers = this.runId.pipe(
       switchMap((runId) =>
         merge(
-          /* Viewer status is independent of task state. Keep a slow poll as recovery for missed socket events. */
-          timer(0, 30_000),
-          viewerWs$.pipe(filter((msg) => msg.evaluationId === runId)),
-          this.wsService.reconnected$
+          /* Viewer status is independent of task state. Poll on the socket-aware cadence as recovery
+             for missed socket events. */
+          this.wsService.fallbackPolling(viewerWs$.pipe(filter((msg) => msg.evaluationId === runId)))
         ).pipe(
-          switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))
+          switchMap(() => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId)),
+          map((viewerList) => {
+            this.viewerPolls.observe(viewerList);
+            return viewerList;
+          })
         )
       ),
       shareReplay({ bufferSize: 1, refCount: true })

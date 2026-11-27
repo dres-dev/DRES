@@ -13,6 +13,7 @@ import {
 } from "rxjs/operators";
 import { AppConfig } from '../app.config';
 import { WebSocketService } from '../services/websocket.service';
+import { PollCadence } from '../services/poll-cadence';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
@@ -167,7 +168,9 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    this.reconnected = this.wsService.reconnected$;
+    /* Widgets refetch on a reconnect or on recovery from a silent socket window; both mean events may
+       have been missed while the UI believed it was up to date. */
+    this.reconnected = merge(this.wsService.reconnected$, this.wsService.resync$);
     this.messages = this.evaluationId.pipe(
       switchMap((id) => this.wsService.messages$.pipe(filter((msg) => msg.evaluationId === id))),
       share()
@@ -201,14 +204,22 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
             filter((msg) => msg.evaluationId === id && msg.state != null),
             map((msg) => msg.state as ApiEvaluationState)
           ),
-          /* Fallback HTTP fetch for state-carrying messages without a payload, for
-             messages that signal a state change without carrying one, and after a
-             WebSocket reconnect — any event missed while disconnected needs a full resync. */
+          /* Fallback HTTP fetch for state-carrying messages without a payload, for messages that
+             signal a state change without carrying one, after a WebSocket reconnect, and after the
+             socket recovers from a silent window — any event missed while coverage was degraded
+             needs a full resync. */
           merge(
             stateWs$.pipe(filter((msg) => msg.evaluationId === id && msg.state == null)),
             stateRefreshWs$.pipe(filter((msg) => msg.evaluationId === id)),
-            this.wsService.reconnected$
-          ).pipe(switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(id)))
+            this.wsService.reconnected$,
+            this.wsService.resync$
+          ).pipe(
+            switchMap(() => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
+            map((state) => {
+              this.statePolls.observe(state);
+              return state;
+            })
+          )
         )
       ),
       catchError((err, o) => {
@@ -252,6 +263,12 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       this.titleService.setTitle(info.name + ' - DRES');
     });
   }
+
+  /**
+   * Watch the state refetches, so the shared polling cadence slows down on a quiet run and speeds up
+   * as soon as a task moves.
+   */
+  private readonly statePolls = new PollCadence(this.wsService, 'viewer-state');
 
   /**
    * Registers this RunViewerComponent on view initialization and creates the WebSocket subscription.

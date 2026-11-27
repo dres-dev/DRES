@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject, merge, Observable, of, Subscription, timer } from 'rxjs';
+import { BehaviorSubject, merge, Observable, of, Subscription } from 'rxjs';
 import { catchError, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
@@ -8,6 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { JudgementMediaViewerComponent } from './judgement-media-viewer.component';
 import {ApiJudgementRequest, JudgementService} from '../../../openapi';
 import { WebSocketService } from '../services/websocket.service';
+import { PollCadence } from '../services/poll-cadence';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
 
 @Component({
@@ -18,6 +19,9 @@ import { ServerMessageType } from '../model/ws/server-message-type.enum';
 })
 export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
   @Input() pollingFrequency = 1000;
+
+  /** Watches the vote queue, so an idle run is polled rarely and a busy one often. */
+  private readonly votePolls = new PollCadence(this.wsService, 'vote-request');
 
   private runId: Observable<string>;
   private requestSub: Subscription;
@@ -53,8 +57,9 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
       ].includes(msg.type))
     );
 
-    /* Fetch next vote request on websocket event or 30s fallback poll. */
-    this.requestSub = merge(timer(0, 30_000), wsRefresh$)
+    /* Fetch next vote request on websocket event, or on the adaptive fallback cadence when the
+       socket cannot be trusted. */
+    this.requestSub = merge(this.wsService.fallbackPolling(), wsRefresh$)
       .pipe(
         withLatestFrom(this.runId),
         switchMap(([_, runId]) => {
@@ -65,12 +70,15 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
                   this.isJudgmentAvailable = false;
                   this.judgementRequest = null;
                   this.judgePlayer?.stop();
+                  this.votePolls.observe(null);
                   return null;
                 } else {
                   const lastRequest = req.body;
                   if (this.judgementRequest !== null && lastRequest.token === this.judgementRequest.token) {
+                    this.votePolls.observe(lastRequest.token);
                     return null; // still the same, no action required
                   }
+                  this.votePolls.observe(lastRequest.token ?? 'pending');
                   return lastRequest;
                 }
               }),

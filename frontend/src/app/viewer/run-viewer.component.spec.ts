@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Title } from '@angular/platform-browser';
 import { Overlay } from '@angular/cdk/overlay';
-import { of, Subject } from 'rxjs';
+import { EMPTY, Subject, merge, of } from 'rxjs';
 
 import { RunViewerComponent } from './run-viewer.component';
 import { AppConfig } from '../app.config';
@@ -12,6 +12,31 @@ import { WebSocketService } from '../services/websocket.service';
 import { EvaluationService } from '../../../openapi';
 import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
+
+/**
+ * Double for the WebSocket service: exposes only the contract the component uses and never polls on
+ * its own, so a spec sees exactly the requests its trigger caused.
+ */
+function silentWebSocketService(
+  messages$: Subject<IWsServerMessage> = new Subject<IWsServerMessage>(),
+  reconnected$: Subject<void> = new Subject<void>(),
+  resync$: Subject<void> = new Subject<void>()
+): any {
+  return {
+    messages$: messages$.asObservable(),
+    reconnected$: reconnected$.asObservable(),
+    resync$: new Subject<void>().asObservable(),
+    connect: jasmine.createSpy('connect'),
+    disconnect: jasmine.createSpy('disconnect'),
+    /* Mirrors the real service: the caller's triggers, plus the recovery signals it always
+       merges in. Anything narrower would let a spec pass while the real pipeline polls. */
+    fallbackPolling: jasmine
+      .createSpy('fallbackPolling')
+      .and.callFake((triggers: any) => merge(triggers ?? EMPTY, reconnected$, resync$)),
+    reportPollResult: jasmine.createSpy('reportPollResult'),
+  };
+}
+
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -37,7 +62,7 @@ const REFRESH_TYPES: ServerMessageType.ServerMessageTypeEnum[] = [
 
 describe('RunViewerComponent WebSocket wiring', () => {
   let component: RunViewerComponent;
-  let wsService: jasmine.SpyObj<WebSocketService>;
+  let wsService: any;
   let runService: jasmine.SpyObj<EvaluationService>;
   let messages$: Subject<IWsServerMessage>;
   let reconnected$: Subject<void>;
@@ -46,10 +71,7 @@ describe('RunViewerComponent WebSocket wiring', () => {
     messages$ = new Subject<IWsServerMessage>();
     reconnected$ = new Subject<void>();
 
-    wsService = jasmine.createSpyObj('WebSocketService', ['connect', 'disconnect'], {
-      messages$: messages$.asObservable(),
-      reconnected$: reconnected$.asObservable(),
-    });
+    wsService = silentWebSocketService(messages$, reconnected$) as any;
 
     runService = jasmine.createSpyObj('EvaluationService', [
       'getApiV2EvaluationByEvaluationIdState',

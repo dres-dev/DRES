@@ -2,7 +2,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick, discardPeriodicTasks } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { of, Subject } from 'rxjs';
+import { EMPTY, Subject, merge, of } from 'rxjs';
 
 import { JudgementVotingViewerComponent } from './judgement-voting-viewer.component';
 import { AppConfig } from '../app.config';
@@ -12,6 +12,30 @@ import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Double for the WebSocket service: exposes only the contract this component uses and never polls on
+ * its own, so a spec sees exactly the requests its trigger caused.
+ */
+function silentWebSocketService(
+  messages$: Subject<IWsServerMessage> = new Subject<IWsServerMessage>(),
+  reconnected$: Subject<void> = new Subject<void>(),
+  resync$: Subject<void> = new Subject<void>()
+): any {
+  return {
+    messages$: messages$.asObservable(),
+    reconnected$: reconnected$.asObservable(),
+    resync$: new Subject<void>().asObservable(),
+    connect: jasmine.createSpy('connect'),
+    disconnect: jasmine.createSpy('disconnect'),
+    /* Mirrors the real service: the caller's triggers, plus the recovery signals it always
+       merges in. Anything narrower would let a spec pass while the real pipeline polls. */
+    fallbackPolling: jasmine
+      .createSpy('fallbackPolling')
+      .and.callFake((triggers: any) => merge(triggers ?? EMPTY, reconnected$, resync$)),
+    reportPollResult: jasmine.createSpy('reportPollResult'),
+  };
+}
 
 function wsMsg(type: ServerMessageType.ServerMessageTypeEnum): IWsServerMessage {
   return { evaluationId: 'eval-1', type, timestamp: Date.now() };
@@ -32,7 +56,7 @@ const IRRELEVANT_TYPES: ServerMessageType.ServerMessageTypeEnum[] = [
 
 describe('JudgementVotingViewerComponent WebSocket wiring', () => {
   let component: JudgementVotingViewerComponent;
-  let wsService: jasmine.SpyObj<WebSocketService>;
+  let wsService: any;
   let judgementService: jasmine.SpyObj<JudgementService>;
   let messages$: Subject<IWsServerMessage>;
   let fixture: ComponentFixture<JudgementVotingViewerComponent>;
@@ -40,9 +64,7 @@ describe('JudgementVotingViewerComponent WebSocket wiring', () => {
   beforeEach(() => {
     messages$ = new Subject<IWsServerMessage>();
 
-    wsService = jasmine.createSpyObj('WebSocketService', ['connect', 'disconnect'], {
-      messages$: messages$.asObservable(),
-    });
+    wsService = silentWebSocketService(messages$) as any;
 
     judgementService = jasmine.createSpyObj('JudgementService', ['getApiV2EvaluationByEvaluationIdVoteNext']);
     judgementService.getApiV2EvaluationByEvaluationIdVoteNext.and.returnValue(of({ status: 202, body: null } as any));

@@ -3,13 +3,37 @@ import { ComponentFixture, TestBed, fakeAsync, tick, discardPeriodicTasks } from
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { of, Subject } from 'rxjs';
+import { EMPTY, Subject, merge, of } from 'rxjs';
 import { JudgementViewerComponent } from './judgement-viewer.component';
 import { JudgementService } from '../../../openapi';
 import { ApiJudgementRequest } from '../../../openapi';
 import { WebSocketService } from '../services/websocket.service';
 import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
 import { ServerMessageType } from '../model/ws/server-message-type.enum';
+
+/**
+ * Double for the WebSocket service: exposes only the contract this component uses and never polls on
+ * its own, so a spec sees exactly the requests its trigger caused.
+ */
+function silentWebSocketService(
+  messages$: Subject<IWsServerMessage> = new Subject<IWsServerMessage>(),
+  reconnected$: Subject<void> = new Subject<void>(),
+  resync$: Subject<void> = new Subject<void>()
+): any {
+  return {
+    messages$: messages$.asObservable(),
+    reconnected$: reconnected$.asObservable(),
+    resync$: new Subject<void>().asObservable(),
+    connect: jasmine.createSpy('connect'),
+    disconnect: jasmine.createSpy('disconnect'),
+    /* Mirrors the real service: the caller's triggers, plus the recovery signals it always
+       merges in. Anything narrower would let a spec pass while the real pipeline polls. */
+    fallbackPolling: jasmine
+      .createSpy('fallbackPolling')
+      .and.callFake((triggers: any) => merge(triggers ?? EMPTY, reconnected$, resync$)),
+    reportPollResult: jasmine.createSpy('reportPollResult'),
+  };
+}
 
 function makeRequest(token: string, desc = 'Find a cat'): ApiJudgementRequest {
   return { token, taskDescription: desc, validator: 'v1', answerSet: { answers: [] } } as any;
@@ -58,7 +82,7 @@ describe('JudgementViewerComponent', () => {
         { provide: MatDialog, useValue: mockDialog },
         {
           provide: WebSocketService,
-          useValue: jasmine.createSpyObj('WebSocketService', ['connect', 'disconnect'], { messages$: new Subject().asObservable() }),
+          useValue: silentWebSocketService(),
         },
       ],
     });
@@ -159,7 +183,7 @@ describe('JudgementViewerComponent', () => {
 describe('JudgementViewerComponent WebSocket wiring', () => {
   let component: JudgementViewerComponent;
   let fixture: ComponentFixture<JudgementViewerComponent>;
-  let wsService: jasmine.SpyObj<WebSocketService>;
+  let wsService: any;
   let judgementService: jasmine.SpyObj<JudgementService>;
   let messages$: Subject<IWsServerMessage>;
   let dialogAfterClosed: Subject<void>;
@@ -168,9 +192,7 @@ describe('JudgementViewerComponent WebSocket wiring', () => {
     messages$ = new Subject<IWsServerMessage>();
     dialogAfterClosed = new Subject<void>();
 
-    wsService = jasmine.createSpyObj('WebSocketService', ['connect', 'disconnect'], {
-      messages$: messages$.asObservable(),
-    });
+    wsService = silentWebSocketService(messages$);
 
     judgementService = jasmine.createSpyObj('JudgementService', [
       'postApiV2EvaluationByEvaluationIdJudge',

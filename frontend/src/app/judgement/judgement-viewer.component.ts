@@ -11,6 +11,7 @@ import {JudgementDialogComponent} from './judgement-dialog/judgement-dialog.comp
 import {JudgementDialogContent} from './judgement-dialog/judgement-dialog-content.model';
 import {ApiJudgement, ApiJudgementRequest, ApiVerdictStatus, JudgementService} from '../../../openapi';
 import {WebSocketService} from '../services/websocket.service';
+import {PollCadence} from '../services/poll-cadence';
 import {ServerMessageType} from '../model/ws/server-message-type.enum';
 
 /**
@@ -41,6 +42,10 @@ import {ServerMessageType} from '../model/ws/server-message-type.enum';
 })
 export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
   status: 'fresh' | 'known' = 'known';
+
+  /** Watches the validator queues, so a quiet run stops being polled as if it were busy. */
+  private readonly statusPolls = new PollCadence(this.wsService, 'judgement-status');
+  private readonly requestPolls = new PollCadence(this.wsService, 'judgement-request');
 
   @Input() debug = false;
   @Input() pollingFrequency = 1000;
@@ -141,7 +146,9 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                 ServerMessageType.ServerMessageTypeEnum.TASK_END,
             ].includes(msg.type))
         );
-        const trigger$ = merge(timer(0, 30_000), wsRefresh$, this.nextRequestRefresh);
+        /* The fallback cadence follows the socket's health: fast while updates are missing, relaxing
+           while it stays down, and a single immediate refresh after any gap in coverage. */
+        const trigger$ = merge(this.wsService.fallbackPolling(), wsRefresh$, this.nextRequestRefresh);
 
         /* Fetch judge status on websocket event or fallback interval. */
         this.statusSub = trigger$
@@ -181,8 +188,13 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                                     /* Don't penalise if there's nothing to do*/
                                     this.deadMansSwitchTime = 0;
                                     this.isJudgmentAvailable = false;
+                                    /* An empty queue is the normal state between submissions, so the
+                                       cadence may grow while it lasts. */
+                                    this.requestPolls.observe(null);
                                     return null;
                                 } else {
+                                    /* A submission showed up: this is exactly when polls must be quick. */
+                                    this.requestPolls.observe(req.body?.token ?? 'pending');
                                     return req.body;
                                 }
                             }),

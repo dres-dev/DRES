@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -49,8 +50,8 @@ class ViewerReadyHandler : AbstractEvaluationViewerHandler(), GetRestHandler<Suc
             )
             val rac = ctx.runActionContext()
             val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access denied!", ctx)
+            if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
+                throw ErrorStatusException(403, "Access denied.", ctx)
             }
 
             if (ctx.isParticipant() || ctx.isAdmin()) {

@@ -5,6 +5,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.UserId
+import dev.dres.data.model.run.ApiRunProperties
 import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.security.RouteRole
@@ -53,6 +54,37 @@ object AccessManager {
      * WebSocket upgrades, which is why [dev.dres.api.rest.WsUpgradeGate] exists.
      */
     fun hasAccess(ctx: Context): Boolean = isPermitted(ctx.routeRoles(), ctx.sessionToken())
+
+    /**
+     * Decides whether the session of [ctx] may observe the state of [manager]'s run.
+     *
+     * A run may be configured so that its participants do not see what the run shows - typically a
+     * retention study where participants must not watch the other teams. The rule is about the
+     * *participant* relation to the run, so it is applied to non-admins only, and it is stated once here
+     * rather than repeated in every viewer handler, where it had drifted: each copy tested
+     * `ctx.isParticipant()`, which excludes judges, and none of them agreed on a message or a status code.
+     *
+     * @param ctx The request [Context], used for the session's roles.
+     * @param runProperties The run's viewer policy.
+     * @return True when the session may observe the run's state.
+     */
+    fun canObserveRunState(ctx: Context, runProperties: ApiRunProperties): Boolean =
+        canObserveRunState(ctx.sessionToken(), runProperties)
+
+    /**
+     * The same decision as [canObserveRunState] for a bare session, so it can be tested without a request.
+     *
+     * @param session The caller's session token, or null when unauthenticated.
+     * @param runProperties The run's viewer policy.
+     * @return True when the session may observe the run's state.
+     */
+    fun canObserveRunState(session: SessionToken?, runProperties: ApiRunProperties): Boolean {
+        val roles = this.rolesOfSession(session)
+        if (roles.contains(ApiRole.ADMIN)) {
+            return true
+        }
+        return runProperties.participantCanView || !roles.contains(ApiRole.PARTICIPANT)
+    }
 
     /** An internal [ConcurrentHashMap] that maps [SessionToken]s to [ApiRole]s. */
     private val sessionRoleMap = HashMap<SessionToken, MutableSet<ApiRole>>()

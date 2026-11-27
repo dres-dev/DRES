@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.isParticipant
@@ -36,8 +37,8 @@ class GetEvaluationInfoHandler : AbstractEvaluationViewerHandler(), GetRestHandl
     )
     override fun doGet(ctx: Context): ApiEvaluationInfo {
         val manager = ctx.eligibleManagerForId<RunManager>()
-        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-            throw ErrorStatusException(403, "Access Denied", ctx)
+        if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
+            throw ErrorStatusException(403, "Access denied.", ctx)
         }
         return ApiEvaluationInfo(manager)
     }

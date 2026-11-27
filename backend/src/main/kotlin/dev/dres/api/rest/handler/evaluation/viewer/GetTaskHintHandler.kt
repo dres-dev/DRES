@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.DRES
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.handler.preview.GetMediaGrantHandler
 import dev.dres.api.rest.handler.preview.MediaGrantPayload
@@ -105,8 +106,8 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
     private fun RunManager.executeGatekeeper(ctx: Context, taskTemplateId: String, rac: RunActionContext) {
         when(this) {
             is InteractiveRunManager -> {
-                if (!this.runProperties.participantCanView && ctx.isParticipant()) {
-                    throw ErrorStatusException(403, "Access Denied", ctx)
+                if (!AccessManager.canObserveRunState(ctx, this.runProperties)) {
+                    throw ErrorStatusException(403, "Access denied.", ctx)
                 }
 
                 if (ctx.isParticipant() || ctx.isAdmin()) {

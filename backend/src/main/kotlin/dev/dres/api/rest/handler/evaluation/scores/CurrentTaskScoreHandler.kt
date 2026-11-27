@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.scores
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.evaluationId
@@ -47,7 +48,7 @@ class CurrentTaskScoreHandler : AbstractScoreHandler(),
     override fun doGet(ctx: Context): ApiScoreOverview {
 
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+        if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 

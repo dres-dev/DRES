@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.handler.evaluation.HiddenResultsVisibility
 import dev.dres.utilities.extensions.eligibleManagerForId
@@ -40,7 +41,7 @@ class GetSubmissionHistoryInfoHandler(private val store: TransientEntityStore): 
     override fun doGet(ctx: Context): List<ApiSubmission> {
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
         val rac = ctx.runActionContext()
-        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+        if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
         val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(404, "Missing task id", ctx)

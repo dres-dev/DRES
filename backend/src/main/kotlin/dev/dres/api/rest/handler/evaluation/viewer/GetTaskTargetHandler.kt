@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.handler.preview.GetMediaGrantHandler
 import dev.dres.api.rest.handler.preview.MediaGrantPayload
@@ -101,7 +102,7 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
     private fun RunManager.executeGatekeeper(ctx: Context, taskTemplateId: String, rac: RunActionContext) {
         when(this) {
             is InteractiveRunManager -> {
-                if (!this.runProperties.participantCanView && ctx.isParticipant()) {
+                if (!AccessManager.canObserveRunState(ctx, this.runProperties)) {
                     throw ErrorStatusException(403, "Access denied; you are not authorised to access the specified task target.", ctx)
                 }
                 if (!this.tasks(rac).any { it.taskTemplateId == taskTemplateId && it.status == ApiTaskStatus.ENDED }) {

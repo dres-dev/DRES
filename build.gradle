@@ -50,3 +50,25 @@ tasks.register('generateClientOAS', Download) {
     src clientOAS
     dest f
 }
+
+/*
+ * `openApiGenerate` reads doc/oas.json, which generateOAS writes. Without this dependency Gradle 9 fails the
+ * build with "uses this output of task ':generateOAS' without declaring an explicit or implicit dependency"
+ * as soon as both are requested in one invocation - which is exactly how regeneration is documented.
+ */
+/*
+ * Regenerates the committed specification, the client specification and the generated TypeScript client in
+ * the right order. Requires a running DRES on the default port.
+ */
+tasks.register('regenerateApi') {
+    group = 'documentation'
+    description = 'Regenerates doc/oas.json, doc/oas-client.json and frontend/openapi from a running DRES.'
+    dependsOn 'generateOAS', 'generateClientOAS', 'openApiGenerate'
+}
+
+/* Ordering and the generateOAS dependency are declared after both tasks exist. */
+tasks.named('generateClientOAS').configure { mustRunAfter 'generateOAS' }
+tasks.named('openApiGenerate').configure {
+    dependsOn 'generateOAS'
+    mustRunAfter 'generateClientOAS'
+}

@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.evaluationId
@@ -49,7 +50,7 @@ class GetCurrentTaskHandler : AbstractEvaluationViewerHandler(), GetRestHandler<
     )
     override fun doGet(ctx: Context): ApiTaskTemplateInfo {
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+        if (!AccessManager.canObserveRunState(ctx, manager.runProperties)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
         val rac = ctx.runActionContext()

@@ -230,13 +230,7 @@ object RestApi {
 
             it.jsonMapper(KotlinxJsonMapper)
 
-            it.bundledPlugins.enableCors { cors ->
-                cors.addRule { corsPluginConfig ->
-                    corsPluginConfig.reflectClientOrigin =
-                        true // anyHost() has similar implications and might be used in production? I'm not sure how to cope with production and dev here simultaneously
-                    corsPluginConfig.allowCredentials = true
-                }
-            }
+            CorsConfiguration.apply(it, config.cors.allowedOrigins)
 
             it.registerPlugin(
                 OpenApiPlugin { oapConfig ->
@@ -366,6 +360,8 @@ object RestApi {
                     secure = config.enableSsl,
                     sameSite = if (config.enableSsl) SameSite.NONE else SameSite.LAX
                 )
+                /* The frontend never reads the token from script; only the browser and the API need it. */
+                cookie.isHttpOnly = true
                 ctx.cookie(cookie) //update cookie lifetime
                 ctx.attribute("session", cookieId) //store id in attribute for later use
             }
@@ -395,8 +391,8 @@ object RestApi {
             it.json(ErrorStatus("Unauthorized request!"))
         }
         it.routes.exception(Exception::class.java) { e, ctx ->
-            ctx.status(500).json(ErrorStatus("Internal server error: ${e.localizedMessage}"))
-            logger.error("Exception during handling of request to ${ctx.path()}", e)
+            /* Never return e.localizedMessage: exception messages name files, entities and ids. */
+            ServerError.respond(ctx, e)
         }
         }.start(config.httpPort)
     }

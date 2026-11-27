@@ -38,21 +38,22 @@ class LogoutHandler() : RestHandler, GetRestHandler<SuccessStatus> {
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SuccessStatus {
-        val username = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(
-            400,
-            "You are currently not logged in.",
-            ctx
-        )
-        val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(
+        /*
+         * Resolve the token once: the three lookups below used to repeat the same nullable query and then
+         * force-unwrap the result, so the message reported a user id where a name was expected and the
+         * unwraps only stayed safe because the first lookup had already thrown.
+         */
+        val token = ctx.sessionToken() ?: throw ErrorStatusException(400, "You are currently not logged in.", ctx)
+        val userId = AccessManager.userIdForSession(token) ?: throw ErrorStatusException(
             400,
             "You are currently not logged in.",
             ctx
         )
 
-        AuditLogger.logout(userId, AuditLogSource.REST, ctx.sessionToken()!!)
-        AccessManager.deregisterUserSession(ctx.sessionToken()!!)
+        AuditLogger.logout(userId, AuditLogSource.REST, token)
+        AccessManager.deregisterUserSession(token)
 
-        return SuccessStatus("User '${username}' logged out successfully.")
+        return SuccessStatus("User '$userId' logged out successfully.")
 
     }
 }

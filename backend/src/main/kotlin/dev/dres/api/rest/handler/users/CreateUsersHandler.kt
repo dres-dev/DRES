@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.users
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
@@ -51,6 +52,17 @@ class CreateUsersHandler() : AbstractUserHandler(), PostRestHandler<ApiUser>, Ac
             throw ErrorStatusException(400, "Invalid parameters. Username must consist of between ${DbUser.MIN_LENGTH_USERNAME} and ${DbUser.MAX_LENGTH_USERNAME} characters.", ctx)
         if (req.role == null)
             throw ErrorStatusException(400, "Invalid parameters. Role must be defined.", ctx)
+        /*
+         * ANYONE describes a request that needs no authentication, not a user. Accepting it here created
+         * an account that could never log in, because session registration rejects every role it cannot
+         * expand into permissions.
+         */
+        if (req.role !in AccessManager.assignableRoles)
+            throw ErrorStatusException(
+                400,
+                "Invalid parameters. Role must be one of ${AccessManager.assignableRoles.joinToString { it.name }}.",
+                ctx
+            )
 
         try {
             return UserManager.create(req.username, Password.Plain(req.password).hash(), req.role)

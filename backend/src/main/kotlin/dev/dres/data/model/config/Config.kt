@@ -8,6 +8,17 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
+/**
+ * Additional configuration section for cross-origin access.
+ *
+ * @property allowedOrigins Hosts (optionally with port) that may send credentialed cross-origin requests.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class CorsConfig(
+    /** Origins allowed to send credentialed requests; empty means "none". */
+    val allowedOrigins: List<String> = emptyList()
+)
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Config(
     /** HTTP Port */
@@ -36,6 +47,8 @@ data class Config(
     val externalMediaEndpointsEnabled: Boolean = false,
     /** Whether to enable http3 protocol, requires enableSsl to be true, to have an effect. THIS IS CURRENTLY NOT YET SUPPORTED */
     val enableHttp3: Boolean = false,
+    /** Cross-origin policy for credentialed API access. */
+    val cors: CorsConfig = CorsConfig(),
 ) {
 
     companion object{

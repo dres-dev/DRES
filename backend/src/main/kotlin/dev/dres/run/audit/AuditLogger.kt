@@ -252,6 +252,17 @@ object AuditLogger {
         log(LogoutAuditLogEntry(userId, api, sessionToken))
     }
 
+    /**
+     * Logs the deletion of a user account.
+     *
+     * @param userId The [UserId] of the deleted user.
+     * @param deletedBy The [UserId] of the administrator who deleted it, if known.
+     * @param session The [SessionToken] of the caller.
+     */
+    fun userDeleted(userId: UserId, deletedBy: UserId?, session: SessionToken?) {
+        log(UserDeletedAuditLogEntry(userId, deletedBy, session))
+    }
+
     fun startup() {
         log(StartupAuditLogEntry())
     }

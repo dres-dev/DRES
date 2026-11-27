@@ -30,24 +30,29 @@ object AccessManager {
     val SESSION_TOKEN_CHAR_POOL : List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9') + '-' + '_'
     const val SESSION_TOKEN_LENGTH = 32
 
-    fun manage(handler: Handler, ctx: Context, permittedRoles: Set<RouteRole>) {
-        when {
-            permittedRoles.isEmpty() -> handler.handle(ctx) //fallback in case no roles are set, none are required
-            permittedRoles.contains(ApiRole.ANYONE) -> handler.handle(ctx)
-            rolesOfSession(ctx.sessionToken()).any { it in permittedRoles } -> handler.handle(ctx)
-            else -> ctx.status(401)
-        }
+    /**
+     * Decides whether the session of [ctx] may invoke a route that requires [permittedRoles].
+     *
+     * This is the single implementation of the role-gate rule; [hasAccess] is a thin wrapper so that
+     * the live request pipeline and any other caller cannot drift apart.
+     *
+     * @param permittedRoles The [RouteRole]s the route accepts; an empty set means "no roles required".
+     * @param session The session token of the caller, or null when there is none.
+     * @return true if the request may proceed.
+     */
+    fun isPermitted(permittedRoles: Set<RouteRole>, session: SessionToken?): Boolean = when {
+        permittedRoles.isEmpty() -> true //fallback in case no roles are set, none are required
+        permittedRoles.contains(ApiRole.ANYONE) -> true
+        else -> rolesOfSession(session).any { it in permittedRoles }
     }
 
-    fun hasAccess(ctx: Context): Boolean {
-        val permittedRoles = ctx.routeRoles()
-        return when {
-            permittedRoles.isEmpty() -> true
-            permittedRoles.contains(ApiRole.ANYONE) -> true
-            rolesOfSession(ctx.sessionToken()).any { it in permittedRoles } -> true
-            else -> false
-        }
-    }
+    /**
+     * Decides whether the caller of [ctx] may invoke the route it matched.
+     *
+     * The outcome is normally enforced by `routes.beforeMatched`. Note that this hook does not run for
+     * WebSocket upgrades, which is why [dev.dres.api.rest.WsUpgradeGate] exists.
+     */
+    fun hasAccess(ctx: Context): Boolean = isPermitted(ctx.routeRoles(), ctx.sessionToken())
 
     /** An internal [ConcurrentHashMap] that maps [SessionToken]s to [ApiRole]s. */
     private val sessionRoleMap = HashMap<SessionToken, MutableSet<ApiRole>>()
@@ -61,6 +66,14 @@ object AccessManager {
     /** A [Set] of all [SessionToken]s. */
     val currentSessions: Set<SessionToken>
         get() = this.locks.read { Collections.unmodifiableSet(this.sessionUserMap.keys) }
+
+    /**
+     * The roles [AccessManager] is able to register for a session.
+     *
+     * [ApiRole.ANYONE] is deliberately absent: it means "no authentication required" and describes a
+     * request, not a user, so a user holding it could never be granted a session.
+     */
+    val assignableRoles: Set<ApiRole> = setOf(ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE, ApiRole.ADMIN)
 
     /** A [ReentrantReadWriteLock] that mediates access to maps. */
     private val locks = ReentrantReadWriteLock()
@@ -78,6 +91,7 @@ object AccessManager {
             ApiRole.JUDGE -> setOf(ApiRole.VIEWER, ApiRole.JUDGE)
             ApiRole.PARTICIPANT -> setOf(ApiRole.VIEWER, ApiRole.PARTICIPANT)
             ApiRole.VIEWER -> setOf(ApiRole.VIEWER)
+            /* Unreachable for users created through the API or the CLI importer, both of which reject ANYONE. */
             else -> throw IllegalStateException("Role held by user is unknown!")
         }
         this.sessionUserMap[sessionId] = user.id
@@ -91,7 +105,15 @@ object AccessManager {
      */
     fun deregisterUserSession(sessionId: String) = this.locks.write {
         this.sessionRoleMap.remove(sessionId)
-        this.sessionUserMap.remove(sessionId)
+        val userId = this.sessionUserMap.remove(sessionId)
+        /*
+         * A logged-out user must not keep its run eligibility: `usersToRunMap` is otherwise only cleaned
+         * when a run itself ends ([deregisterRunManager]), so a stale entry kept answering "this user may
+         * observe that run" for the rest of the deployment.
+         */
+        if (userId != null && this.sessionUserMap.values.none { it == userId }) {
+            this.usersToRunMap.remove(userId)
+        }
     }
 
     /**

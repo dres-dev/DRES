@@ -14,13 +14,19 @@ interface RestHandler {
 
 interface GetRestHandler<T: Any> : RestHandler {
 
+    /**
+     * Runs [doGet] and answers an error if it throws.
+     *
+     * An [ErrorStatusException] is a deliberate, client-facing failure and keeps its status and message.
+     * Everything else is a bug: the details go to the log and the client is told nothing specific.
+     */
     fun get(ctx: Context) {
         try {
             ctx.json(doGet(ctx))
         } catch (e: ErrorStatusException) {
             ctx.errorResponse(e)
         } catch (e: Exception) {
-            ctx.errorResponse(500, e.message ?: "")
+            ServerError.respond(ctx, e)
         }
     }
 
@@ -29,13 +35,14 @@ interface GetRestHandler<T: Any> : RestHandler {
 
 interface PostRestHandler<T: Any> : RestHandler {
 
+    /** @see GetRestHandler.get */
     fun post(ctx: Context) {
         try {
             ctx.json(doPost(ctx))
         } catch (e: ErrorStatusException) {
             ctx.errorResponse(e)
         } catch (e: Exception) {
-            ctx.errorResponse(500,e.message ?: "")
+            ServerError.respond(ctx, e)
         }
     }
 
@@ -45,13 +52,14 @@ interface PostRestHandler<T: Any> : RestHandler {
 
 interface PatchRestHandler<T: Any> : RestHandler {
 
+    /** @see GetRestHandler.get */
     fun patch(ctx: Context) {
         try {
             ctx.json(doPatch(ctx))
         } catch (e: ErrorStatusException) {
             ctx.errorResponse(e)
         } catch (e: Exception) {
-            ctx.errorResponse(500, e.message ?: "")
+            ServerError.respond(ctx, e)
         }
     }
 
@@ -61,13 +69,14 @@ interface PatchRestHandler<T: Any> : RestHandler {
 
 interface DeleteRestHandler<T: Any> : RestHandler {
 
+    /** @see GetRestHandler.get */
     fun delete(ctx: Context) {
         try {
             ctx.json(doDelete(ctx))
         } catch (e: ErrorStatusException) {
             ctx.errorResponse(e)
         } catch (e: Exception) {
-            ctx.errorResponse(500, e.message ?: "")
+            ServerError.respond(ctx, e)
         }
     }
 

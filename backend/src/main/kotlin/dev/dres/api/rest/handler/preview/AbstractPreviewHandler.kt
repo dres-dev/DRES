@@ -113,7 +113,9 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
     protected fun handlePreviewVideoRequest(item: DbMediaItem, start: Long, end: Long, ctx: Context) {
         MediaAuthorization.enforceMediaAccess(ctx, item.collection.id, item.mediaItemId)
         if (item.type != DbMediaType.VIDEO) throw ErrorStatusException(400, "Selected media item ${item.mediaItemId} is not a video.", ctx)
-        if (start <= end) throw ErrorStatusException(400, "Start timestamp must be greater than end timestamp.", ctx)
+        /* A range is start < end; the comparison used to be inverted, so every valid request was rejected. */
+        if (start >= end) throw ErrorStatusException(400, "Start timestamp must be smaller than end timestamp.", ctx)
+        if (start < 0) throw ErrorStatusException(400, "Start timestamp must not be negative.", ctx)
         when(val result = this@AbstractPreviewHandler.cache.asyncPreviewVideo(item, start, end)) {
             is FailedFuture -> throw ErrorStatusException(500, "Failed to load preview video.", ctx)
             is CompletedFuture -> {

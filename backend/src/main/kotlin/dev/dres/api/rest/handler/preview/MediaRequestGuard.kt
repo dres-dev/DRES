@@ -6,7 +6,6 @@ import io.javalin.http.Context
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Limits how fast a single client may pull media out of DRES and leaves an audit trail for every
@@ -41,9 +40,26 @@ object MediaRequestGuard {
     /** Upper bound for tracked clients, so anonymous traffic cannot grow the map without limit. */
     private const val MAX_TRACKED_CLIENTS = 10_000
 
-    /** Per-client request counter for the current window. */
-    private class Window(val start: Long) {
-        val count = AtomicInteger(1)
+    /**
+     * Per-client sliding window of request timestamps.
+     *
+     * A fixed window that resets as soon as its start is older than [WINDOW_MS] lets a client send
+     * [MAX_REQUESTS_PER_WINDOW] requests at the end of one window and another full budget at the start of the
+     * next, i.e. twice the intended rate at the boundary. Keeping the individual timestamps instead makes the
+     * budget a genuine "no more than N in any WINDOW_MS" rule.
+     *
+     * Only `[WINDOW_MS]` worth of timestamps is retained, so the memory per client is bounded by the budget.
+     */
+    private class Window {
+        /** Timestamps of the requests inside the current window, oldest first. */
+        val timestamps = java.util.ArrayDeque<Long>(MAX_REQUESTS_PER_WINDOW)
+
+        /** Drops timestamps that have left the window. */
+        fun prune(now: Long) {
+            while (timestamps.isNotEmpty() && now - timestamps.peekFirst() >= WINDOW_MS) {
+                timestamps.removeFirst()
+            }
+        }
     }
 
     private val windows = ConcurrentHashMap<String, Window>()
@@ -94,20 +110,33 @@ object MediaRequestGuard {
      * @return Number of requests in the current window.
      */
     fun record(client: String, now: Long): Int {
-        if (this.windows.size > MAX_TRACKED_CLIENTS) {
-            this.windows.entries.removeIf { now - it.value.start >= WINDOW_MS }
+        /*
+         * Prune expired state BEFORE checking the bound, and evict the least recently active clients when
+         * the bound is reached anyway. Previously the map was only trimmed once it was already over the
+         * limit, and a rejected client kept its entry, so rotating identifiers (a new session token, or a
+         * spoofed forwarded address) could grow the map without limit and turn the bookkeeping itself into a
+         * memory-exhaustion vector.
+         */
+        if (this.windows.size >= MAX_TRACKED_CLIENTS) {
+            this.windows.entries.removeIf { entry -> synchronized(entry.value) { entry.value.prune(now); entry.value.timestamps.isEmpty() } }
+        }
+        while (this.windows.size >= MAX_TRACKED_CLIENTS) {
+            /* Still full: drop the oldest-looking entry so a new client can be metered at all. */
+            val oldest = this.windows.entries.minByOrNull { entry -> synchronized(entry.value) { entry.value.timestamps.peekFirst() ?: Long.MAX_VALUE } }
+                ?: break
+            this.windows.remove(oldest.key, oldest.value)
         }
 
-        val window = this.windows.compute(client) { _, existing ->
-            if (existing == null || now - existing.start >= WINDOW_MS) {
-                Window(now)
-            } else {
-                existing.count.incrementAndGet()
-                existing
-            }
-        } ?: Window(now)
-        return window.count.get()
+        val window = this.windows.computeIfAbsent(client) { Window() }
+        return synchronized(window) {
+            window.prune(now)
+            window.timestamps.addLast(now)
+            window.timestamps.size
+        }
     }
+
+    /** Number of clients currently tracked; used by tests to verify the bound. */
+    fun trackedClients(): Int = this.windows.size
 
     /** Discards all rate limiting state. Intended for tests. */
     fun reset() = this.windows.clear()

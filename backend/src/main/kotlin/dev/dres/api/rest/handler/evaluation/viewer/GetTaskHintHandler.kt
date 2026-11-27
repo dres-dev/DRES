@@ -23,6 +23,7 @@ import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.*
+import dev.dres.utilities.concurrent.RenderAwait
 import dev.dres.utilities.extensions.*
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -87,7 +88,7 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
             try {
                 /* Hints are participant-specific payloads; a shared cache must never retain them. */
                 ctx.header("Cache-Control", "private, no-store")
-                template.toTaskHint(ctx.sessionToken(), manager.id, taskTemplateId)
+                template.toTaskHint(ctx, ctx.sessionToken(), manager.id, taskTemplateId)
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)
             } catch (ioe: IOException) {
@@ -136,11 +137,11 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private fun ApiTaskTemplate.toTaskHint(session: String?, evaluationId: String, taskTemplateId: String): ApiHintContent = store.transactional(true){
+    private fun ApiTaskTemplate.toTaskHint(ctx: Context, session: String?, evaluationId: String, taskTemplateId: String): ApiHintContent = store.transactional(true){
         val sequence = this.hints.groupBy { it.type }.flatMap { (_, hints) ->
             var index = 0
             hints.sortedBy { it.start ?: 0 }.flatMap {
-                val ret = mutableListOf(it.toContentElement(session, evaluationId, taskTemplateId))
+                val ret = mutableListOf(it.toContentElement(ctx, session, evaluationId, taskTemplateId))
                 if (it.end != null) {
                     if (index == (hints.size - 1)) {
                         ret.add(ApiContentElement(contentType = ret.first().contentType, offset = it.end))
@@ -155,34 +156,57 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
         ApiHintContent(this.id!!, sequence, false)
     }
 
-    private fun ApiHint.toContentElement(session: String?, evaluationId: String, taskTemplateId: String): ApiContentElement {
+    private fun ApiHint.toContentElement(ctx: Context, session: String?, evaluationId: String, taskTemplateId: String): ApiContentElement {
 
         //TODO find a better place for this lookup
         val item = this.item?.let { item ->
             DbMediaItem.filter { it.mediaItemId eq item.mediaItemId }.firstOrNull()
         }
-        val range = if (item?.fps != null) {
-            this.range?.toTemporalRange(item.fps!!)
-        } else {
-            null
-        }
+        /*
+         * The stored range is already in milliseconds (`TemplateManager` converts on import), so the frame
+         * rate is only needed for a source that expresses its bounds in frames. This used to be
+         * `toTemporalRange(item.fps!!)`, which threw a NullPointerException for any item without an `fps`
+         * value, and which made a hint and a target describing the same segment derive their timestamps by
+         * different routes.
+         */
+        val range = this.range?.toMilliseconds(item?.fps ?: 0.0f)
 
         val content = when (this.type) {
             ApiHintType.EMPTY -> ""
             ApiHintType.TEXT -> this.description
             ApiHintType.VIDEO -> {
-                val start = range?.start?.toMilliseconds()
-                    ?: throw IllegalStateException("ApiHint of type VIDEO is expected to hold a valid start timestamp but doesn't! This is a programmer's error!")
-                val end = range.end.toMilliseconds()
+                /*
+                 * The template is stored data, not a programmer's invariant: a hint can be imported or
+                 * edited without a range. The caller is a viewer asking for a legitimate task, so this is a
+                 * server-side data problem (502-adjacent) reported as 500 with an actionable message rather
+                 * than an "programmer's error" stack trace.
+                 */
+                val (start, end) = range
+                    ?: throw ErrorStatusException(
+                        500,
+                        "This task's hint is misconfigured: the video hint has no temporal range. Contact the evaluation's organiser.",
+                        ctx
+                    )
                 val path = if (item != null) {
-                    this@GetTaskHintHandler.cache.asyncPreviewVideo(item, start, end)
-                        .get() /* This should return immediately, since the previews have been prepared. */
+                    RenderAwait.await(
+                        this@GetTaskHintHandler.cache.asyncPreviewVideo(item, start, end),
+                        ctx,
+                        "task hint video"
+                    )
                 } else {
                     val source = DRES.EXTERNAL_ROOT.resolve(
                         this.path
-                            ?: throw IllegalStateException("ApiHint of type VIDEO is expected to hold a valid media item or external path but it doesn't! This is a programmer's error!")
+                            ?: throw ErrorStatusException(
+                                500,
+                                "This task's hint is misconfigured: the video hint names neither a media item nor an external file. Contact the evaluation's organiser.",
+                                ctx
+                            )
                     )
-                    this@GetTaskHintHandler.cache.asyncPreviewVideo(source, start, end).get()
+                    RenderAwait.await(
+                        this@GetTaskHintHandler.cache.asyncPreviewVideo(source, start, end),
+                        ctx,
+                        "task hint video"
+                    )
                 }
                 if (Files.exists(path)) {
                     this@GetTaskHintHandler.grantFor(path, session, evaluationId, taskTemplateId)
@@ -192,15 +216,26 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
             }
             ApiHintType.IMAGE -> {
                 val path = if (item != null) {
-                    this@GetTaskHintHandler.cache.asyncPreviewImage(item)
-                        .get() /* This should return immediately, since the previews have been prepared. */
+                    RenderAwait.await(
+                        this@GetTaskHintHandler.cache.asyncPreviewImage(item),
+                        ctx,
+                        "task hint image"
+                    )
                 } else {
-                    this@GetTaskHintHandler.cache.asyncPreviewImage(
-                        DRES.EXTERNAL_ROOT.resolve(
-                            this.path
-                                ?: throw IllegalStateException("ApiHint of type IMAGE is expected to hold a valid media item or external path but it doesn't! This is a programmer's error!")
-                        )
-                    ).get()
+                    RenderAwait.await(
+                        this@GetTaskHintHandler.cache.asyncPreviewImage(
+                            DRES.EXTERNAL_ROOT.resolve(
+                                this.path
+                                    ?: throw ErrorStatusException(
+                                        500,
+                                        "This task's hint is misconfigured: the image hint names neither a media item nor an external file. Contact the evaluation's organiser.",
+                                        ctx
+                                    )
+                            )
+                        ),
+                        ctx,
+                        "task hint image"
+                    )
                 }
                 if (Files.exists(path)) {
                     if (path.toString().endsWith(".jpg", ignoreCase = true)) {

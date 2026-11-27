@@ -18,7 +18,7 @@ import kotlinx.dnq.query.query
  */
 class PreviewVideoHandler(store: TransientEntityStore, cache: CacheManager) : AbstractPreviewHandler(store, cache) {
 
-    override val route: String = "preview/{mediaItemId}/{time}"
+    override val route: String = "preview/{mediaItemId}/{start}/{end}"
     @OpenApi(
         summary = "Returns a preview video from a media item. ",
         path = "/api/v2/preview/{mediaItemId}/{start}/{end}",

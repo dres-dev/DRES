@@ -26,6 +26,7 @@ import dev.dres.data.model.template.task.DbTaskTemplateTarget
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManager
+import dev.dres.utilities.concurrent.RenderAwait
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -83,7 +84,7 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
             try {
                 /* Targets contain the ground truth; never let a shared cache retain them. */
                 ctx.header("Cache-Control", "private, no-store")
-                template.toTaskTarget(ctx.sessionToken(), manager.id, taskTemplateId)
+                template.toTaskTarget(ctx, ctx.sessionToken(), manager.id, taskTemplateId)
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)
             } catch (ioe: IOException) {
@@ -123,10 +124,10 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private fun ApiTaskTemplate.toTaskTarget(session: String?, evaluationId: String, taskTemplateId: String): ApiTargetContent { //TODO there must be a better way to do this
+    private fun ApiTaskTemplate.toTaskTarget(ctx: Context, session: String?, evaluationId: String, taskTemplateId: String): ApiTargetContent { //TODO there must be a better way to do this
         var cummulativeOffset = 0L
         val sequence = DbTaskTemplate.filter{it.templateId eq this@toTaskTarget.id}.firstOrNull()?.targets?.asSequence()?.flatMap {
-            val qce = it.toQueryContentElement(session, evaluationId, taskTemplateId)
+            val qce = it.toQueryContentElement(ctx, session, evaluationId, taskTemplateId)
             /* The content */
             val content = ApiContentElement(qce.contentType, qce.content, cummulativeOffset, qce.mediaUrl)
             /* Calculate offset of pause */
@@ -148,7 +149,7 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private fun DbTaskTemplateTarget.toQueryContentElement(session: String?, evaluationId: String, taskTemplateId: String): ApiContentElement {
+    private fun DbTaskTemplateTarget.toQueryContentElement(ctx: Context, session: String?, evaluationId: String, taskTemplateId: String): ApiContentElement {
         var payload: MediaGrantPayload? = null
         val (content, type) = when (this.type) {
             DbTargetType.JUDGEMENT,
@@ -169,10 +170,30 @@ class GetTaskTargetHandler(private val store: TransientEntityStore, private val 
                 null to type
             }
             DbTargetType.MEDIA_ITEM_TEMPORAL_RANGE -> {
-                val item = this.item ?: throw IllegalStateException("DbHint of type IMAGE is expected to hold a valid media item but doesn't! This is a programmer's error!")
-                val start = this.start ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid start timestamp but doesn't! This is a programmer's error!")
-                val end = this.end ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid end timestamp but doesn't!! This is a programmer's error!")
-                val path = this@GetTaskTargetHandler.cache.asyncPreviewVideo(item, start, end).get() /* This should return immediately, since the previews have been prepared. */
+                /* Stored template data can be incomplete; report it as a server-side data problem instead
+                 * of an internal assertion, so an operator can act on the message. */
+                val item = this.item ?: throw ErrorStatusException(
+                    500,
+                    "This task's target is misconfigured: the target names no media item. Contact the evaluation's organiser.",
+                    ctx
+                )
+                val start = this.start ?: throw ErrorStatusException(
+                    500,
+                    "This task's target is misconfigured: the target has no start timestamp. Contact the evaluation's organiser.",
+                    ctx
+                )
+                val end = this.end ?: throw ErrorStatusException(
+                    500,
+                    "This task's target is misconfigured: the target has no end timestamp. Contact the evaluation's organiser.",
+                    ctx
+                )
+                /* Preparation normally has this cached already, but a bound keeps a slow render from pinning
+                 * the worker thread; a 503 with Retry-After is better than an unbounded wait. */
+                val path = RenderAwait.await(
+                    this@GetTaskTargetHandler.cache.asyncPreviewVideo(item, start, end),
+                    ctx,
+                    "task target video"
+                )
                 if (Files.exists(path)) {
                     payload = MediaGrantPayload.Preview(path)
                 }

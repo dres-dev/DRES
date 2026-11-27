@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory
 import java.security.SecureRandom
 import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 /**
  * Mints, redeems, and revokes [MediaGrant]s.
@@ -65,6 +68,30 @@ object MediaGrantRegistry {
     private const val MAX_GRANTS = 50_000
 
     /**
+     * Interval of the background sweep that drops expired grants.
+     *
+     * Expiry used to be applied only when a new grant was minted, which made it a function of request
+     * arrival: an installation that stopped minting kept every expired grant, and one that minted steadily
+     * could reach [MAX_GRANTS] and then answer 500 on the hint and target endpoints, because `mint` refuses
+     * to create a grant rather than dropping a dead one. A sweep decouples cleanup from traffic.
+     */
+    private const val SWEEP_INTERVAL_MS = 60_000L
+
+    /** Daemon thread that expires grants in the background; see [SWEEP_INTERVAL_MS]. */
+    private val sweeper: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor { runnable ->
+        Thread(runnable, "media-grant-sweeper").apply { isDaemon = true }
+    }
+
+    init {
+        this.sweeper.scheduleWithFixedDelay(
+            { runCatching { this.evictExpired(System.currentTimeMillis()) } },
+            SWEEP_INTERVAL_MS,
+            SWEEP_INTERVAL_MS,
+            TimeUnit.MILLISECONDS
+        )
+    }
+
+    /**
      * Registers a new grant.
      *
      * @param session The session the grant is bound to.
@@ -87,10 +114,11 @@ object MediaGrantRegistry {
         val now = System.currentTimeMillis()
         this.evictExpired(now)
         if (this.grants.size >= MAX_GRANTS) {
+            /* Reclaim the least valuable grants rather than failing the request: the caller is a viewer
+             * asking for media it is entitled to, and an evicted grant is re-minted on the next poll. */
             this.evictOldest(this.grants.size - MAX_GRANTS + 1)
             if (this.grants.size >= MAX_GRANTS) {
-                logger.warn("Refusing to mint a media grant: {} grants are already active.", this.grants.size)
-                throw IllegalStateException("Too many active media grants.")
+                logger.debug("Grant table still at capacity ({}) after eviction; not failing the request.", this.grants.size)
             }
         }
 

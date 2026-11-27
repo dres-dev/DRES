@@ -64,11 +64,13 @@ tasks.register('regenerateApi') {
     group = 'documentation'
     description = 'Regenerates doc/oas.json, doc/oas-client.json and frontend/openapi from a running DRES.'
     dependsOn 'generateOAS', 'generateClientOAS', 'openApiGenerate'
+    /* Makes openApiGenerate consume the freshly downloaded spec rather than the committed one. */
+    tasks.named('openApiGenerate') { dependsOn 'generateOAS'; mustRunAfter 'generateClientOAS' }
 }
 
-/* Ordering and the generateOAS dependency are declared after both tasks exist. */
+/*
+ * Ordering is declared after both tasks exist. `openApiGenerate` deliberately does NOT depend on
+ * `generateOAS`: that would make every ordinary build require a running server. The dependency only
+ * exists inside `regenerateApi`, which is the task that actually means "re-download the spec first".
+ */
 tasks.named('generateClientOAS').configure { mustRunAfter 'generateOAS' }
-tasks.named('openApiGenerate').configure {
-    dependsOn 'generateOAS'
-    mustRunAfter 'generateClientOAS'
-}

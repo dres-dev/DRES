@@ -11,6 +11,7 @@ import dev.dres.mgmt.cache.CacheManager
 import dev.dres.utilities.extensions.errorResponse
 import dev.dres.utilities.extensions.sessionToken
 import dev.dres.utilities.extensions.streamFile
+import dev.dres.utilities.concurrent.RenderAwait
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -122,7 +123,11 @@ class GetMediaGrantHandler(private val store: TransientEntityStore, private val 
             }
             is MediaGrantPayload.ItemSegment -> this.store.transactional(true) {
                 val item = this@GetMediaGrantHandler.item(payload.itemId, ctx)
-                this@GetMediaGrantHandler.cache.asyncPreviewVideo(item, payload.start, payload.end).get()
+                RenderAwait.await(
+                    this@GetMediaGrantHandler.cache.asyncPreviewVideo(item, payload.start, payload.end),
+                    ctx,
+                    "granted video segment"
+                )
             }
             is MediaGrantPayload.ExternalFile ->
                 ExternalMediaPath.resolve(DRES.EXTERNAL_ROOT, payload.file)
@@ -130,7 +135,11 @@ class GetMediaGrantHandler(private val store: TransientEntityStore, private val 
             is MediaGrantPayload.ExternalSegment -> {
                 val source = ExternalMediaPath.resolve(DRES.EXTERNAL_ROOT, payload.file)
                     ?: throw ErrorStatusException(404, "Granted external media no longer exists.", ctx)
-                this.cache.asyncPreviewVideo(source, payload.start, payload.end).get()
+                RenderAwait.await(
+                    this.cache.asyncPreviewVideo(source, payload.start, payload.end),
+                    ctx,
+                    "granted video segment"
+                )
             }
         }
         if (!Files.exists(path)) throw ErrorStatusException(404, "Granted media could not be found.", ctx)

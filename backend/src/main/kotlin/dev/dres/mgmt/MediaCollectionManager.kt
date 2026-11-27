@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.collection.ApiPopulatedMediaCollection
 import dev.dres.data.model.media.*
 import dev.dres.utilities.extensions.cleanPathString
 import jetbrains.exodus.database.TransientEntityStore
+import jetbrains.exodus.database.exceptions.ConstraintsValidationException
 import kotlinx.dnq.query.*
 import java.lang.Exception
 import kotlin.random.Random
@@ -40,9 +41,22 @@ object MediaCollectionManager {
             ApiPopulatedMediaCollection(ApiMediaCollection.fromMediaCollection(collection), items)
         }
 
-    fun createCollection(name: String, description: String?, basePath: String): ApiMediaCollection? =
-        /* Unique constraints (name, path) are checked when the transaction is committed, hence the try has to enclose the transaction. */
-            try {
+    /**
+     * Creates a collection, or throws if one with the same name or path already exists.
+     *
+     * This used to catch every exception and return `null`, which reported a name or path collision as
+     * "Could not create collection" and hid real failures such as an uninitialised store behind the same
+     * `null`. Uniqueness is checked when the transaction commits, so the transaction has to be inside the
+     * `try`, and the resulting [IllegalArgumentException] carries the message the handlers report.
+     *
+     * @param name The collection's name, unique.
+     * @param description An optional description.
+     * @param basePath The collection's base path.
+     * @return The created [ApiMediaCollection].
+     * @throws IllegalArgumentException if the name or path is already taken.
+     */
+    fun createCollection(name: String, description: String?, basePath: String): ApiMediaCollection =
+        try {
             this.store.transactional {
                 DbMediaCollection.new {
                     this.name = name
@@ -50,9 +64,11 @@ object MediaCollectionManager {
                     this.path = basePath.cleanPathString()
                 }.toApi()
             }
-            } catch (e: Exception) {
-                null
-            }
+        } catch (e: ConstraintsValidationException) {
+            throw IllegalArgumentException(
+                "A collection with the same name or base path already exists: ${e.localizedMessage}", e
+            )
+        }
 
     fun updateCollection(apiMediaCollection: ApiMediaCollection) {
         this.store.transactional {

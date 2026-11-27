@@ -49,8 +49,8 @@ class UpdateCollectionHandler : AbstractCollectionHandler(),
         try {
             MediaCollectionManager.updateCollection(restCollection)
             return SuccessStatus("Collection ${restCollection.id} updated successfully.")
-        } catch (e: Exception) {
-            throw ErrorStatusException(400, e.message ?: "Could not update collection", ctx)
+        } catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, e.message ?: "Could not update collection.", ctx)
         }
 
     }

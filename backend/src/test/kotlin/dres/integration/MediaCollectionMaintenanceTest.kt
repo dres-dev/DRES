@@ -35,7 +35,7 @@ class MediaCollectionMaintenanceTest : AbstractDresIntegrationTest() {
     }
 
     private fun collectionAt(folder: Path): String =
-        MediaCollectionManager.createCollection("maint-${UUID.randomUUID()}", null, folder.toString())!!.id!!
+        MediaCollectionManager.createCollection("maint-${UUID.randomUUID()}", null, folder.toString()).id!!
 
     private fun itemNames(collectionId: String): Set<String> = store.transactional(true) {
         DbMediaCollection.query(DbMediaCollection::id eq collectionId).first().items.asSequence().map { it.name }.toSet()

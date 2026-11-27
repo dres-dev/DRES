@@ -184,10 +184,11 @@ class MediaCollectionCommand :
                 this@MediaCollectionCommand.logger.warn("Collection base path ${this.basePath} does not exist!")
             }
 
-            if (MediaCollectionManager.createCollection(name, description, basePath) == null) {
-                println("Could not create collection.")
-            } else {
+            try {
+                MediaCollectionManager.createCollection(name, description, basePath)
                 println("Successfully added new media collection.")
+            } catch (e: IllegalArgumentException) {
+                println("Could not create collection: ${e.message}")
             }
 
         }

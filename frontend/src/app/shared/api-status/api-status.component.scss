@@ -5,6 +5,7 @@
   padding: 0 0.5em;
   border-radius: 1em;
   font-size: 10pt;
+
   /* Only the degraded state gets chrome; the healthy state stays as quiet as the old indicator. */
   border: 1px solid transparent;
   transition: border-color 150ms ease-in-out;

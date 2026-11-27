@@ -104,6 +104,7 @@ object RestApi {
             ), /* [PreviewImageHandler] vs [PreviewImageTimelessHandler]: Optional path parameters are not allowed in OpenApi */
             PreviewVideoHandler(store, cache),
             GetExternalMediaHandler(), // Must be registered before GetMediaHandler, as route is similar
+            GetMediaGrantHandler(store, cache), // Must be registered before GetMediaHandler, as route is similar
             GetMediaHandler(store),
 
             // Collection

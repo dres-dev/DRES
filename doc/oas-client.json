@@ -26,6 +26,139 @@
         },
         "required" : [ "username", "password" ]
       },
+      "ApiCollectionCheckResult" : {
+        "type" : "object",
+        "properties" : {
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "ok" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "issues" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiCollectionIssue"
+            }
+          },
+          "issueCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "total", "ok", "issues", "issueCount" ]
+      },
+      "ApiCollectionIssue" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "problem" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "location", "problem" ]
+      },
+      "ApiCollectionItemsDeletion" : {
+        "type" : "object",
+        "properties" : {
+          "deleted" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "blocked" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiCollectionIssue"
+            }
+          },
+          "blockedCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "deleted", "blocked", "blockedCount" ]
+      },
+      "ApiCollectionScanRequest" : {
+        "type" : "object",
+        "properties" : {
+          "videoTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "imageTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "videoTypes", "imageTypes" ]
+      },
+      "ApiCollectionScanState" : {
+        "type" : "string",
+        "enum" : [ "NONE", "RUNNING", "CANCELLING", "DONE", "FAILED", "CANCELLED" ]
+      },
+      "ApiCollectionScanStatus" : {
+        "type" : "object",
+        "properties" : {
+          "collectionId" : {
+            "type" : "string"
+          },
+          "state" : {
+            "$ref" : "#/components/schemas/ApiCollectionScanState"
+          },
+          "filesFound" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "filesProcessed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "itemsAdded" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "itemsSkipped" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "issues" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiCollectionIssue"
+            }
+          },
+          "issueCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "message" : {
+            "type" : "string",
+            "nullable" : true
+          },
+          "started" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
+          },
+          "finished" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
+          }
+        },
+        "required" : [ "collectionId", "state", "filesFound", "filesProcessed", "itemsAdded", "itemsSkipped", "issues", "issueCount" ]
+      },
       "ApiMediaCollection" : {
         "type" : "object",
         "properties" : {
@@ -204,6 +337,53 @@
         },
         "required" : [ "name", "taskGroup", "taskType" ]
       },
+      "ApiEndedEvaluationInfo" : {
+        "type" : "object",
+        "properties" : {
+          "evaluationId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "templateName" : {
+            "type" : "string"
+          },
+          "templateDescription" : {
+            "type" : "string",
+            "nullable" : true
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/ApiEvaluationType"
+          },
+          "created" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "started" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
+          },
+          "ended" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
+          },
+          "taskCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "submissionCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "verdicts" : {
+            "$ref" : "#/components/schemas/ApiVerdictCounts"
+          }
+        },
+        "required" : [ "evaluationId", "name", "templateName", "type", "created", "taskCount", "submissionCount", "verdicts" ]
+      },
       "ApiEvaluation" : {
         "type" : "object",
         "properties" : {
@@ -293,9 +473,12 @@
             "items" : {
               "$ref" : "#/components/schemas/ApiTeamTaskOverview"
             }
+          },
+          "verdicts" : {
+            "$ref" : "#/components/schemas/ApiVerdictCounts"
           }
         },
-        "required" : [ "state", "teamOverviews" ]
+        "required" : [ "state", "teamOverviews", "verdicts" ]
       },
       "ApiEvaluationState" : {
         "type" : "object",
@@ -492,6 +675,32 @@
         },
         "required" : [ "teamId", "tasks" ]
       },
+      "ApiVerdictCounts" : {
+        "type" : "object",
+        "properties" : {
+          "correct" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "wrong" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "indeterminate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "undecidable" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "correct", "wrong", "indeterminate", "undecidable", "total" ]
+      },
       "ApiViewerInfo" : {
         "type" : "object",
         "properties" : {
@@ -506,9 +715,17 @@
           },
           "ready" : {
             "type" : "boolean"
+          },
+          "connected" : {
+            "type" : "boolean"
+          },
+          "lastSeen" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
           }
         },
-        "required" : [ "viewersId", "username", "host", "ready" ]
+        "required" : [ "viewersId", "username", "host", "ready", "connected" ]
       },
       "ApiScore" : {
         "type" : "object",
@@ -611,12 +828,15 @@
             "type" : "integer",
             "nullable" : true
           },
+          "hidden" : {
+            "type" : "boolean"
+          },
           "temporalRange" : {
             "$ref" : "#/components/schemas/TemporalRange",
             "nullable" : true
           }
         },
-        "required" : [ "type" ]
+        "required" : [ "type", "hidden" ]
       },
       "ApiAnswerSet" : {
         "type" : "object",
@@ -846,19 +1066,6 @@
         },
         "required" : [ "timeStamp" ]
       },
-      "SystemStatusLevel" : {
-        "type" : "string",
-        "enum" : [ "INFO", "WARNING", "ERROR" ]
-      },
-      "SystemStatus" : {
-        "type" : "object",
-        "properties" : {
-          "code" : { "type" : "string" },
-          "level" : { "$ref" : "#/components/schemas/SystemStatusLevel" },
-          "message" : { "type" : "string" }
-        },
-        "required" : [ "code", "level", "message" ]
-      },
       "DresInfo" : {
         "type" : "object",
         "properties" : {
@@ -917,7 +1124,26 @@
             }
           }
         },
-        "required" : [ "version", "startTime", "uptime" ]
+        "required" : [ "version", "startTime", "uptime", "systemStatuses" ]
+      },
+      "SystemStatus" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "level" : {
+            "$ref" : "#/components/schemas/SystemStatusLevel"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "level", "message" ]
+      },
+      "SystemStatusLevel" : {
+        "type" : "string",
+        "enum" : [ "INFO", "WARNING", "ERROR" ]
       },
       "ApiContentElement" : {
         "type" : "object",
@@ -932,6 +1158,10 @@
           "offset" : {
             "type" : "integer",
             "format" : "int64"
+          },
+          "mediaUrl" : {
+            "type" : "string",
+            "nullable" : true
           }
         },
         "required" : [ "contentType", "offset" ]
@@ -1999,6 +2229,39 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v2/media/grant/{grantId}" : {
+      "get" : {
+        "tags" : [ "Media" ],
+        "summary" : "Returns the media payload designated by a short-lived grant.",
+        "operationId" : "getApiV2MediaGrantByGrantId",
+        "parameters" : [ {
+          "name" : "grantId",
+          "in" : "path",
+          "description" : "The opaque grant identifier.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "410" : {
+            "description" : "Gone"
           }
         }
       }

@@ -2,6 +2,9 @@ package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.DRES
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.handler.preview.GetMediaGrantHandler
+import dev.dres.api.rest.handler.preview.MediaGrantPayload
+import dev.dres.api.rest.handler.preview.MediaGrantRegistry
 import dev.dres.api.rest.handler.preview.MediaRequestGuard
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.template.tasks.ApiHintContent
@@ -83,7 +86,7 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
             try {
                 /* Hints are participant-specific payloads; a shared cache must never retain them. */
                 ctx.header("Cache-Control", "private, no-store")
-                template.toTaskHint()
+                template.toTaskHint(ctx.sessionToken(), manager.id, taskTemplateId)
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)
             } catch (ioe: IOException) {
@@ -132,11 +135,11 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private fun ApiTaskTemplate.toTaskHint(): ApiHintContent = store.transactional(true){
+    private fun ApiTaskTemplate.toTaskHint(session: String?, evaluationId: String, taskTemplateId: String): ApiHintContent = store.transactional(true){
         val sequence = this.hints.groupBy { it.type }.flatMap { (_, hints) ->
             var index = 0
             hints.sortedBy { it.start ?: 0 }.flatMap {
-                val ret = mutableListOf(it.toContentElement())
+                val ret = mutableListOf(it.toContentElement(session, evaluationId, taskTemplateId))
                 if (it.end != null) {
                     if (index == (hints.size - 1)) {
                         ret.add(ApiContentElement(contentType = ret.first().contentType, offset = it.end))
@@ -151,7 +154,7 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
         ApiHintContent(this.id!!, sequence, false)
     }
 
-    private fun ApiHint.toContentElement(): ApiContentElement {
+    private fun ApiHint.toContentElement(session: String?, evaluationId: String, taskTemplateId: String): ApiContentElement {
 
         //TODO find a better place for this lookup
         val item = this.item?.let { item ->
@@ -181,7 +184,7 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
                     this@GetTaskHintHandler.cache.asyncPreviewVideo(source, start, end).get()
                 }
                 if (Files.exists(path)) {
-                    Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                    this@GetTaskHintHandler.grantFor(path, session, evaluationId, taskTemplateId)
                 } else {
                     null
                 }
@@ -200,7 +203,7 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
                 }
                 if (Files.exists(path)) {
                     if (path.toString().endsWith(".jpg", ignoreCase = true)) {
-                        Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                        this@GetTaskHintHandler.grantFor(path, session, evaluationId, taskTemplateId)
                     } else { //should never happen
                         null
                     }
@@ -217,6 +220,40 @@ class GetTaskHintHandler(private val store: TransientEntityStore, private val ca
             ApiHintType.IMAGE -> ApiContentType.IMAGE
         }
 
-        return ApiContentElement(contentType = contentType, content = content, offset = this.start ?: 0L)
+        /* Media payloads are handed over as a session-bound grant URL rather than inline base64, so
+         * the browser can fetch, cache and prefetch them while the payload itself stays scoped and
+         * revocable. Text stays inline; media never carries bytes here. */
+        val isMedia = contentType == ApiContentType.VIDEO || contentType == ApiContentType.IMAGE
+        return ApiContentElement(
+            contentType = contentType,
+            content = if (isMedia) null else content,
+            offset = this.start ?: 0L,
+            mediaUrl = if (isMedia) content else null
+        )
+    }
+
+    /**
+     * Mints a [MediaGrant] for an already rendered cache file and returns its URL path.
+     *
+     * Returns null when the request has no session to bind the grant to; such a caller would not be
+     * able to redeem it anyway, and inline base64 would contradict the point of the grant.
+     *
+     * @param path The prepared cache file.
+     * @param session The session that requested the hint.
+     * @param evaluationId The evaluation the hint belongs to.
+     * @param taskTemplateId The task the hint belongs to.
+     * @return The grant URL path, or null.
+     */
+    private fun grantFor(path: java.nio.file.Path, session: String?, evaluationId: String, taskTemplateId: String): String? {
+        if (session == null) {
+            return null
+        }
+        val grant = MediaGrantRegistry.mint(
+            session = session,
+            evaluationId = evaluationId,
+            taskTemplateId = taskTemplateId,
+            payload = MediaGrantPayload.Preview(path)
+        )
+        return GetMediaGrantHandler.grantPath(grant)
     }
 }

@@ -2,6 +2,7 @@ package dev.dres.run
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.handler.preview.MediaGrantRegistry
 import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.ApiEvaluationOverview
 import dev.dres.api.rest.types.evaluation.ApiEvaluationState
@@ -451,7 +452,11 @@ object RunExecutor : StreamEventHandler {
     internal fun eventToMessage(event: StreamEvent): ServerMessage? = when (event) {
         is RunStartEvent -> ServerMessage(event.runId, ServerMessageType.COMPETITION_START)
 
-        is RunEndEvent -> ServerMessage(event.runId, ServerMessageType.COMPETITION_END)
+        is RunEndEvent -> {
+            /* A finished run has no further use for its media grants. */
+            MediaGrantRegistry.revokeEvaluation(event.runId)
+            ServerMessage(event.runId, ServerMessageType.COMPETITION_END)
+        }
 
         is TaskPrepareEvent -> ServerMessage(event.runId, ServerMessageType.TASK_PREPARE, event.taskId)
 
@@ -462,6 +467,10 @@ object RunExecutor : StreamEventHandler {
         }
 
         is TaskEndEvent -> {
+            /* Deliberately no grant revocation here: a task's *target* only becomes available once the
+             * task has ENDED, so dropping the task's grants at this point would break the very payload
+             * the viewer is about to fetch. Task-scoped grants are bounded by their own lifetime
+             * instead; the whole evaluation is revoked in [RunEndEvent]. */
             val manager = this.runManagerLock.read { runManagers[event.runId] as? InteractiveRunManager }
             val (state, overview) = manager?.buildStateAndOverview() ?: Pair(null, null)
             ServerMessage(event.runId, ServerMessageType.TASK_END, event.taskId, state = state, overview = overview)

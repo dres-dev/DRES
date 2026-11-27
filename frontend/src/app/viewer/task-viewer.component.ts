@@ -2,6 +2,7 @@ import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } fro
 import { BehaviorSubject, combineLatest, from, interval, mergeMap, Observable, of, Subscription, timer } from 'rxjs';
 import { catchError, delayWhen, distinctUntilChanged, filter, map, repeat, shareReplay, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { MediaPrefetchService } from '../services/media-prefetch.service';
 import {
   ApiContentElement,
   ApiContentType,
@@ -121,7 +122,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     protected runService: EvaluationService,
-    public config: AppConfig
+    public config: AppConfig,
+    private mediaPrefetch: MediaPrefetchService
   ) {}
 
   private playOnce(audio: HTMLAudioElement) {
@@ -158,6 +160,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
               return of(null);
             }),
             tap((hint) => {
+              /* Warm the cache while the viewer waits, so playback does not stall on a download. */
+              this.mediaPrefetch.prefetch(hint?.sequence);
               if (hint && task.taskId) {
                 this.runService.getApiV2EvaluationByEvaluationIdByTaskIdReady(task.evaluationId, task.taskTemplateId).pipe(
                   catchError((error) => {
@@ -176,6 +180,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     const currentTaskTarget = this.taskEnded.pipe(
       withLatestFrom(this.evaluationId),
       switchMap(([task, evaluationId]) =>
+        /* Only hints are prefetched. The target is not: its media is ground truth revealed after the
+         * task, so fetching it early would move bytes the viewer is not yet meant to have. */
         this.runService.getTargetForTaskTemplateId(evaluationId, task.taskTemplateId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
@@ -225,7 +231,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /* Map task target to representation used by viewer. */
     this.currentTargetContent = currentTaskTarget.pipe(
       mergeMap((h: ApiHintContent) => {
-        console.log('TARGET HINT, ', h);
         if (!h) {
           return from([]);
         }

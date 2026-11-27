@@ -33,6 +33,139 @@
         },
         "required" : [ "username", "password" ]
       },
+      "ApiCollectionCheckResult" : {
+        "type" : "object",
+        "properties" : {
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "ok" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "issues" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiCollectionIssue"
+            }
+          },
+          "issueCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "total", "ok", "issues", "issueCount" ]
+      },
+      "ApiCollectionIssue" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "problem" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "location", "problem" ]
+      },
+      "ApiCollectionItemsDeletion" : {
+        "type" : "object",
+        "properties" : {
+          "deleted" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "blocked" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiCollectionIssue"
+            }
+          },
+          "blockedCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "deleted", "blocked", "blockedCount" ]
+      },
+      "ApiCollectionScanRequest" : {
+        "type" : "object",
+        "properties" : {
+          "videoTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "imageTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "videoTypes", "imageTypes" ]
+      },
+      "ApiCollectionScanState" : {
+        "type" : "string",
+        "enum" : [ "NONE", "RUNNING", "CANCELLING", "DONE", "FAILED", "CANCELLED" ]
+      },
+      "ApiCollectionScanStatus" : {
+        "type" : "object",
+        "properties" : {
+          "collectionId" : {
+            "type" : "string"
+          },
+          "state" : {
+            "$ref" : "#/components/schemas/ApiCollectionScanState"
+          },
+          "filesFound" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "filesProcessed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "itemsAdded" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "itemsSkipped" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "issues" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiCollectionIssue"
+            }
+          },
+          "issueCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "message" : {
+            "type" : "string",
+            "nullable" : true
+          },
+          "started" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
+          },
+          "finished" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
+          }
+        },
+        "required" : [ "collectionId", "state", "filesFound", "filesProcessed", "itemsAdded", "itemsSkipped", "issues", "issueCount" ]
+      },
       "ApiMediaCollection" : {
         "type" : "object",
         "properties" : {
@@ -211,6 +344,53 @@
         },
         "required" : [ "name", "taskGroup", "taskType" ]
       },
+      "ApiEndedEvaluationInfo" : {
+        "type" : "object",
+        "properties" : {
+          "evaluationId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "templateName" : {
+            "type" : "string"
+          },
+          "templateDescription" : {
+            "type" : "string",
+            "nullable" : true
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/ApiEvaluationType"
+          },
+          "created" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "started" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
+          },
+          "ended" : {
+            "format" : "int64",
+            "type" : "integer",
+            "nullable" : true
+          },
+          "taskCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "submissionCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "verdicts" : {
+            "$ref" : "#/components/schemas/ApiVerdictCounts"
+          }
+        },
+        "required" : [ "evaluationId", "name", "templateName", "type", "created", "taskCount", "submissionCount", "verdicts" ]
+      },
       "ApiEvaluation" : {
         "type" : "object",
         "properties" : {
@@ -306,33 +486,6 @@
           }
         },
         "required" : [ "state", "teamOverviews", "verdicts" ]
-      },
-      "ApiEndedEvaluationInfo" : {
-        "type" : "object",
-        "properties" : {
-          "evaluationId" : { "type" : "string" },
-          "name" : { "type" : "string" },
-          "templateName" : { "type" : "string" },
-          "templateDescription" : { "type" : "string", "nullable" : true },
-          "type" : { "$ref" : "#/components/schemas/ApiEvaluationType" },
-          "created" : { "type" : "integer", "format" : "int64" },
-          "started" : { "type" : "integer", "format" : "int64", "nullable" : true },
-          "ended" : { "type" : "integer", "format" : "int64", "nullable" : true },
-          "taskCount" : { "type" : "integer", "format" : "int32" },
-          "submissionCount" : { "type" : "integer", "format" : "int32" },
-          "verdicts" : { "$ref" : "#/components/schemas/ApiVerdictCounts" }
-        },
-        "required" : [ "evaluationId", "name", "templateName", "type", "created", "taskCount", "submissionCount", "verdicts" ]
-      },
-      "ApiVerdictCounts" : {
-        "type" : "object",
-        "properties" : {
-          "correct" : { "type" : "integer", "format" : "int32" },
-          "wrong" : { "type" : "integer", "format" : "int32" },
-          "indeterminate" : { "type" : "integer", "format" : "int32" },
-          "undecidable" : { "type" : "integer", "format" : "int32" }
-        },
-        "required" : [ "correct", "wrong", "indeterminate", "undecidable" ]
       },
       "ApiEvaluationState" : {
         "type" : "object",
@@ -529,6 +682,32 @@
         },
         "required" : [ "teamId", "tasks" ]
       },
+      "ApiVerdictCounts" : {
+        "type" : "object",
+        "properties" : {
+          "correct" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "wrong" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "indeterminate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "undecidable" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "correct", "wrong", "indeterminate", "undecidable", "total" ]
+      },
       "ApiViewerInfo" : {
         "type" : "object",
         "properties" : {
@@ -545,16 +724,15 @@
             "type" : "boolean"
           },
           "connected" : {
-            "type" : "boolean",
-            "default" : false
+            "type" : "boolean"
           },
           "lastSeen" : {
-            "type" : "integer",
             "format" : "int64",
+            "type" : "integer",
             "nullable" : true
           }
         },
-        "required" : [ "viewersId", "username", "host", "ready" ]
+        "required" : [ "viewersId", "username", "host", "ready", "connected" ]
       },
       "ApiScore" : {
         "type" : "object",
@@ -658,15 +836,14 @@
             "nullable" : true
           },
           "hidden" : {
-            "type" : "boolean",
-            "default" : false
+            "type" : "boolean"
           },
           "temporalRange" : {
             "$ref" : "#/components/schemas/TemporalRange",
             "nullable" : true
           }
         },
-        "required" : [ "type" ]
+        "required" : [ "type", "hidden" ]
       },
       "ApiAnswerSet" : {
         "type" : "object",
@@ -896,19 +1073,6 @@
         },
         "required" : [ "timeStamp" ]
       },
-      "SystemStatusLevel" : {
-        "type" : "string",
-        "enum" : [ "INFO", "WARNING", "ERROR" ]
-      },
-      "SystemStatus" : {
-        "type" : "object",
-        "properties" : {
-          "code" : { "type" : "string" },
-          "level" : { "$ref" : "#/components/schemas/SystemStatusLevel" },
-          "message" : { "type" : "string" }
-        },
-        "required" : [ "code", "level", "message" ]
-      },
       "DresInfo" : {
         "type" : "object",
         "properties" : {
@@ -967,7 +1131,26 @@
             }
           }
         },
-        "required" : [ "version", "startTime", "uptime" ]
+        "required" : [ "version", "startTime", "uptime", "systemStatuses" ]
+      },
+      "SystemStatus" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "level" : {
+            "$ref" : "#/components/schemas/SystemStatusLevel"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "level", "message" ]
+      },
+      "SystemStatusLevel" : {
+        "type" : "string",
+        "enum" : [ "INFO", "WARNING", "ERROR" ]
       },
       "ApiContentElement" : {
         "type" : "object",
@@ -982,6 +1165,10 @@
           "offset" : {
             "type" : "integer",
             "format" : "int64"
+          },
+          "mediaUrl" : {
+            "type" : "string",
+            "nullable" : true
           }
         },
         "required" : [ "contentType", "offset" ]
@@ -1559,141 +1746,6 @@
       "RunManagerStatus" : {
         "type" : "string",
         "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
-      },
-      "ApiCollectionCheckResult" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "total" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "ok" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "issues" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiCollectionIssue"
-            }
-          },
-          "issueCount" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        },
-        "required" : [ "total", "ok", "issues", "issueCount" ]
-      },
-      "ApiCollectionIssue" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "location" : {
-            "type" : "string"
-          },
-          "problem" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "name", "location", "problem" ]
-      },
-      "ApiCollectionItemsDeletion" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "deleted" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "blocked" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiCollectionIssue"
-            }
-          },
-          "blockedCount" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        },
-        "required" : [ "deleted", "blocked", "blockedCount" ]
-      },
-      "ApiCollectionScanRequest" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "videoTypes" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
-          "imageTypes" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        },
-        "required" : [ "videoTypes", "imageTypes" ]
-      },
-      "ApiCollectionScanState" : {
-        "type" : "string",
-        "enum" : [ "NONE", "RUNNING", "CANCELLING", "DONE", "FAILED", "CANCELLED" ]
-      },
-      "ApiCollectionScanStatus" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "collectionId" : {
-            "type" : "string"
-          },
-          "state" : {
-            "$ref" : "#/components/schemas/ApiCollectionScanState"
-          },
-          "filesFound" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "filesProcessed" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "itemsAdded" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "itemsSkipped" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "issues" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiCollectionIssue"
-            }
-          },
-          "issueCount" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "message" : {
-            "type" : "string"
-          },
-          "started" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "finished" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "required" : [ "collectionId", "state", "filesFound", "filesProcessed", "itemsAdded", "itemsSkipped", "issues", "issueCount" ]
       }
     }
   },
@@ -2013,6 +2065,102 @@
         }
       }
     },
+    "/api/v2/collection/{collectionId}/check" : {
+      "post" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Checks that the files of all items of a media collection exist and are readable.",
+        "operationId" : "postApiV2CollectionByCollectionIdCheck",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiCollectionCheckResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/collection/{collectionId}/items" : {
+      "delete" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Deletes all items of a media collection. Items still used by templates or submissions are kept and reported.",
+        "operationId" : "deleteApiV2CollectionByCollectionIdItems",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiCollectionItemsDeletion"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/collection/{collectionId}/random" : {
       "get" : {
         "tags" : [ "Collection" ],
@@ -2144,6 +2292,169 @@
         }
       }
     },
+    "/api/v2/collection/{collectionId}/scan" : {
+      "post" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Starts scanning the folder of a media collection and adds all new files with the given endings.",
+        "operationId" : "postApiV2CollectionByCollectionIdScan",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiCollectionScanRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiCollectionScanStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/collection/{collectionId}/scan/cancel" : {
+      "post" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Cancels a running scan of a media collection.",
+        "operationId" : "postApiV2CollectionByCollectionIdScanCancel",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiCollectionScanStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/collection/{collectionId}/scan/status" : {
+      "get" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Returns progress and result of the most recent scan of a media collection.",
+        "operationId" : "getApiV2CollectionByCollectionIdScanStatus",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiCollectionScanStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/collection/{collectionId}/{startsWith}" : {
       "get" : {
         "tags" : [ "Collection" ],
@@ -2186,6 +2497,54 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/download/collection/{collectionId}" : {
+      "get" : {
+        "tags" : [ "Download" ],
+        "summary" : "Provides a CSV file with all items of a media collection (type, name, location, duration, fps).",
+        "operationId" : "getApiV2DownloadCollectionByCollectionId",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "text/plain" : {
+                "schema" : {
+                  "type" : "string"
                 }
               }
             }
@@ -2387,30 +2746,6 @@
         }
       }
     },
-    "/api/v2/evaluation/admin/ended/list" : {
-      "get" : {
-        "tags" : [ "Evaluation Administrator" ],
-        "summary" : "Lists stored evaluations that are no longer running.",
-        "operationId" : "getApiV2EvaluationAdminEndedList",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : { "$ref" : "#/components/schemas/ApiEndedEvaluationInfo" }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/ErrorStatus" } } }
-          }
-        }
-      }
-    },
     "/api/v2/evaluation/admin/create" : {
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
@@ -2459,7 +2794,95 @@
         }
       }
     },
+    "/api/v2/evaluation/admin/ended/list" : {
+      "get" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Lists stored evaluations that are no longer running.",
+        "operationId" : "getApiV2EvaluationAdminEndedList",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiEndedEvaluationInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/evaluation/admin/{evaluationId}" : {
+      "delete" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Permanently deletes a stopped evaluation including its submissions.",
+        "operationId" : "deleteApiV2EvaluationAdminByEvaluationId",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "Evaluation ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      },
       "get" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Provides the evaluation.",
@@ -2514,24 +2937,6 @@
               }
             }
           }
-        }
-      },
-      "delete" : {
-        "tags" : [ "Evaluation Administrator" ],
-        "summary" : "Permanently deletes a stopped evaluation including its submissions.",
-        "operationId" : "deleteApiV2EvaluationAdminByEvaluationId",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "Evaluation ID",
-          "required" : true,
-          "schema" : { "type" : "string" }
-        } ],
-        "responses" : {
-          "200" : { "description" : "OK", "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/SuccessStatus" } } } },
-          "401" : { "description" : "Unauthorized", "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/ErrorStatus" } } } },
-          "404" : { "description" : "Not Found", "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/ErrorStatus" } } } },
-          "409" : { "description" : "Conflict", "content" : { "application/json" : { "schema" : { "$ref" : "#/components/schemas/ErrorStatus" } } } }
         }
       }
     },
@@ -4914,6 +5319,39 @@
         }
       }
     },
+    "/api/v2/media/grant/{grantId}" : {
+      "get" : {
+        "tags" : [ "Media" ],
+        "summary" : "Returns the media payload designated by a short-lived grant.",
+        "operationId" : "getApiV2MediaGrantByGrantId",
+        "parameters" : [ {
+          "name" : "grantId",
+          "in" : "path",
+          "description" : "The opaque grant identifier.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "410" : {
+            "description" : "Gone"
+          }
+        }
+      }
+    },
     "/api/v2/mediaItem" : {
       "post" : {
         "tags" : [ "Collection" ],
@@ -5540,7 +5978,7 @@
     "/api/v2/status/info" : {
       "get" : {
         "tags" : [ "Status" ],
-        "summary" : "Returns an overview of the server properties.",
+        "summary" : "Returns an overview of the server properties and, for administrators, system notices.",
         "operationId" : "getApiV2StatusInfo",
         "responses" : {
           "200" : {
@@ -5739,56 +6177,52 @@
         }
       }
     },
-    "/api/v2/template/import": {
-      "post": {
-        "tags": ["Template"],
-        "summary": "Imports an evaluation template (e.g. a previously downloaded template JSON) as a new evaluation template.",
-        "operationId": "postApiV2TemplateImport",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApiEvaluationTemplate"
-              }
-            }
-          },
-          "required": false
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiEvaluationTemplate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorStatus"
-                }
+    "/api/v2/template/import" : {
+      "post" : {
+        "tags" : [ "Template" ],
+        "summary" : "Imports an evaluation template (e.g. a previously downloaded template JSON) as a new evaluation template.",
+        "operationId" : "postApiV2TemplateImport",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiEvaluationTemplate"
               }
             }
           }
         },
-        "deprecated": false,
-        "security": []
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v2/template/list" : {
@@ -6754,340 +7188,6 @@
             }
           }
         }
-      }
-    },
-    "/api/v2/collection/{collectionId}/scan" : {
-      "post" : {
-        "tags" : [ "Collection" ],
-        "summary" : "Starts scanning the folder of a media collection and adds all new files with the given endings.",
-        "operationId" : "postApiV2CollectionByCollectionIdScan",
-        "parameters" : [
-          {
-            "name" : "collectionId",
-            "in" : "path",
-            "description" : "Collection ID",
-            "required" : true,
-            "deprecated" : false,
-            "allowEmptyValue" : false,
-            "schema" : {
-              "type" : "string"
-            }
-          }
-        ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ApiCollectionScanRequest"
-              }
-            }
-          },
-          "required" : false
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiCollectionScanStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "409" : {
-            "description" : "Conflict",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : []
-      }
-    },
-    "/api/v2/collection/{collectionId}/scan/cancel" : {
-      "post" : {
-        "tags" : [ "Collection" ],
-        "summary" : "Cancels a running scan of a media collection.",
-        "operationId" : "postApiV2CollectionByCollectionIdScanCancel",
-        "parameters" : [
-          {
-            "name" : "collectionId",
-            "in" : "path",
-            "description" : "Collection ID",
-            "required" : true,
-            "deprecated" : false,
-            "allowEmptyValue" : false,
-            "schema" : {
-              "type" : "string"
-            }
-          }
-        ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiCollectionScanStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : []
-      }
-    },
-    "/api/v2/collection/{collectionId}/scan/status" : {
-      "get" : {
-        "tags" : [ "Collection" ],
-        "summary" : "Returns progress and result of the most recent scan of a media collection.",
-        "operationId" : "getApiV2CollectionByCollectionIdScanStatus",
-        "parameters" : [
-          {
-            "name" : "collectionId",
-            "in" : "path",
-            "description" : "Collection ID",
-            "required" : true,
-            "deprecated" : false,
-            "allowEmptyValue" : false,
-            "schema" : {
-              "type" : "string"
-            }
-          }
-        ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiCollectionScanStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : []
-      }
-    },
-    "/api/v2/collection/{collectionId}/check" : {
-      "post" : {
-        "tags" : [ "Collection" ],
-        "summary" : "Checks that the files of all items of a media collection exist and are readable.",
-        "operationId" : "postApiV2CollectionByCollectionIdCheck",
-        "parameters" : [
-          {
-            "name" : "collectionId",
-            "in" : "path",
-            "description" : "Collection ID",
-            "required" : true,
-            "deprecated" : false,
-            "allowEmptyValue" : false,
-            "schema" : {
-              "type" : "string"
-            }
-          }
-        ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiCollectionCheckResult"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : []
-      }
-    },
-    "/api/v2/collection/{collectionId}/items" : {
-      "delete" : {
-        "tags" : [ "Collection" ],
-        "summary" : "Deletes all items of a media collection. Items still used by templates or submissions are kept and reported.",
-        "operationId" : "deleteApiV2CollectionByCollectionIdItems",
-        "parameters" : [
-          {
-            "name" : "collectionId",
-            "in" : "path",
-            "description" : "Collection ID",
-            "required" : true,
-            "deprecated" : false,
-            "allowEmptyValue" : false,
-            "schema" : {
-              "type" : "string"
-            }
-          }
-        ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiCollectionItemsDeletion"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : []
-      }
-    },
-    "/api/v2/download/collection/{collectionId}" : {
-      "get" : {
-        "tags" : [ "Download" ],
-        "summary" : "Provides a CSV file with all items of a media collection (type, name, location, duration, fps).",
-        "operationId" : "getApiV2DownloadCollectionByCollectionId",
-        "parameters" : [
-          {
-            "name" : "collectionId",
-            "in" : "path",
-            "description" : "Collection ID",
-            "required" : true,
-            "deprecated" : false,
-            "allowEmptyValue" : false,
-            "schema" : {
-              "type" : "string"
-            }
-          }
-        ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : []
       }
     }
   }

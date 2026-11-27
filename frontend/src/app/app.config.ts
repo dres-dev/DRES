@@ -94,6 +94,20 @@ export class AppConfig {
   }
 
   /**
+   * Resolves the URL of a short-lived media grant, as delivered inside {@link ApiContentElement.mediaUrl}.
+   *
+   * The backend returns the grant path relative to the API root (e.g. `media/grant/{id}`) so that the
+   * client's own base URL keeps working behind reverse proxies and tunnels. The grant is bound to the
+   * calling session and expires, so the URL must be used as delivered rather than cached long-term.
+   *
+   * @param grantPath The grant path as delivered by the backend.
+   * @param version The API version
+   */
+  public resolveMediaGrantUrl(grantPath: string, version: string = 'v2'): string {
+    return this.resolveApiUrl(`/${grantPath.replace(/^\//, '')}`, version);
+  }
+
+  /**
    * (Re-)loads the default configuration from a JSON file.
    */
   public load() {

@@ -26,8 +26,13 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-WORK="$(mktemp -d)"
-SERVER_PID=""
+# Work directory for the server instance this script starts. It is deliberately placed inside the repository
+# rather than the system temp directory so the CI job can upload the server log with a relative path; the
+# trap below removes it, and `.gitignore` covers `build/`.
+WORK="$REPO_ROOT/build/api-spec-check"
+rm -rf "$WORK"
+mkdir -p "$WORK"
+
 # The server reads its command loop from stdin; a FIFO keeps it from exiting on EOF and lets the shutdown
 # command reach it.
 FIFO="$WORK/stdin"

@@ -29,9 +29,19 @@ jobs:
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
-          path: ~/.gradle/caches
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', 'gradle.properties') }}
           restore-keys: ${{ runner.os }}-gradle-
+
+      # The distribution bundles the frontend, and Gradle downloads Node and runs Yarn for it.
+      - name: Cache the Yarn cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/.yarn/cache
+          key: ${{ runner.os }}-yarn-${{ hashFiles('frontend/package.json', 'frontend/.yarnrc.yml') }}
+          restore-keys: ${{ runner.os }}-yarn-
 
       # The distribution bundles the frontend, so this also proves the committed spec still generates a
       # client that compiles into the application.
@@ -41,10 +51,12 @@ jobs:
       - name: Check the committed OpenAPI snapshots
         run: ./doc/check-api-spec.sh --port 8080
 
+      # The script keeps its work directory inside the repository (build/api-spec-check) precisely so this can
+      # use a relative path: a glob into /tmp picks up unrelated directories and fails on permissions.
       - name: Upload the server log on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: api-spec-server-log
-          path: /tmp/**/server.log
+          path: build/api-spec-check/server.log
           if-no-files-found: ignore

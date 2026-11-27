@@ -71,6 +71,9 @@ class GetExternalMediaHandler : GetRestHandler<Any>, AccessManagedRestHandler {
             return
         }
 
+        /* External files are not part of a collection, so access is bound to a run that references them. */
+        MediaAuthorization.enforceExternalMediaAccess(ctx, file)
+
         try {
             /* See GetMediaHandler: keep proxies and browser persistence out, keep range reuse in. */
             ctx.header("Cache-Control", "private, max-age=0, must-revalidate")

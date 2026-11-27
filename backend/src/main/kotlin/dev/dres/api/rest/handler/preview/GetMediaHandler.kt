@@ -4,7 +4,6 @@ import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.utilities.extensions.errorResponse
 import dev.dres.utilities.extensions.streamFile
@@ -57,15 +56,24 @@ class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<
         /* Whole-original delivery is the highest-value target for scraping, so meter and audit it. */
         MediaRequestGuard.enforce(ctx, "media", itemId)
 
-        /* Lookup item by ID. */
-        val path = this.store.transactional(readonly = true) {
-            val item = this.store.transactional(true) {
-                DbMediaItem.query(DbMediaItem::id eq itemId).firstOrNull()
-            } ?: return@transactional null
-            Paths.get(item.collection.path).resolve(item.location)
+        /* Lookup item by ID. A single read transaction is enough; the nested writable one this used to
+         * open served no purpose and conflicted with the enclosing read-only scope. */
+        val resolved = this.store.transactional(readonly = true) {
+            val item = DbMediaItem.query(DbMediaItem::id eq itemId).firstOrNull()
+                ?: return@transactional null
+            Paths.get(item.collection.path).resolve(item.location) to item.collection.id
         }
 
-        if (path == null || !Files.exists(path)) {
+        if (resolved == null) {
+            ctx.errorResponse(404, "item with name $itemId found")
+            return
+        }
+        val (path, collectionId) = resolved
+
+        /* Originals are only reachable through a run the caller may actually observe. */
+        MediaAuthorization.enforceMediaAccess(ctx, collectionId, itemId)
+
+        if (!Files.exists(path)) {
             ctx.errorResponse(404, "item with name $itemId found")
             return
         }

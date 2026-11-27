@@ -83,6 +83,19 @@ However, the entire setup process is Gradle based. To setup DRES, follow these s
 
 If you want to run DRES from your IDE (e.g. for debuging or development), please remember to run `$> ./gradlew setupFFMpeg` to download the required FFMpeg dependencies!
 
+### API Specifications
+
+`doc/oas.json` and `doc/oas-client.json` are committed snapshots of what a running server publishes at `/openapi.json` and `/clientapi.json`; the generated frontend bindings in `frontend/openapi/` are derived from `doc/oas.json`. Both snapshots are checked in CI, because a stale one silently hides new fields and routes from the generated client.
+
+After changing an API handler, regenerate them with a server running on the default port:
+
+1. `$> ./gradlew :backend:installDist`
+2. Start `backend/build/install/dres-dist/bin/backend`
+3. `$> ./gradlew regenerateApi`
+4. Commit `doc/oas.json` and `doc/oas-client.json`
+
+`$> ./doc/check-api-spec.sh` performs the same comparison the CI job does (it starts its own server on a spare port, so it does not need one running) and prints the differences it finds.
+
 ## Configuration
 
 Both the backend and the frontend have several properties which can be configured using a json configuration file.

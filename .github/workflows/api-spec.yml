@@ -1,0 +1,50 @@
+name: API specification
+
+# doc/oas.json and doc/oas-client.json are the source of the generated TypeScript client, but nothing used
+# to compare them against the code. They drifted - a new field and a new route were missing from the
+# committed spec, so the generated client could not use them - and the gap was found by hand.
+#
+# This job starts a server built from the pushed sources and fails if either snapshot does not match it.
+
+on:
+  push:
+    branches: [dev, master]
+  pull_request:
+    branches: [dev, master]
+  workflow_dispatch:
+
+jobs:
+  check-spec:
+    name: Committed specification matches the code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', 'gradle.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      # The distribution bundles the frontend, so this also proves the committed spec still generates a
+      # client that compiles into the application.
+      - name: Build the distribution
+        run: ./gradlew :backend:installDist --console=plain
+
+      - name: Check the committed OpenAPI snapshots
+        run: ./doc/check-api-spec.sh --port 8080
+
+      - name: Upload the server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-spec-server-log
+          path: /tmp/**/server.log
+          if-no-files-found: ignore

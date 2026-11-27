@@ -52,25 +52,28 @@ tasks.register('generateClientOAS', Download) {
 }
 
 /*
- * `openApiGenerate` reads doc/oas.json, which generateOAS writes. Without this dependency Gradle 9 fails the
- * build with "uses this output of task ':generateOAS' without declaring an explicit or implicit dependency"
- * as soon as both are requested in one invocation - which is exactly how regeneration is documented.
- */
-/*
  * Regenerates the committed specification, the client specification and the generated TypeScript client in
  * the right order. Requires a running DRES on the default port.
+ *
+ * The ordering has to be declared on the tasks themselves, outside the `register` block: calling
+ * `tasks.named(...)` from within a task configuration closure fails with "DefaultTaskContainer#named(String,
+ * Action) on task set cannot be executed in the current context" because the container is still being
+ * configured at that point.
  */
 tasks.register('regenerateApi') {
     group = 'documentation'
     description = 'Regenerates doc/oas.json, doc/oas-client.json and frontend/openapi from a running DRES.'
     dependsOn 'generateOAS', 'generateClientOAS', 'openApiGenerate'
-    /* Makes openApiGenerate consume the freshly downloaded spec rather than the committed one. */
-    tasks.named('openApiGenerate') { dependsOn 'generateOAS'; mustRunAfter 'generateClientOAS' }
 }
 
 /*
- * Ordering is declared after both tasks exist. `openApiGenerate` deliberately does NOT depend on
- * `generateOAS`: that would make every ordinary build require a running server. The dependency only
- * exists inside `regenerateApi`, which is the task that actually means "re-download the spec first".
+ * `openApiGenerate` reads doc/oas.json, which `generateOAS` writes. Without the ordering Gradle 9 fails with
+ * "uses this output of task ':generateOAS' without declaring an explicit or implicit dependency" as soon as
+ * both are requested in one invocation - which is exactly how regeneration is documented.
+ *
+ * The dependency deliberately does NOT apply to ordinary builds: `openApiGenerate` is wired into
+ * `buildFrontend`, and making it download the spec would require a running server for every frontend build.
+ * So the ordering lives on the tasks that exist for regeneration, not on `openApiGenerate` itself.
  */
 tasks.named('generateClientOAS').configure { mustRunAfter 'generateOAS' }
+tasks.named('openApiGenerate').configure { mustRunAfter 'generateClientOAS' }

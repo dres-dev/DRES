@@ -15,5 +15,6 @@ enum class ServerMessageType {
     TASK_UPDATED,           /** State of task run has changed; mostly handles arrival of or changes to submissions. */
     TASK_END,               /** Tasks run ended. */
     VIEWER_UPDATE,          /** A viewer connected or signalled ready — the viewer list has changed. */
-    PING                    /** Keep alive */
+    PING,                   /** Keep alive */
+    ERROR                   /** A client message could not be honoured; see [ServerMessage.error]. */
 }

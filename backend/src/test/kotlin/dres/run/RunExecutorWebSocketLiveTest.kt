@@ -110,12 +110,20 @@ class RunExecutorWebSocketLiveTest {
         ws.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS)
     }
 
+    /**
+     * An unknown evaluation used to be answered with nothing at all, which left the client believing it
+     * was subscribed. It is now told that the run is gone, and explicitly not with a PING reply, which
+     * would have claimed the subscription was fine.
+     */
     @Test
-    fun `message for unknown evaluation gets no reply`() {
+    fun `message for unknown evaluation is answered with an error`() {
         val listener = Listener()
         val ws = connect("/api/ws/run", listener)
         ws.sendText("""{"evaluationId":"unknown-run","type":"PING"}""", true).get(5, TimeUnit.SECONDS)
-        assertNull(listener.received.poll(500, TimeUnit.MILLISECONDS), "No run manager exists, so no PING reply is expected")
+        val reply = listener.received.poll(5, TimeUnit.SECONDS)
+        assertNotNull(reply, "An unknown evaluation must be reported instead of silently ignored")
+        assertTrue(reply.contains("\"ERROR\""), "Expected an ERROR message, got: $reply")
+        assertTrue(reply.contains("unknown-run"), "The error must name the evaluation: $reply")
         ws.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS)
     }
 

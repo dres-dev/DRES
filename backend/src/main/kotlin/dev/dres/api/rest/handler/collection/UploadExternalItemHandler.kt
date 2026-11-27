@@ -10,15 +10,12 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.preview.ExternalMediaPath
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import io.javalin.security.RouteRole
 import java.io.IOException
-import java.nio.file.OpenOption
-import kotlin.io.path.writeBytes
 
 /**
  * API endpoint to upload an external image.
  * @author Loris Sauter
- * @version 1.0
+ * @version 1.1
  */
 class UploadExternalItemHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHandler{
 
@@ -34,7 +31,8 @@ class UploadExternalItemHandler : PostRestHandler<SuccessStatus>, AccessManagedR
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("413", [OpenApiContent(ErrorStatus::class)])
         ],
         requestBody = OpenApiRequestBody([
             OpenApiContent(mimeType = "image/png", format = "binary", type = "string"),
@@ -51,13 +49,16 @@ class UploadExternalItemHandler : PostRestHandler<SuccessStatus>, AccessManagedR
         val toStorePath = ExternalMediaPath.resolveForWrite(DRES.EXTERNAL_ROOT, fileName)
             ?: throw ErrorStatusException(400, "Invalid filename '$fileName'.", ctx)
         try {
-            toStorePath.writeBytes(ctx.bodyAsBytes())
-            return SuccessStatus("The file $fileName was successfully processed.")
+            ExternalUpload.receive(toStorePath, ctx.bodyInputStream())
+        } catch (e: UploadTooLargeException) {
+            /* The scratch file is already gone, so a rejected upload leaves nothing behind. */
+            throw ErrorStatusException(413, e.message ?: "The upload is too large.", ctx)
+        } catch (e: EmptyUploadException) {
+            throw ErrorStatusException(400, "The upload is empty.", ctx)
         } catch (ioe: IOException) {
             throw ErrorStatusException(404, "Cannot access external files on '${DRES.EXTERNAL_ROOT}'", ctx)
         }
-
-
+        return SuccessStatus("The file $fileName was successfully processed.")
     }
 
     override val permittedRoles = setOf(ApiRole.ADMIN)

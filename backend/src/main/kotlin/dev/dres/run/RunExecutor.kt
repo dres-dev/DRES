@@ -248,53 +248,97 @@ object RunExecutor : StreamEventHandler {
             logger.debug("Received WebSocket message: $message from ${ctx.sessionId()}")
             this.runManagerLock.read {
                 val manager = this.runManagers[message.evaluationId]
-                if (manager != null) {
-                    when (message.type) {
-                        ClientMessageType.ACK -> {}
-                        ClientMessageType.REGISTER -> {
-                            if (AccessManager.canViewEvaluation(ctx.sessionToken(), manager)) {
-                                val viewer = this.viewerOf(ctx)
-                                if (viewer != null) {
-                                    val disconnected = synchronized(this.viewerSocketLock) {
-                                        this.observingClients[message.evaluationId]?.add(ctx.sessionId())
-                                        this.registerSocketViewer(ctx.sessionId(), message.evaluationId, viewer, manager)
-                                    }
-                                    disconnected?.let { this.managerForId(it.evaluationId)?.viewerConnectionChanged(it.viewer, false) }
+                if (manager == null) {
+                    /*
+                     * Staying quiet here left the client believing it was subscribed: the browser socket
+                     * was open, so it reported itself connected while no event would ever arrive again.
+                     */
+                    logger.warn("WebSocket session ${ctx.sessionId()} referred to unknown evaluation ${message.evaluationId}")
+                    this.sendError(ctx, message.evaluationId, "The evaluation '${message.evaluationId}' is not or no longer running.")
+                    return@read
+                }
+                when (message.type) {
+                    ClientMessageType.ACK -> {}
+                    ClientMessageType.REGISTER -> {
+                        if (AccessManager.canViewEvaluation(ctx.sessionToken(), manager)) {
+                            val viewer = this.viewerOf(ctx)
+                            if (viewer != null) {
+                                val registration = synchronized(this.viewerSocketLock) {
+                                    this.observingClients[message.evaluationId]?.add(ctx.sessionId())
+                                    this.registerSocketViewer(ctx.sessionId(), message.evaluationId, viewer)
                                 }
+                                registration.disconnected?.let { this.managerForId(it.evaluationId)?.viewerConnectionChanged(it.viewer, false) }
+                                if (registration.registered) manager.viewerConnectionChanged(viewer, true)
                             } else {
-                                logger.warn("WebSocket session ${ctx.sessionId()} is not permitted to observe evaluation ${message.evaluationId}")
+                                this.sendError(ctx, message.evaluationId, "The session of this connection could not be resolved, so it cannot observe the evaluation.")
                             }
+                        } else {
+                            logger.warn("WebSocket session ${ctx.sessionId()} is not permitted to observe evaluation ${message.evaluationId}")
+                            this.sendError(ctx, message.evaluationId, "This session is not permitted to observe the evaluation.")
                         }
-                        ClientMessageType.UNREGISTER -> {
-                            val disconnected = synchronized(this.viewerSocketLock) {
-                                this.observingClients[message.evaluationId]?.remove(ctx.sessionId())
-                                this.unregisterSocketViewer(ctx.sessionId(), message.evaluationId)
-                            }
-                            disconnected?.let { this.managerForId(it.evaluationId)?.viewerConnectionChanged(it.viewer, false) }
+                    }
+                    ClientMessageType.UNREGISTER -> {
+                        val disconnected = synchronized(this.viewerSocketLock) {
+                            this.observingClients[message.evaluationId]?.remove(ctx.sessionId())
+                            this.unregisterSocketViewer(ctx.sessionId(), message.evaluationId)
                         }
-                        ClientMessageType.PING -> {
-                            synchronized(this.viewerSocketLock) {
-                                var viewer = this.socketViewers[ctx.sessionId()]?.get(message.evaluationId)
-                                if (viewer == null && AccessManager.canViewEvaluation(ctx.sessionToken(), manager)) {
+                        disconnected?.let { this.managerForId(it.evaluationId)?.viewerConnectionChanged(it.viewer, false) }
+                    }
+                    ClientMessageType.PING -> {
+                        var unresolved: String? = null
+                        /*
+                         * The run manager is notified only after [viewerSocketLock] is released. A PING
+                         * registration can publish a ViewerUpdateEvent, and the event thread reaches back
+                         * into this class; notifying under the lock coupled the two sides for no benefit.
+                         */
+                        var pingedViewer: ViewerInfo? = null
+                        var registeredNow = false
+                        val pingedAt = System.currentTimeMillis()
+                        synchronized(this.viewerSocketLock) {
+                            var viewer = this.socketViewers[ctx.sessionId()]?.get(message.evaluationId)
+                            if (viewer == null) {
+                                if (AccessManager.canViewEvaluation(ctx.sessionToken(), manager)) {
                                     viewer = this.viewerOf(ctx)
                                     if (viewer != null) {
                                         this.observingClients[message.evaluationId]?.add(ctx.sessionId())
-                                        this.registerSocketViewer(ctx.sessionId(), message.evaluationId, viewer, manager)
-                                    }
-                                }
-                                viewer?.let {
-                                    val now = System.currentTimeMillis()
-                                    this.lastViewerPing.computeIfAbsent(ctx.sessionId()) { ConcurrentHashMap() }[message.evaluationId] = now
-                                    if (manager.viewerPresence(it)?.connected == false) {
-                                        manager.viewerConnectionChanged(it, true, now)
+                                        val registration = this.registerSocketViewer(ctx.sessionId(), message.evaluationId, viewer)
+                                        registeredNow = registration.registered
                                     } else {
-                                        manager.viewerConnectionHeartbeat(it)
+                                        unresolved = "The session of this connection could not be resolved, so it cannot observe the evaluation."
                                     }
+                                } else {
+                                    unresolved = "This session is not permitted to observe the evaluation."
                                 }
                             }
+                            if (viewer != null) {
+                                this.lastViewerPing.computeIfAbsent(ctx.sessionId()) { ConcurrentHashMap() }[message.evaluationId] = pingedAt
+                                pingedViewer = viewer
+                            }
+                        }
+                        pingedViewer?.let {
+                            /*
+                             * Asking the run manager whether the viewer is connected happens after the
+                             * lock is released: it reads run-manager state, and holding both locks at once
+                             * is what made a viewer update able to block a socket handler.
+                             */
+                            if (registeredNow || manager.viewerPresence(it)?.connected == false) {
+                                manager.viewerConnectionChanged(it, true, pingedAt)
+                            } else {
+                                manager.viewerConnectionHeartbeat(it)
+                            }
+                        }
+                        /*
+                         * A rejected PING is still answered, because the answer is what proves the
+                         * connection alive; it carries the reason instead of a bare PING so the client
+                         * learns why it is not receiving events.
+                         */
+                        val rejection = unresolved
+                        if (rejection == null) {
                             this.outboundSenders[ctx.sessionId()]?.send(
                                 mapper.writeValueAsString(ServerMessage(message.evaluationId, ServerMessageType.PING))
                             )
+                        } else {
+                            this.sendError(ctx, message.evaluationId, rejection)
                         }
                     }
                 }
@@ -305,6 +349,24 @@ object RunExecutor : StreamEventHandler {
             logger.error("WebSocket error for session ${ctx.sessionId()}: ${ctx.error()?.message}")
             this.removeWebSocketSession(ctx.sessionId())
         }
+    }
+
+    /**
+     * Tells a WebSocket client why its message had no effect.
+     *
+     * Rejections used to be logged and dropped, so a client whose session had expired - or one that
+     * referred to a run that had ended - saw an open socket, reported itself connected and waited for
+     * events that could never arrive. An explicit reply makes that state visible instead of silent.
+     */
+    private fun sendError(ctx: WsContext, evaluationId: EvaluationId, reason: String) {
+        val sender = this.outboundSenders[ctx.sessionId()] ?: return
+        val message = runCatching {
+            mapper.writeValueAsString(ServerMessage(evaluationId, ServerMessageType.ERROR, error = reason))
+        }.getOrElse {
+            logger.error("Could not serialise a WebSocket error message for session ${ctx.sessionId()}.", it)
+            return
+        }
+        sender.send(message)
     }
 
     /**
@@ -331,13 +393,25 @@ object RunExecutor : StreamEventHandler {
         this.disconnectSocketViewer(sessionId)
     }
 
-    private fun registerSocketViewer(sessionId: String, evaluationId: EvaluationId, viewer: ViewerInfo, manager: RunManager): DisconnectedViewer? {
+    /**
+     * Outcome of registering a socket-viewer association.
+     *
+     * The run manager is deliberately NOT notified here: this is called while holding
+     * [viewerSocketLock], and notifying a manager publishes a `ViewerUpdateEvent` whose dispatch path
+     * re-enters this class. Callers therefore notify [registered]/[disconnected] after releasing the lock.
+     */
+    private class SocketRegistration(
+        /** True when the viewer was newly associated with this socket and must be marked connected. */
+        val registered: Boolean,
+        /** A previous association of this socket that has to be marked disconnected. */
+        val disconnected: DisconnectedViewer?
+    )
+
+    private fun registerSocketViewer(sessionId: String, evaluationId: EvaluationId, viewer: ViewerInfo): SocketRegistration {
         val existing = this.socketViewers[sessionId]?.get(evaluationId)
         if (existing == viewer) {
-            val now = System.currentTimeMillis()
-            this.lastViewerPing.computeIfAbsent(sessionId) { ConcurrentHashMap() }[evaluationId] = now
-            manager.viewerConnectionHeartbeat(viewer)
-            return null
+            this.lastViewerPing.computeIfAbsent(sessionId) { ConcurrentHashMap() }[evaluationId] = System.currentTimeMillis()
+            return SocketRegistration(false, null)
         }
         val disconnected = this.unregisterSocketViewer(sessionId, evaluationId)
         this.socketViewers.computeIfAbsent(sessionId) { ConcurrentHashMap() }[evaluationId] = viewer
@@ -345,8 +419,7 @@ object RunExecutor : StreamEventHandler {
         val sockets = this.viewerSockets.computeIfAbsent(evaluationId) { ConcurrentHashMap() }
             .computeIfAbsent(viewer) { ConcurrentHashMap.newKeySet() }
         sockets.add(sessionId)
-        manager.viewerConnectionChanged(viewer, true)
-        return disconnected
+        return SocketRegistration(true, disconnected)
     }
 
     private fun unregisterSocketViewer(sessionId: String, evaluationId: EvaluationId): DisconnectedViewer? {

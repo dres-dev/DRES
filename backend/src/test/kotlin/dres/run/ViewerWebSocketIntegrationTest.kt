@@ -242,6 +242,59 @@ class ViewerWebSocketIntegrationTest : AbstractDresIntegrationTest() {
         ws.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS)
     }
 
+    /**
+     * A REGISTER for a run that is not (or no longer) known must be answered, not swallowed.
+     *
+     * Before this the backend logged a warning and dropped the message, so a viewer that arrived a
+     * moment too late kept an open socket, believed it was subscribed, and waited for events that
+     * could never arrive.
+     */
+    @Test
+    fun `REGISTER for an unknown evaluation is answered with an error`() = withManager { _, _ ->
+        val port = startServer()
+        val (ws, listener) = connect(port, session(ApiRole.ADMIN))
+
+        ws.sendText(clientMessage("no-such-evaluation", "REGISTER"), true).get(5, TimeUnit.SECONDS)
+
+        val reply = awaitMessage(listener) { it.contains("ERROR") }
+        assertNotNull(reply, "An unknown evaluation must be reported instead of silently ignored")
+        assertTrue(reply!!.contains("no-such-evaluation"), "The error must name the evaluation: $reply")
+        ws.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS)
+    }
+
+    /** A rejected REGISTER must say why, otherwise the client waits for events that will never come. */
+    @Test
+    fun `REGISTER without permission is answered with an error`() = withManager { manager, _ ->
+        val port = startServer()
+        val (ws, listener) = connect(port, session(ApiRole.PARTICIPANT))
+
+        ws.sendText(clientMessage(manager.id, "REGISTER"), true).get(5, TimeUnit.SECONDS)
+
+        val reply = awaitMessage(listener) { it.contains("ERROR") }
+        assertNotNull(reply, "A denied registration must be reported")
+        assertTrue(
+            reply!!.contains("not permitted") || reply.contains("could not be resolved"),
+            "The error must explain the rejection: $reply"
+        )
+        assertTrue(manager.viewerSnapshot().isEmpty(), "A denied registration must not create a viewer")
+        ws.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS)
+    }
+
+    /** A PING is proof of life: even a rejected one is answered, but as an error rather than a plain PING. */
+    @Test
+    fun `PING without permission is answered with an error`() = withManager { manager, _ ->
+        val port = startServer()
+        val (ws, listener) = connect(port, null)
+
+        ws.sendText(clientMessage(manager.id, "PING"), true).get(5, TimeUnit.SECONDS)
+
+        val reply = awaitMessage(listener) { it.contains("ERROR") || it.contains("PING") }
+        assertNotNull(reply, "PING must always be answered")
+        assertTrue(reply!!.contains("ERROR"), "An unregistered PING must be answered with an error: $reply")
+        assertTrue(manager.viewerSnapshot().isEmpty(), "An anonymous PING must not create a viewer")
+        ws.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS)
+    }
+
     /** Closing the socket must mark the viewer offline instead of leaving it stuck as connected. */
     @Test
     fun `closing the socket marks the viewer disconnected`() = withManager { manager, _ ->

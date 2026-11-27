@@ -14,8 +14,12 @@ import dev.dres.data.model.run.interfaces.TaskId
  * scoped diff for a single team (e.g. in response to a submission) so that receivers don't need
  * to be sent every team's overview just because one team's changed.
  *
+ * A message of type [ServerMessageType.ERROR] carries an [error] instead: the client's last message
+ * could not be honoured (unknown evaluation, no permission, unresolvable session). Clients must not
+ * retry such a message blindly; the reason says whether the run is gone or the session is at fault.
+ *
  * @author Ralph Gasser
- * @version 1.4.0
+ * @version 1.5.0
  */
 data class ServerMessage(
     val evaluationId: EvaluationId,
@@ -24,6 +28,7 @@ data class ServerMessage(
     val timestamp: Long = System.currentTimeMillis(),
     val state: ApiEvaluationState? = null,
     val overview: ApiEvaluationOverview? = null,
-    val teamOverview: ApiTeamTaskOverview? = null
+    val teamOverview: ApiTeamTaskOverview? = null,
+    val error: String? = null
 )
 

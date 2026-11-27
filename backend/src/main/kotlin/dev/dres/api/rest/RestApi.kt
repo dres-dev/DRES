@@ -333,6 +333,15 @@ object RestApi {
                 }
             }
 
+            /*
+             * `routes.before` and `routes.beforeMatched` do NOT run for WebSocket upgrades, so the
+             * session resolution and the access gate below never see `/api/ws/run`. Without this
+             * handler an anonymous client could hold a socket open (and only find out from a log
+             * line that its REGISTER was dropped). `wsBeforeUpgrade` does run, and its attributes
+             * are visible on the WsContext, which restores the same session handling for sockets.
+             */
+            it.routes.wsBeforeUpgrade("/api/ws/run", WsUpgradeGate::gate)
+
         it.routes.beforeMatched { ctx ->
             /* BeforeMatched handlers are only matched if the request will be matched */
             /* See https://javalin.io/migration-guide-javalin-5-to-6 */

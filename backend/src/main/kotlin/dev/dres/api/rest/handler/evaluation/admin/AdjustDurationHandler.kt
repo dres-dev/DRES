@@ -8,6 +8,7 @@ import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
+import dev.dres.run.exceptions.PerpetualTaskException
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
@@ -86,6 +87,17 @@ class AdjustDurationHandler : AbstractEvaluationAdminHandler(),
             } catch (e: IllegalAccessError) {
                 throw ErrorStatusException(403, e.message!!, ctx)
             }
+        } catch (e: PerpetualTaskException) {
+            /*
+             * A perpetual task has no deadline to move, so this is a client error about the request
+             * (409, not 400): the run is fine, the request does not apply to it. Reported before the
+             * IllegalStateException branch because PerpetualTaskException extends it.
+             */
+            throw ErrorStatusException(
+                409,
+                "Duration for run $evaluationId cannot be adjusted: ${e.message}",
+                ctx
+            )
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(
                 400,
@@ -93,7 +105,5 @@ class AdjustDurationHandler : AbstractEvaluationAdminHandler(),
                 ctx
             )
         }
-
-
     }
 }

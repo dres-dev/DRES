@@ -12,6 +12,14 @@ object Defaults {
     /** Default interval for scoreboard updates in ms. TODO: Make configurable. */
     const val SCOREBOARD_UPDATE_INTERVAL_DEFAULT = 5000L
 
-    /** Default timeout for viewer in ms. TODO: make configurable */
-    const val VIEWER_TIMEOUT_DEFAULT = 30_000L
+    /**
+     * Default timeout for viewers in ms, measured from the moment a task enters PREPARING.
+     *
+     * Deliberately a multiple of the viewer's own re-request cadence. The browser viewer re-requests the
+     * current task every 30 s, so a 30 s timeout expired at almost exactly the moment the viewer would
+     * have retried, and a slow page load silently defeated the "wait for every viewer" contract. Three
+     * cadence cycles leave room for a reload without making the wait unbounded; a real timeout is logged
+     * with the viewers that never reported ready.
+     */
+    const val VIEWER_TIMEOUT_DEFAULT = 90_000L
 }

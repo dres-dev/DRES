@@ -20,6 +20,7 @@ import dev.dres.mgmt.TemplateManager
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.RunManagerStatus
+import dev.dres.run.exceptions.PerpetualTaskException
 import dev.dres.run.score.Scoreable
 import dev.dres.run.score.scorer.KisTaskScorer
 import dev.dres.run.updatables.EndOnSubmitUpdatable
@@ -95,7 +96,7 @@ class PerpetualTaskTest : AbstractDresIntegrationTest() {
         val user = createTestUser()
         val userId = store.transactional {
             template.teams.first().users.add(user)
-            user.id!!
+            user.id
         }
 
         val dbEval = createEvaluation(template, "perp-async-run-${UUID.randomUUID()}", "INTERACTIVE_ASYNCHRONOUS")
@@ -270,7 +271,12 @@ class PerpetualTaskTest : AbstractDresIntegrationTest() {
         /* Without the run loop, the PREPARING -> RUNNING transition has to be driven explicitly. */
         store.transactional { manager.currentTask(rac)!!.start() }
 
-        val error = assertThrows(IllegalStateException::class.java) { manager.adjustDuration(rac, 10) }
+        /*
+         * The dedicated type matters: the REST layer turns IllegalArgumentException into "stopped the
+         * task because the new duration was negative" and a bare IllegalStateException into "wrong
+         * state", and neither describes a perpetual task.
+         */
+        val error = assertThrows(PerpetualTaskException::class.java) { manager.adjustDuration(rac, 10) }
         assertTrue(
             error.message!!.contains("perpetual", ignoreCase = true),
             "The rejection must explain the task is perpetual: ${error.message}"

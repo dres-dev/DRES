@@ -19,6 +19,7 @@ import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
+import dev.dres.run.RunManager.Companion.RUN_LOOP_ERROR_BACKOFF_MS
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
@@ -26,6 +27,7 @@ import dev.dres.run.eventstream.TaskPrepareEvent
 import dev.dres.run.eventstream.ViewerUpdateEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
+import dev.dres.run.exceptions.PerpetualTaskException
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -540,12 +542,12 @@ class InteractiveAsynchronousRunManager(
             ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
         /*
          * A perpetual asynchronous task can neither be prolonged nor shortened: it ends by submission
-         * or by skipping. Reported as an IllegalStateException (400 at the REST layer), NOT as an
-         * IllegalArgumentException - the REST layer treats that one as "the new duration went below
-         * zero" and aborts the task, which is the opposite of what the caller asked for.
+         * or by skipping. Reported as a [PerpetualTaskException], NOT as an IllegalArgumentException -
+         * the REST layer treats that one as "the new duration went below zero" and aborts the task,
+         * which is the opposite of what the caller asked for.
          */
         if (currentTaskRun.duration == null) {
-            throw IllegalStateException("The task '${currentTaskRun.template.name}' (${currentTaskRun.taskId}) runs perpetually and has no duration to adjust.")
+            throw PerpetualTaskException("The task '${currentTaskRun.template.name}' (${currentTaskRun.taskId}) runs perpetually and has no duration to adjust.")
         }
         val newDuration = currentTaskRun.duration!! + s
         check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
@@ -725,11 +727,23 @@ class InteractiveAsynchronousRunManager(
     override fun viewerPreparing(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
         val currentTaskTemplateId = this.currentTask(rac)?.taskTemplateId
         if (taskTemplateId == currentTaskTemplateId) {
-            synchronized(this.viewerStateLock) {
+            /*
+             * The readiness flag is flipped under the lock, but the activity record (which publishes a
+             * ViewerUpdateEvent) happens after it is released: the event thread must never depend on this
+             * manager's viewer lock being free.
+             */
+            val changed = synchronized(this.viewerStateLock) {
                 if (this.viewers[viewerInfo] != false) {
                     this.viewers[viewerInfo] = false
-                    this.recordViewerActivity(viewerInfo, ready = false, connected = this.viewerPresences[viewerInfo]?.connected ?: false)
-                }
+                    true
+                } else false
+            }
+            if (changed) {
+                this.recordViewerActivity(
+                    viewerInfo,
+                    ready = false,
+                    connected = this.viewerPresence(viewerInfo)?.connected ?: false
+                )
             }
         }
     }
@@ -737,11 +751,19 @@ class InteractiveAsynchronousRunManager(
     override fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
         val currentTaskTemplateId = this.currentTask(rac)?.taskTemplateId
         if (taskTemplateId == currentTaskTemplateId) {
-            synchronized(this.viewerStateLock) {
+            /* See [viewerPreparing]: publish the presence change outside the viewer lock. */
+            val changed = synchronized(this.viewerStateLock) {
                 if (this.viewers[viewerInfo] != true) {
                     this.viewers[viewerInfo] = true
-                    this.recordViewerActivity(viewerInfo, ready = true, connected = this.viewerPresences[viewerInfo]?.connected ?: false)
-                }
+                    true
+                } else false
+            }
+            if (changed) {
+                this.recordViewerActivity(
+                    viewerInfo,
+                    ready = true,
+                    connected = this.viewerPresence(viewerInfo)?.connected ?: false
+                )
             }
         }
     }
@@ -785,19 +807,28 @@ class InteractiveAsynchronousRunManager(
                 /* 4) Reset error counter and yield to other threads. */
                 errorCounter = 0
             } catch (ie: InterruptedException) {
-                LOGGER.info("Interrupted SynchronousRunManager, exiting")
+                LOGGER.info("Interrupted InteractiveAsynchronousRunManager, exiting")
+                Thread.currentThread().interrupt()
                 return
             } catch (e: Throwable) {
                 LOGGER.error(
                     "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
                     e
                 )
-                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
+                errorCounter++
+                LOGGER.error("This is the $errorCounter. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
 
-                // oh shit, something went horribly, horribly wrong
                 if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
                     LOGGER.error("Reached maximum consecutive error count, terminating loop")
                     break //terminate loop
+                }
+                /* See InteractiveSynchronousRunManager: retrying immediately burned the error budget. */
+                try {
+                    Thread.sleep(RUN_LOOP_ERROR_BACKOFF_MS * errorCounter)
+                } catch (ie: InterruptedException) {
+                    LOGGER.info("Interrupted InteractiveAsynchronousRunManager while backing off, exiting")
+                    Thread.currentThread().interrupt()
+                    return
                 }
             }
         }

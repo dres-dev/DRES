@@ -28,6 +28,14 @@ interface RunManager : Runnable {
     companion object {
         /** The maximum number of errors that may occur in a run loop befor aborting execution. */
         const val MAXIMUM_RUN_LOOP_ERROR_COUNT = 5
+
+        /**
+         * Pause per consecutive run-loop error, multiplied by the error count.
+         *
+         * A failing iteration used to be retried immediately, which burned the whole error budget within
+         * milliseconds: a run died before anyone could see the log line that explained why.
+         */
+        const val RUN_LOOP_ERROR_BACKOFF_MS = 1_000L
     }
 
 

@@ -97,6 +97,18 @@ class ReadyLatch<T> {
     }
 
     /**
+     * Returns the objects that are registered but not ready.
+     *
+     * A timeout makes [allReadyOrTimedOut] report true regardless, so without this the identity of the
+     * viewers that were waited for - and never answered - is lost exactly when it becomes interesting.
+     *
+     * @return [Set] of registered objects that have not reported ready.
+     */
+    fun notReady(): Set<T> = this.lock.read {
+        this.map.filterValues { ready -> !ready }.keys.toSet()
+    }
+
+    /**
      * Equivalent to [allReady] in case no timeout was set in [reset]
      */
     fun allReadyOrTimedOut()

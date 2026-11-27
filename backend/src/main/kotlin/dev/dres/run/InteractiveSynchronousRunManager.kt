@@ -18,8 +18,10 @@ import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.task.options.Defaults.VIEWER_TIMEOUT_DEFAULT
+import dev.dres.run.exceptions.PerpetualTaskException
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
+import dev.dres.run.RunManager.Companion.RUN_LOOP_ERROR_BACKOFF_MS
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
@@ -380,6 +382,7 @@ class InteractiveSynchronousRunManager(
      * @return Time remaining until the task will end in milliseconds
      *
      * @throws IllegalArgumentException If the specified correction cannot be applied.
+     * @throws PerpetualTaskException If the current task runs perpetually and therefore has no duration.
      * @throws IllegalStateException If [RunManager] was not in wrong [RunManagerStatus].
      */
     override fun adjustDuration(context: RunActionContext, s: Int): Long = this.stateLock.write {
@@ -389,7 +392,9 @@ class InteractiveSynchronousRunManager(
         val task = this.currentTask(context)
             ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
         check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
-        check(task.duration != null){"Task run '${this.name}.${task.position}' runs perpetually. This is a programmer's error!"}
+        if (task.duration == null) {
+            throw PerpetualTaskException("The task '${task.template.name}' (${task.taskId}) runs perpetually and has no duration to adjust.")
+        }
 
         /* Adjust duration. */
         val newDuration = task.duration!! + s
@@ -563,14 +568,25 @@ class InteractiveSynchronousRunManager(
         val currentTemplateId = this.evaluation.getCurrentTaskTemplate().id
         if (taskTemplateId != currentTemplateId) return
 
-        synchronized(this.viewerStateLock) {
+        val changed = synchronized(this.viewerStateLock) {
             val ready = this.readyLatch.state()[viewerInfo]
             if (ready != true) {
                 if (ready == null) this.readyLatch.register(viewerInfo)
-                val connected = this.viewerPresences[viewerInfo]?.connected ?: false
-                this.recordViewerActivity(viewerInfo, ready = false, connected = connected)
-            }
+                this.viewerPresences[viewerInfo] = ViewerPresence(
+                    host = viewerInfo.host,
+                    ready = false,
+                    connected = this.viewerPresences[viewerInfo]?.connected ?: false,
+                    lastSeen = System.currentTimeMillis()
+                )
+                true
+            } else false
         }
+        /*
+         * The state change and the presence row are written under the lock so that a concurrent cleanup
+         * cannot observe half of it; the event is published after it is released so dispatch never waits
+         * for this manager.
+         */
+        if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
     }
 
     override fun viewerReady(taskTemplateId: TaskTemplateId, rac: RunActionContext, viewerInfo: ViewerInfo) {
@@ -594,6 +610,7 @@ class InteractiveSynchronousRunManager(
                 true
             }
         }
+        /* See viewerPreparing: state and presence together under the lock, the event outside of it. */
         if (changed) EventStreamProcessor.event(ViewerUpdateEvent(this.id))
     }
 
@@ -728,18 +745,33 @@ class InteractiveSynchronousRunManager(
                 errorCounter = 0
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted SynchronousRunManager, exiting")
+                /* Restore the flag so the executor sees the shutdown instead of a normal completion. */
+                Thread.currentThread().interrupt()
                 return
             } catch (e: Throwable) {
                 LOGGER.error(
                     "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
                     e
                 )
-                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
+                errorCounter++
+                LOGGER.error("This is the $errorCounter. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
 
-                // oh shit, something went horribly, horribly wrong
                 if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
                     LOGGER.error("Reached maximum consecutive error count, terminating loop")
                     break //terminate loop
+                }
+                /*
+                 * The loop used to retry immediately, so a persistent fault spun through the whole error
+                 * budget in milliseconds and the run died within a frame or two. Backing off keeps the
+                 * run alive long enough for the fault to be noticed and fixed while it is still running.
+                 * An interrupt here means shutdown, which must not be swallowed by the catch-all.
+                 */
+                try {
+                    Thread.sleep(RUN_LOOP_ERROR_BACKOFF_MS * errorCounter)
+                } catch (ie: InterruptedException) {
+                    LOGGER.info("Interrupted SynchronousRunManager while backing off, exiting")
+                    Thread.currentThread().interrupt()
+                    return
                 }
             }
         }
@@ -778,6 +810,20 @@ class InteractiveSynchronousRunManager(
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
         if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
+            /*
+             * A timeout starts the task even though viewers never reported ready, which looks exactly like
+             * a normal start from the outside. Name the viewers that were waited for, so a slow or broken
+             * viewer can be told apart from a fast start.
+             */
+            val pending = this.readyLatch.notReady()
+            if (pending.isNotEmpty()) {
+                LOGGER.warn(
+                    "Starting task in run {} after the viewer timeout with {} viewer(s) not ready: {}",
+                    this.id,
+                    pending.size,
+                    pending.joinToString { it.sessionToken }
+                )
+            }
             this.stateLock.write {
                 this.evaluation.currentTaskRun!!.start()
                 val task = this.evaluation.currentTaskRun!!
@@ -799,11 +845,8 @@ class InteractiveSynchronousRunManager(
                 )
                 if (timeLeft <= 0) {
                     task.end()
-                    AuditLogger.taskEnd(this.id, this.evaluation.currentTaskRun!!.taskId, AuditLogSource.INTERNAL, null)
-                    EventStreamProcessor.event(TaskEndEvent(this.id, task.taskId))
-
-//                    /* Enqueue WS message for sending */
-//                    RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.evaluation.currentTask?.taskId))
+                    /* AuditLogger.taskEnd already emits the TaskEndEvent, so ending it here used to broadcast twice. */
+                    AuditLogger.taskEnd(this.id, task.taskId, AuditLogSource.INTERNAL, null)
                 }
             }
         }

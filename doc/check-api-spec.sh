@@ -99,14 +99,42 @@ fi
 curl -fsS "http://localhost:$PORT/openapi.json" -o "$WORK/oas.json" || { echo "FAILED: no openapi.json." >&2; exit 2; }
 curl -fsS "http://localhost:$PORT/clientapi.json" -o "$WORK/oas-client.json" || { echo "FAILED: no clientapi.json." >&2; exit 2; }
 
+# The specification is generated from Javalin's handler map, so the ORDER of sibling operations and of
+# schema properties follows hash iteration order and differs between JVM runs -- `post` and `patch` on the
+# same path swap places, and a byte comparison reports that as drift. Comparing the parsed documents with
+# sorted keys keeps the check about content; only a genuine addition, removal or change of a field fails it.
+canonicalise() {
+  python3 -c '
+import json, sys
+
+try:
+    with open(sys.argv[1]) as handle:
+        document = json.load(handle)
+except (OSError, ValueError) as error:
+    print(f"cannot read {sys.argv[1]}: {error}", file=sys.stderr)
+    sys.exit(2)
+
+json.dump(document, sys.stdout, indent=2, sort_keys=True)
+print()
+' "$1"
+}
+
 status=0
 for pair in "oas.json:$OAS" "oas-client.json:$CLIENT_OAS"; do
   name="${pair%%:*}"
   committed="${pair#*:}"
-  if ! diff -q "$WORK/$name" "$committed" > /dev/null; then
+  if ! canonicalise "$WORK/$name" > "$WORK/$name.canonical" 2>/dev/null; then
+    echo "FAILED: could not parse the generated $name (python3 is required)." >&2
+    exit 2
+  fi
+  if ! canonicalise "$committed" > "$WORK/$name.committed" 2>/dev/null; then
+    echo "FAILED: could not parse the committed $committed (python3 is required)." >&2
+    exit 2
+  fi
+  if ! diff -q "$WORK/$name.canonical" "$WORK/$name.committed" > /dev/null; then
     echo
     echo "DRIFT: $name differs from the running server. Differences ('<' committed, '>' current):"
-    diff -u "$committed" "$WORK/$name" | sed -n '1,120p'
+    diff -u "$WORK/$name.committed" "$WORK/$name.canonical" | sed -n '1,120p'
     status=1
   fi
 done

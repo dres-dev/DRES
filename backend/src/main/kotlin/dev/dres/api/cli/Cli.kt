@@ -28,6 +28,8 @@ import kotlin.system.exitProcess
  */
 object Cli {
 
+    private val logger = org.slf4j.LoggerFactory.getLogger(this.javaClass)
+
     private const val PROMPT = "DRES> "
 
     private lateinit var clikt: CliktCommand
@@ -118,7 +120,7 @@ object Cli {
                         is MissingArgument -> println(e.localizedMessage)
                         is NoSuchOption -> println(e.localizedMessage)
                         is UsageError -> println("invalid command: ${e.localizedMessage}")
-                        else -> e.printStackTrace()
+                        else -> logger.error("Command '{}' failed.", line, e)
                     }
                     lineReader.printAbove(PROMPT)
                 }

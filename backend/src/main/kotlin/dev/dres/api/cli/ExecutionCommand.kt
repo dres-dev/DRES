@@ -14,6 +14,8 @@ import com.jakewharton.picnic.table
  *
  * For convention purposes, the file suffix `ds` could be used, since it's a `dres script`.
  */
+private val logger = org.slf4j.LoggerFactory.getLogger(ExecutionCommand::class.java)
+
 class ExecutionCommand :
     CliktCommand(name = "exec") {
         override fun help(context: com.github.ajalt.clikt.core.Context): String = "Executes a set of DRES CLI commands in a file"
@@ -47,7 +49,8 @@ class ExecutionCommand :
 //                    is com.github.ajalt.clikt.core.MissingParameter -> results.add("Missing Parameter: ${e.localizedMessage}")
                     is com.github.ajalt.clikt.core.NoSuchOption -> results.add("No Such Option: ${e.localizedMessage}")
                     else -> {
-                        e.printStackTrace()
+                        /* A CLI reports to the operator at the terminal; the trace belongs in the log. */
+                        logger.error("Command '{}' failed.", line, e)
                         results.add("Exception: ${e.message}")
                     }
                 }

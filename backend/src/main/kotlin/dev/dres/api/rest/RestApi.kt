@@ -366,7 +366,12 @@ object RestApi {
                 ctx.attribute("session", cookieId) //store id in attribute for later use
             }
 
-            //check for query parameter
+            /*
+             * `?session=` is supported API surface, not a fallback to be removed: client implementations
+             * that cannot hold a cookie (the reference clients, the WebSocket upgrade, third-party tools)
+             * have no other way to name their session. It is redacted from the access log below, and the
+             * session cookie is authoritative when both are present.
+             */
             val paramId = ctx.queryParam("session")
             if (paramId != null) {
                 ctx.attribute("session", paramId) //store id in attribute for later use

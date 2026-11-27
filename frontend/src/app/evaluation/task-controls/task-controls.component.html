@@ -37,13 +37,13 @@
     *ngIf="
       asynchronous
         ? (runState | async)?.taskStatus === 'ENDED' ||
-          ((runState | async)?.taskStatus === 'RUNNING' && !(runState | async)?.timeLeft)
+          ((runState | async)?.taskStatus === 'RUNNING' && (runState | async)?.timeLeft == null)
         : (runState | async)?.taskStatus !== 'PREPARING' && (runState | async)?.taskStatus !== 'RUNNING'
     "
     mat-icon-button
     aria-label="Next task."
     matTooltip="{{
-      (runState | async)?.taskStatus === 'RUNNING' && !(runState | async)?.timeLeft
+      (runState | async)?.taskStatus === 'RUNNING' && (runState | async)?.timeLeft == null
         ? 'Abort current task and go to next one.'
         : 'Go to next task'
     }}"
@@ -58,10 +58,15 @@
       class="mat-body"
       style="align-self: center"
     >
-      Time left: {{ (runState | async)?.timeLeft ? ((runState | async)?.timeLeft | formatTime: false) : '∞' }}
+      Time left:
+      {{
+        (runState | async)?.timeLeft == null
+          ? '∞'
+          : ((runState | async)?.timeLeft | formatTime: false)
+      }}
     </div>
     <button
-      *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING' && (runState | async)?.timeLeft"
+      *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING' && (runState | async)?.timeLeft != null"
       mat-icon-button
       aria-label="Adjust duration."
       matTooltip="Adjust duration of task '{{ (runState | async)?.taskTemplateId }}'."

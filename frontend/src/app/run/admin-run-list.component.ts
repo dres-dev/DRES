@@ -153,9 +153,11 @@ export class AdminRunListComponent extends AbstractRunListComponent implements A
                   infoState.currentTask = teamOverview.id;
                   infoState.taskRunStatus = teamOverview?.status;
                   infoState.timeLeft =
-                    teamOverview?.status === ApiTaskStatus.RUNNING
-                      ? '' + (teamOverview.duration - Math.round(-1 * ((teamOverview.started - Date.now()) / 1000)))
-                      : '0';
+                    teamOverview?.status !== ApiTaskStatus.RUNNING
+                      ? '0'
+                      : teamOverview.duration == null
+                        ? '∞' /* Perpetual task: no deadline to count down to. */
+                        : '' + (teamOverview.duration - Math.round(-1 * ((teamOverview.started - Date.now()) / 1000)));
                 }
               }
 

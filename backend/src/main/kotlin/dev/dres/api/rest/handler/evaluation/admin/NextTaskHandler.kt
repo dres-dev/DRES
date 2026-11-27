@@ -65,9 +65,20 @@ class NextTaskHandler : AbstractEvaluationAdminHandler(),
         val rac = ctx.runActionContext()
         if (evaluationManager is InteractiveAsynchronousRunManager
             && !AccessManager.rolesOfSession(ctx.sessionToken()).contains(ApiRole.ADMIN)
-            && evaluationManager.currentTask(rac)?.status !in setOf(ApiTaskStatus.ENDED, ApiTaskStatus.IGNORED)
         ) {
-            throw ErrorStatusException(400, "Cannot advance to next task before current task is completed.", ctx)
+            /*
+             * Participants may only advance once their current task is over. A perpetual task never ends on its
+             * own, so running one is a valid state to advance from: skipping it is the only way out and the run
+             * manager ends it as part of the move.
+             */
+            val currentTask = evaluationManager.currentTask(rac)
+            val taskIsOver = currentTask == null || currentTask.status in setOf(ApiTaskStatus.ENDED, ApiTaskStatus.IGNORED)
+            val skippablePerpetualTask = currentTask?.let {
+                it.duration == null && it.status == ApiTaskStatus.RUNNING
+            } ?: false
+            if (!taskIsOver && !skippablePerpetualTask) {
+                throw ErrorStatusException(400, "Cannot advance to next task before current task is completed.", ctx)
+            }
         }
 
         return try {

@@ -289,7 +289,21 @@ class InteractiveAsynchronousRunManager(
     override fun goTo(context: RunActionContext, index: Int) = this.stateLock.write {
         val teamId = context.teamId()
         checkTeamStatus(teamId, RunManagerStatus.ACTIVE)//, RunManagerStatus.TASK_ENDED)
-        require(!teamHasRunningTask(teamId)) { "Cannot change task while task is active" }
+
+        /*
+         * A timed task must be finished before the team may move on, so that it is not abandoned halfway.
+         * A perpetual task has no deadline of its own, so skipping is the only way to leave it; it is ended
+         * here (mirroring what [abortTask] does) rather than rejected.
+         */
+        if (teamHasRunningTask(teamId)) {
+            val runningTask = requireNotNull(this.evaluation.currentTaskForTeam(teamId)) {
+                "Cannot change task while task is active"
+            }
+            require(runningTask.duration == null) { "Cannot change task while task is active" }
+            runningTask.end()
+            AuditLogger.taskEnd(this.id, runningTask.taskId, AuditLogSource.INTERNAL, null)
+            LOGGER.info("Run manager ${this.id} skipped perpetual task ${runningTask.taskId} of team $teamId")
+        }
 
         val idx = (index + this.template.tasks.size) % this.template.tasks.size
 
@@ -515,7 +529,8 @@ class InteractiveAsynchronousRunManager(
 
         val currentTaskRun = this.currentTask(context)
             ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
-        check(currentTaskRun.duration != null){"The task '${currentTaskRun.template.name}' (${currentTaskRun.taskId}) runs perpetually."} // TODO what is the semantic of a perpetual IA task?
+        /* A perpetual asynchronous task can neither be prolonged nor shortened: it ends by submission or by skipping. */
+        check(currentTaskRun.duration != null){"The task '${currentTaskRun.template.name}' (${currentTaskRun.taskId}) runs perpetually and has no duration to adjust."}
         val newDuration = currentTaskRun.duration!! + s
         check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         currentTaskRun.duration = newDuration

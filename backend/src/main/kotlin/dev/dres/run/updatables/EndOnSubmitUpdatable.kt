@@ -47,21 +47,26 @@ class EndOnSubmitUpdatable(private val manager: InteractiveRunManager) : Updatab
                     val limit = Parameters.value(taskType.configuration, Parameters.LIMIT_CORRECT_PER_TEAM_PARAM)
                         ?.toIntOrNull() ?: 1
 
-                    /* Count number of correct submissions per team. */
-                    if (currentTask.duration != null) {
-                        if (this.manager.timeLeft(context)!! > 0) {
-                            for (s in submissions) {
-                                for (a in s.answerSets.toList()) {
-                                    if (a.status == DbVerdictStatus.CORRECT) {
-                                        teams[s.team.id] = teams[s.team.id]!! + 1
-                                    }
+                    /*
+                     * Decide whether the task is still open for this condition. A perpetual task (null duration)
+                     * has no deadline that would ever end it, so reaching the submission limit is the only way it
+                     * can finish; a timed task is only ended while it still has time left, so that a task which is
+                     * already about to time out is not aborted concurrently.
+                     */
+                    val timeLeft = this.manager.timeLeft(context)
+                    if (timeLeft == null || timeLeft > 0) {
+                        /* Count number of correct submissions per team. */
+                        for (s in submissions) {
+                            for (a in s.answerSets.toList()) {
+                                if (a.status == DbVerdictStatus.CORRECT) {
+                                    teams[s.team.id] = teams[s.team.id]!! + 1
                                 }
                             }
+                        }
 
-                            /* If all teams have reached the limit, end the task. */
-                            if (teams.all { it.value >= limit }) {
-                                this.manager.abortTask(context)
-                            }
+                        /* If all teams have reached the limit, end the task. */
+                        if (teams.all { it.value >= limit }) {
+                            this.manager.abortTask(context)
                         }
                     }
                 }

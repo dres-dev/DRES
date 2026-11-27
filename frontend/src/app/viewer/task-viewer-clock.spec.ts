@@ -1,7 +1,7 @@
 import { fakeAsync, tick } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { ApiEvaluationState } from '../../../openapi';
-import { taskClock } from './task-viewer.component';
+import { formatTimeLeft, taskClock } from './task-viewer.component';
 
 function state(overrides: Partial<ApiEvaluationState> = {}): ApiEvaluationState {
   return {
@@ -96,4 +96,19 @@ describe('taskClock', () => {
     ]);
     subscription.unsubscribe();
   }));
+});
+
+describe('formatTimeLeft', () => {
+  it('renders ∞ only for a perpetual task and never for an elapsed deadline', () => {
+    expect(formatTimeLeft(null)).toBe('∞');
+    expect(formatTimeLeft(undefined)).toBe('∞');
+    expect(formatTimeLeft(0)).toBe('00:00');
+    expect(formatTimeLeft(59)).toBe('00:59');
+    expect(formatTimeLeft(60)).toBe('01:00');
+    expect(formatTimeLeft(3661)).toBe('01:01:01');
+  });
+
+  it('clamps negative remaining time to zero instead of reporting an infinite countdown', () => {
+    expect(formatTimeLeft(-1)).toBe('00:00');
+  });
 });

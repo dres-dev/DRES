@@ -25,6 +25,29 @@ enum ViewerState {
   VIEWER_TASK_ENDED,
 }
 
+/**
+ * Formats a number of remaining seconds as `hh:mm:ss`.
+ *
+ * `null`/`undefined` means the task runs perpetually and is rendered as `∞`. Zero is a real remaining time (the
+ * task is over or the deadline just passed) and has to render as `00:00`; conflating the two used to flash an
+ * infinite countdown in the viewer right before a task ended.
+ */
+export function formatTimeLeft(sec?: number | null): string {
+  if (sec == null) {
+    return '∞';
+  }
+
+  const remaining = Math.max(0, sec);
+  const hours = Math.floor(remaining / 3600);
+  const minutes = Math.floor(remaining / 60) % 60;
+  const seconds = remaining % 60;
+
+  return [hours, minutes, seconds]
+    .map((v) => (v < 10 ? '0' + v : v))
+    .filter((v, i) => v !== '00' || i > 0)
+    .join(':');
+}
+
 /** Advances task clock values locally between authoritative server snapshots. */
 export function taskClock(
   state: Observable<ApiEvaluationState>,
@@ -313,20 +336,13 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   /**
    * Formats a given number of seconds into a time format hh:mm:ss.
    *
-   * @param sec The number of seconds to convert.
+   * A missing value means the task runs perpetually and is rendered as `∞`. Zero is a real remaining time
+   * (the task is over) and must therefore be formatted as `00:00`; conflating the two used to flash an
+   * infinite countdown while the viewer was still in the playback state.
+   *
+   * @param sec The number of seconds to convert, or null/undefined for a perpetual task.
    */
-  public toFormattedTime(sec?: number): string {
-    if (sec) {
-      const hours = Math.floor(sec / 3600);
-      const minutes = Math.floor(sec / 60) % 60;
-      const seconds = sec % 60;
-
-      return [hours, minutes, seconds]
-        .map((v) => (v < 10 ? '0' + v : v))
-        .filter((v, i) => v !== '00' || i > 0)
-        .join(':');
-    } else {
-      return '∞';
-    }
+  public toFormattedTime(sec?: number | null): string {
+    return formatTimeLeft(sec);
   }
 }

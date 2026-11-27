@@ -160,7 +160,8 @@ export class AbstractRunListComponent {
             taskRunStatus: s.taskStatus,
             currentTask: s.taskTemplateId,
             currentTaskName: v.taskTemplates.find((it) => it.templateId === s.taskTemplateId)?.name,
-            timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
+            /* A perpetual task reports no remaining time at all and must not be rendered as a number. */
+            timeLeft: s.timeLeft == null ? '∞' : s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
             timeElapsed: s.timeElapsed,
             asynchronous: v.type === 'ASYNCHRONOUS',
             runProperties: v.properties,

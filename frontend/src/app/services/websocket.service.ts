@@ -5,6 +5,7 @@ import { AppConfig } from '../app.config';
 import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
 import { IWsClientMessage } from '../model/ws/ws-client-message.interface';
 import { ClientMessageType } from '../model/ws/client-message-type.enum';
+import { ServerMessageType } from '../model/ws/server-message-type.enum';
 
 /**
  * Health of the run WebSocket.
@@ -15,8 +16,10 @@ import { ClientMessageType } from '../model/ws/client-message-type.enum';
  *   connection may be fine (an idle run) or the far end may be gone in a way the browser cannot see,
  *   so the UI must say that updates are no longer live.
  * - `reconnecting`: the socket is closed or unusable and the service is retrying with backoff.
+ * - `rejected`: the server explicitly refused this session (unknown run, no permission). No amount
+ *   of retrying helps, so reconnect attempts stop; only a new registration (or a reload) can fix it.
  */
-export type WebSocketConnectionState = 'idle' | 'live' | 'waiting' | 'reconnecting';
+export type WebSocketConnectionState = 'idle' | 'live' | 'waiting' | 'reconnecting' | 'rejected';
 
 /** Connection state as displayed to the user, together with the polling cadence it implies. */
 export interface WebSocketStatus {
@@ -29,6 +32,8 @@ export interface WebSocketStatus {
    * This is not fixed: it adapts to what polls actually return (see {@link WebSocketService.reportPollResult}).
    */
   pollIntervalMs: number;
+  /** Why the server refused this session, or null. Only set while the state is `rejected`. */
+  reason: string | null;
 }
 
 @Injectable({
@@ -83,7 +88,10 @@ export class WebSocketService implements OnDestroy {
     state: 'idle',
     degraded: false,
     pollIntervalMs: WebSocketService.POLL_RESTING_MS,
+    reason: null,
   };
+  /** Why the server refused this session; cleared as soon as a new connection is attempted. */
+  private rejectionReason: string | null = null;
   private pingSubscription: Subscription | null = null;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private livenessTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -214,6 +222,7 @@ export class WebSocketService implements OnDestroy {
 
   private openConnection(): void {
     const url = this.config.webSocketUrl;
+    this.rejectionReason = null;
     this.socket = new WebSocket(url);
 
     this.socket.onopen = () => {
@@ -235,17 +244,28 @@ export class WebSocketService implements OnDestroy {
 
     this.socket.onmessage = (event: MessageEvent) => {
       this.markAlive();
+      let message: IWsServerMessage;
       try {
-        const message: IWsServerMessage = JSON.parse(event.data as string);
-        this.messageSubject.next(message);
+        message = JSON.parse(event.data as string);
       } catch {
         console.warn('[WebSocketService] Could not parse message:', event.data);
+        return;
       }
+      /* An explicit refusal is not an event to distribute: it ends this session's usefulness. */
+      if (message.type === ServerMessageType.ServerMessageTypeEnum.ERROR) {
+        this.onRejected(message.error ?? 'The server refused this connection.');
+        return;
+      }
+      this.messageSubject.next(message);
     };
 
     this.socket.onclose = () => {
       this.stopPing();
       this.stopLiveness();
+      if (this.statusState === 'rejected') {
+        /* The server said no; retrying would only produce the same answer. */
+        return;
+      }
       if (this.currentEvaluationId) {
         this.setStatus('reconnecting');
         const delay = this.nextReconnectDelay();
@@ -288,6 +308,38 @@ export class WebSocketService implements OnDestroy {
       }
       this.socket = null;
     }
+  }
+
+  /**
+   * The server refused this session, so stop pretending the connection is usable.
+   *
+   * Refusals used to be invisible: the socket stayed open, no event ever arrived, and the UI kept
+   * claiming it was connected. Polling still has to work (the REST API may answer for a session the
+   * socket layer refused), so the fallback cadence is set to its fastest and the state is marked
+   * `rejected` so the indicator can say why instead of looking merely quiet.
+   */
+  private onRejected(reason: string): void {
+    this.rejectionReason = reason;
+    this.stopPing();
+    this.stopLiveness();
+    if (this.reconnectTimeout !== null) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+    const dead = this.socket;
+    this.socket = null;
+    if (dead) {
+      dead.onopen = null;
+      dead.onmessage = null;
+      dead.onclose = null;
+      dead.onerror = null;
+      try {
+        dead.close();
+      } catch {
+        /* Nothing left to close. */
+      }
+    }
+    this.setStatus('rejected');
   }
 
   /**
@@ -387,7 +439,7 @@ export class WebSocketService implements OnDestroy {
     }
     this.statusState = state;
 
-    const degraded = state === 'waiting' || state === 'reconnecting';
+    const degraded = state === 'waiting' || state === 'reconnecting' || state === 'rejected';
 
     /* Losing the socket (or losing trust in it) restarts the adaptive cadence from a useful speed;
        it then grows again from observed change rather than from elapsed outage time. Recovery keeps
@@ -419,8 +471,9 @@ export class WebSocketService implements OnDestroy {
   private publishStatus(): void {
     this.lastStatus = {
       state: this.statusState,
-      degraded: this.statusState === 'waiting' || this.statusState === 'reconnecting',
+      degraded: this.statusState === 'waiting' || this.statusState === 'reconnecting' || this.statusState === 'rejected',
       pollIntervalMs: this.pollIntervalMs,
+      reason: this.statusState === 'rejected' ? this.rejectionReason : null,
     };
     this.statusSubject.next(this.lastStatus);
   }

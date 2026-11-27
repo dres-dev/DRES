@@ -16,6 +16,8 @@ export interface ApiStatusView {
   degraded: boolean;
   /** Current fallback polling interval, so the tooltip can be specific. */
   pollIntervalS: number;
+  /** Why the server refused this session; only set while the socket is `rejected`. */
+  reason: string | null;
 }
 
 /**
@@ -46,6 +48,7 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
   private socket: WebSocketConnectionState = 'idle';
   private degraded = false;
   private pollIntervalMs = 30_000;
+  private reason: string | null = null;
   private readonly subscriptions = new Subscription();
 
   constructor(
@@ -71,6 +74,7 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
       this.socket = status.state;
       this.degraded = status.degraded;
       this.pollIntervalMs = status.pollIntervalMs;
+      this.reason = status.reason;
       this.publish();
     }));
 
@@ -120,6 +124,8 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
         return 'Quiet';
       case 'reconnecting':
         return 'Reconnecting';
+      case 'rejected':
+        return 'Refused';
       default:
         return '';
     }
@@ -152,6 +158,9 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
       case 'reconnecting':
         lines.push('The live connection was lost and is being re-established.');
         break;
+      case 'rejected':
+        lines.push(status.reason ?? 'The server refused the live connection for this session.');
+        break;
       default:
         break;
     }
@@ -175,6 +184,7 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
       socket: this.socket,
       degraded: this.degraded,
       pollIntervalS: Math.round(this.pollIntervalMs / 1000),
+      reason: this.reason,
     };
   }
 }

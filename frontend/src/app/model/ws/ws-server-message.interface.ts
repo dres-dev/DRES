@@ -22,4 +22,10 @@ export interface IWsServerMessage extends IWsMessage {
   overview?: ApiEvaluationOverview;
   /** Embedded single-team overview diff. Present on TASK_UPDATED (submissions); scoped to the submitting team. */
   teamOverview?: ApiTeamTaskOverview;
+  /**
+   * Human-readable reason for an ERROR message: the last client message could not be honoured
+   * (unknown evaluation, no permission, unresolvable session). Retrying blindly is pointless — the
+   * run is gone or the session is at fault — so the UI should show it and stop trusting the socket.
+   */
+  error?: string | null;
 }

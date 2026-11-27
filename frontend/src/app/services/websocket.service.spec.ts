@@ -478,6 +478,81 @@ describe('WebSocketService', () => {
 
   // ── status$: polling cadence ───────────────────────────────────────────────
 
+  /**
+   * The server refusing a session used to be invisible: the socket stayed open, nothing was ever
+   * pushed, and the UI kept claiming it was live. A refusal now ends the retries and says why.
+   */
+  describe('rejection', () => {
+    function rejection(reason = 'This session is not permitted to observe the evaluation.'): IWsServerMessage {
+      return { ...serverMsg(ServerMessageType.ServerMessageTypeEnum.ERROR), error: reason };
+    }
+
+    it('reports a rejected session instead of staying silent', fakeAsync(() => {
+      service.connect('eval-1');
+      MockWebSocket.instance!.simulateOpen();
+
+      MockWebSocket.instance!.simulateMessage(rejection());
+      tick(0);
+
+      expect(service.status.state).toBe('rejected');
+      expect(service.status.degraded).toBeTrue();
+      expect(service.status.reason).toContain('not permitted');
+    }));
+
+    it('stops reconnecting after a rejection', fakeAsync(() => {
+      service.connect('eval-1');
+      MockWebSocket.instance!.simulateOpen();
+      const refused = MockWebSocket.instance;
+
+      MockWebSocket.instance!.simulateMessage(rejection());
+      tick(0);
+      tick(60_000);
+
+      expect(refused!.closed).toBeTrue();
+      expect(MockWebSocket.instances.length).toBe(1);
+      expect(service.status.state).toBe('rejected');
+    }));
+
+    it('polls fast while rejected, because polling is the only channel left', fakeAsync(() => {
+      service.connect('eval-1');
+      MockWebSocket.instance!.simulateOpen();
+
+      MockWebSocket.instance!.simulateMessage(rejection());
+      tick(0);
+
+      expect(service.status.pollIntervalMs).toBe(5_000);
+      expect(service.status.degraded).toBeTrue();
+    }));
+
+    it('does not pass a rejection on to message consumers', fakeAsync(() => {
+      const received: string[] = [];
+      service.messages$.subscribe((m) => received.push(m.type));
+
+      service.connect('eval-1');
+      MockWebSocket.instance!.simulateOpen();
+      MockWebSocket.instance!.simulateMessage(rejection());
+      tick(0);
+
+      expect(received).toEqual([]);
+    }));
+
+    it('forgets the reason when a later connection is accepted', fakeAsync(() => {
+      service.connect('eval-1');
+      MockWebSocket.instance!.simulateOpen();
+      MockWebSocket.instance!.simulateMessage(rejection());
+      tick(0);
+      expect(service.status.reason).not.toBeNull();
+
+      /* A refusal is not permanent: a fresh registration may well be accepted. */
+      service.connect('eval-1');
+      MockWebSocket.instances[MockWebSocket.instances.length - 1].simulateOpen();
+      tick(0);
+
+      expect(service.status.reason).toBeNull();
+      expect(service.status.state).toBe('live');
+    }));
+  });
+
   describe('poll interval', () => {
     it('uses the resting cadence while live', () => {
       service.connect('eval-1');

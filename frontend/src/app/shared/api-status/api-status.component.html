@@ -20,6 +20,7 @@
       <mat-icon *ngIf="status.socket === 'live'">bolt</mat-icon>
       <mat-icon *ngIf="status.socket === 'waiting'">hourglass_empty</mat-icon>
       <mat-icon *ngIf="status.socket === 'reconnecting'">sync_problem</mat-icon>
+      <mat-icon *ngIf="status.socket === 'rejected'">block</mat-icon>
       <span class="label">{{ socketLabel(status) }}</span>
     </span>
   </div>

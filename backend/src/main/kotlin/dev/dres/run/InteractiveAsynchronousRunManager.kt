@@ -400,8 +400,12 @@ class InteractiveAsynchronousRunManager(
             ?: throw IllegalStateException("Could not find active task for team ${teamId} despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
         currentTask.end()
 
-//        /* Enqueue WS message for sending */
-//        RunExecutor.broadcastWsMessage(teamId, ServerMessage(this.id, ServerMessageType.TASK_END, currentTask.taskId))
+        /*
+         * Auditing the end is what notifies observers: AuditLogger.taskEnd emits a TaskEndEvent, which
+         * RunExecutor turns into a TASK_END broadcast. An abort used to only log, so a stopped task
+         * stayed "running" on every connected viewer until something else happened.
+         */
+        AuditLogger.taskEnd(this.id, currentTask.taskId, AuditLogSource.INTERNAL, null)
 
         LOGGER.info("Run manager ${this.id} aborted task $currentTask.")
     }
@@ -416,8 +420,13 @@ class InteractiveAsynchronousRunManager(
      * @return Time remaining until the task will end or -1, if no task is running. NULL if the task runs perpetually.
      */
     override fun timeLeft(context: RunActionContext): Long? = this.stateLock.read {
-        val currentTaskRun = this.currentTask(context)
-        return if (currentTaskRun?.duration == null) {
+        /*
+         * As in the synchronous manager, "no task run" must be distinguished from "perpetual task":
+         * `currentTaskRun?.duration == null` cannot tell them apart, and reporting null would claim a
+         * deadline-free task where the documented answer is -1L.
+         */
+        val currentTaskRun = this.currentTask(context) ?: return@read -1L
+        return if (currentTaskRun.duration == null) {
             null
         } else {
             if (currentTaskRun.isRunning) {
@@ -529,8 +538,15 @@ class InteractiveAsynchronousRunManager(
 
         val currentTaskRun = this.currentTask(context)
             ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
-        /* A perpetual asynchronous task can neither be prolonged nor shortened: it ends by submission or by skipping. */
-        check(currentTaskRun.duration != null){"The task '${currentTaskRun.template.name}' (${currentTaskRun.taskId}) runs perpetually and has no duration to adjust."}
+        /*
+         * A perpetual asynchronous task can neither be prolonged nor shortened: it ends by submission
+         * or by skipping. Reported as an IllegalStateException (400 at the REST layer), NOT as an
+         * IllegalArgumentException - the REST layer treats that one as "the new duration went below
+         * zero" and aborts the task, which is the opposite of what the caller asked for.
+         */
+        if (currentTaskRun.duration == null) {
+            throw IllegalStateException("The task '${currentTaskRun.template.name}' (${currentTaskRun.taskId}) runs perpetually and has no duration to adjust.")
+        }
         val newDuration = currentTaskRun.duration!! + s
         check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         currentTaskRun.duration = newDuration
@@ -835,13 +851,8 @@ class InteractiveAsynchronousRunManager(
                         )
                         if (timeLeft <= 0) {
                             task.end()
+                            /* Emits the TaskEndEvent that RunExecutor broadcasts as TASK_END. */
                             AuditLogger.taskEnd(this.id, task.taskId, AuditLogSource.INTERNAL, null)
-
-//                        /* Enqueue WS message for sending */
-//                        RunExecutor.broadcastWsMessage(
-//                            teamId,
-//                            ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId)
-//                        )
                         }
                     }
 
@@ -851,11 +862,12 @@ class InteractiveAsynchronousRunManager(
                     val task = this.evaluation.currentTaskForTeam(teamId)
                         ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                     task.start()
-                    AuditLogger.taskStart(this.id, task.teamId, task.template, AuditLogSource.REST, null)
-//                    RunExecutor.broadcastWsMessage(
-//                        teamId,
-//                        ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId)
-//                    )
+                    /*
+                     * A task that starts by itself is not a REST interaction, and the entry must carry
+                     * the task's own id - not the team's. Both go through AuditLogger, which emits the
+                     * TaskStartEvent that RunExecutor broadcasts, so observers learn about the start.
+                     */
+                    AuditLogger.taskStart(this.id, task.taskId, task.template, AuditLogSource.INTERNAL, null)
                 }
             }
         }

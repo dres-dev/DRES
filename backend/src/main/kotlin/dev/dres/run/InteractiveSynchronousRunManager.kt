@@ -408,19 +408,23 @@ class InteractiveSynchronousRunManager(
      * @return Time remaining until the task will end or -1, if no task is running. NULL if the task runs perpetually.
      */
     override fun timeLeft(context: RunActionContext): Long? {
-        return if(this.evaluation.currentTaskRun?.duration == null){
-            null
-        }else{
-        if (this.evaluation.currentTaskRun?.status == ApiTaskStatus.RUNNING) {
-            val currentTaskRun = this.currentTask(context)
-                ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
+        /*
+         * The task-run check must come first: `currentTaskRun?.duration == null` is also true when
+         * there is no task run at all, which used to report "perpetual" (null) instead of the
+         * documented -1L for "nothing is running".
+         */
+        val currentTaskRun = this.evaluation.currentTaskRun ?: return -1L
+        if (currentTaskRun.duration == null) {
+            return null
+        }
+        return if (currentTaskRun.status == ApiTaskStatus.RUNNING) {
             max(
                 0L,
                 currentTaskRun.duration!! * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
             )
         } else {
             -1L
-        }}
+        }
     }
 
     /**

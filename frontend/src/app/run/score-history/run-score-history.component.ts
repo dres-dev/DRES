@@ -123,9 +123,6 @@ export class RunScoreHistoryComponent {
       switchMap((runId) =>
         this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
           catchError((err, o) => {
-            console.log(
-              `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
-            );
             if (err.status === 404) {
               this.router.navigate(['/template/list']);
             }
@@ -154,9 +151,6 @@ export class RunScoreHistoryComponent {
       switchMap((runId) =>
         this.scoreService.getApiV2ScoreEvaluationByEvaluationIdTeamGroupList(runId).pipe(
           catchError((err, o) => {
-            console.log(
-              `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
-            );
             if (err.status === 404) {
               this.router.navigate(['/template/list']);
             }
@@ -181,7 +175,6 @@ export class RunScoreHistoryComponent {
           switchMap((i) => {
             return this.scoreService.getApiV1ScoreRunWithRunidSeriesWithScoreboard(r, this.selectedScoreboard).pipe(
               catchError((err, o) => {
-                console.log(`[ScoreHistoryComponent] There was an error while loading scores for run: ${err?.message}`);
                 if (err.status === 404) {
                   this.router.navigate(['/template/list']);
                 }

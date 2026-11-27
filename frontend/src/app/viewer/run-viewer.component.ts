@@ -143,7 +143,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     );
     this.noUi = this.activeRoute.paramMap.pipe(
       map((a) => {
-        console.log('A', a);
         const map = this.parseMatrixParams(a.get('runId'));
         return Object.keys(map).includes('noUi') && map['noUi'] === 'true';
       })
@@ -154,9 +153,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       switchMap((evaluationId) =>
         this.runService.getApiV2EvaluationByEvaluationIdInfo(evaluationId).pipe(
           catchError((err, o) => {
-            console.log(
-              `[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`
-            );
             this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
               duration: 5000,
             });
@@ -216,9 +212,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
         )
       ),
       catchError((err, o) => {
-        console.log(
-          `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
-        );
         this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
           duration: 5000,
         });
@@ -424,7 +417,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       this.p = params.params;
     }
     const w = Widget.resolveWidget(this.p[position], position);
-    //console.log(`Position ${this.p[position]}/${position} resolved to `, w);
     return w;
   }
 

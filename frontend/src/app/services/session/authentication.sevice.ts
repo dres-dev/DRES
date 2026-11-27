@@ -35,7 +35,6 @@ export class AuthenticationService {
       mergeMap(() => this.userService.getApiV2User()),
       tap((data) => {
         this._loggedIn.next(true);
-        console.log(`Successfully logged in as '${data.username}'.`);
       })
     );
   }
@@ -48,7 +47,6 @@ export class AuthenticationService {
       catchError((e) => of(null)),
       tap(() => {
         this._loggedIn.next(false);
-        console.log(`User was logged out.`);
       })
     );
   }

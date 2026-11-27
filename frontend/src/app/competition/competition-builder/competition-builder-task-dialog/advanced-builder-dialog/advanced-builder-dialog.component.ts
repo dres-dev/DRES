@@ -47,7 +47,6 @@ export class AdvancedBuilderDialogComponent implements OnInit {
    * Currently only logs the formdata as json
    */
   export(): void {
-    console.log(this.asJson());
   }
 
   asJson(): string {
@@ -56,7 +55,6 @@ export class AdvancedBuilderDialogComponent implements OnInit {
 
   private fetchData() {
     const out = this.textualInput.split('\n');
-    console.log(`Fetched: ${out}`);
     return out;
   }
 }

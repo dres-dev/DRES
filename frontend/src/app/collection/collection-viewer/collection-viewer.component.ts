@@ -96,7 +96,6 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
         this.collectionService.getApiV2CollectionByCollectionId(id).pipe(
           retry(3),
           catchError((err, o) => {
-            console.log(`[CollectionViewer.${id}] There was an error while loading the current collection ${err?.message}`);
             this.snackBar.open(`There was an error while loading the current collection ${err?.message}`, null, {
               duration: 5000,
             });
@@ -305,7 +304,6 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
    */
   private mediaUrlForItem(id: string) {
     const url = this.config.resolveApiUrl(`media/${id}`);
-    console.log(url);
     return url;
   }
 }

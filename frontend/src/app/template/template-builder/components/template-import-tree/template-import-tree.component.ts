@@ -317,17 +317,14 @@ export class TemplateImportTreeComponent implements OnInit {
         return items.map<[ApiTeam, string]>((it) => {
           const newItem = it.item as ApiTeam;
           /* Transfer old team logo as data url in new team */
-          console.log('Teamt ransfer');
           fetch(this.config.resolveApiUrl(`/template/logo/${newItem.id}`), { credentials: 'include' }).then(async (r) => {
             const reader = new FileReader();
             reader.readAsDataURL(await r.blob());
             reader.onload = () => {
               newItem.logoData = reader.result as string;
-              console.log('NEW ITEM ASYNC', newItem);
             };
           });
           newItem.id = undefined;
-          console.log('returning', newItem);
           return [newItem, it.origin];
         });
       case TemplateImportTreeBranch.TEAM_GROUPS:
@@ -423,17 +420,14 @@ export class TemplateImportTreeComponent implements OnInit {
     root.label = rootLabel;
     root.item = template[key];
     root.children = template[key].map((it) => {
-      //console.log("THE CHILD ITEM", it)
       const item = new TemplateTreeNode<T>();
       item.label = it[labelKey];
       item.item = it;
       item.children = null;
       item.branch = branch;
       item.origin = template.id;
-      //console.log("THE CHILD", item)
       return item;
     });
-    //console.log("THE Branch: ", root)
     return root;
   }
 }

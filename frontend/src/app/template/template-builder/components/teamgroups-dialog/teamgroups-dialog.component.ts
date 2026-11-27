@@ -89,8 +89,6 @@ export class TeamgroupsDialogComponent {
     if (this.form.valid) {
       this.dialogRef.close(this.fetchData());
     } else {
-      console.log('TeamGroup Dialog', this.fetchData());
-      console.log(this.form.get('teams').errors);
     }
   }
 

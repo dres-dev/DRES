@@ -159,19 +159,16 @@ export class TemplateBuilderComponent
       return;
     }
     this.isSaving = true;
-    console.log('save');
     this.templateService
       .patchApiV2TemplateByTemplateId(this.builderService.getTemplate().id, this.builderService.getTemplateCleaned())
       .subscribe(
         (s) => {
           this.snackBar.open(s.description, null, { duration: 5000 });
           this.builderService.unmarkDirty();
-          console.log('TemplateBuilder: Saved successfully', this.builderService.isDirty());
           this.isSaving = false;
           this.refresh();
         },
         (r) => {
-          console.log(r);
           this.snackBar.open(`Error: ${r?.error?.description}`, null, { duration: 5000 });
           this.isSaving = false;
         },

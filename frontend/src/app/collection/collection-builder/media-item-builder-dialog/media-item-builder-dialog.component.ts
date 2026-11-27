@@ -73,7 +73,6 @@ export class MediaItemBuilderDialogComponent implements OnInit {
   }
 
   export(): void {
-    console.log(this.asJson());
   }
 
   private fetchFormData(): ApiMediaItem {

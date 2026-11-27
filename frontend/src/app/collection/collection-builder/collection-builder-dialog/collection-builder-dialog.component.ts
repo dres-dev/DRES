@@ -48,7 +48,6 @@ export class CollectionBuilderDialogComponent implements OnInit {
    * Currently only logs the formdata as json
    */
   export(): void {
-    console.log(this.asJson());
   }
 
   asJson(): string {

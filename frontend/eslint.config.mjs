@@ -32,6 +32,12 @@ export default tseslint.config(
       '@angular-eslint/no-empty-lifecycle-method': 'warn',
       '@angular-eslint/component-selector': ['error', { prefix: 'app', style: 'kebab-case', type: 'element' }],
       '@angular-eslint/directive-selector': ['error', { prefix: 'app', style: 'camelCase', type: 'attribute' }],
+      /*
+       * Debug output must not ship. `console.warn`/`console.error` stay allowed because they report
+       * problems an operator may need, but `console.log` was used 130 times for tracing and routinely
+       * left state dumps and ids in a production console.
+       */
+      'no-console': ['error', { allow: ['warn', 'error', 'info', 'debug'] }],
     },
   },
   {
@@ -40,6 +46,13 @@ export default tseslint.config(
     rules: {
       // Relaxed like the prefer-inject group above; ngIf -> @if migration is separate work.
       '@angular-eslint/template/prefer-control-flow': 'warn',
+    },
+  },
+  {
+    /* Tests may log freely: their output is the test report. */
+    files: ['**/*.spec.ts'],
+    rules: {
+      'no-console': 'off',
     },
   },
   {

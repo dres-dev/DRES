@@ -79,7 +79,6 @@ export class TaskTemplateEditorComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        console.log('NavigationEnd', event);
         this.builderService?.selectTaskTemplate(null);
       }
     });
@@ -272,16 +271,10 @@ export class TaskTemplateEditorComponent implements OnInit, OnDestroy {
     const start = TaskTemplateEditorComponent.randInt(1, item.durationMs / 1000 / 2); // always in first half
     let end = 1;
     if (this.builderService.defaultSegmentLength === 0) {
-      console.log('Using random length for random segment');
       do {
         end = start + TaskTemplateEditorComponent.randInt(5, item.durationMs / 1000); // Arbitrary 5 seconds minimal length
       } while (end > item.durationMs / 1000);
     } else {
-      console.log(
-        'Using default length for random segment (start, defaultLength)',
-        start,
-        this.builderService.defaultSegmentLength
-      );
       end = start + this.builderService.defaultSegmentLength;
       if (end > item.durationMs / 1000) {
         end = item.durationMs / 1000 - start;
@@ -317,7 +310,6 @@ export class TaskTemplateEditorComponent implements OnInit, OnDestroy {
       }
     }
 
-    console.log('Start=' + start + ', End=' + end);
     this.externalVideoData = { externalPath: path, segmentStart: start, segmentEnd: end } as VideoPlayerSegmentBuilderData;
     this.externalVideoPreviewActive = !this.externalVideoPreviewActive;
   }
@@ -368,7 +360,6 @@ export class TaskTemplateEditorComponent implements OnInit, OnDestroy {
       }
     }
 
-    console.log('Start=' + start + ', End=' + end);
     // const config = {
     //     width: '800px', data: {mediaItem, segmentStart: start, segmentEnd: end}
     // } as MatDialogConfig<VideoPlayerSegmentBuilderData>;
@@ -376,7 +367,6 @@ export class TaskTemplateEditorComponent implements OnInit, OnDestroy {
     /*dialogRef.afterClosed().pipe(
             filter(r => r != null))
             .subscribe((r: TemporalRange) => {
-                console.log(`Finished: ${r}`);
                 startControl.setValue(r.start.value);
                 endControl.setValue(r.end.value);
                 unitControl.setValue(TemporalPoint.UnitEnum.SECONDS);
@@ -468,9 +458,7 @@ export class TaskTemplateEditorComponent implements OnInit, OnDestroy {
   }
 
   timeUnitChanged($event, startElementRef: HTMLInputElement, endElementRef: HTMLInputElement) {
-    console.log($event);
     const type = $event.value === 'TIMECODE' ? 'text' : 'number';
-    console.log('New type: ' + type);
     if (startElementRef) {
       startElementRef.type = type;
     }
@@ -498,7 +486,8 @@ export class TaskTemplateEditorComponent implements OnInit, OnDestroy {
         timeSuffix = `#t=${Math.round(this.form.get('start').value / 1000)},${Math.round(this.form.get('end').value / 1000)}`;
         break;
       case 'TIMECODE':
-        console.log('Not yet supported'); // TODO make it!
+        /* Timecodes are still unsupported; the caller is told rather than silently given a wrong target. */
+        throw new Error('Timecode targets are not supported yet.');
         break;
       default:
         console.error(`The time unit ${this.form.get('time_unit').value} is not supported`);

@@ -51,7 +51,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   public submit() {
-    console.log(`Submitting u=${this.form.controls.username.value} and p=${this.form.controls.password.value}`);
     if (this.form.valid) {
       const usr = { username: this.form.controls.username.value } as ApiUserRequest;
       if (this.form.controls.password.value !== '') {

@@ -122,7 +122,6 @@ export class AppConfig {
         })
         .catch((response: any) => {
           this.settings.next(new DefaultConfig());
-          console.log(`Could not load config file '${jsonFile}'. Fallback to default.`);
           resolve();
         });
     });

@@ -98,7 +98,6 @@ export class SubmissionsListComponent implements AfterViewInit, OnDestroy {
     this.sub = this.runId.pipe(
       switchMap((r) => this.evalService.getApiV2EvaluationByEvaluationIdInfo(r)),
       catchError((error, o) => {
-        console.log(`[SubmissionList] Error occurred while loading template information: ${error?.message}`);
         this.snackBar.open(`Error: Couldn't load template information: ${error?.message}`, null, {duration: 5000});
         return of(null);
       }),

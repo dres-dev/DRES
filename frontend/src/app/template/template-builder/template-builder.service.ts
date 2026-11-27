@@ -49,13 +49,9 @@ export class TemplateBuilderService {
   constructor() {}
 
   public selectTaskTemplate(task: ApiTaskTemplate) {
-    console.log('BuilderService.selectTaskTemplate task', task);
-    console.log("BuilderService.selectTaskTemplate template's tasks", this.getTemplate().tasks);
     if (task) {
       const index = this.getTemplate().tasks.indexOf(task);
-      console.log('BuilderService.selectTaskTemplate, index', index);
       if (index < 0) {
-        console.log('BuilderService.selectTaskTemplate, NEW Task');
         /* new task: we'll have to add id */
         this.getTemplate().tasks.push(task);
         this.update(this.getTemplate());
@@ -65,7 +61,6 @@ export class TemplateBuilderService {
       this.touchedTasks.push(task);
       this.selectedTaskTemplate.next(task);
     } else {
-      console.log('BuilderService.selectTaskTemplate UNSELECT');
       this.selectedTaskTemplate.next(null);
       this._selectedTaskGroup = null;
       this._selectedTaskType = null;
@@ -102,7 +97,6 @@ export class TemplateBuilderService {
 
   public initialise(template: ApiEvaluationTemplate) {
     this.unmarkDirty();
-    console.log('BuilderService.init', template);
     this.templateSubject.next(template);
   }
 
@@ -160,14 +154,11 @@ export class TemplateBuilderService {
 
   public update(template: ApiEvaluationTemplate = null) {
     template = template ? template : this.templateSubject.getValue();
-    console.log('BuilderService.update', template);
     this.templateSubject.next(template);
     this.markDirty();
   }
 
   public updateTask(task: ApiTaskTemplate) {
-    console.log('update task', task);
-    console.log('update task, all', this.getTemplate().tasks);
     let idx: number;
     if (task.id) {
       for (let i = 0; i < this.getTemplate().tasks.length; i++) {
@@ -180,7 +171,6 @@ export class TemplateBuilderService {
     } else {
       // TODO how to map tasks that do not have an id
     }
-    console.log('update task, index', idx);
     if (idx === -1) {
       this.templateSubject.getValue().tasks.push(task);
     } else {

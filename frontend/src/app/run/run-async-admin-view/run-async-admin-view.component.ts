@@ -82,9 +82,6 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
         combineLatest([
           this.evaluationService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
             catchError((err, o) => {
-              console.log(
-                `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
-              );
               this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
               if (err.status === 404) {
                 this.router.navigate(['/template/list']);
@@ -162,7 +159,6 @@ export class RunAsyncAdminViewComponent implements AfterViewInit, OnDestroy {
   }
 
   public submissionsOf(task, property = 'id') {
-    console.log('S of ', task);
     this.runId.subscribe((r) => {
       this.router.navigateByUrl(`evaluation/admin/submissions/${r}/${task[property]}`);
     });

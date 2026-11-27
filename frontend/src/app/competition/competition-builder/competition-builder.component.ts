@@ -223,8 +223,6 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         }
       );
     } else {
-      console.log('Save failed due to validation error:');
-      console.log(this.form.errors);
     }
   }
 

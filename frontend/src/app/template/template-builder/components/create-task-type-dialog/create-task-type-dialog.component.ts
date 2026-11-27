@@ -109,7 +109,6 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
     const parsed = (typeof data === 'string' ? JSON.parse(data) : data) as ApiTaskType;
     this.data = parsed;
     this.init();
-    console.log('Loaded task group: ' + JSON.stringify(parsed));
   };
 
   ngOnInit(): void {
@@ -193,13 +192,11 @@ export class CreateTaskTypeDialogComponent implements OnInit, AfterViewInit {
     /* Load all configuration parameters. */
     for (let configurationKey in this.data?.configuration) {
       const keyParts = configurationKey.split('.');
-      console.log(configurationKey, this?.data.configuration[configurationKey]);
       const param: [string, string, string] = [
         keyParts[0] as ApiSubmissionOption,
         keyParts[1],
         this?.data.configuration[configurationKey],
       ];
-      console.log(param);
       parameters.push(param);
     }
 

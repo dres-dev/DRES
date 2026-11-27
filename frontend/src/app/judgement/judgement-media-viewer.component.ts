@@ -73,11 +73,9 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
   }
 
   private static log(msg: string) {
-    console.log(`[JudgeMedia] ${msg}`);
   }
 
   private static detectType(req: ApiJudgementRequest, index: number): ApiAnswerType {
-    console.log('Detect type: ', index);
     return req?.answerSet?.answers[index]?.type;
   }
 

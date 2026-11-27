@@ -20,7 +20,6 @@ export class AnswerSetComponent {
   public displayedColumns: ['id', 'answers', 'verdict', 'actions'];
 
   update(submission: ApiAnswerSet, value: ApiVerdictStatus) {
-    console.log('Update answerset for ', submission, value);
     submission.status = value;
     this.evaluationService
       .patchApiV2EvaluationAdminByEvaluationIdOverrideByAnswerSetId(this.evaluationId, submission.id, { verdict: value })

@@ -239,7 +239,6 @@ export class TaskTemplateFormBuilder {
 
     /* Set ID of set. */
     data.id = this.form.get('id')?.value ?? null;
-    console.log('FETCH', data);
     return data;
   }
 
@@ -350,7 +349,6 @@ export class TaskTemplateFormBuilder {
         if (this.data?.targets) {
           this.data?.targets?.forEach((d, i) => text.push(this.singleTextTargetForm(d)));
         } else {
-          console.log('no target');
           text.push(this.singleTextTargetForm());
         }
         return new UntypedFormArray(text);
@@ -492,7 +490,6 @@ export class TaskTemplateFormBuilder {
     const textFormControl = new UntypedFormControl(null, [Validators.required]);
     const typeFormControl = new UntypedFormControl(ApiTargetType.TEXT);
 
-    console.log(initialize?.target);
 
     textFormControl.setValue(initialize?.target, { emitEvent: false });
 

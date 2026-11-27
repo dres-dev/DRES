@@ -18,7 +18,6 @@ export class ResolveMediaItemPipe implements PipeTransform {
       this.cachedId = value;
       this.cachedItem = this.mediaService.getApiV2MediaItemByMediaItemId(value);
     }
-    console.log(this.cachedItem);
     return this.cachedItem;
   }
 }

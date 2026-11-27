@@ -153,7 +153,6 @@ export class ScoreboardViewerComponent implements OnInit {
         catchError((err: HttpErrorResponse) => {
           if (err.status != 404) {
             //log anything but 404
-            console.log('Error when retrieving scores.', err);
           }
           return of(null);
         })
@@ -224,7 +223,6 @@ export class ScoreboardViewerComponent implements OnInit {
       'all-scores',
       (evaluationId) => this.scoreService.getApiV2ScoreEvaluationByEvaluationId(evaluationId).pipe(
         catchError((err) => {
-          console.log('Error when retrieving scores.', err);
           return of(null);
         }),
         map((scores) => scores.filter((so) => this.ignoreScores.indexOf(so.name) < 0))

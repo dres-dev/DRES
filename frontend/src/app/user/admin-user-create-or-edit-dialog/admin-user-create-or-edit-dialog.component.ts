@@ -29,11 +29,9 @@ export class AdminUserCreateOrEditDialogComponent {
 
   private init() {
     if (this.isEdit()) {
-      console.log('User.Edit');
       this.form.controls.username.setValue(this.usr.username);
       this.form.controls.role.setValue(this.usr.role);
     } else {
-      console.log('User.Create');
     }
   }
 

@@ -11,7 +11,6 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
   private noConfigWarningSentFlag = false;
 
   constructor(private injector: Injector) {
-    console.log('Interceptor ctor');
   }
 
   private config: IConfig;
@@ -25,7 +24,6 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
         tap({
           next: (event) => {
             if (event instanceof HttpResponse) {
-              console.log('Receiving first config');
               const resp = event as HttpResponse<any>;
               this.config = resp.body as IConfig;
             }
@@ -43,18 +41,14 @@ export class DresBackendUnauthorisedHandlerService implements HttpInterceptor {
       return next.handle(req).pipe(
         catchError((err, caught) => {
           if (err instanceof HttpErrorResponse) {
-            console.log('HTTP Error Response, this', this);
             const e = err as HttpErrorResponse;
             const url = new URL(e.url);
             if (e.status === 401 && url.host.startsWith(this.config.endpoint.host)) {
               const router = this.injector.get<Router>(Router);
-              console.log('401', router);
               if (!router?.url) {
-                console.log('No router url, reload');
                 // somehow we lost the router, lets reload the page
                 //window.location.reload()
               }
-              console.log('Redirecting');
               let rt;
               if (router.url.startsWith('/login')) {
                 rt = router.parseUrl(router.url);

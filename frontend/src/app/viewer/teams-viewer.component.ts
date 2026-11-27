@@ -150,7 +150,6 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         catchError((err: HttpErrorResponse) => {
           if (err.status != 404) {
             //log anything but 404
-            console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
           }
           return of(null);
         }),
@@ -185,7 +184,6 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         catchError((err: HttpErrorResponse) => {
           if (err.status != 404) {
             //log anything but 404
-            console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);
           }
           return of(null);
         }),

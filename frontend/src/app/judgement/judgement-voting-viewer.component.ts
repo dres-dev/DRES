@@ -65,7 +65,6 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
                   this.isJudgmentAvailable = false;
                   this.judgementRequest = null;
                   this.judgePlayer?.stop();
-                  console.log('currently nothing for audience to vote on');
                   return null;
                 } else {
                   const lastRequest = req.body;
@@ -85,8 +84,6 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
                     });
                   }
                 }
-                console.log('[Judgement Voting View] Error in getApiV1RunWithRunidVoteNext: ');
-                console.log(err);
                 return of(null);
               })
             );
@@ -97,8 +94,6 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
         filter((x) => x != null)
       )
       .subscribe((req) => {
-        console.log('[Judgem.View] Received request');
-        console.log(req);
         this.judgementRequest = req;
         this.observableJudgementRequest.next(req);
         this.isJudgmentAvailable = true;

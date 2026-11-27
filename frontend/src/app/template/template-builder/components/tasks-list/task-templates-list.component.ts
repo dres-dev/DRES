@@ -76,7 +76,6 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
   }
 
   public logTasks() {
-    console.log('TRIGGER', this.builderService.getTemplate().tasks);
   }
 
   public addTask(group: ApiTaskGroup) {

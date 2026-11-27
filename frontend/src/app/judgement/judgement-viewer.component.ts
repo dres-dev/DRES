@@ -150,8 +150,6 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                 switchMap(([_, runId]) => {
                     return this.judgementService.getApiV2EvaluationByEvaluationIdJudgeStatus(runId).pipe(
                         catchError((err) => {
-                            console.log('Error in JudgeStatus');
-                            console.log(err);
                             return of(null);
                         }),
                         filter((x) => x !== null)
@@ -198,8 +196,6 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                                         return of(null);
                                     }
                                 }
-                                console.log('[Judgem.View] Error in getJudgeNext: ');
-                                console.log(err);
                                 return of(null);
                             })
                         );
@@ -210,11 +206,8 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                 filter((x) => x != null)
             )
             .subscribe((req) => {
-                console.log('[Judgem.View] Received request');
-                console.log(req);
                 if (this.prevDescHash) {
                     this.isNewJudgementDesc = this.prevDescHash !== this.hashCode(req.taskDescription);
-                    console.log('new: ' + this.isNewJudgementDesc);
                     if (this.isNewJudgementDesc) {
                         this.status = 'fresh';
                         window.scroll(0,0);
@@ -266,8 +259,6 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
               return of(null);
             }
           }
-          console.log('[Judgem.View] Error in judge: ');
-          console.log(err);
           return of(null);
         })
       )

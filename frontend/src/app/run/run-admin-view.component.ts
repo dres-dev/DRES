@@ -103,9 +103,6 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
         combineLatest([
           this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
             catchError((err, o) => {
-              console.log(
-                `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
-              );
               this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
                 duration: 5000,
               });
@@ -146,7 +143,6 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
       switchMap((s) =>
         this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(s.info.id).pipe(
           catchError((err, o) => {
-            console.log(`[RunAdminViewComponent] There was an error while loading the past task list: ${err?.message}`);
             return of(null);
           }),
           filter((pastTasks: Array<ApiTaskTemplateInfo>) => pastTasks != null),
@@ -175,7 +171,6 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
           .getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(s.info.id, s.state.taskTemplateId)
           .pipe(
             catchError((err, o) => {
-              console.log(`[RunAdminViewComponent] There was an error while submissions for the running task: ${err?.message}`);
               return of(null);
             }),
             filter((q) => q != null),
@@ -198,9 +193,6 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
         combineLatest([
           this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
             catchError((err, o) => {
-              console.log(
-                `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
-              );
               this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
                 duration: 5000,
               });
@@ -302,7 +294,6 @@ export class RunAdminViewComponent implements OnInit, OnDestroy {
   }
 
   public submissionsOf(task) {
-    console.log(task);
     this.runId.subscribe((r) => {
       this.router.navigateByUrl(`evaluation/admin/submissions/${r}/${task.templateId}`);
     });

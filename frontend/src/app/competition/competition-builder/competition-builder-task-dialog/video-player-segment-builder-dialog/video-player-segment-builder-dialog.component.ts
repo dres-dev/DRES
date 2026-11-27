@@ -30,7 +30,6 @@ export class VideoPlayerSegmentBuilderDialogComponent implements OnInit {
    * Fetches the data from the form, returns it to the dialog openeer and cloeses this dialog
    */
   save(): void {
-    console.log('save');
     this.dialogRef.close(this.videoPlayer.fetchData());
   }
 
@@ -38,7 +37,6 @@ export class VideoPlayerSegmentBuilderDialogComponent implements OnInit {
    * Closes this dialog without saving
    */
   close(): void {
-    console.log('close');
     this.dialogRef.close(null);
   }
 }

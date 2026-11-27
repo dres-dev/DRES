@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { CombinedRun } from '../../run/run-admin-view.component';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ApiEvaluationState,
@@ -46,10 +46,8 @@ export class TaskControlsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('Show Time: ', this.showTime);
     if (!this.runId) {
       this.runId = this.activatedRoute.params.pipe(
-        tap((a) => console.log('PARAMS:', a)),
         map((a) => {
           if (a.runId.includes(';')) {
             return a.runId.substring(0, a.runId.indexOf(';'));
@@ -57,7 +55,6 @@ export class TaskControlsComponent implements OnInit {
             return a.runId;
           }
         }),
-        tap((runId) => console.log('RUNID: ', runId))
       );
     }
   }

@@ -45,6 +45,5 @@ export class SubmissionsDetailsComponent {
   }
 
   update(element: any, value: any) {
-    console.log('UPDATE', element, value);
   }
 }

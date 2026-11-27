@@ -95,7 +95,6 @@ export class CompetitionBuilderTaskDialogComponent {
       task
     );
     this.form = this.builder.form;
-    console.log('Loaded task: ' + JSON.stringify(task));
   };
 
   /**
@@ -164,9 +163,7 @@ export class CompetitionBuilderTaskDialogComponent {
    * Handler for 'save' button.
    */
   public save() {
-    console.log(this.builder.fetchFormData());
     if (this.form.valid) {
-      console.log('Valid!');
       this.dialogRef.close(this.builder.fetchFormData());
     }
   }
@@ -253,7 +250,6 @@ export class CompetitionBuilderTaskDialogComponent {
       }
     }
 
-    console.log('Start=' + start + ', End=' + end);
     // const config = {
     //     width: '800px', data: {mediaItem, segmentStart: start, segmentEnd: end}
     // } as MatDialogConfig<VideoPlayerSegmentBuilderData>;
@@ -261,7 +257,6 @@ export class CompetitionBuilderTaskDialogComponent {
     /*dialogRef.afterClosed().pipe(
             filter(r => r != null))
             .subscribe((r: TemporalRange) => {
-                console.log(`Finished: ${r}`);
                 startControl.setValue(r.start.value);
                 endControl.setValue(r.end.value);
                 unitControl.setValue(TemporalPoint.UnitEnum.SECONDS);
@@ -279,7 +274,6 @@ export class CompetitionBuilderTaskDialogComponent {
     startControl?.setValue(range.start.value);
     endControl?.setValue(range.end.value);
     unitControl?.setValue(ApiTemporalUnit.SECONDS);
-    console.log('Range updated');
   }
 
   isImageMediaItem(mi: ApiMediaItem): boolean {
@@ -338,17 +332,14 @@ export class CompetitionBuilderTaskDialogComponent {
           items.forEach((item) => {
             // const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
             const form = this.builder.addTargetForm(ApiTargetOption.SINGLE_MEDIA_ITEM); // FIXME only to make compiler happy. obviously this is semantically not appropriate
-            console.log(`Adding new mediaItem as target ${mediaCollectionId}/${item.name}`);
             form.get('mediaItem').setValue(item);
           });
         });
         /*r.forEach((name, idx) => {
                     const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
-                    console.log(`${mediaCollectionId} ? ${name}`);
                     const nameNoExt = name.substring(0, name.lastIndexOf('.'));
                     this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)
                         .subscribe(item => {
-                                console.log(`Added ${item[0]}`);
                                 form.get('mediaItem').setValue(item[0]);
                             }
                         );
@@ -357,9 +348,7 @@ export class CompetitionBuilderTaskDialogComponent {
   }
 
   timeUnitChanged($event, startElementRef: HTMLInputElement, endElementRef: HTMLInputElement) {
-    console.log($event);
     const type = $event.value === 'TIMECODE' ? 'text' : 'number';
-    console.log('New type: ' + type);
     if (startElementRef) {
       startElementRef.type = type;
     }
@@ -387,7 +376,8 @@ export class CompetitionBuilderTaskDialogComponent {
         timeSuffix = `#t=${Math.round(this.form.get('start').value / 1000)},${Math.round(this.form.get('end').value / 1000)}`;
         break;
       case 'TIMECODE':
-        console.log('Not yet supported'); // TODO make it!
+        /* Timecodes are still unsupported; the caller is told rather than silently given a wrong target. */
+        throw new Error('Timecode targets are not supported yet.');
         break;
       default:
         console.error(`The time unit ${this.form.get('time_unit').value} is not supported`);

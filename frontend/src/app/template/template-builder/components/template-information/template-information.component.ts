@@ -78,7 +78,6 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
           }
         });
         const highestUsedCollection = [...buckets.entries()].sort((a, b) => b[1] - a[1])[0];
-        console.log('Highest Used Collections', highestUsedCollection);
         this.builderService.defaultCollection = highestUsedCollection[0];
       }
       if (value.defaultRandomLength) {
@@ -94,8 +93,6 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
   }
 
   private getMostUsedCollection() {
-    console.log('template: ', this.builderService.getTemplate());
-    console.log('nb Tasks: ', this.builderService?.getTemplate()?.tasks?.length);
     if (this.builderService?.getTemplate()?.tasks?.length > 0) {
       const buckets = new Map<string, number>();
       this.builderService.getTemplate().tasks.forEach((t) => {
@@ -107,10 +104,8 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
       });
       const highestUsedCollection = [...buckets.entries()].sort((a, b) => b[1] - a[1])[0];
       this.builderService.defaultCollection = highestUsedCollection[0];
-      console.log('Most used collection: ', highestUsedCollection[0]);
       return highestUsedCollection[0];
     } else {
-      console.log('No most used collection');
       return '';
     }
   }
@@ -122,7 +117,6 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
 
   onChange() {
     if (this.builderService.getTemplate() && this.getTemplateId() === this.builderService.getTemplate().id) {
-      console.log('Change', this.builderService.getTemplate(), this.form, this.initOngoing);
       if (this.form.get('name').value !== this.builderService.getTemplate().name) {
         this.form.get('name').setValue(this.builderService.getTemplate().name, { emitEvent: !this.initOngoing });
       }
